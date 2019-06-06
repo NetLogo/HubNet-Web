@@ -1,13 +1,25 @@
-package org.nlogo.hubnetweb.Controller
+package org.nlogo.hubnetweb
 
+import java.util.UUID
+
+import scala.concurrent.Future
 import scala.io.StdIn
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ ContentTypes, HttpEntity }
+import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, RemoteAddress }
+import akka.http.scaladsl.server.Directives.{ complete, reject }
+import akka.http.scaladsl.server.{ RequestContext, RouteResult, ValidationRejection }
 import akka.stream.ActorMaterializer
 
 object Controller {
+
+  import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+  import spray.json.DefaultJsonProtocol._
+
+  case class LaunchReq(`model-type`: String, model: String, `session-name`: String, password: Option[String])
+
+  implicit val launchReqFormat = jsonFormat4(LaunchReq)
 
   def main(args: Array[String]) {
 
@@ -21,9 +33,11 @@ object Controller {
 
       import akka.http.scaladsl.server.Directives._
 
-      path("")             { getFromFile("html/index.html") } ~
-      pathPrefix("js")     { getFromDirectory("js")         } ~
-      pathPrefix("assets") { getFromDirectory("assets")     }
+      path("")               { getFromFile("html/index.html") } ~
+      path("host")           { getFromFile("html/host.html")  } ~
+      path("launch-session") { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
+      pathPrefix("js")       { getFromDirectory("js")         } ~
+      pathPrefix("assets")   { getFromDirectory("assets")     }
 
     }
 
@@ -35,6 +49,32 @@ object Controller {
     StdIn.readLine()
 
     bindingFuture.flatMap(_.unbind()).onComplete(_ => system.terminate())
+
+  }
+
+  private def handleLaunchReq(req: LaunchReq): RequestContext => Future[RouteResult] = {
+
+    val modelSourceEither =
+      req.`model-type` match {
+        case "library" => Right(req.model)
+        case "upload"  => Right(req.model)
+        case x         => Left(s"Unknown model type: $x")
+      }
+
+    modelSourceEither.fold(
+      (msg) => reject(ValidationRejection(msg))
+    , {
+      modelSource =>
+
+        val uuid = UUID.randomUUID
+
+        val result =
+          SessionManager.createSession(modelSource, req.`session-name`, req.password, uuid).
+            fold(identity _, identity _): String
+
+        complete(uuid.toString)
+
+    })
 
   }
 

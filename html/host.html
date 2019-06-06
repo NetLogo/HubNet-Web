@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link href="/assets/stylesheets/main.css" rel="stylesheet">
+    <script src="/js/host.js"></script>
+  </head>
+  <body>
+    <h1>You're a hoster</h1>
+    <form id="launch-form" action="javascript:void(0);" onsubmit="submitLaunchForm(this)" method="POST">
+      <label>
+        Select a model from the library
+        <input id="is-library-model" name="model-type" type="radio" value="library" onchange="ownModelTypeChange('library')" checked>
+      </label>
+      <label>
+        Upload my own model
+        <input id="is-upload-model" name="model-type" type="radio" value="upload" onchange="ownModelTypeChange('upload')">
+      </label>
+      <select id="library-model" name="library-model" type="chooser">
+        <option>WSP</option>
+        <option>Slime</option>
+        <option>Termites</option>
+      </select>
+      <input id="upload-model" name="upload-model" type="file" style="display: none;">
+      <label>
+        Session Name:
+        <input name="session-name" type="text" pattern="\w.*" required>
+      </label>
+      <label>
+        Password (optional):
+        <input name="password" type="text">
+      </label>
+      <input type="submit" value="Launch">
+    </form>
+  </body>
+</html>
