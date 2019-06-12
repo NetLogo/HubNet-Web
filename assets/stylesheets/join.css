@@ -1,0 +1,15 @@
+.session-label.active {
+  background-color: red;
+}
+
+.session-list-container {
+}
+
+.session-option {
+  display: none;
+}
+
+.session-preview-image {
+  height: 60vh;
+  width:  60vh;
+}

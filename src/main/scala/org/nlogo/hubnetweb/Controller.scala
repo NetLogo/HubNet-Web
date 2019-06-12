@@ -8,9 +8,11 @@ import scala.io.StdIn
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, RemoteAddress }
-import akka.http.scaladsl.server.Directives.{ complete, reject }
+import akka.http.scaladsl.server.Directives.{ complete, extractUpgradeToWebSocket, reject }
 import akka.http.scaladsl.server.{ RequestContext, RouteResult, ValidationRejection }
+import akka.http.scaladsl.model.ws.TextMessage
 import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.{ Sink, Source }
 
 object Controller {
 
@@ -20,11 +22,14 @@ object Controller {
   case class LaunchReq(modelType: String, model: String, modelName: String, sessionName: String, password: Option[String])
   implicit val launchReqFormat = jsonFormat5(LaunchReq)
 
+  case class SessionInfoUpdate(name: String, modelName: String, roleInfo: Seq[(String, Int, Int)], oracleID: String)
+  implicit val siuFormat = jsonFormat4(SessionInfoUpdate)
+
+  implicit val system       = ActorSystem("hnw-system")
+  implicit val materializer = ActorMaterializer()
 
   def main(args: Array[String]) {
 
-    implicit val system           = ActorSystem("hnw-system")
-    implicit val materializer     = ActorMaterializer()
     implicit val executionContext = system.dispatcher
 
     val utf8 = ContentTypes.`text/html(UTF-8)`
@@ -36,6 +41,8 @@ object Controller {
       path("")                  { getFromFile("html/index.html") } ~
       path("host")              { getFromFile("html/host.html")  } ~
       path("launch-session")    { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
+      path("join")              { getFromFile("html/join.html")  } ~
+      path("join-ws")           { extractUpgradeToWebSocket { ws => complete(ws.handleMessagesWithSinkSource(Sink.ignore, joinWSSource)) } } ~
       path("preview" / Segment) { uuid => get { handlePreview(uuid) } } ~
       pathPrefix("js")          { getFromDirectory("js")         } ~
       pathPrefix("assets")      { getFromDirectory("assets")     }
@@ -81,6 +88,19 @@ object Controller {
 
   private def handlePreview(uuid: String): RequestContext => Future[RouteResult] = {
     complete(SessionManager.getPreview(UUID.fromString(uuid)).fold(identity _, identity _): String)
+  }
+
+  private def joinWSSource: Source[TextMessage, _] = {
+    import scala.concurrent.duration.DurationInt
+    Source
+      .tick(0 seconds, 6 seconds, None)
+      .map(_  => SessionManager.getSessions.map(sessionToJsonable).map(x => siuFormat.write(x)).toList.toJson)
+      .map(xs => TextMessage(xs.toString))
+  }
+
+  private def sessionToJsonable(session: SessionInfo): SessionInfoUpdate = {
+    val roleInfo = session.roleInfo.values.map(ri => (ri.name, ri.numInRole, ri.limit.getOrElse(0))).toSeq
+    SessionInfoUpdate(session.name, session.model.name, roleInfo, session.oracle.uuid.toString)
   }
 
 }

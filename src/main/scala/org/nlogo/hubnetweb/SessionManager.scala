@@ -28,6 +28,8 @@ object SessionManager {
 
   def getPreview(uuid: UUID): Either[String, String] = sessionMap.get(uuid).map(_.previewBase64).toRight("Session not found")
 
+  def getSessions: Seq[SessionInfo] = sessionMap.values.toSeq
+
 }
 
 case class Model(name: String, source: String)
