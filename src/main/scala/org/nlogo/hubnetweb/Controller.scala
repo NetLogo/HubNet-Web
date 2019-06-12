@@ -2,7 +2,8 @@ package org.nlogo.hubnetweb
 
 import java.util.UUID
 
-import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.io.StdIn
 
 import akka.actor.ActorSystem
@@ -60,7 +61,7 @@ object Controller {
 
   }
 
-  private def handleLaunchReq(req: LaunchReq): RequestContext => Future[RouteResult] = {
+  private def handleLaunchReq(req: LaunchReq)(implicit ec: ExecutionContext): RequestContext => Future[RouteResult] = {
 
     val modelSourceEither =
       req.modelType match {
@@ -76,8 +77,14 @@ object Controller {
 
         val uuid = UUID.randomUUID
 
+        val scheduleIn = {
+          (d: FiniteDuration, thunk: () => Unit) =>
+            system.scheduler.scheduleOnce(delay = d)(thunk())
+            ()
+        }
+
         val result =
-          SessionManager.createSession(modelSource, req.modelName, req.sessionName, req.password, uuid).
+          SessionManager.createSession( modelSource, req.modelName, req.sessionName, req.password, uuid, scheduleIn).
             fold(identity _, identity _): String
 
         complete(uuid.toString)
