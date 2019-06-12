@@ -8,7 +8,7 @@ import scala.io.Source
 
 object SessionManager {
 
-  private val sessionMap: MMap[String, SessionInfo] = MMap()
+  private val sessionMap: MMap[UUID, SessionInfo] = MMap()
 
   private val exampleImages =
     Seq(
@@ -22,7 +22,7 @@ object SessionManager {
     val anyRoleInfo = RoleInfo("any", 0, None)
     val imageSource = Source.fromFile(s"assets/base64s/${exampleImages(time.toInt % exampleImages.length)}.b64")
     val image       = { val temp = imageSource.mkString; imageSource.close(); temp }
-    sessionMap += name -> SessionInfo(name, password, Map("any" -> anyRoleInfo), new Oracle(uuid), new Model(modelName, modelSource), image, time)
+    sessionMap += uuid -> SessionInfo(name, password, Map("any" -> anyRoleInfo), new Oracle(uuid), new Model(modelName, modelSource), image, time)
     Right(uuid.toString)
   }
 
