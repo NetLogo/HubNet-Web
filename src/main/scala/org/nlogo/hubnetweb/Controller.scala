@@ -33,11 +33,12 @@ object Controller {
 
       import akka.http.scaladsl.server.Directives._
 
-      path("")               { getFromFile("html/index.html") } ~
-      path("host")           { getFromFile("html/host.html")  } ~
-      path("launch-session") { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
-      pathPrefix("js")       { getFromDirectory("js")         } ~
-      pathPrefix("assets")   { getFromDirectory("assets")     }
+      path("")                  { getFromFile("html/index.html") } ~
+      path("host")              { getFromFile("html/host.html")  } ~
+      path("launch-session")    { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
+      path("preview" / Segment) { uuid => get { handlePreview(uuid) } } ~
+      pathPrefix("js")          { getFromDirectory("js")         } ~
+      pathPrefix("assets")      { getFromDirectory("assets")     }
 
     }
 
@@ -76,6 +77,10 @@ object Controller {
 
     })
 
+  }
+
+  private def handlePreview(uuid: String): RequestContext => Future[RouteResult] = {
+    complete(SessionManager.getPreview(UUID.fromString(uuid)).fold(identity _, identity _): String)
   }
 
 }

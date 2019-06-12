@@ -26,6 +26,8 @@ object SessionManager {
     Right(uuid.toString)
   }
 
+  def getPreview(uuid: UUID): Either[String, String] = sessionMap.get(uuid).map(_.previewBase64).toRight("Session not found")
+
 }
 
 case class Model(name: String, source: String)
