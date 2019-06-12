@@ -9,21 +9,21 @@
     <form id="launch-form" action="javascript:void(0);" onsubmit="submitLaunchForm(this)" method="POST">
       <label>
         Select a model from the library
-        <input id="is-library-model" name="model-type" type="radio" value="library" onchange="ownModelTypeChange('library')" checked>
+        <input id="is-library-model" name="modelType" type="radio" value="library" onchange="ownModelTypeChange('library')" checked>
       </label>
       <label>
         Upload my own model
-        <input id="is-upload-model" name="model-type" type="radio" value="upload" onchange="ownModelTypeChange('upload')">
+        <input id="is-upload-model" name="modelType" type="radio" value="upload" onchange="ownModelTypeChange('upload')">
       </label>
-      <select id="library-model" name="library-model" type="chooser">
+      <select id="library-model" name="libraryModel" type="chooser">
         <option>WSP</option>
         <option>Slime</option>
         <option>Termites</option>
       </select>
-      <input id="upload-model" name="upload-model" type="file" style="display: none;">
+      <input id="upload-model" name="uploadModel" type="file" style="display: none;">
       <label>
         Session Name:
-        <input name="session-name" type="text" pattern="\w.*" required>
+        <input name="sessionName" type="text" pattern="\w.*" required>
       </label>
       <label>
         Password (optional):

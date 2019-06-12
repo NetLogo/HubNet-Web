@@ -17,7 +17,7 @@ object Controller {
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import spray.json.DefaultJsonProtocol._
 
-  case class LaunchReq(`model-type`: String, model: String, `session-name`: String, password: Option[String])
+  case class LaunchReq(modelType: String, model: String, sessionName: String, password: Option[String])
 
   implicit val launchReqFormat = jsonFormat4(LaunchReq)
 
@@ -55,7 +55,7 @@ object Controller {
   private def handleLaunchReq(req: LaunchReq): RequestContext => Future[RouteResult] = {
 
     val modelSourceEither =
-      req.`model-type` match {
+      req.modelType match {
         case "library" => Right(req.model)
         case "upload"  => Right(req.model)
         case x         => Left(s"Unknown model type: $x")
@@ -69,7 +69,7 @@ object Controller {
         val uuid = UUID.randomUUID
 
         val result =
-          SessionManager.createSession(modelSource, req.`session-name`, req.password, uuid).
+          SessionManager.createSession(modelSource, req.sessionName, req.password, uuid).
             fold(identity _, identity _): String
 
         complete(uuid.toString)

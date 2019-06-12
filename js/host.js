@@ -18,23 +18,23 @@ window.submitLaunchForm = function(elem) {
   const formData = new FormData(elem);
 
   const formDataPlus =
-    { 'model-type':   formData.get('model-type')
-    , 'session-name': formData.get('session-name')
+    { 'modelType':   formData.get('modelType')
+    , 'sessionName': formData.get('sessionName')
     , 'password':     formData.get('password')
     };
 
   if (formDataPlus.password === "")
     delete formDataPlus.password;
 
-  switch(formDataPlus['model-type']) {
+  switch(formDataPlus['modelType']) {
     case "library":
-      formDataPlus.model = formData.get('library-model');
+      formDataPlus.model = formData.get('libraryModel');
       break;
     case "upload":
-      formDataPlus.model = formData.get('upload-model');
+      formDataPlus.model = formData.get('uploadModel');
       break;
     default:
-      console.warn(`Unknown model source: ${formDataPlus['model-type']}`);
+      console.warn(`Unknown model source: ${formDataPlus['modelType']}`);
   }
 
   new Promise(
