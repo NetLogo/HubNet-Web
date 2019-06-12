@@ -17,9 +17,9 @@ object Controller {
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import spray.json.DefaultJsonProtocol._
 
-  case class LaunchReq(modelType: String, model: String, sessionName: String, password: Option[String])
+  case class LaunchReq(modelType: String, model: String, modelName: String, sessionName: String, password: Option[String])
+  implicit val launchReqFormat = jsonFormat5(LaunchReq)
 
-  implicit val launchReqFormat = jsonFormat4(LaunchReq)
 
   def main(args: Array[String]) {
 
@@ -69,7 +69,7 @@ object Controller {
         val uuid = UUID.randomUUID
 
         val result =
-          SessionManager.createSession(modelSource, req.sessionName, req.password, uuid).
+          SessionManager.createSession(modelSource, req.modelName, req.sessionName, req.password, uuid).
             fold(identity _, identity _): String
 
         complete(uuid.toString)

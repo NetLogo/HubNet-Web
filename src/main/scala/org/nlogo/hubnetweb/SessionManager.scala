@@ -17,18 +17,18 @@ object SessionManager {
     , "uri"
     )
 
-  def createSession(modelSource: String, name: String, password: Option[String], uuid: UUID): Either[String, String] = {
+  def createSession(modelName: String, modelSource: String, name: String, password: Option[String], uuid: UUID): Either[String, String] = {
     val time        = System.currentTimeMillis()
     val anyRoleInfo = RoleInfo("any", 0, None)
     val imageSource = Source.fromFile(s"assets/base64s/${exampleImages(time.toInt % exampleImages.length)}.b64")
     val image       = { val temp = imageSource.mkString; imageSource.close(); temp }
-    sessionMap += name -> SessionInfo(name, password, Map("any" -> anyRoleInfo), new Oracle(uuid), new Model(modelSource), image, time)
+    sessionMap += name -> SessionInfo(name, password, Map("any" -> anyRoleInfo), new Oracle(uuid), new Model(modelName, modelSource), image, time)
     Right(uuid.toString)
   }
 
 }
 
-case class Model(source: String)
+case class Model(name: String, source: String)
 case class Oracle(uuid: UUID)
 case class RoleInfo(name: String, var numInRole: Int, limit: Option[Int])
 

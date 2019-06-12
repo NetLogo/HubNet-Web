@@ -28,10 +28,14 @@ window.submitLaunchForm = function(elem) {
 
   switch(formDataPlus['modelType']) {
     case "library":
-      formDataPlus.model = formData.get('libraryModel');
+      const lm    = formData.get('libraryModel');
+      const index = lm.lastIndexOf('/');
+      formDataPlus.model     = lm
+      formDataPlus.modelName = lm.slice(((index !== -1) ? index : 0) + 1);
       break;
     case "upload":
-      formDataPlus.model = formData.get('uploadModel');
+      formDataPlus.model     = formData.get('uploadModel');
+      formDataPlus.modelName = "Get name from input later";
       break;
     default:
       console.warn(`Unknown model source: ${formDataPlus['modelType']}`);
