@@ -3,7 +3,7 @@ document.getElementById('session-preview-image').src = placeholderB64;
 
 let sessionData = [];
 
-const refreshSelection = function() {
+const refreshSelection = function(oldActiveUUID) {
 
   const container = document.getElementById('session-option-container');
   Array.from(container.querySelectorAll('.session-label')).forEach(
@@ -16,15 +16,42 @@ const refreshSelection = function() {
     }
   );
 
-  const activeElem   = document.querySelector('.active');
-  const activeEntry  = activeElem !== null ? sessionData.find((x) => x.oracleID === activeElem.dataset.uuid) : null;
-  const shouldEnable = activeEntry !== null; // Better criteria later (especially the # of slots open in session) --JAB (6/12/19)
+  const activeElem  = document.querySelector('.active');
+  const activeEntry = activeElem !== null ? sessionData.find((x) => x.oracleID === activeElem.dataset.uuid) : null;
 
-  document.getElementById('join-button').disabled = !shouldEnable;
+  const passwordInput    = document.getElementById('password');
+  passwordInput.disabled = activeEntry !== null ? !activeEntry.hasPassword : true;
+
+  if (activeElem === null || oldActiveUUID !== activeElem.dataset.uuid) {
+    passwordInput.value = '';
+  }
+
+  const roleSelect     = document.getElementById('role-select');
+  roleSelect.disabled  = activeEntry === null;
+  roleSelect.innerHTML = '';
+
+  if (activeEntry !== null) {
+    activeEntry.roleInfo.forEach(
+      ([roleName, current, max]) => {
+        const node        = document.createElement('option');
+        const isUnlimited = max === 0;
+        node.disabled     = !isUnlimited && current >= max;
+        node.innerText    = isUnlimited ? `${roleName} | ${current}` : `${roleName} | ${current}/${max}`;
+        node.value        = roleName;
+        roleSelect.appendChild(node);
+      }
+    );
+  }
+
+  // Better criteria later (especially the # of slots open in session) --JAB (6/12/19)
+  document.getElementById('join-button').disabled = activeEntry === null;
 
 };
 
 const populateSessionList = function(sessions) {
+
+  const activeElem    = document.querySelector('.active');
+  const oldActiveUUID = activeElem !== null ? activeElem.dataset.uuid : null;
 
   const image    = document.getElementById('session-preview-image');
   const template = document.getElementById('session-option-template');
@@ -72,7 +99,7 @@ const populateSessionList = function(sessions) {
   container.innerHTML = "";
   nodes.forEach((node) => container.appendChild(node));
 
-  refreshSelection();
+  refreshSelection(oldActiveUUID);
 
 };
 
@@ -83,7 +110,8 @@ window.filterSessionList = function() {
 };
 
 window.selectSession = function(radioButtonElem) {
-  refreshSelection();
+  const activeElem = document.querySelector('.active');
+  refreshSelection(activeElem !== null ? activeElem.dataset.uuid : null);
 };
 
 window.join = function() {

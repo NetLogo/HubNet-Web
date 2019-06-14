@@ -5,8 +5,30 @@
     <link href="/assets/stylesheets/join.css" rel="stylesheet">
   </head>
   <body>
+
     <div class="flex-row">
-      <img id="session-preview-image" class="session-preview-image" src="" />
+
+      <div class="flex-column">
+        <img id="session-preview-image" class="session-preview-image" src="" />
+        <form id="join-form" action="javascript:void(0);" onsubmit="join(this)" method="POST">
+          <div class="flex-column">
+            <label class="username-label">
+              Username:
+              <input id="username" name="username" type="text">
+            </label>
+            <label class="password-label">
+              Password:
+              <input id="password" name="password" type="password" disabled>
+            </label>
+            <label class="role-label">
+              Role:
+              <select id="role-select" class="role-select" disabled></select>
+            </label>
+            <input id="join-button" type="submit" value="Join" disabled>
+          </div>
+        </form>
+      </div>
+
       <div id="session-list-container" class="flex-column session-list-container">
         <input id="session-filter-box" type="search" placeholder="Filter..." oninput="filterSessionList()">
         <div id="session-option-container" class="flex-column"></div>
@@ -17,8 +39,9 @@
           </label>
         </template>
       </div>
+
     </div>
-    <input id="join-button" type="button" value="Join" onclick="join()" disabled>
+
   </body>
   <script src="/js/join.js"></script>
 </html>

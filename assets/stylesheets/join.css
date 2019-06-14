@@ -1,3 +1,7 @@
+.role-select {
+  width: 80%;
+}
+
 .session-label.active {
   background-color: red;
 }
