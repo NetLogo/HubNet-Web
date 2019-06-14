@@ -23,8 +23,8 @@ object Controller {
   case class LaunchReq(modelType: String, model: String, modelName: String, sessionName: String, password: Option[String])
   implicit val launchReqFormat = jsonFormat5(LaunchReq)
 
-  case class SessionInfoUpdate(name: String, modelName: String, roleInfo: Seq[(String, Int, Int)], oracleID: String)
-  implicit val siuFormat = jsonFormat4(SessionInfoUpdate)
+  case class SessionInfoUpdate(name: String, modelName: String, roleInfo: Seq[(String, Int, Int)], oracleID: String, hasPassword: Boolean)
+  implicit val siuFormat = jsonFormat5(SessionInfoUpdate)
 
   implicit val system       = ActorSystem("hnw-system")
   implicit val materializer = ActorMaterializer()
@@ -107,7 +107,7 @@ object Controller {
 
   private def sessionToJsonable(session: SessionInfo): SessionInfoUpdate = {
     val roleInfo = session.roleInfo.values.map(ri => (ri.name, ri.numInRole, ri.limit.getOrElse(0))).toSeq
-    SessionInfoUpdate(session.name, session.model.name, roleInfo, session.oracle.uuid.toString)
+    SessionInfoUpdate(session.name, session.model.name, roleInfo, session.oracle.uuid.toString, session.password.nonEmpty)
   }
 
 }
