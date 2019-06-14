@@ -118,9 +118,9 @@ window.join = function() {
 
 };
 
-const socket = new WebSocket("ws://localhost:8080/join-ws");
-
-socket.onmessage = function(event) {
+const onSSE = function(event) {
   sessionData = JSON.parse(event.data);
   filterSessionList();
 };
+
+new EventSource('subscribe').addEventListener('message', onSSE, false);

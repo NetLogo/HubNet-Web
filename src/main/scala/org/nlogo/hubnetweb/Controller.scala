@@ -9,9 +9,9 @@ import scala.io.StdIn
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, RemoteAddress }
-import akka.http.scaladsl.server.Directives.{ complete, extractUpgradeToWebSocket, reject }
+import akka.http.scaladsl.server.Directives.{ complete, reject }
 import akka.http.scaladsl.server.{ RequestContext, RouteResult, ValidationRejection }
-import akka.http.scaladsl.model.ws.TextMessage
+import akka.http.scaladsl.model.sse.ServerSentEvent
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Sink, Source }
 
@@ -38,12 +38,13 @@ object Controller {
     val route = {
 
       import akka.http.scaladsl.server.Directives._
+      import akka.http.scaladsl.marshalling.sse.EventStreamMarshalling.toEventStream
 
       path("")                  { getFromFile("html/index.html") } ~
       path("host")              { getFromFile("html/host.html")  } ~
       path("launch-session")    { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
       path("join")              { getFromFile("html/join.html")  } ~
-      path("join-ws")           { extractUpgradeToWebSocket { ws => complete(ws.handleMessagesWithSinkSource(Sink.ignore, joinWSSource)) } } ~
+      path("subscribe")         { get { complete(matchMakingEventStream) } } ~
       path("preview" / Segment) { uuid => get { handlePreview(uuid) } } ~
       pathPrefix("js")          { getFromDirectory("js")         } ~
       pathPrefix("assets")      { getFromDirectory("assets")     }
@@ -97,12 +98,12 @@ object Controller {
     complete(SessionManager.getPreview(UUID.fromString(uuid)).fold(identity _, identity _): String)
   }
 
-  private def joinWSSource: Source[TextMessage, _] = {
+  private def matchMakingEventStream: Source[ServerSentEvent, _] = {
     import scala.concurrent.duration.DurationInt
     Source
       .tick(0 seconds, 6 seconds, None)
       .map(_  => SessionManager.getSessions.map(sessionToJsonable).map(x => siuFormat.write(x)).toList.toJson)
-      .map(xs => TextMessage(xs.toString))
+      .map(xs => ServerSentEvent(xs.toString))
   }
 
   private def sessionToJsonable(session: SessionInfo): SessionInfoUpdate = {
