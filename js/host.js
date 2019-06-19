@@ -31,7 +31,7 @@ window.submitLaunchForm = function(elem) {
       const lm    = formData.get('libraryModel');
       const index = lm.lastIndexOf('/');
       formDataPlus.model     = lm
-      formDataPlus.modelName = lm.slice(((index !== -1) ? index : 0) + 1);
+      formDataPlus.modelName = lm.slice(((index !== -1) ? index + 1 : 0));
       break;
     case "upload":
       formDataPlus.model     = formData.get('uploadModel');
