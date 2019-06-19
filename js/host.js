@@ -71,7 +71,13 @@ window.submitLaunchForm = function(elem) {
   }).then(([formDataLike, response]) => {
 
     if (response.status === 200) {
-      response.text().then(function(body) { console.log(body); });
+      response.text().then(function(body) {
+        const formFrame = document.getElementById("form-frame");
+        const  nlwFrame = document.getElementById( "nlw-frame");
+        formFrame.classList.add(   "hidden");
+        nlwFrame .classList.remove("hidden");
+        console.log(body);
+      });
     } else {
       response.text().then(function(body) { alert(JSON.stringify(body)); });
     }
