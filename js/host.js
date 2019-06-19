@@ -11,7 +11,7 @@ window.ownModelTypeChange = function(mode) {
     default:
       console.warn(`Unknown model source: ${mode}`);
   }
-}
+};
 
 window.submitLaunchForm = function(elem) {
 
@@ -20,13 +20,13 @@ window.submitLaunchForm = function(elem) {
   const formDataPlus =
     { 'modelType':   formData.get('modelType')
     , 'sessionName': formData.get('sessionName')
-    , 'password':     formData.get('password')
+    , 'password':    formData.get('password')
     };
 
   if (formDataPlus.password === "")
     delete formDataPlus.password;
 
-  switch(formDataPlus['modelType']) {
+  switch(formDataPlus.modelType) {
     case "library":
       const lm    = formData.get('libraryModel');
       const index = lm.lastIndexOf('/');
@@ -38,7 +38,7 @@ window.submitLaunchForm = function(elem) {
       formDataPlus.modelName = "Get name from input later";
       break;
     default:
-      console.warn(`Unknown model source: ${formDataPlus['modelType']}`);
+      console.warn(`Unknown model source: ${formDataPlus.modelType}`);
   }
 
   new Promise(
@@ -47,29 +47,28 @@ window.submitLaunchForm = function(elem) {
       if (formDataPlus.model instanceof File) {
         let reader = new FileReader();
         reader.onloadend = function(event) {
-          resolve(event.target);
+          resolve([formDataPlus, event.target]);
         };
         reader.readAsText(formDataPlus.model);
       } else {
-        resolve(formDataPlus.model)
+        resolve([formDataPlus, formDataPlus.model])
       }
 
     }
-  ).then(function(fileEvent) {
-
-    if (fileEvent.result) {
-      formDataPlus.model = fileEvent.result;
-    }
+  ).then(([fdp, fileEvent]) => {
+    const modelUpdate = fileEvent.result !== undefined ? { model: fileEvent.result } : {}
+    return Object.assign({}, fdp, modelUpdate);
+  }).then((fddp) => {
 
     const data =
       { method:  'POST'
       , headers: { 'Content-Type': 'application/json' }
-      , body:    JSON.stringify(formDataPlus)
+      , body:    JSON.stringify(fddp)
       };
 
-    return fetch('/launch-session', data);
+    return fetch('/launch-session', data).then((response) => [fddp, response]);
 
-  }).then(function(response) {
+  }).then(([formDataLike, response]) => {
 
     if (response.status === 200) {
       response.text().then(function(body) { console.log(body); });
