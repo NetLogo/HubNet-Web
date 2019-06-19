@@ -118,9 +118,9 @@ window.join = function() {
 
 };
 
-const onSSE = function(event) {
+const onSubSSE = function(event) {
   sessionData = JSON.parse(event.data);
   filterSessionList();
 };
 
-new EventSource('subscribe').addEventListener('message', onSSE, false);
+new EventSource('/join/session-stream').addEventListener('message', onSubSSE, false);

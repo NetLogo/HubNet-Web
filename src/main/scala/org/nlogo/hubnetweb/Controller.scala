@@ -44,7 +44,7 @@ object Controller {
       path("host")              { getFromFile("html/host.html")  } ~
       path("launch-session")    { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
       path("join")              { getFromFile("html/join.html")  } ~
-      path("subscribe")         { get { complete(matchMakingEventStream) } } ~
+      path("join" / "session-stream") { get { complete(matchMakingEventStream) } } ~
       path("preview" / Segment) { uuid => get { handlePreview(uuid) } } ~
       pathPrefix("js")          { getFromDirectory("js")         } ~
       pathPrefix("assets")      { getFromDirectory("assets")     }
