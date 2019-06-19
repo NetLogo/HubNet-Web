@@ -23,6 +23,9 @@ object Controller {
   case class LaunchReq(modelType: String, model: String, modelName: String, sessionName: String, password: Option[String])
   implicit val launchReqFormat = jsonFormat5(LaunchReq)
 
+  case class LaunchResp(id: String, `type`: String, nlogoMaybe: Option[String])
+  implicit val launchRespFormat = jsonFormat3(LaunchResp)
+
   case class SessionInfoUpdate(name: String, modelName: String, roleInfo: Seq[(String, Int, Int)], oracleID: String, hasPassword: Boolean)
   implicit val siuFormat = jsonFormat5(SessionInfoUpdate)
 
@@ -85,10 +88,18 @@ object Controller {
         }
 
         val result =
-          SessionManager.createSession( modelSource, req.modelName, req.sessionName, req.password, uuid, scheduleIn).
-            fold(identity _, identity _): String
+          SessionManager.createSession( modelSource, req.modelName, req.sessionName, req.password
+                                      , req.rtcDesc, uuid, scheduleIn
+                                      ).merge
 
-        complete(uuid.toString)
+        val (modelType, nlogoOption) =
+          req.modelType match {
+            case "library" => ("from-library", Some(modelSource))
+            case "upload"  => ("from-upload" , None)
+            case _         => ("from-unknown", None)
+          }
+
+        complete(LaunchResp(uuid.toString, modelType, nlogoOption))
 
     })
 
