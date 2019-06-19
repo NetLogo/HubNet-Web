@@ -47,7 +47,7 @@ object Controller {
       path("join" / "session-stream") { get { complete(matchMakingEventStream) } } ~
       path("preview" / Segment) { uuid => get { handlePreview(uuid) } } ~
       pathPrefix("js")          { getFromDirectory("js")         } ~
-      pathPrefix("assets")      { getFromDirectory("assets")     }
+      path("preview" / Segment) { uuid => get { handlePreview(toID(uuid)) } }
 
     }
 
@@ -94,8 +94,8 @@ object Controller {
 
   }
 
-  private def handlePreview(uuid: String): RequestContext => Future[RouteResult] = {
-    complete(SessionManager.getPreview(UUID.fromString(uuid)).fold(identity _, identity _): String)
+  private def handlePreview(uuid: UUID): RequestContext => Future[RouteResult] = {
+    complete(SessionManager.getPreview(uuid).merge)
   }
 
   private def matchMakingEventStream: Source[ServerSentEvent, _] = {
@@ -110,5 +110,7 @@ object Controller {
     val roleInfo = session.roleInfo.values.map(ri => (ri.name, ri.numInRole, ri.limit.getOrElse(0))).toSeq
     SessionInfoUpdate(session.name, session.model.name, roleInfo, session.oracle.uuid.toString, session.password.nonEmpty)
   }
+
+  private def toID(id: String): UUID = UUID.fromString(id)
 
 }
