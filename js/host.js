@@ -1,3 +1,18 @@
+window.localConnection = new RTCPeerConnection()
+const channel = localConnection.createDataChannel("hubnet-web", { negotiated: true, id: 0 });
+
+localConnection.onicecandidate = ({ candidate }) => {};
+
+localConnection.ondatachannel = function(event) {};
+
+channel.onmessage = function(event) {
+  console.log(event.data);
+};
+channel.onopen = function() {};
+channel.onclose = function() {};
+
+localConnection.createOffer().then((offer) => localConnection.setLocalDescription(offer));
+
 window.ownModelTypeChange = function(mode) {
   switch(mode) {
     case "library":
@@ -59,14 +74,16 @@ window.submitLaunchForm = function(elem) {
     const modelUpdate = fileEvent.result !== undefined ? { model: fileEvent.result } : {}
     return Object.assign({}, fdp, modelUpdate);
   }).then((fddp) => {
+    return Object.assign({}, fddp, { rtcDesc: JSON.stringify(localConnection.localDescription.toJSON()) });
+  }).then((fdtp) => {
 
     const data =
       { method:  'POST'
       , headers: { 'Content-Type': 'application/json' }
-      , body:    JSON.stringify(fddp)
+      , body:    JSON.stringify(fdtp)
       };
 
-    return fetch('/launch-session', data).then((response) => [fddp, response]);
+    return fetch('/launch-session', data).then((response) => [fdtp, response]);
 
   }).then(([formDataLike, response]) => {
 
@@ -81,6 +98,31 @@ window.submitLaunchForm = function(elem) {
 
         formFrame.classList.add(   "hidden");
         nlwFrame .classList.remove("hidden");
+
+        localConnection.onicecandidate =
+          ({ candidate }) => {
+
+            if (candidate !== undefined) {
+
+              fetch(`/join/host-ice-stream/${id}`, { method: 'POST', body: candidate.toJSON() })
+
+              const onICESSE = function(event) {
+                const candies = JSON.parse(event.data);
+                candies.forEach((candy) => localConnection.addIceCandidate(JSON.parse(candy)));
+              };
+
+              new EventSource(`/join/joiner-ice-stream/${id}`).addEventListener('message', onICESSE, false);
+
+            }
+
+          }
+
+        const onConnSSE = function(event) {
+          const cxs = JSON.parse(event.data);
+          cxs.forEach((cx) => localConnection.setRemoteDescription(JSON.parse(cx)));
+        };
+
+        new EventSource(`/join/peer-stream/${id}`).addEventListener('message', onConnSSE, false);
 
       });
 

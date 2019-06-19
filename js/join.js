@@ -3,6 +3,8 @@ document.getElementById('session-preview-image').src = placeholderB64;
 
 let sessionData = [];
 
+window.remoteConnection = new RTCPeerConnection()
+
 const refreshSelection = function(oldActiveUUID) {
 
   const container = document.getElementById('session-option-container');
@@ -116,6 +118,48 @@ window.selectSession = function(radioButtonElem) {
 
 window.join = function() {
 
+  const uuid = document.querySelector('.active').dataset.uuid;
+
+  remoteConnection.onicecandidate =
+    ({ candidate }) => {
+
+      if (candidate !== undefined && candidate !== null) {
+
+        fetch(`/join/joiner-ice-stream/${uuid}`, { method: 'POST', body: JSON.stringify(candidate.toJSON()) });
+
+        const onICESSE = function(event) {
+          const candy = JSON.parse(event.data);
+          remoteConnection.addIceCandidate(JSON.parse(candy));
+        };
+
+        new EventSource(`/join/host-ice-stream/${uuid}`).addEventListener('message', onICESSE, false);
+
+      }
+
+    }
+
+  fetch(`/join/host-config/${uuid}`).then((response) => response.text()).then(
+    (rtcJSON) => {
+      const channel = remoteConnection.createDataChannel("hubnet-web", { negotiated: true, id: 0 });
+      remoteConnection.setRemoteDescription(JSON.parse(rtcJSON))
+        .then(()     => remoteConnection.createAnswer())
+        .then(answer => remoteConnection.setLocalDescription(answer))
+        .then(()     => fetch(`/join/peer-stream/${uuid}`, { method: 'POST', body: JSON.stringify(remoteConnection.localDescription) }))
+        .then(()     => {
+          remoteConnection.ondatachannel = function(event) {};
+          channel.onmessage = function(event) {
+            console.log(event.data);
+          };
+          channel.onopen = function() { channel.send('howdy, varmint'); };
+          channel.onclose = function() {};
+        }).catch(onDescCreationError)
+    }
+  );
+
+};
+
+const onDescCreationError = function(e) {
+  console.log(`Offer creation error: ${e.toString()}`);
 };
 
 const onSubSSE = function(event) {

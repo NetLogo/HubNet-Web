@@ -19,14 +19,18 @@ object SessionManager {
     )
 
   def createSession( modelName: String, modelSource: String, name: String, password: Option[String]
-                   , uuid: UUID, scheduleIn: (FiniteDuration, () => Unit) => Unit): Either[String, String] = {
+                   , rtcDesc: String, uuid: UUID, scheduleIn: (FiniteDuration, () => Unit) => Unit
+                   ): Either[String, String] = {
 
     val time        = System.currentTimeMillis()
     val anyRoleInfo = RoleInfo("any", 0, None)
     val imageSource = Source.fromFile(s"assets/base64s/${exampleImages(time.toInt % exampleImages.length)}.b64")
     val image       = { val temp = imageSource.mkString; imageSource.close(); temp }
 
-    sessionMap += uuid -> SessionInfo(name, password, Map("any" -> anyRoleInfo), new Oracle(uuid), new Model(modelName, modelSource), image, time)
+    sessionMap += uuid -> SessionInfo( uuid, name, password, Map("any" -> anyRoleInfo)
+                                     , new ConnectionInfo(rtcDesc, Seq(), None, Seq())
+                                     , new Model(modelName, modelSource), image, time
+                                     )
 
     {
       import scala.concurrent.duration.DurationInt
@@ -41,17 +45,69 @@ object SessionManager {
 
   }
 
-  def getPreview(uuid: UUID): Either[String, String] = sessionMap.get(uuid).map(_.previewBase64).toRight("Session not found")
+  def getOracleICEDesc(uuid: UUID): Either[String, String] =
+    get(uuid)(_.connInfo.oracleICEDescOpt).flatMap(_.toRight("The host has not yet registered their ICE configuration."))
 
-  def getSessions: Seq[SessionInfo] = sessionMap.values.toSeq
+  def getPreview(uuid: UUID): Either[String, String] =
+    get(uuid)(_.previewBase64)
+
+  def getRTCDesc(uuid: UUID): Either[String, String] =
+    get(uuid)(_.connInfo.oracleOffer)
+
+  def getSessions: Seq[SessionInfo] =
+    sessionMap.values.toSeq
+
+  def pullPeerAnswers(uuid: UUID): Either[String, Seq[String]] =
+    pull(uuid)(_.connInfo.peerAnswers)((si) => si.copy(connInfo = si.connInfo.copy(peerAnswers = Seq())))
+
+  def pullPeerICEDescs(uuid: UUID): Either[String, Seq[String]] =
+    pull(uuid)(_.connInfo.peerICEDescs)((si) => si.copy(connInfo = si.connInfo.copy(peerICEDescs = Seq())))
+
+  def pushPeerAnswer(uuid: UUID, answer: String): Unit =
+    push(uuid)(_.connInfo.peerAnswers)(answer)((si, news) => si.copy(connInfo = si.connInfo.copy(peerAnswers = news)))
+
+  def pushPeerICEDesc(uuid: UUID, desc: String): Unit =
+    push(uuid)(_.connInfo.peerICEDescs)(desc)((si, news) => si.copy(connInfo = si.connInfo.copy(peerICEDescs = news)))
+
+  def setOracleICEDesc(uuid: UUID, desc: String): Unit = {
+    get(uuid)(identity)
+      .map((si) => si.copy(connInfo = si.connInfo.copy(oracleICEDescOpt = Option(desc))))
+      .foreach((si) => sessionMap.update(uuid, si))
+  }
+
+  private def get[T](uuid: UUID)(getter: (SessionInfo) => T): Either[String, T] =
+    sessionMap
+      .get(uuid)
+      .map(getter)
+      .toRight("Session not found")
+
+  private def pull[T](uuid: UUID)
+                     (getter: (SessionInfo) => T)
+                     (setter: (SessionInfo) => SessionInfo): Either[String, T] = {
+    val out = get(uuid)(getter)
+    get(uuid)(identity)
+      .map(setter)
+      .foreach((si) => sessionMap.update(uuid, si))
+    out
+  }
+
+  private def push[T](uuid: UUID)
+                     (getter: (SessionInfo) => Seq[T])
+                     (item: T)
+                     (setter: (SessionInfo, Seq[T]) => SessionInfo): Unit = {
+    val olds = get(uuid)(getter).fold(_ => Seq(), identity _)
+    get(uuid)(identity)
+      .map((si) => setter(si, olds :+ item))
+      .foreach((si) => sessionMap.update(uuid, si))
+  }
 
 }
 
 case class Model(name: String, source: String)
-case class Oracle(uuid: UUID)
+case class ConnectionInfo( oracleOffer: String, peerAnswers: Seq[String]
+                         , oracleICEDescOpt: Option[String], peerICEDescs: Seq[String])
 case class RoleInfo(name: String, var numInRole: Int, limit: Option[Int])
 
-case class SessionInfo( name: String, password: Option[String], roleInfo: Map[String, RoleInfo]
-                      , oracle: Oracle, model: Model, previewBase64: String
-                      , lastUsedTimestamp: Long
+case class SessionInfo( uuid: UUID, name: String, password: Option[String], roleInfo: Map[String, RoleInfo]
+                      , connInfo: ConnectionInfo, model: Model, previewBase64: String, lastUsedTimestamp: Long
                       )
