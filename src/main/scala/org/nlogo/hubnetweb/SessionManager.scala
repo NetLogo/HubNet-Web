@@ -19,16 +19,16 @@ object SessionManager {
     )
 
   def createSession( modelName: String, modelSource: String, name: String, password: Option[String]
-                   , rtcDesc: String, uuid: UUID, scheduleIn: (FiniteDuration, () => Unit) => Unit
+                   , uuid: UUID, scheduleIn: (FiniteDuration, () => Unit) => Unit
                    ): Either[String, String] = {
 
     val time        = System.currentTimeMillis()
     val anyRoleInfo = RoleInfo("any", 0, None)
-    val imageSource = Source.fromFile(s"assets/base64s/${exampleImages(time.toInt % exampleImages.length)}.b64")
+    val imageSource = Source.fromFile(s"assets/base64s/${exampleImages(Math.abs(time.toInt) % exampleImages.length)}.b64")
     val image       = { val temp = imageSource.mkString; imageSource.close(); temp }
 
     sessionMap += uuid -> SessionInfo( uuid, name, password, Map("any" -> anyRoleInfo)
-                                     , new ConnectionInfo(rtcDesc, Seq(), None, Seq())
+                                     , new ConnectionInfo(Seq(), Map(), Map())
                                      , new Model(modelName, modelSource), image, time
                                      )
 
@@ -45,41 +45,42 @@ object SessionManager {
 
   }
 
-  def getOracleICEDesc(uuid: UUID): Either[String, String] =
-    get(uuid)(_.connInfo.oracleICEDescOpt).flatMap(_.toRight("The host has not yet registered their ICE configuration."))
-
   def getPreview(uuid: UUID): Either[String, String] =
     get(uuid)(_.previewBase64)
-
-  def getRTCDesc(uuid: UUID): Either[String, String] =
-    get(uuid)(_.connInfo.oracleOffer)
 
   def getSessions: Seq[SessionInfo] =
     sessionMap.values.toSeq
 
-  def pullPeerAnswers(uuid: UUID): Either[String, Seq[String]] =
-    pull(uuid)(_.connInfo.peerAnswers)((si) => si.copy(connInfo = si.connInfo.copy(peerAnswers = Seq())))
+  def pushJoinerID(hostID: UUID, joinerID: UUID): Unit =
+    push(hostID)(_.connInfo.joinerIDs)(joinerID)((si, news) => si.copy(connInfo = si.connInfo.copy(joinerIDs = news)))
 
-  def pullPeerICEDescs(uuid: UUID): Either[String, Seq[String]] =
-    pull(uuid)(_.connInfo.peerICEDescs)((si) => si.copy(connInfo = si.connInfo.copy(peerICEDescs = Seq())))
+  def pullJoinerIDs(hostID: UUID): Either[String, Seq[UUID]] =
+    pull(hostID)(_.connInfo.joinerIDs)((si) => si.copy(connInfo = si.connInfo.copy(joinerIDs = Seq())))
 
-  def pushPeerAnswer(uuid: UUID, answer: String): Unit =
-    push(uuid)(_.connInfo.peerAnswers)(answer)((si, news) => si.copy(connInfo = si.connInfo.copy(peerAnswers = news)))
+  def pushFromHost(hostID: UUID, joinerID: UUID, message: String): Unit =
+    mush(hostID)(_.connInfo.fromHostMap)(joinerID -> message)((si, news) => si.copy(connInfo = si.connInfo.copy(fromHostMap = news)))
 
-  def pushPeerICEDesc(uuid: UUID, desc: String): Unit =
-    push(uuid)(_.connInfo.peerICEDescs)(desc)((si, news) => si.copy(connInfo = si.connInfo.copy(peerICEDescs = news)))
+  def pullFromHost(hostID: UUID, joinerID: UUID): Either[String, Seq[String]] =
+    pullEither(hostID)(_.connInfo.fromHostMap.get(joinerID).toRight(s"No entry for $joinerID"))(
+      (si) => si.copy(connInfo = si.connInfo.copy(fromHostMap = si.connInfo.fromHostMap - joinerID))
+    )
 
-  def setOracleICEDesc(uuid: UUID, desc: String): Unit = {
-    get(uuid)(identity)
-      .map((si) => si.copy(connInfo = si.connInfo.copy(oracleICEDescOpt = Option(desc))))
-      .foreach((si) => sessionMap.update(uuid, si))
-  }
+  def pushFromJoiner(hostID: UUID, joinerID: UUID, message: String): Unit =
+    mush(hostID)(_.connInfo.fromJoinerMap)(joinerID -> message)((si, news) => si.copy(connInfo = si.connInfo.copy(fromJoinerMap = news)))
+
+  def pullFromJoiner(hostID: UUID, joinerID: UUID): Either[String, Seq[String]] =
+    pullEither(hostID)(_.connInfo.fromJoinerMap.get(joinerID).toRight(s"No entry for $joinerID"))(
+      (si) => si.copy(connInfo = si.connInfo.copy(fromJoinerMap = si.connInfo.fromJoinerMap - joinerID))
+    )
 
   private def get[T](uuid: UUID)(getter: (SessionInfo) => T): Either[String, T] =
+    getEither(uuid)(getter andThen Right.apply)
+
+  private def getEither[T](uuid: UUID)(getter: (SessionInfo) => Either[String, T]): Either[String, T] =
     sessionMap
       .get(uuid)
-      .map(getter)
       .toRight("Session not found")
+      .flatMap(getter)
 
   private def pull[T](uuid: UUID)
                      (getter: (SessionInfo) => T)
@@ -89,6 +90,16 @@ object SessionManager {
       .map(setter)
       .foreach((si) => sessionMap.update(uuid, si))
     out
+  }
+
+  private def pullEither[T](uuid: UUID)
+                           (getter: (SessionInfo) => Either[String, T])
+                           (setter: (SessionInfo) => SessionInfo): Either[String, T] = {
+    val outEither = getEither(uuid)(getter)
+    get(uuid)(identity)
+      .map(setter)
+      .foreach((si) => sessionMap.update(uuid, si))
+    outEither
   }
 
   private def push[T](uuid: UUID)
@@ -101,11 +112,20 @@ object SessionManager {
       .foreach((si) => sessionMap.update(uuid, si))
   }
 
+  private def mush[T](uuid: UUID)
+                     (getter: (SessionInfo) => Map[UUID, Seq[T]])
+                     (item: (UUID, T))
+                     (setter: (SessionInfo, Map[UUID, Seq[T]]) => SessionInfo): Unit = {
+    val olds = get(uuid)(getter).fold(_ => Map[UUID, Seq[T]](), identity _)
+    get(uuid)(identity)
+      .map((si) => setter(si, olds + (item._1 -> (olds.getOrElse(item._1, Seq()) ++ Seq(item._2)))))
+      .foreach((si) => sessionMap.update(uuid, si))
+  }
+
 }
 
 case class Model(name: String, source: String)
-case class ConnectionInfo( oracleOffer: String, peerAnswers: Seq[String]
-                         , oracleICEDescOpt: Option[String], peerICEDescs: Seq[String])
+case class ConnectionInfo(joinerIDs: Seq[UUID], fromHostMap: Map[UUID, Seq[String]], fromJoinerMap: Map[UUID, Seq[String]])
 case class RoleInfo(name: String, var numInRole: Int, limit: Option[Int])
 
 case class SessionInfo( uuid: UUID, name: String, password: Option[String], roleInfo: Map[String, RoleInfo]

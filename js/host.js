@@ -1,17 +1,4 @@
-window.localConnection = new RTCPeerConnection()
-const channel = localConnection.createDataChannel("hubnet-web", { negotiated: true, id: 0 });
-
-localConnection.onicecandidate = ({ candidate }) => {};
-
-localConnection.ondatachannel = function(event) {};
-
-channel.onmessage = function(event) {
-  console.log(event.data);
-};
-channel.onopen = function() {};
-channel.onclose = function() {};
-
-localConnection.createOffer().then((offer) => localConnection.setLocalDescription(offer));
+let sessions = {};
 
 window.ownModelTypeChange = function(mode) {
   switch(mode) {
@@ -74,22 +61,20 @@ window.submitLaunchForm = function(elem) {
     const modelUpdate = fileEvent.result !== undefined ? { model: fileEvent.result } : {}
     return Object.assign({}, fdp, modelUpdate);
   }).then((fddp) => {
-    return Object.assign({}, fddp, { rtcDesc: JSON.stringify(localConnection.localDescription.toJSON()) });
-  }).then((fdtp) => {
 
     const data =
       { method:  'POST'
       , headers: { 'Content-Type': 'application/json' }
-      , body:    JSON.stringify(fdtp)
+      , body:    JSON.stringify(fddp)
       };
 
-    return fetch('/launch-session', data).then((response) => [fdtp, response]);
+    return fetch('/launch-session', data).then((response) => [fddp, response]);
 
   }).then(([formDataLike, response]) => {
 
     if (response.status === 200) {
 
-      response.json().then(function({ id, type, nlogoMaybe }) {
+      response.json().then(function({ id: hostID, type, nlogoMaybe }) {
 
         const nlogo = type === "from-library" ? nlogoMaybe : formDataLike.model;
 
@@ -99,30 +84,21 @@ window.submitLaunchForm = function(elem) {
         formFrame.classList.add(   "hidden");
         nlwFrame .classList.remove("hidden");
 
-        localConnection.onicecandidate =
-          ({ candidate }) => {
+        const broadSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}`);
 
-            if (candidate !== undefined) {
-
-              fetch(`/join/host-ice-stream/${id}`, { method: 'POST', body: candidate.toJSON() })
-
-              const onICESSE = function(event) {
-                const candies = JSON.parse(event.data);
-                candies.forEach((candy) => localConnection.addIceCandidate(JSON.parse(candy)));
-              };
-
-              new EventSource(`/join/joiner-ice-stream/${id}`).addEventListener('message', onICESSE, false);
-
-            }
-
+        broadSocket.onmessage = ({ data }) => {
+          const datum = JSON.parse(data);
+          switch (datum.type) {
+            case "hello":
+              const connection   = new RTCPeerConnection(hostConfig);
+              const narrowSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${datum.joinerID}/host`);
+              narrowSocket.addEventListener('message', handleNarrowMessage(connection, datum.joinerID));
+              sessions[datum.joinerID] = { socket: narrowSocket };
+              break;
+            default:
+              console.warn(`Unknown broad event type: ${datum.type}`);
           }
-
-        const onConnSSE = function(event) {
-          const cxs = JSON.parse(event.data);
-          cxs.forEach((cx) => localConnection.setRemoteDescription(JSON.parse(cx)));
         };
-
-        new EventSource(`/join/peer-stream/${id}`).addEventListener('message', onConnSSE, false);
 
       });
 
@@ -133,5 +109,50 @@ window.submitLaunchForm = function(elem) {
   });
 
   return false;
+
+};
+
+const handleNarrowMessage = (connection, joinerID) => ({ data }) => {
+  const datum = JSON.parse(data);
+  switch (datum.type) {
+    case "joiner-offer":
+      processOffer(connection, joinerID)(datum.offer);
+      break;
+    case "joiner-ice-candidate":
+      connection.addIceCandidate(datum.candidate);
+      break;
+    default:
+      console.warn(`Unknown narrow event type: ${datum.type}`);
+  }
+};
+
+const processOffer = (connection, joinerID) => (offer) => {
+
+  const rtcID   = uuidToRTCID(joinerID);
+  const channel = connection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
+  channel.onmessage = (event) => { console.log(`Hi: ${event.data}`); };
+
+  const session = sessions[joinerID];
+
+  session.connection = connection;
+  session.channel    = channel;
+
+  let knownCandies = new Set([]);
+
+  connection.onicecandidate =
+    ({ candidate }) => {
+      if (candidate !== undefined && candidate !== null) {
+        const candy = JSON.stringify(candidate.toJSON());
+        if (!knownCandies.has(candy)) {
+          knownCandies = knownCandies.add(candy);
+          sendObj(session.socket, "host-ice-candidate", { candidate: candidate.toJSON() });
+        }
+      }
+    }
+
+  connection.setRemoteDescription(offer)
+    .then(()     => connection.createAnswer())
+    .then(answer => connection.setLocalDescription(answer))
+    .then(()     => sendObj(session.socket, "host-answer", { answer: connection.localDescription }));
 
 };

@@ -3,7 +3,7 @@ document.getElementById('session-preview-image').src = placeholderB64;
 
 let sessionData = [];
 
-window.remoteConnection = new RTCPeerConnection()
+window.joinerConnection = new RTCPeerConnection(joinerConfig);
 
 const refreshSelection = function(oldActiveUUID) {
 
@@ -118,53 +118,64 @@ window.selectSession = function(radioButtonElem) {
 
 window.join = function() {
 
-  const uuid = document.querySelector('.active').dataset.uuid;
+  const hostID = document.querySelector('.active').dataset.uuid;
 
-  remoteConnection.onicecandidate =
-    ({ candidate }) => {
+  fetch(`/rtc/join/${hostID}`).then((response) => response.text()).then(
+    (joinerID) => {
 
-      if (candidate !== undefined && candidate !== null) {
+      const rtcID    = uuidToRTCID(joinerID);
+      const channel  = joinerConnection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
+      channel.onopen = function() { channel.send(`howdy, from Mr. ${rtcID}`); };
 
-        fetch(`/join/joiner-ice-stream/${uuid}`, { method: 'POST', body: JSON.stringify(candidate.toJSON()) });
-
-        const onICESSE = function(event) {
-          const candy = JSON.parse(event.data);
-          remoteConnection.addIceCandidate(JSON.parse(candy));
-        };
-
-        new EventSource(`/join/host-ice-stream/${uuid}`).addEventListener('message', onICESSE, false);
-
-      }
+      return joinerConnection.createOffer().then((offer) => [joinerID, offer]);
 
     }
+  ).then(
+    ([joinerID, offer]) => {
 
-  fetch(`/join/host-config/${uuid}`).then((response) => response.text()).then(
-    (rtcJSON) => {
-      const channel = remoteConnection.createDataChannel("hubnet-web", { negotiated: true, id: 0 });
-      remoteConnection.setRemoteDescription(JSON.parse(rtcJSON))
-        .then(()     => remoteConnection.createAnswer())
-        .then(answer => remoteConnection.setLocalDescription(answer))
-        .then(()     => fetch(`/join/peer-stream/${uuid}`, { method: 'POST', body: JSON.stringify(remoteConnection.localDescription) }))
-        .then(()     => {
-          remoteConnection.ondatachannel = function(event) {};
-          channel.onmessage = function(event) {
-            console.log(event.data);
-          };
-          channel.onopen = function() { channel.send('howdy, varmint'); };
-          channel.onclose = function() {};
-        }).catch(onDescCreationError)
+      let knownCandies = new Set([]);
+
+      joinerConnection.onicecandidate =
+        ({ candidate }) => {
+          if (candidate !== undefined && candidate !== null) {
+            const candy = JSON.stringify(candidate.toJSON());
+            if (!knownCandies.has(candy)) {
+              knownCandies = knownCandies.add(candy);
+              sendObj(narrowSocket, "joiner-ice-candidate", { candidate: candidate.toJSON() });
+            }
+          }
+        }
+
+      joinerConnection.setLocalDescription(offer);
+
+      const narrowSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/join`);
+
+      narrowSocket.addEventListener('open', () => sendObj(narrowSocket, "joiner-offer", { offer }));
+
+      narrowSocket.addEventListener('message', ({ data }) => {
+        const datum = JSON.parse(data);
+        switch (datum.type) {
+          case "host-answer":
+            if (joinerConnection.remoteDescription === null) {
+              joinerConnection.setRemoteDescription(datum.answer);
+            }
+            break;
+          case "host-ice-candidate":
+            joinerConnection.addIceCandidate(datum.candidate);
+            break;
+          default:
+            console.log(`Unknown message type: ${datum.type}`);
+        };
+      });
+
     }
   );
 
 };
 
-const onDescCreationError = function(e) {
-  console.log(`Offer creation error: ${e.toString()}`);
-};
+const serverListSocket = new WebSocket(`ws://localhost:8080/hnw/session-stream`);
 
-const onSubSSE = function(event) {
-  sessionData = JSON.parse(event.data);
+serverListSocket.addEventListener('message', ({ data }) => {
+  sessionData = JSON.parse(data);
   filterSessionList();
-};
-
-new EventSource('/join/session-stream').addEventListener('message', onSubSSE, false);
+});
