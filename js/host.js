@@ -2,6 +2,8 @@
 
 let sessions = {}; // Object[Session]
 
+let password = null; // String
+
 // (String) => Unit
 window.ownModelTypeChange = function(mode) {
   switch(mode) {
@@ -31,6 +33,8 @@ window.submitLaunchForm = function(elem) {
 
   if (formDataPlus.password === "")
     delete formDataPlus.password;
+  else
+    password = formDataPlus.password;
 
   switch(formDataPlus.modelType) {
     case "library":
@@ -134,9 +138,10 @@ const handleNarrowMessage = (connection, joinerID) => ({ data }) => {
 // (RTCPeerConnection, String) => (RTCSessionDescription) => Unit
 const processOffer = (connection, joinerID) => (offer) => {
 
-  const rtcID   = uuidToRTCID(joinerID);
-  const channel = connection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
-  channel.onmessage = (event) => { console.log(`Hi: ${event.data}`); };
+  const rtcID       = uuidToRTCID(joinerID);
+  const channel     = connection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
+  channel.onmessage = handleChannelMessages(joinerID, channel);
+  channel.onclose   = () => { delete sessions[joinerID]; };
 
   const session = sessions[joinerID];
 
@@ -160,5 +165,37 @@ const processOffer = (connection, joinerID) => (offer) => {
     .then(()     => connection.createAnswer())
     .then(answer => connection.setLocalDescription(answer))
     .then(()     => sendObj(session.socket, "host-answer", { answer: connection.localDescription }));
+
+};
+
+// (String, RTCDataChannel) => (Any) => Unit
+const handleChannelMessages = (joinerID, channel) => ({ data }) => {
+  const datum = JSON.parse(data);
+  switch (datum.type) {
+    case "login":
+      handleLogin(joinerID, channel, datum);
+      break;
+    default:
+      console.warn(`Unknown WebSocket event type: ${datum.type}`);
+  }
+};
+
+// (String, RTCDataChannel, { username :: String, password :: String }) => Unit
+const handleLogin = (joinerID, channel, datum) => {
+
+  sessions[joinerID].socket.close();
+
+  const usernameIsTaken = Object.values(sessions).map((s) => s.username).some((s) => s === datum.username);
+
+  if (!usernameIsTaken) {
+    if (password === null || password === datum.password) {
+      sessions[joinerID].username = datum.username;
+      sendRTC(channel, "login-successful", {});
+    } else {
+      sendRTC(channel, "incorrect-password", {});
+    }
+  } else {
+    sendRTC(channel, "username-already-taken", {});
+  }
 
 };

@@ -23,3 +23,8 @@ const sendObj = function(socket, type, obj) {
     socket.send(JSON.stringify(Object.assign({}, { type }, obj)));
   }
 };
+
+// (RTCDataChannel, String, Any) => Unit
+const sendRTC = function(channel, type, obj) {
+  channel.send(JSON.stringify(Object.assign({}, { type }, obj)));
+};

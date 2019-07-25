@@ -129,15 +129,14 @@ window.join = function() {
   fetch(`/rtc/join/${hostID}`).then((response) => response.text()).then(
     (joinerID) => {
 
-      const rtcID    = uuidToRTCID(joinerID);
-      const channel  = joinerConnection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
-      channel.onopen = function() { channel.send(`howdy, from Mr. ${rtcID}`); };
+      const rtcID   = uuidToRTCID(joinerID);
+      const channel = joinerConnection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
 
-      return joinerConnection.createOffer().then((offer) => [joinerID, offer]);
+      return joinerConnection.createOffer().then((offer) => [joinerID, channel, offer]);
 
     }
   ).then(
-    ([joinerID, offer]) => {
+    ([joinerID, channel, offer]) => {
 
       let knownCandies = new Set([]);
 
@@ -155,6 +154,9 @@ window.join = function() {
       joinerConnection.setLocalDescription(offer);
 
       const narrowSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/join`);
+
+      channel.onopen    = login(channel);
+      channel.onmessage = handleChannelMessages(channel, narrowSocket);
 
       narrowSocket.addEventListener('open', () => sendObj(narrowSocket, "joiner-offer", { offer }));
 
@@ -185,3 +187,29 @@ serverListSocket.addEventListener('message', ({ data }) => {
   sessionData = JSON.parse(data);
   filterSessionList();
 });
+
+// (RTCDataChannel) => (Event) => Unit
+const login = (channel) => (event) => {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  sendRTC(channel, "login", { username, password });
+}
+
+// (RTCDataChannel, WebSocket) => (Any) => Unit
+const handleChannelMessages = (channel, socket) => ({ data }) => {
+  const datum = JSON.parse(data);
+  switch (datum.type) {
+    case "login-successful":
+      socket.close();
+      alert("You're in, pal!");
+      break;
+    case "incorrect-password":
+      alert("Bad password, pal—real bad!");
+      break;
+    case "username-already-taken":
+      alert("It is time to end this great masquerade!");
+      break;
+    default:
+      console.warn(`Unknown WebSocket event type: ${datum.type}`);
+  }
+};
