@@ -111,7 +111,7 @@ window.filterSessionList = function() {
   populateSessionList(filtered);
 };
 
-window.selectSession = function(radioButtonElem) {
+window.selectSession = function() {
   const activeElem = document.querySelector('.active');
   refreshSelection(activeElem !== null ? activeElem.dataset.uuid : null);
 };
