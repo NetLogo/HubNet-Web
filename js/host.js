@@ -92,6 +92,12 @@ window.submitLaunchForm = function(elem) {
         formFrame.classList.add(   "hidden");
         nlwFrame .classList.remove("hidden");
 
+        nlwFrame.querySelector('iframe').contentWindow.postMessage({
+          nlogo,
+          path:  "Mysterious HubNet Web Model.nlogo",
+          type:  "nlw-load-model"
+        }, "*");
+
         const broadSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}`);
 
         broadSocket.onmessage = ({ data }) => {
@@ -100,7 +106,7 @@ window.submitLaunchForm = function(elem) {
             case "hello":
               const connection   = new RTCPeerConnection(hostConfig);
               const narrowSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${datum.joinerID}/host`);
-              narrowSocket.addEventListener('message', handleNarrowMessage(connection, datum.joinerID));
+              narrowSocket.addEventListener('message', handleNarrowMessage(connection, nlogo, datum.joinerID));
               sessions[datum.joinerID] = { socket: narrowSocket };
               break;
             default:
@@ -120,12 +126,12 @@ window.submitLaunchForm = function(elem) {
 
 };
 
-// (RTCPeerConnection, String) => (Any) => Unit
-const handleNarrowMessage = (connection, joinerID) => ({ data }) => {
+// (RTCPeerConnection, String, String) => (Any) => Unit
+const handleNarrowMessage = (connection, nlogo, joinerID) => ({ data }) => {
   const datum = JSON.parse(data);
   switch (datum.type) {
     case "joiner-offer":
-      processOffer(connection, joinerID)(datum.offer);
+      processOffer(connection, nlogo, joinerID)(datum.offer);
       break;
     case "joiner-ice-candidate":
       connection.addIceCandidate(datum.candidate);
@@ -135,12 +141,12 @@ const handleNarrowMessage = (connection, joinerID) => ({ data }) => {
   }
 };
 
-// (RTCPeerConnection, String) => (RTCSessionDescription) => Unit
-const processOffer = (connection, joinerID) => (offer) => {
+// (RTCPeerConnection, String, String) => (RTCSessionDescription) => Unit
+const processOffer = (connection, nlogo, joinerID) => (offer) => {
 
   const rtcID       = uuidToRTCID(joinerID);
   const channel     = connection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
-  channel.onmessage = handleChannelMessages(joinerID, channel);
+  channel.onmessage = handleChannelMessages(channel, nlogo, joinerID);
   channel.onclose   = () => { delete sessions[joinerID]; };
 
   const session = sessions[joinerID];
@@ -168,20 +174,20 @@ const processOffer = (connection, joinerID) => (offer) => {
 
 };
 
-// (String, RTCDataChannel) => (Any) => Unit
-const handleChannelMessages = (joinerID, channel) => ({ data }) => {
+// (RTCDataChannel, String, String) => (Any) => Unit
+const handleChannelMessages = (channel, nlogo, joinerID) => ({ data }) => {
   const datum = JSON.parse(data);
   switch (datum.type) {
     case "login":
-      handleLogin(joinerID, channel, datum);
+      handleLogin(channel, nlogo, datum, joinerID);
       break;
     default:
       console.warn(`Unknown WebSocket event type: ${datum.type}`);
   }
 };
 
-// (String, RTCDataChannel, { username :: String, password :: String }) => Unit
-const handleLogin = (joinerID, channel, datum) => {
+// (RTCDataChannel, String, { username :: String, password :: String }, String) => Unit
+const handleLogin = (channel, nlogo, datum, joinerID) => {
 
   sessions[joinerID].socket.close();
 
@@ -191,6 +197,7 @@ const handleLogin = (joinerID, channel, datum) => {
     if (password === null || password === datum.password) {
       sessions[joinerID].username = datum.username;
       sendRTC(channel, "login-successful", {});
+      sendRTC(channel, "here-have-a-model", { nlogo });
     } else {
       sendRTC(channel, "incorrect-password", {});
     }

@@ -11,3 +11,8 @@
 .hidden {
   display: none;
 }
+
+.nlw-iframe {
+  height: 100%;
+  width:  100%;
+}

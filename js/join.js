@@ -197,19 +197,43 @@ const login = (channel) => (event) => {
 
 // (RTCDataChannel, WebSocket) => (Any) => Unit
 const handleChannelMessages = (channel, socket) => ({ data }) => {
+
   const datum = JSON.parse(data);
+
   switch (datum.type) {
+
     case "login-successful":
       socket.close();
       alert("You're in, pal!");
       break;
+
     case "incorrect-password":
       alert("Bad password, pal—real bad!");
       break;
+
     case "username-already-taken":
       alert("It is time to end this great masquerade!");
       break;
+
+    case "here-have-a-model":
+
+      const formFrame = document.getElementById("server-browser-frame");
+      const  nlwFrame = document.getElementById(           "nlw-frame");
+
+      formFrame.classList.add(   "hidden");
+      nlwFrame .classList.remove("hidden");
+
+      nlwFrame.querySelector('iframe').contentWindow.postMessage({
+        nlogo: datum.nlogo,
+        path:  "Mysterious HubNet Web Model.nlogo",
+        type:  "nlw-load-model"
+      }, "*");
+
+      break;
+
     default:
       console.warn(`Unknown WebSocket event type: ${datum.type}`);
+
   }
+
 };

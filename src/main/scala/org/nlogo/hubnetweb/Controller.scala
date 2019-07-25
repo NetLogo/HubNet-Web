@@ -4,7 +4,7 @@ import java.util.UUID
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.io.StdIn
+import scala.io.{ Source => SISource, StdIn }
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
@@ -75,7 +75,7 @@ object Controller {
 
     val modelSourceEither =
       req.modelType match {
-        case "library" => Right(req.model)
+        case "library" => slurpModelSource(req.model)
         case "upload"  => Right(req.model)
         case x         => Left(s"Unknown model type: $x")
       }
@@ -94,7 +94,7 @@ object Controller {
         }
 
         val result =
-          SessionManager.createSession(modelSource, req.modelName, req.sessionName, req.password, uuid, scheduleIn)
+          SessionManager.createSession(req.modelName, modelSource, req.sessionName, req.password, uuid, scheduleIn)
 
         val (modelType, nlogoOption) =
           req.modelType match {
@@ -223,6 +223,26 @@ object Controller {
         }
 
     sink.merge(source)
+
+  }
+
+  private def slurpModelSource(modelName: String): Either[String, String] = {
+
+    val errorOrPath =
+      modelName match {
+        case "WSP" =>
+          Right("../Galapagos/public/modelslib/Sample Models/Biology/Wolf Sheep Predation.nlogo")
+        case name =>
+          Left(s"Unknown model name: $name")
+      }
+
+    errorOrPath.map {
+      path =>
+        val source = SISource.fromFile(path)
+        val nlogo  = source.mkString
+        source.close()
+        nlogo
+    }
 
   }
 
