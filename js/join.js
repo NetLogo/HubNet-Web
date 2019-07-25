@@ -1,10 +1,12 @@
 const placeholderB64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wYGEwkDoISeKgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAADElEQVQI12NobmwEAAMQAYa2CjzCAAAAAElFTkSuQmCC";
 document.getElementById('session-preview-image').src = placeholderB64;
 
-let sessionData = [];
+// type Session = { modelName :: String, name :: String, oracleID :: String }
+let sessionData = []; // Array[Session]
 
 window.joinerConnection = new RTCPeerConnection(joinerConfig);
 
+// (String) => Unit
 const refreshSelection = function(oldActiveUUID) {
 
   const container = document.getElementById('session-option-container');
@@ -50,6 +52,7 @@ const refreshSelection = function(oldActiveUUID) {
 
 };
 
+// (Array[Session]) => Unit
 const populateSessionList = function(sessions) {
 
   const activeElem    = document.querySelector('.active');
@@ -105,17 +108,20 @@ const populateSessionList = function(sessions) {
 
 };
 
+// () => Unit
 window.filterSessionList = function() {
   const term     = document.getElementById('session-filter-box').value.trim();
   const filtered = term === '' ? sessionData : sessionData.filter(({ name, modelName }) => name.includes(term) || modelName.includes(term));
   populateSessionList(filtered);
 };
 
+// () => Unit
 window.selectSession = function() {
   const activeElem = document.querySelector('.active');
   refreshSelection(activeElem !== null ? activeElem.dataset.uuid : null);
 };
 
+// () => Unit
 window.join = function() {
 
   const hostID = document.querySelector('.active').dataset.uuid;

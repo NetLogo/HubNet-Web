@@ -1,5 +1,8 @@
-let sessions = {};
+// type Session = { connection :: RTCPeerConnection, channel :: RTCDataChannel, socket :: WebSocket, username :: String }
 
+let sessions = {}; // Object[Session]
+
+// (String) => Unit
 window.ownModelTypeChange = function(mode) {
   switch(mode) {
     case "library":
@@ -15,6 +18,7 @@ window.ownModelTypeChange = function(mode) {
   }
 };
 
+// (DOMElement) => Boolean
 window.submitLaunchForm = function(elem) {
 
   const formData = new FormData(elem);
@@ -112,6 +116,7 @@ window.submitLaunchForm = function(elem) {
 
 };
 
+// (RTCPeerConnection, String) => (Any) => Unit
 const handleNarrowMessage = (connection, joinerID) => ({ data }) => {
   const datum = JSON.parse(data);
   switch (datum.type) {
@@ -126,6 +131,7 @@ const handleNarrowMessage = (connection, joinerID) => ({ data }) => {
   }
 };
 
+// (RTCPeerConnection, String) => (RTCSessionDescription) => Unit
 const processOffer = (connection, joinerID) => (offer) => {
 
   const rtcID   = uuidToRTCID(joinerID);
