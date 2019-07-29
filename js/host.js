@@ -92,11 +92,15 @@ window.submitLaunchForm = function(elem) {
         formFrame.classList.add(   "hidden");
         nlwFrame .classList.remove("hidden");
 
-        nlwFrame.querySelector('iframe').contentWindow.postMessage({
+        const babyDearest = nlwFrame.querySelector('iframe').contentWindow;
+
+        babyDearest.postMessage({
           nlogo,
           path:  "Mysterious HubNet Web Model.nlogo",
           type:  "nlw-load-model"
         }, "*");
+
+        babyDearest.postMessage({ type: "nlw-subscribe-to-view-updates" }, "*");
 
         const broadSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}`);
 
@@ -206,3 +210,13 @@ const handleLogin = (channel, nlogo, datum, joinerID) => {
   }
 
 };
+
+window.addEventListener("message", ({ data }) => {
+  switch (data.type) {
+    case "nlw-view-update":
+      Object.values(sessions).forEach(({ channel }) => sendRTC(channel, "here-have-an-update", { update: data.update }));
+      break;
+    default:
+      console.warn(`Unknown postMessage type: ${data.type}`);
+  }
+});

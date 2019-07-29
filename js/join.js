@@ -203,8 +203,17 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
   switch (datum.type) {
 
     case "login-successful":
+
       socket.close();
+
       alert("You're in, pal!");
+
+      const formFrame = document.getElementById("server-browser-frame");
+      const  nlwFrame = document.getElementById(           "nlw-frame");
+
+      formFrame.classList.add(   "hidden");
+      nlwFrame .classList.remove("hidden");
+
       break;
 
     case "incorrect-password":
@@ -217,16 +226,23 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
 
     case "here-have-a-model":
 
-      const formFrame = document.getElementById("server-browser-frame");
-      const  nlwFrame = document.getElementById(           "nlw-frame");
+      debugger;
 
-      formFrame.classList.add(   "hidden");
-      nlwFrame .classList.remove("hidden");
-
-      nlwFrame.querySelector('iframe').contentWindow.postMessage({
+      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
         nlogo: datum.nlogo,
         path:  "Mysterious HubNet Web Model.nlogo",
         type:  "nlw-load-model"
+      }, "*");
+
+      break;
+
+    case "here-have-an-update":
+
+      debugger;
+
+      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
+        update: datum.update,
+        type:   "nlw-apply-update"
       }, "*");
 
       break;
