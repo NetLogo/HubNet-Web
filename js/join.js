@@ -6,6 +6,8 @@ let sessionData = []; // Array[Session]
 
 window.joinerConnection = new RTCPeerConnection(joinerConfig);
 
+const rtcBursts = {} // Object[String]
+
 // (String) => Unit
 const refreshSelection = function(oldActiveUUID) {
 
@@ -224,9 +226,44 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
       alert("It is time to end this great masquerade!");
       break;
 
+    case "rtc-burst-begin":
+    case "rtc-burst-continue":
+    case "rtc-burst-end":
+      manageBurstMessage(channel, socket, datum);
+      break;
+
+    default:
+      console.warn(`Unknown WebSocket event type: ${datum.type}`);
+
+  }
+
+};
+
+// (RTCDataChannel, WebSocket, Any) => Unit
+const manageBurstMessage = (channel, socket, datum) => {
+  switch (datum.type) {
+    case "rtc-burst-begin":
+      rtcBursts[datum.id] = "";
+      break;
+    case "rtc-burst-continue":
+      rtcBursts[datum.id] += datum.parcel;
+      break;
+    case "rtc-burst-end":
+      const fullShipment = JSON.parse(decompress(rtcBursts[datum.id]));
+      delete rtcBursts[datum.id];
+      handleBurstMessage(channel, socket, fullShipment);
+      break;
+    default:
+      console.warn(`Unknown burst event type: ${datum.type}`);
+  }
+};
+
+// (RTCDataChannel, WebSocket, Any) => Unit
+const handleBurstMessage = (channel, socket, datum) => {
+
+  switch (datum.type) {
+
     case "here-have-a-model":
-
-
       document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
         nlogo: datum.nlogo,
         path:  "Mysterious HubNet Web Model.nlogo",
@@ -242,7 +279,7 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
       break;
 
     default:
-      console.warn(`Unknown WebSocket event type: ${datum.type}`);
+      console.warn(`Unknown bursted sub-event type: ${datum.type}`);
 
   }
 

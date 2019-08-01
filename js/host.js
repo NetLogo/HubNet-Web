@@ -201,7 +201,7 @@ const handleLogin = (channel, nlogo, datum, joinerID) => {
     if (password === null || password === datum.password) {
       sessions[joinerID].username = datum.username;
       sendRTC(channel)("login-successful", {});
-      sendRTC(channel)("here-have-a-model", { nlogo });
+      sendRTCBurst(channel)("here-have-a-model", { nlogo });
     } else {
       sendRTC(channel)("incorrect-password", {});
     }
@@ -215,7 +215,7 @@ window.addEventListener("message", ({ data }) => {
   switch (data.type) {
     case "nlw-view-update":
       const channels = Object.values(sessions).map((s) => s.channel)
-      sendRTC(...channels)("here-have-an-update", { update: data.update });
+      sendRTCBurst(...channels)("here-have-an-update", { update: data.update });
       break;
     default:
       console.warn(`Unknown postMessage type: ${data.type}`);
