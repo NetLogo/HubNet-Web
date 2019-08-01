@@ -208,8 +208,6 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
 
       socket.close();
 
-      alert("You're in, pal!");
-
       const formFrame = document.getElementById("server-browser-frame");
       const  nlwFrame = document.getElementById(           "nlw-frame");
 
