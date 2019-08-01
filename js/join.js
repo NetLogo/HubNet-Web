@@ -266,7 +266,7 @@ const handleBurstMessage = (channel, socket, datum) => {
     case "here-have-a-model":
       document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
         nlogo: datum.nlogo,
-        path:  "Mysterious HubNet Web Model.nlogo",
+        path:  datum.sessionName,
         type:  "nlw-load-model"
       }, "*");
       break;
