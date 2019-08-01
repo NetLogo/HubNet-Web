@@ -101,7 +101,7 @@ window.submitLaunchForm = function(elem) {
           type: "nlw-load-model"
         }, "*");
 
-        babyDearest.postMessage({ type: "nlw-subscribe-to-view-updates" }, "*");
+        babyDearest.postMessage({ type: "nlw-subscribe-to-updates" }, "*");
 
         const broadSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}`);
 
@@ -214,7 +214,7 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
 
 window.addEventListener("message", ({ data }) => {
   switch (data.type) {
-    case "nlw-view-update":
+    case "nlw-state-update":
       const channels = Object.values(sessions).map((s) => s.channel)
       sendRTCBurst(...channels)("here-have-an-update", { update: data.update });
       break;
