@@ -67,7 +67,7 @@ window.submitLaunchForm = function(elem) {
     }
   ).then(([fdp, fileEvent]) => {
     const modelUpdate = fileEvent.result !== undefined ? { model: fileEvent.result } : {}
-    return Object.assign({}, fdp, modelUpdate);
+    return { ...fdp, ...modelUpdate };
   }).then((fddp) => {
 
     const data =
@@ -200,13 +200,13 @@ const handleLogin = (channel, nlogo, datum, joinerID) => {
   if (!usernameIsTaken) {
     if (password === null || password === datum.password) {
       sessions[joinerID].username = datum.username;
-      sendRTC(channel, "login-successful", {});
-      sendRTC(channel, "here-have-a-model", { nlogo });
+      sendRTC(channel)("login-successful", {});
+      sendRTC(channel)("here-have-a-model", { nlogo });
     } else {
-      sendRTC(channel, "incorrect-password", {});
+      sendRTC(channel)("incorrect-password", {});
     }
   } else {
-    sendRTC(channel, "username-already-taken", {});
+    sendRTC(channel)("username-already-taken", {});
   }
 
 };
@@ -214,7 +214,8 @@ const handleLogin = (channel, nlogo, datum, joinerID) => {
 window.addEventListener("message", ({ data }) => {
   switch (data.type) {
     case "nlw-view-update":
-      Object.values(sessions).forEach(({ channel }) => sendRTC(channel, "here-have-an-update", { update: data.update }));
+      const channels = Object.values(sessions).map((s) => s.channel)
+      sendRTC(...channels)("here-have-an-update", { update: data.update });
       break;
     default:
       console.warn(`Unknown postMessage type: ${data.type}`);

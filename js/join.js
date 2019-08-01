@@ -192,7 +192,7 @@ serverListSocket.addEventListener('message', ({ data }) => {
 const login = (channel) => (event) => {
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
-  sendRTC(channel, "login", { username, password });
+  sendRTC(channel)("login", { username, password });
 }
 
 // (RTCDataChannel, WebSocket) => (Any) => Unit
@@ -226,25 +226,19 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
 
     case "here-have-a-model":
 
-      debugger;
 
       document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
         nlogo: datum.nlogo,
         path:  "Mysterious HubNet Web Model.nlogo",
         type:  "nlw-load-model"
       }, "*");
-
       break;
 
     case "here-have-an-update":
-
-      debugger;
-
       document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
         update: datum.update,
         type:   "nlw-apply-update"
       }, "*");
-
       break;
 
     default:
