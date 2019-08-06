@@ -112,8 +112,9 @@ const populateSessionList = function(sessions) {
 
 // () => Unit
 window.filterSessionList = function() {
-  const term     = document.getElementById('session-filter-box').value.trim();
-  const filtered = term === '' ? sessionData : sessionData.filter(({ name, modelName }) => name.includes(term) || modelName.includes(term));
+  const term     = document.getElementById('session-filter-box').value.trim().toLowerCase();
+  const checkIt  = ({ name, modelName }) => name.toLowerCase().includes(term) || modelName.toLowerCase().includes(term);
+  const filtered = term === '' ? sessionData : sessionData.filter(checkIt);
   populateSessionList(filtered);
 };
 
