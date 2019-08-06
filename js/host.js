@@ -213,12 +213,18 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
 };
 
 window.addEventListener("message", ({ data }) => {
+
+  const broadcast = (type, message) => {
+    const channels = Object.values(sessions).map((s) => s.channel)
+    sendRTCBurst(...channels)(type, message);
+  }
+
   switch (data.type) {
     case "nlw-state-update":
-      const channels = Object.values(sessions).map((s) => s.channel)
-      sendRTCBurst(...channels)("here-have-an-update", { update: data.update });
+      broadcast("here-have-an-update", { update: data.update });
       break;
     default:
       console.warn(`Unknown postMessage type: ${data.type}`);
   }
+
 });
