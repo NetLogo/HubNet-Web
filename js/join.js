@@ -63,7 +63,7 @@ const populateSessionList = function(sessions) {
   const image    = document.getElementById('session-preview-image');
   const template = document.getElementById('session-option-template');
 
-  const nodes = sessions.map(
+  const nodes = sessions.sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1).map(
     (session) => {
 
       const node = template.content.cloneNode(true);
