@@ -45,7 +45,7 @@ window.submitLaunchForm = function(elem) {
       break;
     case "upload":
       formDataPlus.model     = formData.get('uploadModel');
-      formDataPlus.modelName = "Get name from input later";
+      formDataPlus.modelName = extractModelName(elem.querySelector('#upload-model').value);
       break;
     default:
       console.warn(`Unknown model source: ${formDataPlus.modelType}`);
@@ -228,3 +228,6 @@ window.addEventListener("message", ({ data }) => {
   }
 
 });
+
+// (String) => String
+const extractModelName = (path) => (/(?:.*[/\\])?(.*)/).exec(path)[1].replace(/\.nlogo$/, "");
