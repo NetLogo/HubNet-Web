@@ -4,6 +4,13 @@ let sessions = {}; // Object[Session]
 
 let password = null; // String
 
+fetch("/available-models").then((x) => x.json()).then((modelNames) => {
+  const chooser = document.getElementById("library-model");
+  chooser.disabled = false;
+  chooser.options.remove(0);
+  modelNames.forEach((name) => chooser.options.add(new Option(name)));
+});
+
 // (String) => Unit
 window.ownModelTypeChange = function(mode) {
   switch(mode) {

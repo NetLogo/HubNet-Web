@@ -1,5 +1,6 @@
 package org.nlogo.hubnetweb
 
+import java.nio.file.{ Files, Path, Paths }
 import java.util.UUID
 
 import scala.concurrent.duration.FiniteDuration
@@ -16,7 +17,7 @@ import akka.http.scaladsl.model.ws.{ BinaryMessage, Message, TextMessage }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Flow, Sink, Source }
 
-import spray.json.{ JsObject, JsString }
+import spray.json.{ JsArray, JsObject, JsString }
 
 object Controller {
 
@@ -36,6 +37,8 @@ object Controller {
   implicit val materializer     = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
+  private val namesToPaths = makeModelMappings()
+
   def main(args: Array[String]) {
 
     val utf8 = ContentTypes.`text/html(UTF-8)`
@@ -45,10 +48,11 @@ object Controller {
       import akka.http.scaladsl.server.Directives._
       import akka.http.scaladsl.marshalling.sse.EventStreamMarshalling.toEventStream
 
-      path("")                { getFromFile("html/index.html") } ~
-      path("host")            { getFromFile("html/host.html")  } ~
-      path("launch-session")  { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
-      path("join")            { getFromFile("html/join.html")  } ~
+      path("")                 { getFromFile("html/index.html") } ~
+      path("host")             { getFromFile("html/host.html")  } ~
+      path("launch-session")   { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
+      path("join")             { getFromFile("html/join.html")  } ~
+      path("available-models") { get { complete(availableModels) } } ~
       path("rtc" / "join" / Segment)           { (hostID)           => get { startJoin(toID(hostID)) } } ~
       path("rtc" / Segment / Segment / "host") { (hostID, joinerID) => handleWebSocketMessages(rtcHost(toID(hostID), toID(joinerID))) } ~
       path("rtc" / Segment / Segment / "join") { (hostID, joinerID) => handleWebSocketMessages(rtcJoiner(toID(hostID), toID(joinerID))) } ~
@@ -226,24 +230,27 @@ object Controller {
 
   }
 
-  private def slurpModelSource(modelName: String): Either[String, String] = {
+  private def slurpModelSource(modelName: String): Either[String, String] =
+    namesToPaths
+      .get(modelName)
+      .map {
+        path =>
+          val source = SISource.fromURI(path.toUri)
+          val nlogo  = source.mkString
+          source.close()
+          nlogo
+      }.toRight(s"Unknown model name: $modelName")
 
-    val errorOrPath =
-      modelName match {
-        case "WSP" =>
-          Right("../Galapagos/public/modelslib/Sample Models/Biology/Wolf Sheep Predation.nlogo")
-        case name =>
-          Left(s"Unknown model name: $name")
-      }
+  private def makeModelMappings(): Map[String, Path] = {
+    import scala.collection.JavaConverters.asScalaIteratorConverter
+    val path  = Paths.get("./models/")
+    val paths = Files.walk(path).filter(_.getFileName.toString.endsWith(".nlogo")).iterator.asScala.toSeq
+    paths.map(x => (x.getFileName.toString.stripSuffix(" HubNet.nlogo"), x)).toMap
+  }
 
-    errorOrPath.map {
-      path =>
-        val source = SISource.fromFile(path)
-        val nlogo  = source.mkString
-        source.close()
-        nlogo
-    }
-
+  private lazy val availableModels = {
+    val modelNames = namesToPaths.keys.map(JsString.apply).toSeq
+    JsArray(modelNames: _*)
   }
 
   private def toID(id: String): UUID = UUID.fromString(id)

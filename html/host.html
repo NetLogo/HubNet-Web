@@ -20,10 +20,8 @@
           Upload my own model
           <input id="is-upload-model" name="modelType" type="radio" value="upload" onchange="ownModelTypeChange('upload')">
         </label>
-        <select id="library-model" name="libraryModel" type="chooser">
-          <option>WSP</option>
-          <option>Slime</option>
-          <option>Termites</option>
+        <select id="library-model" name="libraryModel" type="chooser" disabled>
+          <option>Loading...</option>
         </select>
         <input id="upload-model" name="uploadModel" type="file" style="display: none;">
         <label>
