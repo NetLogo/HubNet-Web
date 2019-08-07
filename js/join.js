@@ -9,7 +9,7 @@ window.joinerConnection = new RTCPeerConnection(joinerConfig);
 const rtcBursts = {} // Object[String]
 
 // (String) => Unit
-const refreshSelection = function(oldActiveUUID) {
+const refreshSelection = (oldActiveUUID) => {
 
   const container = document.getElementById('session-option-container');
   Array.from(container.querySelectorAll('.session-label')).forEach(
@@ -55,7 +55,7 @@ const refreshSelection = function(oldActiveUUID) {
 };
 
 // (Array[Session]) => Unit
-const populateSessionList = function(sessions) {
+const populateSessionList = (sessions) => {
 
   const activeElem    = document.querySelector('.active');
   const oldActiveUUID = activeElem !== null ? activeElem.dataset.uuid : null;
@@ -72,13 +72,11 @@ const populateSessionList = function(sessions) {
       node.querySelector(".session-info").textContent       = `${session.roleInfo[0][1]} people`;
       node.querySelector(".session-label").dataset.uuid     = session.oracleID;
       node.querySelector(".session-option").onchange =
-        function(event) {
+        (event) => {
           if (event.target.checked) {
             event.target.parentNode.classList.add("active");
-            fetch(`/preview/${session.oracleID}`).then(function(response) {
-              response.text().then(function(base64) {
-                image.src = base64;
-              })
+            fetch(`/preview/${session.oracleID}`).then((response) => {
+              response.text().then((base64) => { image.src = base64; })
             });
           } else {
             node.querySelector(".session-label").classList.remove("active");
@@ -111,7 +109,7 @@ const populateSessionList = function(sessions) {
 };
 
 // () => Unit
-window.filterSessionList = function() {
+window.filterSessionList = () => {
   const term     = document.getElementById('session-filter-box').value.trim().toLowerCase();
   const checkIt  = ({ name, modelName }) => name.toLowerCase().includes(term) || modelName.toLowerCase().includes(term);
   const filtered = term === '' ? sessionData : sessionData.filter(checkIt);
@@ -119,24 +117,20 @@ window.filterSessionList = function() {
 };
 
 // () => Unit
-window.selectSession = function() {
+window.selectSession = () => {
   const activeElem = document.querySelector('.active');
   refreshSelection(activeElem !== null ? activeElem.dataset.uuid : null);
 };
 
 // () => Unit
-window.join = function() {
-
+window.join = () => {
   const hostID = document.querySelector('.active').dataset.uuid;
 
   fetch(`/rtc/join/${hostID}`).then((response) => response.text()).then(
     (joinerID) => {
-
       const rtcID   = uuidToRTCID(joinerID);
       const channel = joinerConnection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
-
       return joinerConnection.createOffer().then((offer) => [joinerID, channel, offer]);
-
     }
   ).then(
     ([joinerID, channel, offer]) => {
