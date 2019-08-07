@@ -135,6 +135,10 @@ window.submitLaunchForm = (elem) => {
           sendObj(statusSocket, "members-update", { numPeers });
         }, 1000);
 
+        setInterval(() => {
+          babyDearest.postMessage({ type: "nlw-request-view" }, "*");
+        }, 8000);
+
       });
 
     } else {
@@ -251,6 +255,9 @@ window.addEventListener("message", ({ data }) => {
   switch (data.type) {
     case "nlw-state-update":
       broadcast("here-have-an-update", { update: data.update });
+      break;
+    case "nlw-view":
+      sendObj(statusSocket, "image-update", { base64: data.base64 });
       break;
     default:
       console.warn(`Unknown postMessage type: ${data.type}`);

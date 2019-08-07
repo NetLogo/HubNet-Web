@@ -245,6 +245,9 @@ object Controller {
                 case JsString("members-update") =>
                   val JsNumber(num) = parsed.fields("numPeers")
                   SessionManager.updateNumPeers(hostID, num.toInt)
+                case JsString("image-update") =>
+                  val JsString(str) = parsed.fields("base64")
+                  SessionManager.updatePreview(hostID, str)
                 case _ =>
                   ()
               }
