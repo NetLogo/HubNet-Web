@@ -159,7 +159,7 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
   const rtcID       = uuidToRTCID(joinerID);
   const channel     = connection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
   channel.onmessage = handleChannelMessages(channel, nlogo, sessionName, joinerID);
-  channel.onclose   = () => { delete sessions[joinerID]; };
+  channel.onclose   = () => { cleanupSession(joinerID); };
 
   const session = sessions[joinerID];
 
@@ -178,6 +178,12 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
         }
       }
     }
+
+  connection.oniceconnectionstatechange = () => {
+    if (connection.iceConnectionState == "disconnected") {
+      cleanupSession(joinerID);
+    }
+  };
 
   connection.setRemoteDescription(offer)
     .then(()     => connection.createAnswer())
@@ -218,6 +224,11 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
   }
 
 };
+
+// (String) => Unit
+const cleanupSession = (joinerID) => {
+  delete sessions[joinerID];
+}
 
 window.addEventListener("message", ({ data }) => {
 
