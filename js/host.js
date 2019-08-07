@@ -12,7 +12,7 @@ fetch("/available-models").then((x) => x.json()).then((modelNames) => {
 });
 
 // (String) => Unit
-window.ownModelTypeChange = function(mode) {
+window.ownModelTypeChange = (mode) => {
   switch(mode) {
     case "library":
       document.getElementById("library-model").style.display = "";
@@ -28,7 +28,7 @@ window.ownModelTypeChange = function(mode) {
 };
 
 // (DOMElement) => Boolean
-window.submitLaunchForm = function(elem) {
+window.submitLaunchForm = (elem) => {
 
   const formData = new FormData(elem);
 
@@ -59,11 +59,11 @@ window.submitLaunchForm = function(elem) {
   }
 
   new Promise(
-    function(resolve, reject) {
+    (resolve, reject) => {
 
       if (formDataPlus.model instanceof File) {
         let reader = new FileReader();
-        reader.onloadend = function(event) {
+        reader.onloadend = (event) => {
           resolve([formDataPlus, event.target]);
         };
         reader.readAsText(formDataPlus.model);
@@ -89,7 +89,7 @@ window.submitLaunchForm = function(elem) {
 
     if (response.status === 200) {
 
-      response.json().then(function({ id: hostID, type, nlogoMaybe }) {
+      response.json().then(({ id: hostID, type, nlogoMaybe }) => {
 
         const nlogo       = type === "from-library" ? nlogoMaybe : formDataLike.model;
         const sessionName = formDataLike.sessionName;
@@ -129,7 +129,7 @@ window.submitLaunchForm = function(elem) {
       });
 
     } else {
-      response.text().then(function(body) { alert(JSON.stringify(body)); });
+      response.text().then((body) => { alert(JSON.stringify(body)); });
     }
 
   });
