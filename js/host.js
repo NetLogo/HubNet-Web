@@ -209,7 +209,9 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
 
   sessions[joinerID].socket.close();
 
-  const usernameIsTaken = Object.values(sessions).map((s) => s.username).some((s) => s === datum.username);
+  const joinerUsername  = datum.username.toLowerCase();
+  const relevantSeshes  = Object.entries(sessions).filter(([k, v]) => k !== joinerID).map(([k, v]) => v);
+  const usernameIsTaken = relevantSeshes.some((s) => s.username.toLowerCase() === joinerUsername);
 
   if (!usernameIsTaken) {
     if (password === null || password === datum.password) {
