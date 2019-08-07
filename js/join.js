@@ -152,7 +152,7 @@ window.join = () => {
 
       const narrowSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/join`);
 
-      channel.onopen    = login(channel);
+      channel.onopen    = () => login(channel);
       channel.onmessage = handleChannelMessages(channel, narrowSocket);
 
       narrowSocket.addEventListener('open', () => sendObj(narrowSocket, "joiner-offer", { offer }));
@@ -185,8 +185,8 @@ serverListSocket.addEventListener('message', ({ data }) => {
   filterSessionList();
 });
 
-// (RTCDataChannel) => (Event) => Unit
-const login = (channel) => (event) => {
+// (RTCDataChannel) => Unit
+const login = (channel) => {
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
   sendRTC(channel)("login", { username, password });
