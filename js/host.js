@@ -4,6 +4,8 @@ let sessions = {}; // Object[Session]
 
 let password = null; // String
 
+let statusSocket = null; // WebSocket
+
 fetch("/available-models").then((x) => x.json()).then((modelNames) => {
   const chooser = document.getElementById("library-model");
   chooser.disabled = false;
@@ -125,6 +127,13 @@ window.submitLaunchForm = (elem) => {
               console.warn(`Unknown broad event type: ${datum.type}`);
           }
         };
+
+        statusSocket = new WebSocket(`ws://localhost:8080/hnw/my-status/${hostID}`);
+
+        setInterval(() => {
+          const numPeers = Object.values(sessions).filter((s) => s.username !== undefined).length;
+          sendObj(statusSocket, "members-update", { numPeers });
+        }, 1000);
 
       });
 

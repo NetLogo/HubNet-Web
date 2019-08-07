@@ -45,6 +45,9 @@ object SessionManager {
 
   }
 
+  def updateNumPeers(hostID: UUID, numPeers: Int): Unit =
+    sessionMap(hostID).roleInfo("any").numInRole = numPeers
+
   def getPreview(uuid: UUID): Either[String, String] =
     get(uuid)(_.previewBase64)
 

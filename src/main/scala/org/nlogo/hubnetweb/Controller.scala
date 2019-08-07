@@ -17,7 +17,7 @@ import akka.http.scaladsl.model.ws.{ BinaryMessage, Message, TextMessage }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Flow, Sink, Source }
 
-import spray.json.{ JsArray, JsObject, JsString }
+import spray.json.{ JsArray, JsNumber, JsObject, JsonParser, JsString }
 
 object Controller {
 
@@ -58,6 +58,7 @@ object Controller {
       path("rtc" / Segment / Segment / "join") { (hostID, joinerID) => handleWebSocketMessages(rtcJoiner(toID(hostID), toID(joinerID))) } ~
       path("rtc" / Segment)                    { (hostID)           => handleWebSocketMessages(rtc(toID(hostID))) } ~
       path("hnw" / "session-stream") { handleWebSocketMessages(sessionStream) } ~
+      path("hnw" / "my-status" / Segment) { (hostID) => handleWebSocketMessages(sessionStatus(toID(hostID))) } ~
       path("preview" / Segment)      { uuid => get { handlePreview(toID(uuid)) } } ~
       pathPrefix("js")               { getFromDirectory("js")         } ~
       pathPrefix("assets")           { getFromDirectory("assets")     }
@@ -227,6 +228,32 @@ object Controller {
         }
 
     sink.merge(source)
+
+  }
+
+  private def sessionStatus(hostID: UUID): Flow[Message, Message, Any] = {
+
+    import scala.concurrent.duration.DurationDouble
+
+    Flow[Message]
+      .mapConcat {
+        case text: TextMessage =>
+          text.toStrict(0.1 seconds).foreach {
+            json =>
+              val parsed = JsonParser(json.getStrictText).asInstanceOf[JsObject]
+              parsed.fields("type") match {
+                case JsString("members-update") =>
+                  val JsNumber(num) = parsed.fields("numPeers")
+                  SessionManager.updateNumPeers(hostID, num.toInt)
+                case _ =>
+                  ()
+              }
+          }
+          Nil
+        case binary: BinaryMessage =>
+          binary.dataStream.runWith(Sink.ignore)
+          Nil
+      }
 
   }
 
