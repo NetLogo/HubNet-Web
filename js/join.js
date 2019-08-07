@@ -4,6 +4,8 @@ document.getElementById('session-preview-image').src = placeholderB64;
 // type Session = { modelName :: String, name :: String, oracleID :: String }
 let sessionData = []; // Array[Session]
 
+let channels = {}; // Object[RTCDataChannel]
+
 window.joinerConnection = new RTCPeerConnection(joinerConfig);
 
 const rtcBursts = {} // Object[String]
@@ -125,6 +127,14 @@ window.selectSession = () => {
 // () => Unit
 window.join = () => {
   const hostID = document.querySelector('.active').dataset.uuid;
+  if (channels[hostID] === undefined)
+    joinAnew(hostID);
+  else
+    login(channels[hostID]);
+};
+
+// (String) => Unit
+const joinAnew = (hostID) => {
 
   fetch(`/rtc/join/${hostID}`).then((response) => response.text()).then(
     (joinerID) => {
@@ -151,6 +161,8 @@ window.join = () => {
       joinerConnection.setLocalDescription(offer);
 
       const narrowSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/join`);
+
+      channels[hostID] = channel;
 
       channel.onopen    = () => login(channel);
       channel.onmessage = handleChannelMessages(channel, narrowSocket);
