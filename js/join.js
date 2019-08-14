@@ -62,7 +62,6 @@ const populateSessionList = (sessions) => {
   const activeElem    = document.querySelector('.active');
   const oldActiveUUID = activeElem !== null ? activeElem.dataset.uuid : null;
 
-  const image    = document.getElementById('session-preview-image');
   const template = document.getElementById('session-option-template');
 
   const nodes = sessions.sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1).map(
@@ -77,9 +76,7 @@ const populateSessionList = (sessions) => {
         (event) => {
           if (event.target.checked) {
             event.target.parentNode.classList.add("active");
-            fetch(`/preview/${session.oracleID}`).then((response) => {
-              response.text().then((base64) => { image.src = base64; })
-            });
+            refreshImage(session.oracleID);
           } else {
             node.querySelector(".session-label").classList.remove("active");
           }
@@ -98,6 +95,7 @@ const populateSessionList = (sessions) => {
     const match = nodes.find((node) => node.querySelector('.session-label').dataset.uuid === selected.dataset.uuid)
     if (match !== undefined) {
       match.querySelector('.session-option').checked = true;
+      refreshImage(selected.dataset.uuid);
     } else {
       document.getElementById('session-preview-image').src = placeholderB64;
     }
@@ -288,6 +286,14 @@ const handleBurstMessage = (channel, socket, datum) => {
 
   }
 
+};
+
+// (String) => Unit
+const refreshImage = (oracleID) => {
+  const image = document.getElementById('session-preview-image');
+  fetch(`/preview/${oracleID}`).then((response) => {
+    response.text().then((base64) => { image.src = base64; })
+  });
 };
 
 // () => Unit
