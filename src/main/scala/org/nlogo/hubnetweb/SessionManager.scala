@@ -9,6 +9,8 @@ import scala.io.Source
 
 object SessionManager {
 
+  private type Scheduler = (FiniteDuration, () => Unit) => Unit
+
   private val sessionMap: MMap[UUID, SessionInfo] = MMap()
 
   private val exampleImages =
@@ -19,7 +21,7 @@ object SessionManager {
     )
 
   def createSession( modelName: String, modelSource: String, name: String, password: Option[String]
-                   , uuid: UUID, scheduleIn: (FiniteDuration, () => Unit) => Unit
+                   , uuid: UUID, scheduleIn: Scheduler
                    ): Either[String, String] = {
 
     val time        = System.currentTimeMillis()
@@ -33,23 +35,50 @@ object SessionManager {
                                      )
 
     {
+
       import scala.concurrent.duration.DurationInt
+
       scheduleIn(25 hours, {
         () =>
           sessionMap -= uuid
           ()
       })
+
+      scheduleIn(1 minute, () => checkIn(scheduleIn)(uuid))
+
     }
 
     Right(uuid.toString)
 
   }
 
-  def updateNumPeers(hostID: UUID, numPeers: Int): Unit =
-    sessionMap(hostID).roleInfo("any").numInRole = numPeers
+  private def checkIn(scheduleIn: Scheduler)(hostID: UUID): Unit = {
 
-  def updatePreview(hostID: UUID, base64: String): Unit =
+    import scala.concurrent.duration.DurationInt
+
+    val timestamp = sessionMap(hostID).lastCheckInTimestamp
+
+    if (timestamp > (System.currentTimeMillis() - (1 * 60 * 1000)))
+      scheduleIn(1 minute, () => checkIn(scheduleIn)(hostID))
+    else
+      sessionMap -= hostID
+
+    ()
+
+  }
+
+  private def pulseHost(hostID: UUID): Unit =
+    sessionMap(hostID) = sessionMap(hostID).copy(lastCheckInTimestamp = System.currentTimeMillis())
+
+  def updateNumPeers(hostID: UUID, numPeers: Int): Unit = {
+    pulseHost(hostID)
+    sessionMap(hostID).roleInfo("any").numInRole = numPeers
+  }
+
+  def updatePreview(hostID: UUID, base64: String): Unit = {
+    pulseHost(hostID)
     sessionMap(hostID) = sessionMap(hostID).copy(previewBase64 = base64)
+  }
 
   def getPreview(uuid: UUID): Either[String, String] =
     get(uuid)(_.previewBase64)
@@ -63,13 +92,17 @@ object SessionManager {
   def pullJoinerIDs(hostID: UUID): Either[String, Seq[UUID]] =
     pull(hostID)(_.connInfo.joinerIDs)((si) => si.copy(connInfo = si.connInfo.copy(joinerIDs = Seq())))
 
-  def pushFromHost(hostID: UUID, joinerID: UUID, message: String): Unit =
+  def pushFromHost(hostID: UUID, joinerID: UUID, message: String): Unit = {
+    pulseHost(hostID)
     mush(hostID)(_.connInfo.fromHostMap)(joinerID -> message)((si, news) => si.copy(connInfo = si.connInfo.copy(fromHostMap = news)))
+  }
 
-  def pullFromHost(hostID: UUID, joinerID: UUID): Either[String, Seq[String]] =
+  def pullFromHost(hostID: UUID, joinerID: UUID): Either[String, Seq[String]] = {
+    pulseHost(hostID)
     pullEither(hostID)(_.connInfo.fromHostMap.get(joinerID).toRight(s"No entry for $joinerID"))(
       (si) => si.copy(connInfo = si.connInfo.copy(fromHostMap = si.connInfo.fromHostMap - joinerID))
     )
+  }
 
   def pushFromJoiner(hostID: UUID, joinerID: UUID, message: String): Unit =
     mush(hostID)(_.connInfo.fromJoinerMap)(joinerID -> message)((si, news) => si.copy(connInfo = si.connInfo.copy(fromJoinerMap = news)))
@@ -135,5 +168,5 @@ case class ConnectionInfo(joinerIDs: Seq[UUID], fromHostMap: Map[UUID, Seq[Strin
 case class RoleInfo(name: String, var numInRole: Int, limit: Option[Int])
 
 case class SessionInfo( uuid: UUID, name: String, password: Option[String], roleInfo: Map[String, RoleInfo]
-                      , connInfo: ConnectionInfo, model: Model, previewBase64: String, lastUsedTimestamp: Long
+                      , connInfo: ConnectionInfo, model: Model, previewBase64: String, lastCheckInTimestamp: Long
                       )
