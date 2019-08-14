@@ -166,6 +166,7 @@ const connectAndLogin = (hostID) => {
 
       channel.onopen    = () => login(channel);
       channel.onmessage = handleChannelMessages(channel, narrowSocket);
+      channel.onclose   = () => cleanupSession();
 
       narrowSocket.addEventListener('open', () => sendObj(narrowSocket, "joiner-offer", { offer }));
 
@@ -184,6 +185,12 @@ const connectAndLogin = (hostID) => {
             console.log(`Unknown message type: ${datum.type}`);
         };
       });
+
+      joinerConnection.oniceconnectionstatechange = () => {
+        if (joinerConnection.iceConnectionState == "disconnected") {
+          cleanupSession();
+        }
+      };
 
     }
   );
@@ -212,15 +219,8 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
   switch (datum.type) {
 
     case "login-successful":
-
       socket.close();
-
-      const formFrame = document.getElementById("server-browser-frame");
-      const  nlwFrame = document.getElementById(           "nlw-frame");
-
-      formFrame.classList.add(   "hidden");
-      nlwFrame .classList.remove("hidden");
-
+      switchToNLW();
       break;
 
     case "incorrect-password":
@@ -288,4 +288,27 @@ const handleBurstMessage = (channel, socket, datum) => {
 
   }
 
+};
+
+// () => Unit
+const cleanupSession = () => {
+  switchToServerBrowser();
+  alert("Connection to host lost");
+};
+
+// () => Unit
+const switchToNLW = () => {
+  const formFrame = document.getElementById("server-browser-frame");
+  const  nlwFrame = document.getElementById(           "nlw-frame");
+  formFrame.classList.add(   "hidden");
+  nlwFrame .classList.remove("hidden");
+};
+
+// () => Unit
+const switchToServerBrowser = () => {
+  const formFrame = document.getElementById("server-browser-frame");
+  const  nlwFrame = document.getElementById(           "nlw-frame");
+  nlwFrame .classList.add(   "hidden");
+  formFrame.classList.remove("hidden");
+  nlwFrame.querySelector("iframe").contentWindow.postMessage({ type: "nlw-open-new" }, "*");
 };
