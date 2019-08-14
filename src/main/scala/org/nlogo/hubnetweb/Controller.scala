@@ -24,18 +24,18 @@ object Controller {
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import spray.json.DefaultJsonProtocol._
 
-  case class LaunchReq(modelType: String, model: String, modelName: String, sessionName: String, password: Option[String])
-  implicit val launchReqFormat = jsonFormat5(LaunchReq)
+  private case class LaunchReq(modelType: String, model: String, modelName: String, sessionName: String, password: Option[String])
+  implicit private val launchReqFormat = jsonFormat5(LaunchReq)
 
-  case class LaunchResp(id: String, `type`: String, nlogoMaybe: Option[String])
-  implicit val launchRespFormat = jsonFormat3(LaunchResp)
+  private case class LaunchResp(id: String, `type`: String, nlogoMaybe: Option[String])
+  implicit private val launchRespFormat = jsonFormat3(LaunchResp)
 
-  case class SessionInfoUpdate(name: String, modelName: String, roleInfo: Seq[(String, Int, Int)], oracleID: String, hasPassword: Boolean)
-  implicit val siuFormat = jsonFormat5(SessionInfoUpdate)
+  private case class SessionInfoUpdate(name: String, modelName: String, roleInfo: Seq[(String, Int, Int)], oracleID: String, hasPassword: Boolean)
+  implicit private val siuFormat = jsonFormat5(SessionInfoUpdate)
 
-  implicit val system           = ActorSystem("hnw-system")
-  implicit val materializer     = ActorMaterializer()
-  implicit val executionContext = system.dispatcher
+  implicit private val system           = ActorSystem("hnw-system")
+  implicit private val materializer     = ActorMaterializer()
+  implicit private val executionContext = system.dispatcher
 
   private val namesToPaths = makeModelMappings()
 
