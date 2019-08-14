@@ -128,13 +128,13 @@ window.selectSession = () => {
 window.join = () => {
   const hostID = document.querySelector('.active').dataset.uuid;
   if (channels[hostID] === undefined)
-    joinAnew(hostID);
+    connectAndLogin(hostID);
   else
     login(channels[hostID]);
 };
 
 // (String) => Unit
-const joinAnew = (hostID) => {
+const connectAndLogin = (hostID) => {
 
   fetch(`/rtc/join/${hostID}`).then((response) => response.text()).then(
     (joinerID) => {
