@@ -125,10 +125,12 @@ window.selectSession = () => {
 // () => Unit
 window.join = () => {
   const hostID = document.querySelector('.active').dataset.uuid;
-  if (channels[hostID] === undefined)
+  if (channels[hostID] === undefined) {
+    channels[hostID] = null;
     connectAndLogin(hostID);
-  else
+  } else if (channels[hostID] !== null) {
     login(channels[hostID]);
+  }
 };
 
 // (String) => Unit
