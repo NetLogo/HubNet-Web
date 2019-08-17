@@ -45,7 +45,7 @@ window.submitLaunchForm = (elem) => {
   else
     password = formDataPlus.password;
 
-  switch(formDataPlus.modelType) {
+  switch (formDataPlus.modelType) {
     case "library":
       const lm    = formData.get('libraryModel');
       const index = lm.lastIndexOf('/');
@@ -53,9 +53,17 @@ window.submitLaunchForm = (elem) => {
       formDataPlus.modelName = lm.slice(((index !== -1) ? index + 1 : 0));
       break;
     case "upload":
+
+      if (!elem.querySelector('#upload-model').value.endsWith('.nlogo')) {
+        alert("Please upload a valid '.nlogo' file, or choose a file from the library.");
+        return false;
+      }
+
       formDataPlus.model     = formData.get('uploadModel');
       formDataPlus.modelName = extractModelName(elem.querySelector('#upload-model').value);
+
       break;
+
     default:
       console.warn(`Unknown model source: ${formDataPlus.modelType}`);
   }
@@ -148,7 +156,7 @@ window.submitLaunchForm = (elem) => {
 
   });
 
-  return false;
+  return true;
 
 };
 

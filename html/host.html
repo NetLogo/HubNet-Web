@@ -11,7 +11,7 @@
 
     <div id="form-frame" class="frame">
       <h1>You're a hoster</h1>
-      <form id="launch-form" action="javascript:void(0);" onsubmit="submitLaunchForm(this)" method="POST" enctype="multipart/form-data">
+      <form id="launch-form" action="javascript:void(0);" onsubmit="return submitLaunchForm(this)" method="POST" enctype="multipart/form-data">
         <label>
           Select a model from the library
           <input id="is-library-model" name="modelType" type="radio" value="library" onchange="ownModelTypeChange('library')" checked>
