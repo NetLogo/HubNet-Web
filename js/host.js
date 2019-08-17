@@ -101,6 +101,7 @@ window.submitLaunchForm = (elem) => {
 
         formFrame.classList.add(   "hidden");
         nlwFrame .classList.remove("hidden");
+        history.pushState({ name: "hosting" }, "hosting");
 
         const babyDearest = nlwFrame.querySelector('iframe').contentWindow;
 
@@ -248,7 +249,12 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
 // (String) => Unit
 const cleanupSession = (joinerID) => {
   delete sessions[joinerID];
-}
+};
+
+// () => Unit
+const cleanupHostingSession = () => {
+  location.reload();
+};
 
 window.addEventListener("message", ({ data }) => {
 
@@ -268,6 +274,15 @@ window.addEventListener("message", ({ data }) => {
       console.warn(`Unknown postMessage type: ${data.type}`);
   }
 
+});
+
+window.addEventListener('popstate', (event) => {
+  switch (event.state.name) {
+    case "hosting":
+      cleanupHostingSession();
+    default:
+      console.warn(`Unknown state: ${event.state.name}`);
+  }
 });
 
 // (String) => String

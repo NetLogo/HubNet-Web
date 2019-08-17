@@ -310,6 +310,7 @@ const switchToNLW = () => {
   const  nlwFrame = document.getElementById(           "nlw-frame");
   formFrame.classList.add(   "hidden");
   nlwFrame .classList.remove("hidden");
+  history.pushState({ name: "joined" }, "joined");
 };
 
 // () => Unit
@@ -320,3 +321,12 @@ const switchToServerBrowser = () => {
   formFrame.classList.remove("hidden");
   nlwFrame.querySelector("iframe").contentWindow.postMessage({ type: "nlw-open-new" }, "*");
 };
+
+window.addEventListener('popstate', (event) => {
+  switch (event.state.name) {
+    case "joined":
+      switchToServerBrowser();
+    default:
+      console.warn(`Unknown state: ${event.state.name}`);
+  }
+});
