@@ -300,6 +300,7 @@ const refreshImage = (oracleID) => {
 
 // () => Unit
 const cleanupSession = () => {
+  window.joinerConnection = new RTCPeerConnection(joinerConfig);
   switchToServerBrowser();
   alert("Connection to host lost");
 };
@@ -325,6 +326,7 @@ const switchToServerBrowser = () => {
 window.addEventListener('popstate', (event) => {
   switch (event.state.name) {
     case "joined":
+      window.joinerConnection = new RTCPeerConnection(joinerConfig);
       switchToServerBrowser();
     default:
       console.warn(`Unknown state: ${event.state.name}`);
