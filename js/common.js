@@ -31,5 +31,11 @@ const sendObj = (socket, type, obj) => {
 
 // (RTCDataChannel*) => (String, Object[Any]) => Unit
 const sendRTC = (...channels) => (type, obj) => {
-  channels.forEach((c) => c.send(makeMessage(type, obj)));
+  channels.forEach((channel) => {
+    if (channel.readyState === "connecting") {
+      setTimeout(() => { sendRTC(channel)(type, obj); }, 50);
+    } else {
+      channel.send(makeMessage(type, obj));
+    }
+  });
 };
