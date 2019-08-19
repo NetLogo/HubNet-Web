@@ -140,6 +140,10 @@ window.submitLaunchForm = (elem) => {
         statusSocket = new WebSocket(`ws://localhost:8080/hnw/my-status/${hostID}`);
 
         setInterval(() => {
+          sendObj(broadSocket, "keep-alive", {});
+        }, 30000);
+
+        setInterval(() => {
           const numPeers = Object.values(sessions).filter((s) => s.username !== undefined).length;
           sendObj(statusSocket, "members-update", { numPeers });
         }, 1000);
