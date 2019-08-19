@@ -221,8 +221,8 @@ object Controller {
               _ => Nil
             , {
               ids =>
-                val maps      = ids.map(joinerID => Map("joinerID" -> joinerID.toString, "type" -> "hello"))
-                val lists     = maps.map(map => map.toList.map { case (k, v) => k.toString -> JsString(v) })
+                val maps  = ids.map(joinerID => Map("joinerID" -> joinerID.toString, "type" -> "hello"))
+                val lists = maps.map(map => map.toList.map { case (k, v) => k.toString -> JsString(v) })
                 lists.map(list => TextMessage(JsObject(list: _*).toString)).toList
             })
         }
