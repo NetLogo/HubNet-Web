@@ -50,6 +50,7 @@ object Controller {
 
       path("")                 { getFromFile("html/index.html") } ~
       path("host")             { getFromFile("html/host.html")  } ~
+      path("x-host")           { getFromFile("html/x-host.html")} ~
       path("launch-session")   { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
       path("join")             { getFromFile("html/join.html")  } ~
       path("available-models") { get { complete(availableModels) } } ~
