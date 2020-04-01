@@ -19,6 +19,16 @@ globals [
 
   num-infected-last-plotted ;; used in plotting only
                             ;; number of turtles that had infected? = true the last time we plotted.
+
+  __hnw_supervisor_android-delay
+  __hnw_supervisor_infection-chance
+  __hnw_supervisor_initial-number-sick
+  __hnw_supervisor_number
+
+  __hnw_supervisor_show-sick?
+  __hnw_supervisor_show-sick-on-clients?
+  __hnw_supervisor_wander?
+
 ]
 
 turtles-own [
@@ -36,19 +46,6 @@ students-own [
   located-at
 ]
 
-supervisors-own [
-
-  android-delay
-  infection-chance
-  initial-number-sick
-  number
-
-  show-sick?
-  show-sick-on-clients?
-  wander?
-
-]
-
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Setup Procedures ;;
@@ -62,6 +59,11 @@ end
 
 to setup
   ask androids [ die ]
+  show "hi"
+
+  set __hnw_supervisor_number 10
+  make-androids
+
   cure-all
   reset-ticks
 end
@@ -100,7 +102,7 @@ end
 
 ;; creates turtles that wander at random
 to make-androids
-  create-androids ([number] of overseer)
+  create-androids __hnw_supervisor_number
   [
     move-to one-of patches
     face one-of neighbors4
@@ -121,7 +123,7 @@ to go
   every 0.1
   [
     ;;allow the androids to wander around the view
-    if ([wander?] of overseer) [ androids-wander ]
+    if __hnw_supervisor_wander? [ androids-wander ]
 
     ask turtles with [ infected? ]
     [ spread-disease ]
@@ -137,7 +139,7 @@ end
 
 ;; controls the motion of the androids
 to androids-wander
-  every [android-delay] of overseer
+  every __hnw_supervisor_android-delay
   [
     ask androids
     [
@@ -166,7 +168,7 @@ end
 ;; turtle procedure -- roll the dice and maybe get sick
 to maybe-get-sick
   if not infected? [
-    if ((random 100) + 1) <= infection-chance
+    if ((random 100) + 1) <= __hnw_supervisor_infection-chance
     [ get-sick ] ]
 end
 
@@ -180,7 +182,7 @@ end
 ;; if show-sick? is true and change the shape to the base-shape if
 ;; show-sick? is false
 to set-sick-shape
-  ifelse show-sick?
+  ifelse __hnw_supervisor_show-sick?
   [
     ;; we want to check if the turtles shape is already a sick shape
     ;; to prevent flickering in the turtles
@@ -201,7 +203,7 @@ end
 to infect-turtles
   let healthy-turtles turtles with [ not infected? ]
 
-  ifelse count healthy-turtles < initial-number-sick
+  ifelse count healthy-turtles < __hnw_supervisor_initial-number-sick
   [
     ask healthy-turtles
     [
@@ -212,7 +214,7 @@ to infect-turtles
     stop
   ]
   [
-    ask n-of initial-number-sick healthy-turtles
+    ask n-of __hnw_supervisor_initial-number-sick healthy-turtles
     [
       get-sick
       set-sick-shape
@@ -407,14 +409,10 @@ to change-appearance
 end
 
 to-report sick?-str
-  report (ifelse-value ([show-sick-on-clients?] of overseer) [ infected? ] [ "N/A" ])
+  report (ifelse-value __hnw_supervisor_show-sick-on-clients? [ infected? ] [ "N/A" ])
 end
 
 ;; Supervisor role
-
-to-report overseer
-  report one-of supervisors
-end
 
 to clear-the-plot
   clear-all-plots

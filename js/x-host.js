@@ -1,12 +1,18 @@
 let iframe = document.querySelector("#nlw-frame > iframe");
 
 iframe.onload = () => {
-  fetch('/assets/testland/Disease HubNet.nlogo.json').then((x) => x.json()).then(
+  const modelPath = '/assets/testland/Disease HubNet.nlogo'
+  fetch(`${modelPath}.json`).then((x) => x.json()).then(
     (model) => {
-      iframe.contentWindow.postMessage({
-        ...model
-      , type: "hnw-become-oracle"
-      }, "*");
+      fetch(modelPath).then((x) => x.text()).then(
+        (nlogo) => {
+          iframe.contentWindow.postMessage({
+            ...model
+          , nlogo: nlogo
+          , type: "hnw-become-oracle"
+          }, "*");
+        }
+      )
     }
   );
 };
