@@ -31,7 +31,39 @@ object SessionManager {
 
     sessionMap += uuid -> SessionInfo( uuid, name, password, Map("any" -> anyRoleInfo)
                                      , new ConnectionInfo(Seq(), Map(), Map())
-                                     , new Model(modelName, modelSource), image, time
+                                     , new Model(modelName, modelSource, ""), image, time
+                                     )
+
+    {
+
+      import scala.concurrent.duration.DurationInt
+
+      scheduleIn(25 hours, {
+        () =>
+          sessionMap -= uuid
+          ()
+      })
+
+      scheduleIn(1 minute, () => checkIn(scheduleIn)(uuid))
+
+    }
+
+    Right(uuid.toString)
+
+  }
+
+  def createXSession( modelName: String, modelSource: String, json: String
+                   , name: String, password: Option[String], uuid: UUID, scheduleIn: Scheduler
+                   ): Either[String, String] = {
+
+    val time        = System.currentTimeMillis()
+    val anyRoleInfo = RoleInfo("any", 0, None)
+    val imageSource = Source.fromFile(s"assets/base64s/${exampleImages(Math.abs(time.toInt) % exampleImages.length)}.b64")
+    val image       = { val temp = imageSource.mkString; imageSource.close(); temp }
+
+    sessionMap += uuid -> SessionInfo( uuid, name, password, Map("any" -> anyRoleInfo)
+                                     , new ConnectionInfo(Seq(), Map(), Map())
+                                     , new Model(modelName, modelSource, json), image, time
                                      )
 
     {
@@ -163,7 +195,7 @@ object SessionManager {
 
 }
 
-case class Model(name: String, source: String)
+case class Model(name: String, source: String, json: String)
 case class ConnectionInfo(joinerIDs: Seq[UUID], fromHostMap: Map[UUID, Seq[String]], fromJoinerMap: Map[UUID, Seq[String]])
 case class RoleInfo(name: String, var numInRole: Int, limit: Option[Int])
 

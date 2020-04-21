@@ -30,6 +30,9 @@ object Controller {
   private case class LaunchResp(id: String, `type`: String, nlogoMaybe: Option[String])
   implicit private val launchRespFormat = jsonFormat3(LaunchResp)
 
+  private case class XLaunchResp(id: String, `type`: String, nlogoMaybe: Option[String], jsonMaybe: Option[String])
+  implicit private val xlaunchRespFormat = jsonFormat4(XLaunchResp)
+
   private case class SessionInfoUpdate(name: String, modelName: String, roleInfo: Seq[(String, Int, Int)], oracleID: String, hasPassword: Boolean)
   implicit private val siuFormat = jsonFormat5(SessionInfoUpdate)
 
@@ -52,7 +55,9 @@ object Controller {
       path("host")             { getFromFile("html/host.html")  } ~
       path("x-host")           { getFromFile("html/x-host.html")} ~
       path("launch-session")   { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
+      path("x-launch-session") { post { entity(as[LaunchReq])(handleXLaunchReq) } } ~
       path("join")             { getFromFile("html/join.html")  } ~
+      path("x-join")           { getFromFile("html/x-join.html")  } ~
       path("available-models") { get { complete(availableModels) } } ~
       path("rtc" / "join" / Segment)           { (hostID)           => get { startJoin(toID(hostID)) } } ~
       path("rtc" / Segment / Segment / "host") { (hostID, joinerID) => handleWebSocketMessages(rtcHost(toID(hostID), toID(joinerID))) } ~
@@ -74,6 +79,44 @@ object Controller {
     StdIn.readLine()
 
     bindingFuture.flatMap(_.unbind()).onComplete(_ => system.terminate())
+
+  }
+
+  private def handleXLaunchReq(req: LaunchReq)(implicit ec: ExecutionContext): RequestContext => Future[RouteResult] = {
+
+    val modelSourceJsonEither =
+      req.modelType match {
+        case "library" => slurpXModelSource(req.model)
+        case "upload"  => Right((req.model, ""))
+        case x         => Left(s"Unknown model type: $x")
+      }
+
+    modelSourceJsonEither.fold(
+      (msg) => reject(ValidationRejection(msg))
+    , {
+      case (modelSource, json) =>
+
+        val uuid = UUID.randomUUID
+
+        val scheduleIn = {
+          (d: FiniteDuration, thunk: () => Unit) =>
+            system.scheduler.scheduleOnce(delay = d)(thunk())
+            ()
+        }
+
+        val result =
+          SessionManager.createXSession(req.modelName, modelSource, json, req.sessionName, req.password, uuid, scheduleIn)
+
+        val (modelType, nlogoOption, jsonOption) =
+          req.modelType match {
+            case "library" => ("from-library", Some(modelSource), Some(json))
+            case "upload"  => ("from-upload" , None, None)
+            case _         => ("from-unknown", None, None)
+          }
+
+        complete(XLaunchResp(uuid.toString, modelType, nlogoOption, jsonOption))
+
+    })
 
   }
 
@@ -259,6 +302,16 @@ object Controller {
           Nil
       }
 
+  }
+
+  private def slurpXModelSource(modelName: String): Either[String, (String, String)] = {
+    import scala.collection.JavaConverters.asScalaIteratorConverter
+    val pathStr     = s"./assets/testland/$modelName HubNet.nlogo"
+    val modelPath   = Paths.get(pathStr)
+    val jsonPath    = Paths.get(s"$pathStr.json")
+    val modelSource = { val src = SISource.fromURI(modelPath.toUri); val text = src.mkString; src.close(); text }
+    val jsonSource  = { val src = SISource.fromURI( jsonPath.toUri); val text = src.mkString; src.close(); text }
+    Right((modelSource, jsonSource))
   }
 
   private def slurpModelSource(modelName: String): Either[String, String] =

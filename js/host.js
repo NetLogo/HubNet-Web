@@ -119,7 +119,7 @@ window.submitLaunchForm = (elem) => {
           type: "nlw-load-model"
         }, "*");
 
-        babyDearest.postMessage({ type: "nlw-subscribe-to-updates" }, "*");
+        babyDearest.postMessage({ type: "nlw-subscribe-to-updates", uuid: hostID }, "*");
 
         const broadSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}`);
 
