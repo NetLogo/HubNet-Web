@@ -1,4 +1,4 @@
-// type Session = { connection :: RTCPeerConnection, channel :: RTCDataChannel, socket :: WebSocket, username :: String }
+// type Session = { channel :: WebSocket, username :: String }
 
 let sessions = {}; // Object[Session]
 
@@ -104,10 +104,11 @@ window.submitLaunchForm = (elem) => {
           const datum = JSON.parse(data);
           switch (datum.type) {
             case "hello":
-              const connection   = new RTCPeerConnection(hostConfig);
-              const narrowSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${datum.joinerID}/host`);
-              narrowSocket.addEventListener('message', handleNarrowMessage(connection, nlogo, sessionName, datum.joinerID));
-              sessions[datum.joinerID] = { socket: narrowSocket };
+              const joinerID     = datum.joinerID
+              const channel      = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/host`);
+              channel.onmessage  = handleChannelMessages(channel, nlogo, sessionName, joinerID);
+              channel.onclose    = () => { cleanupSession(joinerID); };
+              sessions[joinerID] = { channel };
               break;
             default:
               console.warn(`Unknown broad event type: ${datum.type}`);
@@ -141,60 +142,6 @@ window.submitLaunchForm = (elem) => {
 
 };
 
-// (RTCPeerConnection, String, String, String) => (Any) => Unit
-const handleNarrowMessage = (connection, nlogo, sessionName, joinerID) => ({ data }) => {
-  const datum = JSON.parse(data);
-  switch (datum.type) {
-    case "joiner-offer":
-      processOffer(connection, nlogo, sessionName, joinerID)(datum.offer);
-      break;
-    case "joiner-ice-candidate":
-      connection.addIceCandidate(datum.candidate);
-      break;
-    default:
-      console.warn(`Unknown narrow event type: ${datum.type}`);
-  }
-};
-
-// (RTCPeerConnection, String, String, String) => (RTCSessionDescription) => Unit
-const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
-
-  const rtcID       = uuidToRTCID(joinerID);
-  const channel     = connection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
-  channel.onmessage = handleChannelMessages(channel, nlogo, sessionName, joinerID);
-  channel.onclose   = () => { cleanupSession(joinerID); };
-
-  const session = sessions[joinerID];
-
-  session.connection = connection;
-  session.channel    = channel;
-
-  let knownCandies = new Set([]);
-
-  connection.onicecandidate =
-    ({ candidate }) => {
-      if (candidate !== undefined && candidate !== null) {
-        const candy = JSON.stringify(candidate.toJSON());
-        if (!knownCandies.has(candy)) {
-          knownCandies = knownCandies.add(candy);
-          sendObj(session.socket, "host-ice-candidate", { candidate: candidate.toJSON() });
-        }
-      }
-    }
-
-  connection.oniceconnectionstatechange = () => {
-    if (connection.iceConnectionState == "disconnected") {
-      cleanupSession(joinerID);
-    }
-  };
-
-  connection.setRemoteDescription(offer)
-    .then(()     => connection.createAnswer())
-    .then(answer => connection.setLocalDescription(answer))
-    .then(()     => sendObj(session.socket, "host-answer", { answer: connection.localDescription }));
-
-};
-
 // (RTCDataChannel, String, String, String) => (Any) => Unit
 const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data }) => {
   const datum = JSON.parse(data);
@@ -214,8 +161,6 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 // (RTCDataChannel, String, String, { username :: String, password :: String }, String) => Unit
 const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
 
-  sessions[joinerID].socket.close();
-
   const joinerUsername  = datum.username.toLowerCase();
   const relevantSeshes  = Object.entries(sessions).filter(([k, v]) => k !== joinerID).map(([k, v]) => v);
   const usernameIsTaken = relevantSeshes.some((s) => s.username.toLowerCase() === joinerUsername);
@@ -225,16 +170,16 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
 
       sessions[joinerID].username      = datum.username;
       sessions[joinerID].isInitialized = false;
-      sendRTC(channel)("login-successful", {});
+      sendObj(channel)("login-successful", {});
 
       const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
       babyDearest.postMessage({ type: "hnw-request-initial-state", token: joinerID, roleName: "student" }, "*");
 
     } else {
-      sendRTC(channel)("incorrect-password", {});
+      sendObj(channel)("incorrect-password", {});
     }
   } else {
-    sendRTC(channel)("username-already-taken", {});
+    sendObj(channel)("username-already-taken", {});
   }
 
 };
@@ -252,7 +197,7 @@ const cleanupHostingSession = () => {
 window.addEventListener("message", ({ data }) => {
 
   const broadcast = (type, message) => {
-    const channels = Object.values(sessions).map((s) => s.channel).filter((c) => c !== undefined && c.readyState === "open")
+    const channels = Object.values(sessions).map((s) => s.channel).filter((c) => c !== undefined && c.readyState === WebSocket.OPEN)
     sendRTCBurst(...channels)(type, message);
   }
 

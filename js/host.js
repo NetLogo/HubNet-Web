@@ -243,17 +243,17 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
     if (password === null || password === datum.password) {
 
       sessions[joinerID].username = datum.username;
-      sendRTC(channel)("login-successful", {});
+      sendObj(channel)("login-successful", {});
       sendRTCBurst(channel)("here-have-a-model", { sessionName, nlogo });
 
       const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
       babyDearest.postMessage({ type: "nlw-request-model-state" }, "*");
 
     } else {
-      sendRTC(channel)("incorrect-password", {});
+      sendObj(channel)("incorrect-password", {});
     }
   } else {
-    sendRTC(channel)("username-already-taken", {});
+    sendObj(channel)("username-already-taken", {});
   }
 
 };

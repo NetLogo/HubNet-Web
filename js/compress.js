@@ -35,16 +35,19 @@ const chunkForRTC = (message) => {
 };
 
 // (RTCDataChannel*) => (String, Any) => Unit
+// (WebSocket*) => (String, Any) => Unit
 const sendRTCBurst = (...channels) => (type, obj) => {
 
   const messages = chunkForRTC(makeMessage(type, obj));
 
   channels.forEach((channel) => {
     const id = (Math.random() * 1e17).toString()
-    channel.send(makeMessage("rtc-burst-begin", { id }));
-    messages.forEach((m) => channel.send(makeMessage("rtc-burst-continue", { id, parcel: m })));
-    channel.send(makeMessage("rtc-burst-end", { id }));
+    messages.forEach(
+      (m, index) => {
+        const obj = { id, index, fullLength: messages.length, parcel: m };
+        channel.send(makeMessage("rtc-burst", obj));
+      }
+    );
   });
 
 };
-

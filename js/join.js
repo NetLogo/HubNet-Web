@@ -208,7 +208,7 @@ serverListSocket.addEventListener('message', ({ data }) => {
 const login = (channel) => {
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
-  sendRTC(channel)("login", { username, password });
+  sendObj(channel)("login", { username, password });
 }
 
 // (RTCDataChannel, WebSocket) => (Any) => Unit

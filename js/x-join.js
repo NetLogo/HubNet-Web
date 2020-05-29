@@ -4,9 +4,7 @@ document.getElementById('session-preview-image').src = placeholderB64;
 // type Session = { modelName :: String, name :: String, oracleID :: String }
 let sessionData = []; // Array[Session]
 
-let channels = {}; // Object[RTCDataChannel]
-
-window.joinerConnection = new RTCPeerConnection(joinerConfig);
+let channels = {}; // Object[WebSocket]
 
 const rtcBursts = {} // Object[String]
 
@@ -139,58 +137,17 @@ const connectAndLogin = (hostID) => {
   fetch(`/rtc/join/${hostID}`).then((response) => response.text()).then(
     (joinerID) => {
       const rtcID   = uuidToRTCID(joinerID);
-      const channel = joinerConnection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
-      return joinerConnection.createOffer().then((offer) => [joinerID, channel, offer]);
+      const channel = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/join`);
+      return [joinerID, channel]
     }
   ).then(
-    ([joinerID, channel, offer]) => {
-
-      let knownCandies = new Set([]);
-
-      joinerConnection.onicecandidate =
-        ({ candidate }) => {
-          if (candidate !== undefined && candidate !== null) {
-            const candy = JSON.stringify(candidate.toJSON());
-            if (!knownCandies.has(candy)) {
-              knownCandies = knownCandies.add(candy);
-              sendObj(narrowSocket, "joiner-ice-candidate", { candidate: candidate.toJSON() });
-            }
-          }
-        }
-
-      joinerConnection.setLocalDescription(offer);
-
-      const narrowSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/join`);
+    ([joinerID, channel]) => {
 
       channels[hostID] = channel;
 
       channel.onopen    = () => login(channel);
-      channel.onmessage = handleChannelMessages(channel, narrowSocket);
+      channel.onmessage = handleChannelMessages(channel);
       channel.onclose   = () => cleanupSession();
-
-      narrowSocket.addEventListener('open', () => sendObj(narrowSocket, "joiner-offer", { offer }));
-
-      narrowSocket.addEventListener('message', ({ data }) => {
-        const datum = JSON.parse(data);
-        switch (datum.type) {
-          case "host-answer":
-            if (joinerConnection.remoteDescription === null) {
-              joinerConnection.setRemoteDescription(datum.answer);
-            }
-            break;
-          case "host-ice-candidate":
-            joinerConnection.addIceCandidate(datum.candidate);
-            break;
-          default:
-            console.warn(`Unknown message type: ${datum.type}`);
-        };
-      });
-
-      joinerConnection.oniceconnectionstatechange = () => {
-        if (joinerConnection.iceConnectionState == "disconnected") {
-          cleanupSession();
-        }
-      };
 
     }
   );
@@ -208,18 +165,17 @@ serverListSocket.addEventListener('message', ({ data }) => {
 const login = (channel) => {
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
-  sendRTC(channel)("login", { username, password });
+  sendObj(channel)("login", { username, password });
 }
 
-// (RTCDataChannel, WebSocket) => (Any) => Unit
-const handleChannelMessages = (channel, socket) => ({ data }) => {
+// (RTCDataChannel) => (Any) => Unit
+const handleChannelMessages = (channel) => ({ data }) => {
 
   const datum = JSON.parse(data);
 
   switch (datum.type) {
 
     case "login-successful":
-      socket.close();
       switchToNLW();
       break;
 
@@ -231,10 +187,24 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
       alert("It is time to end this great masquerade!");
       break;
 
-    case "rtc-burst-begin":
-    case "rtc-burst-continue":
-    case "rtc-burst-end":
-      manageBurstMessage(channel, socket, datum);
+    case "rtc-burst":
+
+      const { id, index, fullLength, parcel } = datum
+
+      if (rtcBursts[id] === undefined) {
+        rtcBursts[id] = Array(length).fill(null);
+      }
+
+      const bucket = rtcBursts[id];
+      bucket[index] = parcel;
+
+      if (bucket.every((x) => x !== null)) {
+        const fullMessage = rtcBursts[id].join("");
+        const json        = JSON.parse(decompress(fullMessage));
+        delete rtcBursts[id];
+        handleBurstMessage(channel, json);
+      }
+
       break;
 
     default:
@@ -244,27 +214,8 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
 
 };
 
-// (RTCDataChannel, WebSocket, Any) => Unit
-const manageBurstMessage = (channel, socket, datum) => {
-  switch (datum.type) {
-    case "rtc-burst-begin":
-      rtcBursts[datum.id] = "";
-      break;
-    case "rtc-burst-continue":
-      rtcBursts[datum.id] += datum.parcel;
-      break;
-    case "rtc-burst-end":
-      const fullShipment = JSON.parse(decompress(rtcBursts[datum.id]));
-      delete rtcBursts[datum.id];
-      handleBurstMessage(channel, socket, fullShipment);
-      break;
-    default:
-      console.warn(`Unknown burst event type: ${datum.type}`);
-  }
-};
-
-// (RTCDataChannel, WebSocket, Any) => Unit
-const handleBurstMessage = (channel, socket, datum) => {
+// (RTCDataChannel, Any) => Unit
+const handleBurstMessage = (channel, datum) => {
 
   switch (datum.type) {
 
@@ -312,7 +263,6 @@ const refreshImage = (oracleID) => {
 
 // () => Unit
 const cleanupSession = () => {
-  window.joinerConnection = new RTCPeerConnection(joinerConfig);
   switchToServerBrowser();
   alert("Connection to host lost");
 };
@@ -339,7 +289,7 @@ window.addEventListener('message', (event) => {
   switch (event.data.type) {
     case "relay":
       const hostID = document.querySelector('.active').dataset.uuid;
-      sendRTC(channels[hostID])("relay", event.data);
+      sendObj(channels[hostID])("relay", event.data);
       break;
     default:
       console.warn(`Unknown message type: ${event.data.type}`);
@@ -349,7 +299,6 @@ window.addEventListener('message', (event) => {
 window.addEventListener('popstate', (event) => {
   switch (event.state.name) {
     case "joined":
-      window.joinerConnection = new RTCPeerConnection(joinerConfig);
       switchToServerBrowser();
     default:
       console.warn(`Unknown state: ${event.state.name}`);

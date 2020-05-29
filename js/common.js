@@ -21,12 +21,14 @@ const makeMessage = (type, obj) => {
 }
 
 // (WebSocket, String, Any) => Unit
-const sendObj = (socket, type, obj) => {
-  if (socket.readyState === WebSocket.CONNECTING) {
-    setTimeout(() => { sendObj(socket, type, obj); }, 100);
-  } else {
-    socket.send(makeMessage(type, obj));
-  }
+const sendObj = (...sockets) => (type, obj) => {
+  sockets.forEach((socket) => {
+    if (socket.readyState === WebSocket.CONNECTING) {
+      setTimeout(() => { sendObj(socket, type, obj); }, 50);
+    } else {
+      socket.send(makeMessage(type, obj));
+    }
+  });
 };
 
 // (RTCDataChannel*) => (String, Object[Any]) => Unit
