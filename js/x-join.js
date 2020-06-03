@@ -6,6 +6,10 @@ let sessionData = []; // Array[Session]
 
 let channels = {}; // Object[WebSocket]
 
+let pageState = "uninitialized";
+
+let messageQueue = []; // Array[Object[Any]]
+
 const rtcBursts = {} // Object[String]
 
 // (String) => Unit
@@ -149,6 +153,8 @@ const connectAndLogin = (hostID) => {
       channel.onmessage = handleChannelMessages(channel);
       channel.onclose   = () => cleanupSession();
 
+      setInterval(processQueue, 1000 / 30);
+
     }
   );
 
@@ -192,7 +198,7 @@ const handleChannelMessages = (channel) => ({ data }) => {
       const { id, index, fullLength, parcel } = datum
 
       if (rtcBursts[id] === undefined) {
-        rtcBursts[id] = Array(length).fill(null);
+        rtcBursts[id] = Array(fullLength).fill(null);
       }
 
       const bucket = rtcBursts[id];
@@ -200,9 +206,9 @@ const handleChannelMessages = (channel) => ({ data }) => {
 
       if (bucket.every((x) => x !== null)) {
         const fullMessage = rtcBursts[id].join("");
-        const json        = JSON.parse(decompress(fullMessage));
+        const object      = JSON.parse(decompress(fullMessage));
         delete rtcBursts[id];
-        handleBurstMessage(channel, json);
+        enqueueMessage(object);
       }
 
       break;
@@ -214,8 +220,39 @@ const handleChannelMessages = (channel) => ({ data }) => {
 
 };
 
-// (RTCDataChannel, Any) => Unit
-const handleBurstMessage = (channel, datum) => {
+// (Object[Any]) => Unit
+const enqueueMessage = (datum) => {
+  messageQueue.push(datum);
+}
+
+// () => Unit
+const processQueue = () => {
+
+  // We need to drop all state updates until we find "here-have-a-model".
+  // Once we find it, we hold onto state updates until we achieve the state "booted up", when we're ready for them
+
+  if (pageState === "logged in") {
+    let stillGoing = true;
+    while (stillGoing && messageQueue.length > 0) {
+      const message = messageQueue.shift();
+      if (message.type ===  "here-have-a-model") {
+        handleBurstMessage(message);
+        stillGoing = false;
+      }
+    }
+  } else if (pageState === "booted up") {
+    while (messageQueue.length > 0) {
+      const message = messageQueue.shift();
+      handleBurstMessage(message);
+    }
+  } else {
+    console.log("Skipping while in state: ", pageState);
+  }
+
+}
+
+// (Object[Any]) => Unit
+const handleBurstMessage = (datum) => {
 
   switch (datum.type) {
 
@@ -246,6 +283,9 @@ const handleBurstMessage = (channel, datum) => {
       document.querySelector('#nlw-frame > iframe').contentWindow.postMessage(datum.payload, "*");
       break;
 
+    case "hnw-resize":
+      break;
+
     default:
       console.warn(`Unknown bursted sub-event type: ${datum.type}`);
 
@@ -274,6 +314,7 @@ const switchToNLW = () => {
   formFrame.classList.add(   "hidden");
   nlwFrame .classList.remove("hidden");
   history.pushState({ name: "joined" }, "joined");
+  pageState = "logged in";
 };
 
 // () => Unit
@@ -288,8 +329,12 @@ const switchToServerBrowser = () => {
 window.addEventListener('message', (event) => {
   switch (event.data.type) {
     case "relay":
-      const hostID = document.querySelector('.active').dataset.uuid;
-      sendObj(channels[hostID])("relay", event.data);
+      if (event.data.payload.type === "interface-loaded") {
+        pageState = "booted up";
+      } else {
+        const hostID = document.querySelector('.active').dataset.uuid;
+        sendObj(channels[hostID])("relay", event.data);
+      }
       break;
     default:
       console.warn(`Unknown message type: ${event.data.type}`);

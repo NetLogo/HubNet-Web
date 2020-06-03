@@ -44,7 +44,7 @@ const sendRTCBurst = (...channels) => (type, obj) => {
     const id = (Math.random() * 1e17).toString()
     messages.forEach(
       (m, index) => {
-        const obj = { id, index, fullLength: messages.length, parcel: m };
+        const obj = { id, index, ts: performance.now(), fullLength: messages.length, parcel: m };
         channel.send(makeMessage("rtc-burst", obj));
       }
     );

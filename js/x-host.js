@@ -215,6 +215,8 @@ window.addEventListener("message", ({ data }) => {
     case "relay":
       broadcast("relay", data);
       break;
+    case "nlw-resize":
+      break;
     default:
       console.warn(`Unknown postMessage type: ${data.type}`);
   }
