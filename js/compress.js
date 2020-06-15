@@ -45,6 +45,9 @@ const sendRTCBurst = (...channels) => (type, obj) => {
     messages.forEach(
       (m, index) => {
         const obj = { id, index, ts: performance.now(), fullLength: messages.length, parcel: m };
+        if (type === "here-have-a-model") {
+          console.log("Sending model (" + (index + 1) + "/" + messages.length + ")");
+        }
         channel.send(makeMessage("rtc-burst", obj));
       }
     );

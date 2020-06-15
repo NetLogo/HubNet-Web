@@ -3,8 +3,8 @@ package org.nlogo.hubnetweb
 import java.nio.file.{ Files, Path, Paths }
 import java.util.UUID
 
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ ExecutionContext, Future }
 import scala.io.{ Source => SISource, StdIn }
 
 import akka.actor.ActorSystem
@@ -14,10 +14,21 @@ import akka.http.scaladsl.server.Directives.{ complete, reject }
 import akka.http.scaladsl.server.{ RequestContext, RouteResult, ValidationRejection }
 import akka.http.scaladsl.model.StatusCodes.NotFound
 import akka.http.scaladsl.model.ws.{ BinaryMessage, Message, TextMessage }
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Flow, Sink, Source }
+import akka.util.Timeout
+
+import akka.actor.typed.{ ActorRef, ActorSystem => TASystem }
+import akka.actor.typed.scaladsl.AskPattern._
+import akka.actor.typed.scaladsl.Behaviors
 
 import spray.json.{ JsArray, JsNumber, JsObject, JsonParser, JsString }
+
+import session.{ SessionInfo, SessionManagerActor }
+import session.SessionManagerActor.{ CreateSession, CreateXSession, GetPreview, GetSessions
+                                   , PullFromHost, PullFromJoiner, PullJoinerIDs, PushFromHost
+                                   , PushFromJoiner, PushJoinerID, SeshMessageAsk, UpdateNumPeers
+                                   , UpdatePreview
+                                   }
 
 object Controller {
 
@@ -37,8 +48,9 @@ object Controller {
   implicit private val siuFormat = jsonFormat5(SessionInfoUpdate)
 
   implicit private val system           = ActorSystem("hnw-system")
-  implicit private val materializer     = ActorMaterializer()
   implicit private val executionContext = system.dispatcher
+
+  private val seshManager = TASystem(SessionManagerActor(), "session-manager-system")
 
   private val namesToPaths = makeModelMappings()
 
@@ -104,8 +116,11 @@ object Controller {
             ()
         }
 
-        val result =
-          SessionManager.createXSession(req.modelName, modelSource, json, req.sessionName, req.password, uuid, scheduleIn)
+        val makeParcel =
+          replyTo =>
+            CreateXSession(req.modelName, modelSource, json, req.sessionName, req.password, uuid, scheduleIn, replyTo)
+
+        val result = askSeshFor(makeParcel)
 
         val (modelType, nlogoOption, jsonOption) =
           req.modelType match {
@@ -142,8 +157,11 @@ object Controller {
             ()
         }
 
-        val result =
-          SessionManager.createSession(req.modelName, modelSource, req.sessionName, req.password, uuid, scheduleIn)
+        val makeParcel =
+          replyTo =>
+            CreateSession(req.modelName, modelSource, req.sessionName, req.password, uuid, scheduleIn, replyTo)
+
+        val result = askSeshFor(makeParcel)
 
         val (modelType, nlogoOption) =
           req.modelType match {
@@ -159,7 +177,7 @@ object Controller {
   }
 
   private def handlePreview(uuid: UUID): RequestContext => Future[RouteResult] = {
-    SessionManager.getPreview(uuid).fold(msg => complete((NotFound, msg)), msg => complete(msg))
+    askSeshFor(GetPreview(uuid, _)).fold(msg => complete((NotFound, msg)), msg => { println("Got IT: " + msg); complete(msg) })
   }
 
   private def sessionStream: Flow[Message, Message, Any] = {
@@ -171,7 +189,7 @@ object Controller {
     val source =
       Source
         .tick(0 seconds, 3 seconds, None)
-        .map(_  => SessionManager.getSessions.map(sessionToJsonable).map(x => siuFormat.write(x)).toList.toJson)
+        .map(_  => askSeshFor(GetSessions(_)).map(sessionToJsonable).map(x => siuFormat.write(x)).toList.toJson)
         .map(xs => TextMessage(xs.toString))
 
     sink.merge(source)
@@ -185,7 +203,7 @@ object Controller {
 
   private def startJoin(hostID: UUID): RequestContext => Future[RouteResult] = {
     val uuid = UUID.randomUUID()
-    SessionManager.pushJoinerID(hostID, uuid)
+    seshManager ! PushJoinerID(hostID, uuid)
     complete(uuid.toString)
   }
 
@@ -197,7 +215,14 @@ object Controller {
     val sink =
       Flow[Message].mapConcat {
         case tm: TextMessage =>
-          tm.toStrict(0.1 seconds).map(text => SessionManager.pushFromHost(hostID, joinerID, text.getStrictText))
+          tm.toStrict(0.1 seconds).map(text => {
+            val msg = text.getStrictText
+            seshManager ! PushFromHost(hostID, joinerID, msg)
+            if (msg.contains("\"fullLength\":3")) {
+              println(s"Received: ${msg.take(100)}")
+              //SessionManager.debugSesh(hostID)(joinerID)
+            }
+          })
           Nil
         case binary: BinaryMessage =>
           binary.dataStream.runWith(Sink.ignore)
@@ -209,8 +234,7 @@ object Controller {
         .tick(0 seconds, 0.1 seconds, None)
         .mapConcat(
           _ =>
-            SessionManager
-              .pullFromJoiner(hostID, joinerID)
+            askSeshFor(PullFromJoiner(hostID, joinerID, _))
               .fold(_ => Seq(), identity)
               .map(m => TextMessage(m)).toList
         )
@@ -227,7 +251,7 @@ object Controller {
     val sink =
       Flow[Message].mapConcat {
         case tm: TextMessage =>
-          tm.toStrict(0.1 seconds).map(text => SessionManager.pushFromJoiner(hostID, joinerID, text.getStrictText))
+          tm.toStrict(0.1 seconds).map(text => seshManager ! PushFromJoiner(hostID, joinerID, text.getStrictText))
           Nil
         case binary: BinaryMessage =>
           binary.dataStream.runWith(Sink.ignore)
@@ -239,10 +263,15 @@ object Controller {
         .tick(0 seconds, 0.1 seconds, None)
         .mapConcat(
           _ =>
-            SessionManager
-              .pullFromHost(hostID, joinerID)
+            askSeshFor(PullFromHost(hostID, joinerID, _))
               .fold(_ => Seq(), identity)
-              .map(m => TextMessage(m)).toList
+              .map(m => {
+                if (m.contains("\"fullLength\":3")) {
+                  println(s"Sending: ${m.take(100)}")
+                  //SessionManager.debugSesh(hostID)(joinerID)
+                }
+                TextMessage(m)
+              }).toList
         )
 
     sink.merge(source)
@@ -261,7 +290,7 @@ object Controller {
         .tick(0 seconds, 0.1 seconds, None)
         .mapConcat {
           _ =>
-            SessionManager.pullJoinerIDs(hostID).fold(
+            askSeshFor(PullJoinerIDs(hostID, _)).fold(
               _ => Nil
             , {
               ids =>
@@ -288,10 +317,11 @@ object Controller {
               parsed.fields("type") match {
                 case JsString("members-update") =>
                   val JsNumber(num) = parsed.fields("numPeers")
-                  SessionManager.updateNumPeers(hostID, num.toInt)
+                  seshManager ! UpdateNumPeers(hostID, num.toInt)
                 case JsString("image-update") =>
                   val JsString(str) = parsed.fields("base64")
-                  SessionManager.updatePreview(hostID, str)
+                  println("Imaged it: " + str)
+                  seshManager ! UpdatePreview(hostID, str)
                 case _ =>
                   ()
               }
@@ -338,5 +368,12 @@ object Controller {
   }
 
   private def toID(id: String): UUID = UUID.fromString(id)
+
+  private def askSeshFor[T](makeParcel: ActorRef[T] => SeshMessageAsk[T]): T = {
+    import scala.concurrent.duration.DurationInt
+    val timeout = Timeout(20 seconds)
+    val future = seshManager.ask(replyTo => makeParcel(replyTo))(timeout, seshManager.scheduler)
+    Await.result(future, timeout.duration)
+  }
 
 }

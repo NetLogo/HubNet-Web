@@ -142,21 +142,12 @@ const connectAndLogin = (hostID) => {
     (joinerID) => {
       const rtcID   = uuidToRTCID(joinerID);
       const channel = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/join`);
-      return [joinerID, channel]
-    }
-  ).then(
-    ([joinerID, channel]) => {
-
-      channels[hostID] = channel;
-
       channel.onopen    = () => login(channel);
       channel.onmessage = handleChannelMessages(channel);
       channel.onclose   = () => cleanupSession();
-
+      channels[hostID] = channel;
       setInterval(processQueue, 1000 / 30);
-
-    }
-  );
+  });
 
 };
 
@@ -197,6 +188,10 @@ const handleChannelMessages = (channel) => ({ data }) => {
 
       const { id, index, fullLength, parcel } = datum
 
+      if (fullLength > 1) {
+        console.log("Got " + id + " (" + (index + 1) + "/" + fullLength + ")")
+      }
+
       if (rtcBursts[id] === undefined) {
         rtcBursts[id] = Array(fullLength).fill(null);
       }
@@ -228,8 +223,10 @@ const enqueueMessage = (datum) => {
 // () => Unit
 const processQueue = () => {
 
-  // We need to drop all state updates until we find "here-have-a-model".
-  // Once we find it, we hold onto state updates until we achieve the state "booted up", when we're ready for them
+  // Where might we run into a problem being able to get a "here-have-a-model"?
+  // Where might we run into a problem with receiving view updates after the initial load?
+  // Fix preview images
+  // Fix monitors
 
   if (pageState === "logged in") {
     let stillGoing = true;

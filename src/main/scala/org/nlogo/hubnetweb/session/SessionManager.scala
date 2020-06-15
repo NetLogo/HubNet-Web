@@ -1,4 +1,4 @@
-package org.nlogo.hubnetweb
+package org.nlogo.hubnetweb.session
 
 import java.util.UUID
 
@@ -7,7 +7,118 @@ import scala.collection.mutable.{ Map => MMap }
 import scala.concurrent.duration.FiniteDuration
 import scala.io.Source
 
-object SessionManager {
+import akka.actor.typed.ActorRef
+import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.AbstractBehavior
+import akka.actor.typed.scaladsl.ActorContext
+import akka.actor.typed.scaladsl.Behaviors
+
+import SessionManagerActor.SeshMessage
+
+object SessionManagerActor {
+
+  private type Scheduler = (FiniteDuration, () => Unit) => Unit
+
+  trait SeshMessage
+
+  trait SeshMessageAsk[T] extends SeshMessage {
+    def replyTo: ActorRef[T]
+  }
+
+  final case class CreateSession( modelName: String, modelSource: String, name: String, password: Option[String]
+                                , uuid: UUID, scheduleIn: Scheduler
+                                , override val replyTo: ActorRef[Either[String, String]]
+                                ) extends SeshMessageAsk[Either[String, String]]
+
+  final case class CreateXSession( modelName: String, modelSource: String, json: String, name: String
+                                 , password: Option[String], uuid: UUID, scheduleIn: Scheduler
+                                 , override val replyTo: ActorRef[Either[String, String]]
+                                 ) extends SeshMessageAsk[Either[String, String]]
+
+  final case class GetPreview( uuid: UUID, override val replyTo: ActorRef[Either[String, String]]
+                             ) extends SeshMessageAsk[Either[String, String]]
+
+  final case class GetSessions( override val replyTo: ActorRef[Seq[SessionInfo]]
+                              ) extends SeshMessageAsk[Seq[SessionInfo]]
+
+  final case class PullFromHost( hostID: UUID, joinerID: UUID
+                               , override val replyTo: ActorRef[Either[String, Seq[String]]]
+                               ) extends SeshMessageAsk[Either[String, Seq[String]]]
+
+  final case class PullFromJoiner( hostID: UUID, joinerID: UUID
+                                 , override val replyTo: ActorRef[Either[String, Seq[String]]]
+                                 ) extends SeshMessageAsk[Either[String, Seq[String]]]
+
+  final case class PullJoinerIDs(hostID: UUID
+                                , override val replyTo: ActorRef[Either[String, Seq[UUID]]]
+                                ) extends SeshMessageAsk[Either[String, Seq[UUID]]]
+
+  final case class PushFromHost  (hostID: UUID, joinerID: UUID, message: String) extends SeshMessage
+  final case class PushFromJoiner(hostID: UUID, joinerID: UUID, message: String) extends SeshMessage
+  final case class PushJoinerID  (hostID: UUID, joinerID: UUID)                  extends SeshMessage
+  final case class UpdateNumPeers(hostID: UUID, numPeers: Int)                   extends SeshMessage
+  final case class UpdatePreview (hostID: UUID, base64: String)                  extends SeshMessage
+
+  def apply(): Behavior[SeshMessage] =
+    Behaviors.receive {
+      case (context, message) =>
+        message match {
+
+          case CreateSession(modelName, modelSource, name, password, uuid, scheduleIn, replyTo) =>
+            replyTo ! SessionManager.createSession(modelName, modelSource, name, password, uuid, scheduleIn)
+            Behaviors.same
+
+          case CreateXSession(modelName, modelSource, json, name, password, uuid, scheduleIn, replyTo) =>
+            replyTo ! SessionManager.createXSession(modelName, modelSource, json, name, password, uuid, scheduleIn)
+            Behaviors.same
+
+          case GetPreview(uuid, replyTo) =>
+            replyTo ! SessionManager.getPreview(uuid)
+            Behaviors.same
+
+          case GetSessions(replyTo) =>
+            replyTo ! SessionManager.getSessions
+            Behaviors.same
+
+          case PullFromHost(hostID, joinerID, replyTo) =>
+            replyTo ! SessionManager.pullFromHost(hostID, joinerID)
+            Behaviors.same
+
+          case PullFromJoiner(hostID, joinerID, replyTo) =>
+            replyTo ! SessionManager.pullFromJoiner(hostID, joinerID)
+            Behaviors.same
+
+          case PullJoinerIDs(hostID, replyTo) =>
+            replyTo ! SessionManager.pullJoinerIDs(hostID)
+            Behaviors.same
+
+          case PushFromHost(hostID, joinerID, msg) =>
+            SessionManager.pushFromHost(hostID, joinerID, msg)
+            Behaviors.same
+
+          case PushFromJoiner(hostID, joinerID, msg) =>
+            SessionManager.pushFromJoiner(hostID, joinerID, msg)
+            Behaviors.same
+
+          case PushJoinerID(hostID, joinerID) =>
+            SessionManager.pushJoinerID(hostID, joinerID)
+            Behaviors.same
+
+          case UpdateNumPeers(hostID, numPeers) =>
+            SessionManager.updateNumPeers(hostID, numPeers)
+            Behaviors.same
+
+          case UpdatePreview(hostID, base64) =>
+            SessionManager.updatePreview(hostID, base64)
+            Behaviors.same
+
+        }
+
+    }
+
+}
+
+private object SessionManager {
 
   private type Scheduler = (FiniteDuration, () => Unit) => Unit
 
