@@ -140,12 +140,12 @@ window.submitLaunchForm = (elem) => {
         statusSocket = new WebSocket(`ws://localhost:8080/hnw/my-status/${hostID}`);
 
         setInterval(() => {
-          sendObj(broadSocket, "keep-alive", {});
+          sendObj(broadSocket)("keep-alive", {});
         }, 30000);
 
         setInterval(() => {
           const numPeers = Object.values(sessions).filter((s) => s.username !== undefined).length;
-          sendObj(statusSocket, "members-update", { numPeers });
+          sendObj(statusSocket)("members-update", { numPeers });
         }, 1000);
 
         setInterval(() => {
@@ -200,7 +200,7 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
         const candy = JSON.stringify(candidate.toJSON());
         if (!knownCandies.has(candy)) {
           knownCandies = knownCandies.add(candy);
-          sendObj(session.socket, "host-ice-candidate", { candidate: candidate.toJSON() });
+          sendObj(session.socket)("host-ice-candidate", { candidate: candidate.toJSON() });
         }
       }
     }
@@ -214,7 +214,7 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
   connection.setRemoteDescription(offer)
     .then(()     => connection.createAnswer())
     .then(answer => connection.setLocalDescription(answer))
-    .then(()     => sendObj(session.socket, "host-answer", { answer: connection.localDescription }));
+    .then(()     => sendObj(session.socket)("host-answer", { answer: connection.localDescription }));
 
 };
 
@@ -280,7 +280,7 @@ window.addEventListener("message", ({ data }) => {
       broadcast("here-have-an-update", { update: data.update });
       break;
     case "nlw-view":
-      sendObj(statusSocket, "image-update", { base64: data.base64 });
+      sendObj(statusSocket)("image-update", { base64: data.base64 });
       break;
     default:
       console.warn(`Unknown postMessage type: ${data.type}`);

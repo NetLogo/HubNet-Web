@@ -118,12 +118,12 @@ window.submitLaunchForm = (elem) => {
         statusSocket = new WebSocket(`ws://localhost:8080/hnw/my-status/${hostID}`);
 
         setInterval(() => {
-          sendObj(broadSocket, "keep-alive", {});
+          sendObj(broadSocket)("keep-alive", {});
         }, 30000);
 
         setInterval(() => {
           const numPeers = Object.values(sessions).filter((s) => s.username !== undefined).length;
-          sendObj(statusSocket, "members-update", { numPeers });
+          sendObj(statusSocket)("members-update", { numPeers });
         }, 1000);
 
         setInterval(() => {
@@ -206,7 +206,7 @@ window.addEventListener("message", ({ data }) => {
       broadcast("here-have-an-update", { update: data.update });
       break;
     case "nlw-view":
-      sendObj(statusSocket, "image-update", { base64: data.base64 });
+      sendObj(statusSocket)("image-update", { base64: data.base64 });
       break;
     case "hnw-initial-state":
       const { token, role, state, viewState } = data;

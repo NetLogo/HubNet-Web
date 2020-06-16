@@ -153,7 +153,7 @@ const connectAndLogin = (hostID) => {
             const candy = JSON.stringify(candidate.toJSON());
             if (!knownCandies.has(candy)) {
               knownCandies = knownCandies.add(candy);
-              sendObj(narrowSocket, "joiner-ice-candidate", { candidate: candidate.toJSON() });
+              sendObj(narrowSocket)("joiner-ice-candidate", { candidate: candidate.toJSON() });
             }
           }
         }
@@ -168,7 +168,7 @@ const connectAndLogin = (hostID) => {
       channel.onmessage = handleChannelMessages(channel, narrowSocket);
       channel.onclose   = () => cleanupSession();
 
-      narrowSocket.addEventListener('open', () => sendObj(narrowSocket, "joiner-offer", { offer }));
+      narrowSocket.addEventListener('open', () => sendObj(narrowSocket)("joiner-offer", { offer }));
 
       narrowSocket.addEventListener('message', ({ data }) => {
         const datum = JSON.parse(data);
