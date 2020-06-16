@@ -201,6 +201,11 @@ window.addEventListener("message", ({ data }) => {
     sendRTCBurst(...channels)(type, message);
   }
 
+  const narrowcast = (uuid, type, message) => {
+    const channel = sessions[uuid].channel;
+    sendRTCBurst(channel)(type, message);
+  }
+
   switch (data.type) {
     case "nlw-state-update":
       broadcast("here-have-an-update", { update: data.update });
@@ -213,7 +218,10 @@ window.addEventListener("message", ({ data }) => {
       sendRTCBurst(sessions[token].channel)("here-have-a-model", { role, token, state, view: viewState });
       break;
     case "relay":
-      broadcast("relay", data);
+      if (data.recipient === undefined)
+        broadcast("relay", data);
+      else
+        narrowcast(data.recipient, "relay", data);
       break;
     case "nlw-resize":
       break;
