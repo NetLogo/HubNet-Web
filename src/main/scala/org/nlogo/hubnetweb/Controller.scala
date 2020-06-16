@@ -177,7 +177,7 @@ object Controller {
   }
 
   private def handlePreview(uuid: UUID): RequestContext => Future[RouteResult] = {
-    askSeshFor(GetPreview(uuid, _)).fold(msg => complete((NotFound, msg)), msg => { println("Got IT: " + msg); complete(msg) })
+    askSeshFor(GetPreview(uuid, _)).fold(msg => complete((NotFound, msg)), msg => complete(msg))
   }
 
   private def sessionStream: Flow[Message, Message, Any] = {
@@ -320,10 +320,9 @@ object Controller {
                   seshManager ! UpdateNumPeers(hostID, num.toInt)
                 case JsString("image-update") =>
                   val JsString(str) = parsed.fields("base64")
-                  println("Imaged it: " + str)
                   seshManager ! UpdatePreview(hostID, str)
-                case _ =>
-                  ()
+                case x =>
+                  println(s"I don't know what this is: $x")
               }
           }
           Nil
