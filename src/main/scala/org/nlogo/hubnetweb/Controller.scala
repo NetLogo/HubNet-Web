@@ -218,10 +218,6 @@ object Controller {
           tm.toStrict(0.1 seconds).map(text => {
             val msg = text.getStrictText
             seshManager ! PushFromHost(hostID, joinerID, msg)
-            if (msg.contains("\"fullLength\":3")) {
-              println(s"Received: ${msg.take(100)}")
-              //SessionManager.debugSesh(hostID)(joinerID)
-            }
           })
           Nil
         case binary: BinaryMessage =>
@@ -265,13 +261,7 @@ object Controller {
           _ =>
             askSeshFor(PullFromHost(hostID, joinerID, _))
               .fold(_ => Seq(), identity)
-              .map(m => {
-                if (m.contains("\"fullLength\":3")) {
-                  println(s"Sending: ${m.take(100)}")
-                  //SessionManager.debugSesh(hostID)(joinerID)
-                }
-                TextMessage(m)
-              }).toList
+              .map(m => { TextMessage(m) }).toList
         )
 
     sink.merge(source)
