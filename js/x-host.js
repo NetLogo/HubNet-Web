@@ -173,7 +173,12 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
       sendObj(channel)("login-successful", {});
 
       const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
-      babyDearest.postMessage({ type: "hnw-request-initial-state", token: joinerID, roleName: "student" }, "*");
+      babyDearest.postMessage({
+        type:     "hnw-request-initial-state"
+      , token:    joinerID
+      , roleName: "student"
+      , username: sessions[joinerID].username
+      }, "*");
 
     } else {
       sendObj(channel)("incorrect-password", {});

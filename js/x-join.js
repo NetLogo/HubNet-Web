@@ -255,8 +255,11 @@ const handleBurstMessage = (datum) => {
 
     case "here-have-a-model":
 
+      const username = document.getElementById('username').value;
+
       document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
         type:  "hnw-load-interface"
+      , username
       , role:  datum.role
       , token: datum.token
       , view:  datum.view
