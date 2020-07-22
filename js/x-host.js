@@ -203,6 +203,12 @@ const cleanupHostingSession = () => {
 
 window.addEventListener("message", ({ data }) => {
 
+  const narrowcast = (type, message, recipientUUID) => {
+    const sesh = sessions[recipientUUID];
+    if (sesh !== undefined && sesh.channel !== undefined && sesh.channel.readyState === "open")
+      sendRTCBurst(channel)(type, message);
+  }
+
   const broadcast = (type, message) => {
     const channels = Object.values(sessions).map((s) => s.channel).filter((c) => c !== undefined && c.readyState === WebSocket.OPEN)
     sendRTCBurst(...channels)(type, message);
@@ -215,7 +221,10 @@ window.addEventListener("message", ({ data }) => {
 
   switch (data.type) {
     case "nlw-state-update":
-      broadcast("here-have-an-update", { update: data.update });
+      if (data.recipient !== undefined)
+        narrowcast("here-have-an-update", { update: data.update }, data.recipient);
+      else
+        broadcast("here-have-an-update", { update: data.update });
       break;
     case "nlw-view":
       sendObj(statusSocket)("image-update", { base64: data.base64 });

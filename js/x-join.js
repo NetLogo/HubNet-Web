@@ -111,6 +111,7 @@ const populateSessionList = (sessions) => {
   refreshSelection(oldActiveUUID);
 
   if (!window.hasCheckedHash) {
+    setStatus("Session list received.  Please select a session.");
     if (window.location.hash !== "") {
       const oracleID = window.location.hash.slice(1);
       const match    = document.querySelector(`.session-label[data-uuid='${oracleID}'] > .session-option`);
@@ -140,10 +141,12 @@ window.filterSessionList = () => {
 window.selectSession = () => {
   const activeElem = document.querySelector('.active');
   refreshSelection(activeElem !== null ? activeElem.dataset.uuid : null);
+  setStatus("Session selected.  Please enter a username, enter a password (if needed), and click 'Join'.");
 };
 
 // () => Unit
 window.join = () => {
+  setStatus("Attempting to connect...");
   const hostID = document.querySelector('.active').dataset.uuid;
   if (channels[hostID] === undefined) {
     channels[hostID] = null;
@@ -160,9 +163,9 @@ const connectAndLogin = (hostID) => {
     (joinerID) => {
       const rtcID   = uuidToRTCID(joinerID);
       const channel = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/join`);
-      channel.onopen    = () => login(channel);
+      channel.onopen    = () => { setStatus("Connected!  Attempting to log in...."); login(channel); }
       channel.onmessage = handleChannelMessages(channel);
-      channel.onclose   = () => cleanupSession();
+      channel.onclose   = () => { setStatus("Session closed.  Awaiting new selection."); cleanupSession(); }
       channels[hostID] = channel;
       setInterval(processQueue, 1000 / 30);
   });
@@ -191,14 +194,17 @@ const handleChannelMessages = (channel) => ({ data }) => {
   switch (datum.type) {
 
     case "login-successful":
+      setStatus("Logged in!  Loading NetLogo and then asking for model....")
       switchToNLW();
       break;
 
     case "incorrect-password":
+      setStatus("Login rejected!  Use correct password.")
       alert("Bad password, pal—real bad!");
       break;
 
     case "username-already-taken":
+      setStatus("Login rejected!  Use a unique username.")
       alert("Username already in use!");
       break;
 
@@ -216,6 +222,11 @@ const handleChannelMessages = (channel) => ({ data }) => {
 
       const bucket = rtcBursts[id];
       bucket[index] = parcel;
+
+      if (fullLength > 100) {
+        const valids = rtcBursts[id].filter((x) => x !== null);
+        setStatus(`Downloading model from host... (${valids.length}/${fullLength})`);
+      }
 
       if (bucket.every((x) => x !== null)) {
         const fullMessage = rtcBursts[id].join("");
@@ -251,11 +262,13 @@ const processQueue = () => {
     while (stillGoing && messageQueue.length > 0) {
       const message = messageQueue.shift();
       if (message.type ===  "here-have-a-model") {
+        setStatus("Downloading model from host...");
         handleBurstMessage(message);
         stillGoing = false;
       }
     }
   } else if (pageState === "booted up") {
+    setStatus("Model loaded and ready for you to use!");
     while (messageQueue.length > 0) {
       const message = messageQueue.shift();
       handleBurstMessage(message);
@@ -343,6 +356,11 @@ const switchToServerBrowser = () => {
   formFrame.classList.remove("hidden");
   nlwFrame.querySelector("iframe").contentWindow.postMessage({ type: "nlw-open-new" }, "*");
 };
+
+// (String) => Unit
+const setStatus = (statusText) => {
+  document.getElementById('status-value').innerText = statusText;
+}
 
 window.addEventListener('message', (event) => {
   switch (event.data.type) {
