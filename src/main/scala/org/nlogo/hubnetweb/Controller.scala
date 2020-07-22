@@ -215,7 +215,7 @@ object Controller {
     val sink =
       Flow[Message].mapConcat {
         case tm: TextMessage =>
-          tm.toStrict(10 seconds).map(text => {
+          tm.toStrict(100 seconds).map(text => {
             val msg = text.getStrictText
             seshManager ! PushFromHost(hostID, joinerID, msg)
           })
@@ -247,7 +247,7 @@ object Controller {
     val sink =
       Flow[Message].mapConcat {
         case tm: TextMessage =>
-          tm.toStrict(10 seconds).map(text => seshManager ! PushFromJoiner(hostID, joinerID, text.getStrictText))
+          tm.toStrict(100 seconds).map(text => seshManager ! PushFromJoiner(hostID, joinerID, text.getStrictText))
           Nil
         case binary: BinaryMessage =>
           binary.dataStream.runWith(Sink.ignore)
@@ -301,7 +301,7 @@ object Controller {
     Flow[Message]
       .mapConcat {
         case text: TextMessage =>
-          text.toStrict(10 seconds).foreach {
+          text.toStrict(100 seconds).foreach {
             json =>
               val parsed = JsonParser(json.getStrictText).asInstanceOf[JsObject]
               parsed.fields("type") match {
