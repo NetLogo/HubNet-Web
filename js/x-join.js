@@ -1,3 +1,5 @@
+window.hasCheckedHash = false;
+
 const placeholderB64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wYGEwkDoISeKgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAADElEQVQI12NobmwEAAMQAYa2CjzCAAAAAElFTkSuQmCC";
 document.getElementById('session-preview-image').src = placeholderB64;
 
@@ -107,6 +109,22 @@ const populateSessionList = (sessions) => {
   nodes.forEach((node) => container.appendChild(node));
 
   refreshSelection(oldActiveUUID);
+
+  if (!window.hasCheckedHash) {
+    if (window.location.hash !== "") {
+      const oracleID = window.location.hash.slice(1);
+      const match    = document.querySelector(`.session-label[data-uuid='${oracleID}'] > .session-option`);
+      if (match !== null) {
+        match.click();
+        document.getElementById('username').value = prompt("Please enter your login name");
+        if (sessionData.find((x) => x.oracleID === oracleID).hasPassword) {
+          document.getElementById('password').value = prompt("Please enter the room's password");
+        }
+        document.getElementById('join-button').click();
+      }
+    }
+    window.hasCheckedHash = true;
+  }
 
 };
 
