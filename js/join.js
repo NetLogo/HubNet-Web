@@ -228,7 +228,7 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
       break;
 
     case "username-already-taken":
-      alert("It is time to end this great masquerade!");
+      alert("Username already in use!");
       break;
 
     case "rtc-burst-begin":
