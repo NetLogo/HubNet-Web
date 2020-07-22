@@ -360,10 +360,12 @@ window.addEventListener('message', (event) => {
 })
 
 window.addEventListener('popstate', (event) => {
-  switch (event.state.name) {
-    case "joined":
-      switchToServerBrowser();
-    default:
-      console.warn(`Unknown state: ${event.state.name}`);
+  if (event.state !== null && event.state !== undefined) {
+    switch (event.state.name) {
+      case "joined":
+        switchToServerBrowser();
+      default:
+        console.warn(`Unknown state: ${event.state.name}`);
+    }
   }
 });
