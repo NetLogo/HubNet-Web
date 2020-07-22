@@ -23,11 +23,11 @@ const decompress = (deflated) => {
 // (String) => Array[String]
 const chunkForRTC = (message) => {
 
-  const chunkSize  = 32000;
+  const chunkSize  = 1200;
   const compressed = compress(message);
   const messages   = chunk(compressed, chunkSize);
 
-  if (messages.length <= 99)
+  if (messages.length * chunkSize <= 1e7)
     return messages;
   else
     throw new Error('This model is generating too much data for HubNet Web to reliably transfer.  Aborting....');
