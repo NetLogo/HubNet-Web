@@ -77,6 +77,8 @@ window.submitLaunchForm = (elem) => {
 
       response.json().then(({ id: hostID, type, nlogoMaybe, jsonMaybe }) => {
 
+        document.getElementById('id-display').innerText = hostID;
+
         const nlogo       = type === "from-library" ? nlogoMaybe : formDataLike.model;
         const json        = type === "from-library" ? JSON.parse(jsonMaybe) : "get wrecked";
         const sessionName = formDataLike.sessionName;
