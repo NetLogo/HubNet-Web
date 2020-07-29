@@ -172,12 +172,17 @@ const connectAndLogin = (hostID) => {
 
 };
 
-const serverListSocket = new WebSocket(`ws://localhost:8080/hnw/session-stream`);
+// () => WebSocket
+const openListSocket = () => {
+  const socket = new WebSocket(`ws://localhost:8080/hnw/session-stream`);
+  socket.addEventListener('message', ({ data }) => {
+    sessionData = JSON.parse(data);
+    filterSessionList();
+  });
+  return socket;
+};
 
-serverListSocket.addEventListener('message', ({ data }) => {
-  sessionData = JSON.parse(data);
-  filterSessionList();
-});
+let serverListSocket = openListSocket(`ws://localhost:8080/hnw/session-stream`);
 
 // (RTCDataChannel) => Unit
 const login = (channel) => {
@@ -195,6 +200,7 @@ const handleChannelMessages = (channel) => ({ data }) => {
 
     case "login-successful":
       setStatus("Logged in!  Loading NetLogo and then asking for model....")
+      serverListSocket.close();
       switchToNLW();
       break;
 
@@ -349,6 +355,7 @@ const switchToServerBrowser = () => {
   const  nlwFrame = document.getElementById(           "nlw-frame");
   nlwFrame .classList.add(   "hidden");
   formFrame.classList.remove("hidden");
+  serverListSocket = openListSocket();
   nlwFrame.querySelector("iframe").contentWindow.postMessage({ type: "nlw-open-new" }, "*");
 };
 
