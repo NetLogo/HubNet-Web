@@ -252,11 +252,6 @@ const enqueueMessage = (datum) => {
 // () => Unit
 const processQueue = () => {
 
-  // Where might we run into a problem being able to get a "here-have-a-model"?
-  // Where might we run into a problem with receiving view updates after the initial load?
-  // Fix preview images
-  // Fix monitors
-
   if (pageState === "logged in") {
     let stillGoing = true;
     while (stillGoing && messageQueue.length > 0) {
