@@ -163,30 +163,36 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 // (RTCDataChannel, String, String, { username :: String, password :: String }, String) => Unit
 const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
 
-  const joinerUsername  = datum.username.toLowerCase();
-  const relevantSeshes  = Object.entries(sessions).filter(([k, v]) => k !== joinerID).map(([k, v]) => v);
-  const usernameIsTaken = relevantSeshes.some((s) => s.username.toLowerCase() === joinerUsername);
+  if (datum.username !== undefined) {
 
-  if (!usernameIsTaken) {
-    if (password === null || password === datum.password) {
+    const joinerUsername  = datum.username.toLowerCase();
+    const relevantSeshes  = Object.entries(sessions).filter(([k, v]) => k !== joinerID).map(([k, v]) => v);
+    const usernameIsTaken = relevantSeshes.some((s) => s.username.toLowerCase() === joinerUsername);
 
-      sessions[joinerID].username      = datum.username;
-      sessions[joinerID].isInitialized = false;
-      sendObj(channel)("login-successful", {});
+    if (!usernameIsTaken) {
+      if (password === null || password === datum.password) {
 
-      const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
-      babyDearest.postMessage({
-        type:     "hnw-request-initial-state"
-      , token:    joinerID
-      , roleName: "student"
-      , username: sessions[joinerID].username
-      }, "*");
+        sessions[joinerID].username      = datum.username;
+        sessions[joinerID].isInitialized = false;
+        sendObj(channel)("login-successful", {});
 
+        const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
+        babyDearest.postMessage({
+          type:     "hnw-request-initial-state"
+        , token:    joinerID
+        , roleName: "student"
+        , username: sessions[joinerID].username
+        }, "*");
+
+      } else {
+        sendObj(channel)("incorrect-password", {});
+      }
     } else {
-      sendObj(channel)("incorrect-password", {});
+      sendObj(channel)("username-already-taken", {});
     }
+
   } else {
-    sendObj(channel)("username-already-taken", {});
+    sendObj(channel)("no-username-given", {});
   }
 
 };

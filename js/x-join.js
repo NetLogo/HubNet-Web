@@ -209,6 +209,11 @@ const handleChannelMessages = (channel) => ({ data }) => {
       alert("Bad password, pal—real bad!");
       break;
 
+    case "no-username-given":
+      setStatus("Login rejected!  The server did not receive a username from you.")
+      alert("No username given!");
+      break;
+
     case "username-already-taken":
       setStatus("Login rejected!  Use a unique username.")
       alert("Username already in use!");
