@@ -214,11 +214,6 @@ window.addEventListener("message", ({ data }) => {
     sendRTCBurst(...channels)(type, message);
   }
 
-  const narrowcast = (uuid, type, message) => {
-    const channel = sessions[uuid].channel;
-    sendRTCBurst(channel)(type, message);
-  }
-
   switch (data.type) {
     case "nlw-state-update":
       if (data.recipient !== undefined)
@@ -237,7 +232,7 @@ window.addEventListener("message", ({ data }) => {
       if (data.recipient === undefined)
         broadcast("relay", data);
       else
-        narrowcast(data.recipient, "relay", data);
+        narrowcast("relay", data, data.recipient);
       break;
     case "nlw-resize":
       break;
