@@ -248,6 +248,9 @@ const handleChannelMessages = (channel) => ({ data }) => {
 
       break;
 
+    case "keep-alive":
+      break;
+
     default:
       console.warn(`Unknown WebSocket event type: ${datum.type}`);
 

@@ -120,7 +120,9 @@ window.submitLaunchForm = (elem) => {
         statusSocket = new WebSocket(`ws://localhost:8080/hnw/my-status/${hostID}`);
 
         setInterval(() => {
-          sendObj(broadSocket)("keep-alive", {});
+          const seshSockets = Object.values(sessions).map((session) => session.channel);
+          const allSockets  = seshSockets.concat([broadSocket, statusSocket]);
+          allSockets.forEach((socket) => sendObj(socket)("keep-alive", {}));
         }, 30000);
 
         setInterval(() => {
