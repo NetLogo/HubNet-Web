@@ -6,6 +6,8 @@ let password = null; // String
 
 let statusSocket = null; // WebSocket
 
+let lastImageUpdate = undefined; // Base64String
+
 // (DOMElement) => Boolean
 window.submitLaunchForm = (elem) => {
 
@@ -230,7 +232,10 @@ window.addEventListener("message", ({ data }) => {
         broadcast("here-have-an-update", { update: data.update });
       break;
     case "nlw-view":
-      sendObj(statusSocket)("image-update", { base64: data.base64 });
+      if (lastImageUpdate !== data.base64) {
+        lastImageUpdate = data.base64;
+        sendObj(statusSocket)("image-update", { base64: data.base64 });
+      }
       break;
     case "hnw-initial-state":
       const { token, role, state, viewState } = data;
