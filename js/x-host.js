@@ -127,9 +127,13 @@ window.submitLaunchForm = (elem) => {
           allSockets.forEach((socket) => sendObj(socket)("keep-alive", {}));
         }, 30000);
 
+        let lastMemberCount = undefined;
         setInterval(() => {
           const numPeers = Object.values(sessions).filter((s) => s.username !== undefined).length;
-          sendObj(statusSocket)("members-update", { numPeers });
+          if (lastMemberCount !== numPeers) {
+            lastMemberCount = numPeers;
+            sendObj(statusSocket)("members-update", { numPeers });
+          }
         }, 1000);
 
         setInterval(() => {
