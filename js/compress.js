@@ -44,7 +44,8 @@ const sendRTCBurst = (...channels) => (type, obj) => {
     const id = (Math.random() * 1e17).toString()
     messages.forEach(
       (m, index) => {
-        const obj = { id, index, ts: performance.now(), fullLength: messages.length, parcel: m };
+        const time = parseFloat(performance.now().toFixed(5))
+        const obj  = { id, index, ts: time, fullLength: messages.length, parcel: m };
         if (type === "here-have-a-model") {
           console.log("Sending model (" + (index + 1) + "/" + messages.length + ")");
         }
