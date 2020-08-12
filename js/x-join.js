@@ -8,7 +8,8 @@ let sessionData = []; // Array[Session]
 
 let channels = {}; // Object[WebSocket]
 
-let pageState = "uninitialized";
+let pageState   = "uninitialized";
+let pageStateTS = -1;
 
 let messageQueue = []; // Array[Object[Any]]
 
@@ -267,14 +268,20 @@ const enqueueMessage = (datum) => {
 const processQueue = () => {
 
   if (pageState === "logged in") {
-    let stillGoing = true;
-    while (stillGoing && messageQueue.length > 0) {
-      const message = messageQueue.shift();
-      if (message.type ===  "here-have-a-model") {
-        setStatus("Downloading model from host...");
-        handleBurstMessage(message);
-        stillGoing = false;
+    if (pageStateTS + 60000 >= (new Date).getTime()) {
+      let stillGoing = true;
+      while (stillGoing && messageQueue.length > 0) {
+        const message = messageQueue.shift();
+        if (message.type ===  "here-have-a-model") {
+          setStatus("Downloading model from host...");
+          handleBurstMessage(message);
+          stillGoing = false;
+        }
       }
+    } else {
+      alert("Sorry.  Something went wrong when trying to load the model.  Please try again.");
+      setStatus("NetLogo Web failed to load the host's model.  Try again.");
+      switchToServerBrowser()
     }
   } else if (pageState === "booted up") {
     setStatus("Model loaded and ready for you to use!");
@@ -354,11 +361,12 @@ const switchToNLW = () => {
   formFrame.classList.add(   "hidden");
   nlwFrame .classList.remove("hidden");
   history.pushState({ name: "joined" }, "joined");
-  pageState = "logged in";
+  setPageState("logged in");
 };
 
 // () => Unit
 const switchToServerBrowser = () => {
+  setPageState("uninitialized");
   const formFrame = document.getElementById("server-browser-frame");
   const  nlwFrame = document.getElementById(           "nlw-frame");
   nlwFrame .classList.add(   "hidden");
@@ -372,11 +380,17 @@ const setStatus = (statusText) => {
   document.getElementById('status-value').innerText = statusText;
 }
 
+// (String) => Unit
+const setPageState = (state) => {
+  pageState   = state;
+  pageStateTS = (new Date).getTime();
+}
+
 window.addEventListener('message', (event) => {
   switch (event.data.type) {
     case "relay":
       if (event.data.payload.type === "interface-loaded") {
-        pageState = "booted up";
+        setPageState("booted up");
       } else {
         const hostID = document.querySelector('.active').dataset.uuid;
         sendObj(channels[hostID])("relay", event.data);
@@ -390,6 +404,7 @@ window.addEventListener('message', (event) => {
         default:
           alert(`An unknown fatal error has occurred: ${event.data.subtype}`);
       }
+      setStatus("You encountered an error and your session had to be closed.  Sorry about that.  Maybe your next session will treat you better.");
       cleanupSession();
       break;
     case "hnw-resize":
