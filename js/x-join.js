@@ -392,6 +392,8 @@ window.addEventListener('message', (event) => {
       }
       cleanupSession();
       break;
+    case "hnw-resize":
+      break;
     default:
       console.warn(`Unknown message type: ${event.data.type}`);
   }
