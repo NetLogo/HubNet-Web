@@ -218,9 +218,10 @@ const cleanupHostingSession = () => {
 window.addEventListener("message", ({ data }) => {
 
   const narrowcast = (type, message, recipientUUID) => {
-    const sesh = sessions[recipientUUID];
-    if (sesh !== undefined && sesh.channel !== undefined && sesh.channel.readyState === "open")
-      sendRTCBurst(channel)(type, message);
+    const sesh   = sessions[recipientUUID];
+    const isOpen = (channel) => channel.readyState === "open" || channel.readyState === WebSocket.OPEN;
+    if (sesh !== undefined && sesh.channel !== undefined && isOpen(sesh.channel))
+      sendRTCBurst(sesh.channel)(type, message);
   }
 
   const broadcast = (type, message) => {
