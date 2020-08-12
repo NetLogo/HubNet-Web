@@ -252,6 +252,10 @@ window.addEventListener("message", ({ data }) => {
       else
         narrowcast("relay", data, data.recipient);
       break;
+    case "hnw-fatal-error":
+      alert(`Fatal error received from client: ${data.subtype}`);
+      window.location.reload()
+      break;
     case "nlw-resize":
       break;
     default:
