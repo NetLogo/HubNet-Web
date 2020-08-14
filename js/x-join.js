@@ -183,7 +183,7 @@ const openListSocket = () => {
   return socket;
 };
 
-let serverListSocket = openListSocket(`ws://localhost:8080/hnw/session-stream`);
+let serverListSocket = openListSocket();
 
 // (RTCDataChannel) => Unit
 const login = (channel) => {
