@@ -13,6 +13,8 @@ let pageStateTS = -1;
 
 let messageQueue = []; // Array[Object[Any]]
 
+let waitingForBabby = {} // Object[Any]
+
 const rtcBursts = {} // Object[String]
 
 // (String) => Unit
@@ -302,20 +304,36 @@ const handleBurstMessage = (datum) => {
 
     case "here-have-a-model":
 
+      setStatus("Model and world acquired!  Waiting for NetLogo Web to be ready...");
+
       const username = document.getElementById('username').value;
 
-      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
-        type:  "hnw-load-interface"
-      , username
-      , role:  datum.role
-      , token: datum.token
-      , view:  datum.view
-      }, "*");
+      const intervalID = setInterval(
+        () => {
+          document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
+            type: "hnw-are-you-ready-for-interface" }
+          , "*");
+        }
+      , 1000);
 
-      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
-        type:   "nlw-state-update"
-      , update: datum.state
-      }, "*");
+      waitingForBabby["yes-i-am-ready-for-interface"] = {
+        forPosting: {
+          type:  "hnw-load-interface"
+        , username
+        , role:  datum.role
+        , token: datum.token
+        , view:  datum.view
+        }
+      , forFollowup: "hnw-are-you-ready-for-state"
+      , forCancel:   intervalID
+      };
+
+      waitingForBabby["interface-loaded"] = {
+        forPosting: {
+          type:   "nlw-state-update"
+        , update: datum.state
+        }
+      };
 
       break;
 
@@ -388,14 +406,20 @@ const setPageState = (state) => {
 
 window.addEventListener('message', (event) => {
   switch (event.data.type) {
+
     case "relay":
       if (event.data.payload.type === "interface-loaded") {
+        setStatus("Loading up initial state in NetLogo Web...");
+        let stateEntry = waitingForBabby[event.data.payload.type];
+        delete waitingForBabby[event.data.payload.type];
+        document.querySelector('#nlw-frame > iframe').contentWindow.postMessage(stateEntry.forPosting, "*");
         setPageState("booted up");
       } else {
         const hostID = document.querySelector('.active').dataset.uuid;
         sendObj(channels[hostID])("relay", event.data);
       }
       break;
+
     case "hnw-fatal-error":
       switch (event.data.subtype) {
         case "unknown-agent":
@@ -407,10 +431,22 @@ window.addEventListener('message', (event) => {
       setStatus("You encountered an error and your session had to be closed.  Sorry about that.  Maybe your next session will treat you better.");
       cleanupSession();
       break;
+
+    case "yes-i-am-ready-for-interface":
+      setStatus("Loading up interface in NetLogo Web...");
+      let uiEntry = waitingForBabby[event.data.type];
+      delete waitingForBabby[event.data.type];
+      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage(uiEntry.forPosting , "*");
+      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage(uiEntry.forFollowup, "*");
+      clearInterval(uiEntry.forCancel);
+      break;
+
     case "hnw-resize":
       break;
+
     default:
       console.warn(`Unknown message type: ${event.data.type}`);
+
   }
 })
 
