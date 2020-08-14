@@ -20,7 +20,7 @@
     , "canJoinMidRun": false
     , "isSpectator": false
     , "onConnect": "add-player"
-    , "onDisconnect": ""
+    , "onDisconnect": null
     , "onCursorClick": "eat-bugs"
     , "onCursorMove": null
     }
