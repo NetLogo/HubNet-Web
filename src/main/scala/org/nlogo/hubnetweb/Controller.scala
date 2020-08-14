@@ -311,6 +311,7 @@ object Controller {
                 case JsString("image-update") =>
                   val JsString(str) = parsed.fields("base64")
                   seshManager ! UpdatePreview(hostID, str)
+                case JsString("keep-alive") =>
                 case x =>
                   println(s"I don't know what this is: $x")
               }
