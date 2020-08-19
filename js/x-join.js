@@ -272,14 +272,18 @@ const processQueue = () => {
   if (pageState === "logged in") {
     if (pageStateTS + 60000 >= (new Date).getTime()) {
       let stillGoing = true;
+      let deferred   = [];
       while (stillGoing && messageQueue.length > 0) {
         const message = messageQueue.shift();
         if (message.type ===  "here-have-a-model") {
           setStatus("Downloading model from host...");
           handleBurstMessage(message);
           stillGoing = false;
+        } else {
+          deferred.push(message);
         }
       }
+      deferred.forEach((d) => messageQueue.push(d));
     } else {
       alert("Sorry.  Something went wrong when trying to load the model.  Please try again.");
       setStatus("NetLogo Web failed to load the host's model.  Try again.");
