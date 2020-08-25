@@ -13,9 +13,9 @@ let pageStateTS = -1;
 
 let messageQueue = []; // Array[Object[Any]]
 
-let waitingForBabby = {} // Object[Any]
+let waitingForBabby = {}; // Object[Any]
 
-const rtcBursts = {} // Object[String]
+const rtcBursts = {}; // Object[String]
 
 // (String) => Unit
 const refreshSelection = (oldActiveUUID) => {
@@ -400,13 +400,13 @@ const switchToServerBrowser = () => {
 // (String) => Unit
 const setStatus = (statusText) => {
   document.getElementById('status-value').innerText = statusText;
-}
+};
 
 // (String) => Unit
 const setPageState = (state) => {
   pageState   = state;
   pageStateTS = (new Date).getTime();
-}
+};
 
 window.addEventListener('message', (event) => {
   switch (event.data.type) {
