@@ -1179,6 +1179,23 @@ OBSERVER
 NIL
 NIL
 
+PLOT
+23
+262
+223
+412
+Number Sick
+time
+sick
+0.0
+25.0
+0.0
+6.0
+true
+false
+"" ""
+PENS
+
 @#$#@#$#@
 default
 0.0
