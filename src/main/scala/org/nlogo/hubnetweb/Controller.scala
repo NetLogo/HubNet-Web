@@ -261,7 +261,7 @@ object Controller {
           _ =>
             askSeshFor(PullFromHost(hostID, joinerID, _))
               .fold(_ => Seq(), identity)
-              .map(m => { TextMessage(m) }).toList
+              .map(m => TextMessage(m)).toList
         )
 
     sink.merge(source)
