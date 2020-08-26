@@ -112,6 +112,12 @@ const populateSessionList = (sessions) => {
     } else {
       usePlaceholderPreview();
     }
+  } else {
+    if (sessionData.length > 0) {
+      setStatus("Session list received.  Please select a session.");
+    } else {
+      setStatus("Please wait until someone starts a session, and it will appear in the list below.");
+    }
   }
 
   container.innerHTML = "";
@@ -120,7 +126,6 @@ const populateSessionList = (sessions) => {
   refreshSelection(oldActiveUUID);
 
   if (!window.hasCheckedHash) {
-    setStatus("Session list received.  Please select a session.");
     if (window.location.hash !== "") {
       const oracleID = window.location.hash.slice(1);
       const match    = document.querySelector(`.session-label[data-uuid='${oracleID}'] > .session-option`);
