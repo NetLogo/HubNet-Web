@@ -179,7 +179,7 @@ const connectAndLogin = (hostID) => {
       const channel = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/join`);
       channel.onopen    = () => { setStatus("Connected!  Attempting to log in...."); login(channel); }
       channel.onmessage = handleChannelMessages(channel);
-      channel.onclose   = () => { setStatus("Session closed.  Awaiting new selection."); cleanupSession(); }
+      channel.onclose   = (e) => { cleanupSession(e.code === 1000, e.reason); }
       channels[hostID] = channel;
       mainEventLoopID  = setInterval(processQueue, 1000 / 30);
   });
@@ -214,7 +214,7 @@ const handleChannelMessages = (channel) => ({ data }) => {
 
     case "login-successful":
       setStatus("Logged in!  Loading NetLogo and then asking for model....")
-      serverListSocket.close();
+      serverListSocket.close(1000, "Server list is not currently needed");
       switchToNLW();
       break;
 
@@ -297,8 +297,7 @@ const processQueue = () => {
       deferred.forEach((d) => messageQueue.push(d));
     } else {
       alert("Sorry.  Something went wrong when trying to load the model.  Please try again.");
-      setStatus("NetLogo Web failed to load the host's model.  Try again.");
-      switchToServerBrowser()
+      cleanupSession(true, "NetLogo Web failed to load the host's model.  Try again.");
     }
   } else if (pageState === "booted up") {
     setStatus("Model loaded and ready for you to use!");
@@ -385,11 +384,27 @@ const refreshImage = (oracleID) => {
   }).catch(() => { usePlaceholderPreview(); });
 };
 
-// () => Unit
-const cleanupSession = () => {
+// (Boolean, String) => Unit
+const cleanupSession = (wasExpected, statusText) => {
+
   clearInterval(mainEventLoopID);
-  switchToServerBrowser();
-  alert("Connection to host lost");
+
+  setPageState("uninitialized");
+  const formFrame = document.getElementById("server-browser-frame");
+  const  nlwFrame = document.getElementById(           "nlw-frame");
+  nlwFrame .classList.add(   "hidden");
+  formFrame.classList.remove("hidden");
+  serverListSocket = openListSocket();
+  nlwFrame.querySelector("iframe").contentWindow.postMessage({ type: "nlw-open-new" }, "*");
+
+  if (!wasExpected) {
+    alert("Connection to host lost");
+  }
+
+  if (statusText !== undefined) {
+    setStatus(statusText);
+  }
+
 };
 
 // () => Unit
@@ -400,17 +415,6 @@ const switchToNLW = () => {
   nlwFrame .classList.remove("hidden");
   history.pushState({ name: "joined" }, "joined");
   setPageState("logged in");
-};
-
-// () => Unit
-const switchToServerBrowser = () => {
-  setPageState("uninitialized");
-  const formFrame = document.getElementById("server-browser-frame");
-  const  nlwFrame = document.getElementById(           "nlw-frame");
-  nlwFrame .classList.add(   "hidden");
-  formFrame.classList.remove("hidden");
-  serverListSocket = openListSocket();
-  nlwFrame.querySelector("iframe").contentWindow.postMessage({ type: "nlw-open-new" }, "*");
 };
 
 // (String) => Unit
@@ -449,7 +453,7 @@ window.addEventListener('message', (event) => {
           alert(`An unknown fatal error has occurred: ${event.data.subtype}`);
       }
       setStatus("You encountered an error and your session had to be closed.  Sorry about that.  Maybe your next session will treat you better.");
-      cleanupSession();
+      cleanupSession(true, undefined);
       break;
 
     case "yes-i-am-ready-for-interface":
@@ -474,7 +478,7 @@ window.addEventListener('popstate', (event) => {
   if (event.state !== null && event.state !== undefined) {
     switch (event.state.name) {
       case "joined":
-        switchToServerBrowser();
+        cleanupSession(true, undefined);
       default:
         console.warn(`Unknown state: ${event.state.name}`);
     }
