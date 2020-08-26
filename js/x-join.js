@@ -296,7 +296,7 @@ const processQueue = () => {
       handleBurstMessage(message);
     }
   } else {
-    console.log("Skipping while in state: ", pageState);
+    console.log("Skipping while in state:", pageState);
   }
 
 }
