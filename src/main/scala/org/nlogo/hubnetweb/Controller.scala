@@ -24,10 +24,10 @@ import akka.actor.typed.scaladsl.Behaviors
 import spray.json.{ JsArray, JsNumber, JsObject, JsonParser, JsString }
 
 import session.{ SessionInfo, SessionManagerActor }
-import session.SessionManagerActor.{ CreateSession, CreateXSession, GetPreview, GetSessions
-                                   , PullFromHost, PullFromJoiner, PullJoinerIDs, PushFromHost
-                                   , PushFromJoiner, PushJoinerID, SeshMessageAsk, UpdateNumPeers
-                                   , UpdatePreview
+import session.SessionManagerActor.{ CreateSession, CreateXSession, DelistSession, GetPreview
+                                   , GetSessions, PullFromHost, PullFromJoiner, PullJoinerIDs
+                                   , PushFromHost, PushFromJoiner, PushJoinerID, SeshMessageAsk
+                                   , UpdateNumPeers, UpdatePreview
                                    }
 
 object Controller {
@@ -184,11 +184,22 @@ object Controller {
 
     import scala.concurrent.duration.DurationInt
 
-    val sink = Flow[Message].mapConcat(_ => Nil)
+    var socketNotTerminated = true
+
+    val sink =
+      Flow[Message]
+        .mapConcat(_ => Nil)
+        .watchTermination() {
+          (_, dcFuture) =>
+            dcFuture.onComplete {
+              case _ => socketNotTerminated = false
+            }
+        }
 
     val source =
       Source
         .tick(0 seconds, 3 seconds, None)
+        .takeWhile(_ => socketNotTerminated)
         .map(_  => askSeshFor(GetSessions(_)).map(sessionToJsonable).map(x => siuFormat.write(x)).toList.toJson)
         .map(xs => TextMessage(xs.toString))
 
@@ -212,6 +223,8 @@ object Controller {
     import scala.concurrent.duration.DurationDouble
     import scala.concurrent.duration.DurationInt
 
+    var socketNotTerminated = true
+
     val sink =
       Flow[Message].mapConcat {
         case tm: TextMessage =>
@@ -223,11 +236,18 @@ object Controller {
         case binary: BinaryMessage =>
           binary.dataStream.runWith(Sink.ignore)
           Nil
+      }.watchTermination() {
+        (_, dcFuture) =>
+          dcFuture.onComplete { // On disconnect...
+            case _ => socketNotTerminated = false
+          }
       }
+
 
     val source =
       Source
         .tick(0 seconds, 0.1 seconds, None)
+        .takeWhile(_ => socketNotTerminated)
         .mapConcat(
           _ =>
             askSeshFor(PullFromJoiner(hostID, joinerID, _))
@@ -235,7 +255,16 @@ object Controller {
               .map(m => TextMessage(m)).toList
         )
 
-    sink.merge(source)
+    sink.merge(source).watchTermination() {
+      (_, dcFuture) =>
+        dcFuture.onComplete {
+          case _ =>
+            seshManager ! PushFromHost(hostID, joinerID, JsObject("type" -> JsString("bye-bye")).toString)
+            system.scheduler.scheduleOnce(5 seconds) {
+              seshManager ! DelistSession(hostID)
+            }
+        }
+    }
 
   }
 
@@ -243,6 +272,8 @@ object Controller {
 
     import scala.concurrent.duration.DurationDouble
     import scala.concurrent.duration.DurationInt
+
+    var socketNotTerminated = true
 
     val sink =
       Flow[Message].mapConcat {
@@ -252,11 +283,17 @@ object Controller {
         case binary: BinaryMessage =>
           binary.dataStream.runWith(Sink.ignore)
           Nil
+      }.watchTermination() {
+        (_, dcFuture) =>
+          dcFuture.onComplete { // On disconnect...
+            case _ => socketNotTerminated = false
+          }
       }
 
     val source =
       Source
         .tick(0 seconds, 0.1 seconds, None)
+        .takeWhile(_ => socketNotTerminated)
         .mapConcat(
           _ =>
             askSeshFor(PullFromHost(hostID, joinerID, _))
@@ -264,7 +301,13 @@ object Controller {
               .map(m => TextMessage(m)).toList
         )
 
-    sink.merge(source)
+    sink.merge(source).watchTermination() {
+      (_, dcFuture) =>
+        dcFuture.onComplete {
+          case _ =>
+            seshManager ! PushFromJoiner(hostID, joinerID, JsObject("type" -> JsString("bye-bye")).toString)
+        }
+    }
 
   }
 
@@ -273,11 +316,22 @@ object Controller {
     import scala.concurrent.duration.DurationDouble
     import scala.concurrent.duration.DurationInt
 
-    val sink = Flow[Message].mapConcat(_ => Nil)
+    var socketNotTerminated = true
+
+    val sink =
+      Flow[Message]
+        .mapConcat(_ => Nil)
+        .watchTermination() {
+          (_, dcFuture) =>
+            dcFuture.onComplete {
+              case _ => socketNotTerminated = false
+            }
+        }
 
     val source =
       Source
         .tick(0 seconds, 0.1 seconds, None)
+        .takeWhile(_ => socketNotTerminated)
         .mapConcat {
           _ =>
             askSeshFor(PullJoinerIDs(hostID, _)).fold(

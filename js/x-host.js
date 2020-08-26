@@ -111,7 +111,7 @@ window.submitLaunchForm = (elem) => {
               const joinerID     = datum.joinerID
               const channel      = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/host`);
               channel.onmessage  = handleChannelMessages(channel, nlogo, sessionName, joinerID);
-              channel.onclose    = () => { cleanupSession(joinerID); };
+              channel.onclose    = handleChannelClose(joinerID);
               sessions[joinerID] = { channel };
               break;
             default:
@@ -163,9 +163,20 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
       const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
       babyDearest.postMessage(datum.payload, "*");
       break;
+    case "bye-bye":
+      sessions[joinerID].channel.close();
+      delete sessions[joinerID];
+      break;
     default:
       console.warn(`Unknown WebSocket event type: ${datum.type}`);
   }
+};
+
+// (String) => () => Unit
+const handleChannelClose = (joinerID) => () => {
+  const babyDearest = document.getElementById( "nlw-frame").querySelector('iframe').contentWindow;
+  babyDearest.postMessage({ joinerID, type: "hnw-notify-disconnect" }, "*");
+  cleanupSession(joinerID);
 };
 
 // (RTCDataChannel, String, String, { username :: String, password :: String }, String) => Unit
@@ -262,6 +273,14 @@ window.addEventListener("message", ({ data }) => {
       console.warn(`Unknown postMessage type: ${data.type}`);
   }
 
+});
+
+window.addEventListener("beforeunload", (event) => {
+  // Honestly, this will probably not run before the tab closes.  Not much I can do about that.  --JAB (8/21/20)
+  Object.entries(sessions).forEach(([joinerID, channel]) => {
+    sendObj(channel)("bye-bye");
+    channel.close(1000, "Terminating unneeded sockets...");
+  });
 });
 
 window.addEventListener('popstate', (event) => {

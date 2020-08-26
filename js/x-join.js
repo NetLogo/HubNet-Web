@@ -262,6 +262,10 @@ const handleChannelMessages = (channel) => ({ data }) => {
 
       break;
 
+    case "bye-bye":
+      channel.close(1000, "The host disconnected.  Awaiting new selection.");
+      alert("The host disconnected from the activity");
+
     case "keep-alive":
       break;
 
@@ -428,6 +432,15 @@ const setPageState = (state) => {
   pageStateTS = (new Date).getTime();
 };
 
+// (String) => Unit
+const disconnectChannels = (reason) => {
+  Object.entries(channels).forEach(([hostID, channel]) => {
+    sendObj(channel)("bye-bye");
+    channel.close(1000, reason);
+    delete channels[hostID];
+  });
+};
+
 window.addEventListener('message', (event) => {
   switch (event.data.type) {
 
@@ -472,7 +485,12 @@ window.addEventListener('message', (event) => {
       console.warn(`Unknown message type: ${event.data.type}`);
 
   }
-})
+});
+
+window.addEventListener("beforeunload", (event) => {
+  // Honestly, this will probably not run before the tab closes.  Not much I can do about that.  --JAB (8/21/20)
+  disconnectChannels("");
+});
 
 window.addEventListener('popstate', (event) => {
   if (event.state !== null && event.state !== undefined) {

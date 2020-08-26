@@ -35,6 +35,8 @@ object SessionManagerActor {
                                  , override val replyTo: ActorRef[Either[String, String]]
                                  ) extends SeshMessageAsk[Either[String, String]]
 
+  final case class DelistSession(uuid: UUID) extends SeshMessage
+
   final case class GetPreview( uuid: UUID, override val replyTo: ActorRef[Either[String, String]]
                              ) extends SeshMessageAsk[Either[String, String]]
 
@@ -70,6 +72,10 @@ object SessionManagerActor {
 
           case CreateXSession(modelName, modelSource, json, name, password, uuid, scheduleIn, replyTo) =>
             replyTo ! SessionManager.createXSession(modelName, modelSource, json, name, password, uuid, scheduleIn)
+            Behaviors.same
+
+          case DelistSession(uuid) =>
+            SessionManager.delistSession(uuid)
             Behaviors.same
 
           case GetPreview(uuid, replyTo) =>
@@ -183,7 +189,7 @@ private object SessionManager {
 
       scheduleIn(25 hours, {
         () =>
-          sessionMap -= uuid
+          delistSession(uuid)
           ()
       })
 
@@ -205,11 +211,15 @@ private object SessionManager {
         if (timestamp > (System.currentTimeMillis() - (1 * 60 * 1000)))
           scheduleIn(1 minute, () => checkIn(scheduleIn)(hostID))
         else
-          sessionMap -= hostID
+          delistSession(hostID)
     }
 
     ()
 
+  }
+
+  def delistSession(hostID: UUID): Unit = {
+    sessionMap -= hostID
   }
 
   private def pulseHost(hostID: UUID): Unit =
