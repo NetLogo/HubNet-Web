@@ -1,7 +1,11 @@
 window.hasCheckedHash = false;
 
-const placeholderB64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wYGEwkDoISeKgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAADElEQVQI12NobmwEAAMQAYa2CjzCAAAAAElFTkSuQmCC";
-document.getElementById('session-preview-image').src = placeholderB64;
+// () => Unit
+const usePlaceholderPreview = () => {
+  document.getElementById('session-preview-image').src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wYGEwkDoISeKgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAADElEQVQI12NobmwEAAMQAYa2CjzCAAAAAElFTkSuQmCC";
+};
+
+usePlaceholderPreview();
 
 // type Session = { modelName :: String, name :: String, oracleID :: String }
 let sessionData = []; // Array[Session]
@@ -104,7 +108,7 @@ const populateSessionList = (sessions) => {
       match.querySelector('.session-option').checked = true;
       refreshImage(selected.dataset.uuid);
     } else {
-      document.getElementById('session-preview-image').src = placeholderB64;
+      usePlaceholderPreview();
     }
   }
 
@@ -366,8 +370,12 @@ const handleBurstMessage = (datum) => {
 const refreshImage = (oracleID) => {
   const image = document.getElementById('session-preview-image');
   fetch(`/preview/${oracleID}`).then((response) => {
-    response.text().then((base64) => { image.src = base64; })
-  });
+    if (response.ok) {
+      response.text().then((base64) => { image.src = base64; });
+    } else {
+      usePlaceholderPreview();
+    }
+  }).catch(() => { usePlaceholderPreview(); });
 };
 
 // () => Unit
