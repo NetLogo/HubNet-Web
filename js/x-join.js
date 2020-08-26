@@ -19,6 +19,8 @@ let messageQueue = []; // Array[Object[Any]]
 
 let waitingForBabby = {}; // Object[Any]
 
+let mainEventLoopID = null; // Number
+
 const rtcBursts = {}; // Object[String]
 
 // (String) => Unit
@@ -174,7 +176,7 @@ const connectAndLogin = (hostID) => {
       channel.onmessage = handleChannelMessages(channel);
       channel.onclose   = () => { setStatus("Session closed.  Awaiting new selection."); cleanupSession(); }
       channels[hostID] = channel;
-      setInterval(processQueue, 1000 / 30);
+      mainEventLoopID  = setInterval(processQueue, 1000 / 30);
   });
 
 };
@@ -380,6 +382,7 @@ const refreshImage = (oracleID) => {
 
 // () => Unit
 const cleanupSession = () => {
+  clearInterval(mainEventLoopID);
   switchToServerBrowser();
   alert("Connection to host lost");
 };
