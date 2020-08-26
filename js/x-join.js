@@ -502,3 +502,7 @@ window.addEventListener('popstate', (event) => {
     }
   }
 });
+
+document.getElementById("disconnect-button").addEventListener("click", () => {
+  disconnectChannels("You disconnected from your last session.  Awaiting new selection.");
+});
