@@ -199,12 +199,14 @@ private object SessionManager {
 
     import scala.concurrent.duration.DurationInt
 
-    val timestamp = sessionMap(hostID).lastCheckInTimestamp
-
-    if (timestamp > (System.currentTimeMillis() - (1 * 60 * 1000)))
-      scheduleIn(1 minute, () => checkIn(scheduleIn)(hostID))
-    else
-      sessionMap -= hostID
+    sessionMap.get(hostID).foreach {
+      session =>
+        val timestamp = session.lastCheckInTimestamp
+        if (timestamp > (System.currentTimeMillis() - (1 * 60 * 1000)))
+          scheduleIn(1 minute, () => checkIn(scheduleIn)(hostID))
+        else
+          sessionMap -= hostID
+    }
 
     ()
 
