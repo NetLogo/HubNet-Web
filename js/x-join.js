@@ -413,12 +413,18 @@ const cleanupSession = (wasExpected, statusText) => {
 
 // () => Unit
 const switchToNLW = () => {
+
+  document.querySelector('.session-option').checked = false;
+  usePlaceholderPreview();
+
   const formFrame = document.getElementById("server-browser-frame");
   const  nlwFrame = document.getElementById(           "nlw-frame");
   formFrame.classList.add(   "hidden");
   nlwFrame .classList.remove("hidden");
+
   history.pushState({ name: "joined" }, "joined");
   setPageState("logged in");
+
 };
 
 // (String) => Unit
