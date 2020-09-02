@@ -223,16 +223,22 @@ private object SessionManager {
   }
 
   private def pulseHost(hostID: UUID): Unit =
-    sessionMap(hostID) = sessionMap(hostID).copy(lastCheckInTimestamp = System.currentTimeMillis())
+    sessionMap.get(hostID).foreach {
+      session => sessionMap(hostID) = session.copy(lastCheckInTimestamp = System.currentTimeMillis())
+    }
 
   def updateNumPeers(hostID: UUID, numPeers: Int): Unit = {
     pulseHost(hostID)
-    sessionMap(hostID).roleInfo("any").numInRole = numPeers
+    sessionMap.get(hostID).foreach {
+      _.roleInfo("any").numInRole = numPeers
+    }
   }
 
   def updatePreview(hostID: UUID, base64: String): Unit = {
     pulseHost(hostID)
-    sessionMap(hostID) = sessionMap(hostID).copy(previewBase64 = base64)
+    sessionMap.get(hostID).foreach {
+      session => sessionMap(hostID) = session.copy(previewBase64 = base64)
+    }
   }
 
   def getPreview(uuid: UUID): Either[String, String] =
