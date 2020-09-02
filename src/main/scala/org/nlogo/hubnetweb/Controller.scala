@@ -260,9 +260,6 @@ object Controller {
         dcFuture.onComplete {
           case _ =>
             seshManager ! PushFromHost(hostID, joinerID, JsObject("type" -> JsString("bye-bye")).toString)
-            system.scheduler.scheduleOnce(5 seconds) {
-              seshManager ! DelistSession(hostID)
-            }
         }
     }
 
@@ -374,7 +371,16 @@ object Controller {
         case binary: BinaryMessage =>
           binary.dataStream.runWith(Sink.ignore)
           Nil
-      }
+      }.watchTermination() {
+      (_, dcFuture) =>
+        dcFuture.onComplete {
+          case _ =>
+            system.scheduler.scheduleOnce(5 seconds) {
+              seshManager ! DelistSession(hostID)
+            }
+        }
+    }
+
 
   }
 
