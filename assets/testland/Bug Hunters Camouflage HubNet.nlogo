@@ -122,6 +122,7 @@ to handle-flash
       ask bugs [ set color white ]
     ]
   ] [
+    set last-flash-tick -1
     ask bugs [ set-phenotype-color ]
   ]
 end
