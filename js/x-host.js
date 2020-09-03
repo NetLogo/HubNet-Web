@@ -277,7 +277,7 @@ window.addEventListener("message", ({ data }) => {
 
 window.addEventListener("beforeunload", (event) => {
   // Honestly, this will probably not run before the tab closes.  Not much I can do about that.  --JAB (8/21/20)
-  Object.entries(sessions).forEach(([joinerID, channel]) => {
+  Object.entries(sessions).forEach(([joinerID, { channel }]) => {
     sendObj(channel)("bye-bye");
     channel.close(1000, "Terminating unneeded sockets...");
   });
