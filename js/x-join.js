@@ -256,7 +256,9 @@ const handleChannelMessages = (channel) => ({ data }) => {
 
       if (fullLength > 100) {
         const valids = rtcBursts[id].filter((x) => x !== null);
-        setStatus(`Downloading model from host... (${valids.length}/${fullLength})`);
+        if (rtcBursts[id][0].startsWith("\"{\\\"type\\\":\\\"here-have-a-model\\\"")) {
+          setStatus(`Downloading model from host... (${valids.length}/${fullLength})`);
+        }
       }
 
       if (bucket.every((x) => x !== null)) {
@@ -310,7 +312,6 @@ const processQueue = () => {
       cleanupSession(true, "NetLogo Web failed to load the host's model.  Try again.");
     }
   } else if (pageState === "booted up") {
-    setStatus("Model loaded and ready for you to use!");
     while (messageQueue.length > 0) {
       const message = messageQueue.shift();
       handleBurstMessage(message);
@@ -512,7 +513,7 @@ window.addEventListener('message', (event) => {
 
     case "relay":
       if (event.data.payload.type === "interface-loaded") {
-        setStatus("Loading up initial state in NetLogo Web...");
+        setStatus("Model loaded and ready for you to use!");
         let stateEntry = waitingForBabby[event.data.payload.type];
         if (stateEntry !== undefined) {
           delete waitingForBabby[event.data.payload.type];
