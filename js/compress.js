@@ -41,7 +41,7 @@ const sendRTCBurst = (...channels) => (type, obj) => {
   const messages = chunkForRTC(makeMessage(type, obj));
 
   channels.forEach((channel) => {
-    const id = (Math.random() * 1e17).toString()
+    const id = (Math.random() * 1e18).toString()
     messages.forEach(
       (m, index) => {
         const time = parseFloat(performance.now().toFixed(5))
