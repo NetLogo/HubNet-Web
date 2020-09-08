@@ -1,4 +1,4 @@
-// type Session = { channel :: WebSocket, username :: String }
+// type Session = { channel :: WebSocket, hasInitialized :: Boolean, username :: String }
 
 let sessions = {}; // Object[Session]
 
@@ -112,7 +112,7 @@ window.submitLaunchForm = (elem) => {
               const channel      = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/host`);
               channel.onmessage  = handleChannelMessages(channel, nlogo, sessionName, joinerID);
               channel.onclose    = handleChannelClose(joinerID);
-              sessions[joinerID] = { channel };
+              sessions[joinerID] = { channel, hasInitialized: false };
               break;
             default:
               console.warn(`Unknown broad event type: ${datum.type}`);
@@ -236,7 +236,8 @@ window.addEventListener("message", ({ data }) => {
   }
 
   const broadcast = (type, message) => {
-    const channels = Object.values(sessions).map((s) => s.channel).filter((c) => c !== undefined && c.readyState === WebSocket.OPEN)
+    const checkIsEligible = (s) => s.channel !== undefined && s.channel.readyState === WebSocket.OPEN && s.hasInitialized;
+    const channels = Object.values(sessions).filter(checkIsEligible).map((s) => s.channel);
     sendRTCBurst(...channels)(type, message);
   }
 
@@ -255,7 +256,8 @@ window.addEventListener("message", ({ data }) => {
       break;
     case "hnw-initial-state":
       const { token, role, state, viewState } = data;
-      sendRTCBurst(sessions[token].channel)("here-have-a-model", { role, token, state, view: viewState });
+      narrowcast("here-have-a-model", { role, token, state, view: viewState }, token);
+      sessions[token].hasInitialized = true;
       break;
     case "relay":
       if (data.recipient === undefined)
