@@ -161,6 +161,7 @@ window.selectSession = () => {
 // () => Unit
 window.join = () => {
   setStatus("Attempting to connect...");
+  document.getElementById('join-button').disabled = true;
   const hostID = document.querySelector('.active').dataset.uuid;
   if (channels[hostID] === undefined) {
     channels[hostID] = null;
@@ -221,16 +222,19 @@ const handleChannelMessages = (channel) => ({ data }) => {
     case "incorrect-password":
       setStatus("Login rejected!  Use correct password.")
       alert("Bad password, pal—real bad!");
+      document.getElementById('join-button').disabled = false;
       break;
 
     case "no-username-given":
       setStatus("Login rejected!  The server did not receive a username from you.")
       alert("No username given!");
+      document.getElementById('join-button').disabled = false;
       break;
 
     case "username-already-taken":
       setStatus("Login rejected!  Use a unique username.")
       alert("Username already in use!");
+      document.getElementById('join-button').disabled = false;
       break;
 
     case "rtc-burst":
@@ -400,6 +404,7 @@ const cleanupSession = (wasExpected, statusText) => {
   formFrame.classList.remove("hidden");
   serverListSocket = openListSocket();
   nlwFrame.querySelector("iframe").contentWindow.postMessage({ type: "nlw-open-new" }, "*");
+  document.getElementById('join-button').disabled = false;
 
   if (!wasExpected) {
     alert("Connection to host lost");
