@@ -529,7 +529,7 @@ window.addEventListener('message', (event) => {
     case "hnw-fatal-error":
       switch (event.data.subtype) {
         case "unknown-agent":
-          alert(`We received an update for an agent that we have never heard of.\n\nIn a later version, we will add the ability to resynchronize with the server to get around this issue.  However, the only solution right now is for the activity to close.\n\nYou might have better success if you reconnect.`);
+          alert(`We received an update for an agent that we have never heard of (${event.data.agentType} #${event.data.agentID}).\n\nIn a later version, we will add the ability to resynchronize with the server to get around this issue.  However, the only solution right now is for the activity to close.\n\nYou might have better success if you reconnect.`);
           break;
         default:
           alert(`An unknown fatal error has occurred: ${event.data.subtype}`);
