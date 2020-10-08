@@ -8,6 +8,10 @@
   </head>
   <body>
 
+    <div>
+      <span style="font-weight: bold">Status: </span><span id="status-value">Floating through the ether</span>
+    </div>
+
     <div id="server-browser-frame" class="flex-row">
 
       <div class="flex-column">
@@ -45,7 +49,8 @@
     </div>
 
     <div id="nlw-frame" class="frame hidden">
-      <iframe class="nlw-iframe" src="http://localhost:9000/web"></iframe>
+      <input id="disconnect-button" type="button" value="Disconnect">
+      <iframe class="nlw-iframe" src="http://localhost:9000/hnw-join"></iframe>
     </div>
 
   </body>

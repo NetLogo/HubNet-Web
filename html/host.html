@@ -5,25 +5,54 @@
     <link href="/assets/stylesheets/host.css" rel="stylesheet">
     <script src="/js/common.js"></script>
     <script src="/js/compress.js"></script>
-    <script src="/js/host.js"></script>
   </head>
   <body>
 
     <div id="form-frame" class="frame">
       <h1>You're a hoster</h1>
       <form id="launch-form" action="javascript:void(0);" onsubmit="return submitLaunchForm(this)" method="POST" enctype="multipart/form-data">
-        <label>
-          Select a model from the library
-          <input id="is-library-model" name="modelType" type="radio" value="library" onchange="ownModelTypeChange('library')" checked>
-        </label>
-        <label>
-          Upload my own model
-          <input id="is-upload-model" name="modelType" type="radio" value="upload" onchange="ownModelTypeChange('upload')">
-        </label>
-        <select id="library-model" name="libraryModel" type="chooser" disabled>
-          <option>Loading...</option>
+        <select id="library-model" name="libraryModel" type="chooser">
+          <option>[4] Disease</option>
+          <option>[3] Bug Hunters Camouflage</option>
+          <option>[2] Disease Doctors</option>
+          <option>[2] Memory</option>
+          <option>[2] Minority Game</option>
+          <option>[1] BeeSmart</option>
+          <option>[1] Bug Hunters Adaptations</option>
+          <option>[1] Dice Stalagmite</option>
+          <option>[1] Polling</option>
+          <option>[0] Root Beer Game</option>
+          <option>[0] Sampler</option>
+          <option>[0] Tragedy of the Commons</option>
+          <option>[0] Gridlock</option>
+
+          <option>[0] Bird Breeders</option>
+          <option>[0] Bug Hunters Competition</option>
+          <option>[0] Client Overrides Example</option>
+          <option>[0] Client Perspective Example</option>
+          <option>[0] Critter Designers</option>
+          <option>[0] Current in a Wire</option>
+          <option>[0] Disease With Android Avoidance</option>
+          <option>[0] Example</option>
+          <option>[0] Fish Spotters</option>
+          <option>[0] Function</option>
+          <option>[0] Gridlock Alternate</option>
+          <option>[0] Guppy Spots</option>
+          <option>[0] Investments</option>
+          <option>[0] MTG 1 Equal Opportunities</option>
+          <option>[0] MTG 2 Random Assignment</option>
+          <option>[0] MTG 3 Feedback Loop</option>
+          <option>[0] Oil Cartel</option>
+          <option>[0] Oil Cartel Alternate</option>
+          <option>[0] PANDA BEAR</option>
+          <option>[0] Polling Advanced</option>
+          <option>[0] Predator Prey Game</option>
+          <option>[0] Prisoners Dilemma</option>
+          <option>[0] Public Good</option>
+          <option>[0] Restaurants</option>
+          <option>[0] Template</option>
+          <option>[0] Walking</option>
         </select>
-        <input id="upload-model" name="uploadModel" type="file" style="display: none;">
         <label>
           Session Name:
           <input name="sessionName" type="text" pattern="\w.*" required>
@@ -36,10 +65,13 @@
       </form>
     </div>
 
+    <div id="id-display"></div>
+
     <div id="nlw-frame" class="frame hidden">
-      <iframe class="nlw-iframe" src="http://localhost:9000/web"></iframe>
+      <iframe class="nlw-iframe" src="http://localhost:9000/hnw-host"></iframe>
     </div>
 
+    <script src="/js/host.js"></script>
     <script src="/js/nlw-scaffold.js"></script>
 
   </body>

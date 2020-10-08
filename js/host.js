@@ -1,4 +1,4 @@
-// type Session = { connection :: RTCPeerConnection, channel :: RTCDataChannel, socket :: WebSocket, username :: String }
+// type Session = { channel :: WebSocket, hasInitialized :: Boolean, username :: String }
 
 let sessions = {}; // Object[Session]
 
@@ -6,28 +6,7 @@ let password = null; // String
 
 let statusSocket = null; // WebSocket
 
-fetch("/available-models").then((x) => x.json()).then((modelNames) => {
-  const chooser = document.getElementById("library-model");
-  chooser.disabled = false;
-  chooser.options.remove(0);
-  modelNames.forEach((name) => chooser.options.add(new Option(name)));
-});
-
-// (String) => Unit
-window.ownModelTypeChange = (mode) => {
-  switch(mode) {
-    case "library":
-      document.getElementById("library-model").style.display = "";
-      document.getElementById("upload-model").style.display  = "none";
-      break;
-    case "upload":
-      document.getElementById("library-model").style.display = "none";
-      document.getElementById("upload-model").style.display  = "";
-      break;
-    default:
-      console.warn(`Unknown model source: ${mode}`);
-  }
-};
+let lastImageUpdate = undefined; // Base64String
 
 // (DOMElement) => Boolean
 window.submitLaunchForm = (elem) => {
@@ -35,7 +14,7 @@ window.submitLaunchForm = (elem) => {
   const formData = new FormData(elem);
 
   const formDataPlus =
-    { 'modelType':   formData.get('modelType')
+    { 'modelType':   "library"
     , 'sessionName': formData.get('sessionName')
     , 'password':    formData.get('password')
     };
@@ -47,10 +26,9 @@ window.submitLaunchForm = (elem) => {
 
   switch (formDataPlus.modelType) {
     case "library":
-      const lm    = formData.get('libraryModel');
-      const index = lm.lastIndexOf('/');
-      formDataPlus.model     = lm
-      formDataPlus.modelName = lm.slice(((index !== -1) ? index + 1 : 0));
+      const lm               = formData.get('libraryModel').slice(4);
+      formDataPlus.model     = lm;
+      formDataPlus.modelName = lm;
       break;
     case "upload":
 
@@ -93,15 +71,18 @@ window.submitLaunchForm = (elem) => {
       , body:    JSON.stringify(fddp)
       };
 
-    return fetch('/launch-session', data).then((response) => [fddp, response]);
+    return fetch('/x-launch-session', data).then((response) => [fddp, response]);
 
   }).then(([formDataLike, response]) => {
 
     if (response.status === 200) {
 
-      response.json().then(({ id: hostID, type, nlogoMaybe }) => {
+      response.json().then(({ id: hostID, type, nlogoMaybe, jsonMaybe }) => {
+
+        document.getElementById('id-display').innerText = hostID;
 
         const nlogo       = type === "from-library" ? nlogoMaybe : formDataLike.model;
+        const json        = type === "from-library" ? JSON.parse(jsonMaybe) : "get wrecked";
         const sessionName = formDataLike.sessionName;
 
         const formFrame = document.getElementById("form-frame");
@@ -114,9 +95,9 @@ window.submitLaunchForm = (elem) => {
         const babyDearest = nlwFrame.querySelector('iframe').contentWindow;
 
         babyDearest.postMessage({
-          nlogo,
-          path: sessionName,
-          type: "nlw-load-model"
+          ...json
+        , nlogo: nlogo
+        , type: "hnw-become-oracle"
         }, "*");
 
         babyDearest.postMessage({ type: "nlw-subscribe-to-updates", uuid: hostID }, "*");
@@ -127,10 +108,11 @@ window.submitLaunchForm = (elem) => {
           const datum = JSON.parse(data);
           switch (datum.type) {
             case "hello":
-              const connection   = new RTCPeerConnection(hostConfig);
-              const narrowSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${datum.joinerID}/host`);
-              narrowSocket.addEventListener('message', handleNarrowMessage(connection, nlogo, sessionName, datum.joinerID));
-              sessions[datum.joinerID] = { socket: narrowSocket };
+              const joinerID     = datum.joinerID
+              const channel      = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/host`);
+              channel.onmessage  = handleChannelMessages(channel, nlogo, sessionName, joinerID);
+              channel.onclose    = handleChannelClose(joinerID);
+              sessions[joinerID] = { channel, hasInitialized: false };
               break;
             default:
               console.warn(`Unknown broad event type: ${datum.type}`);
@@ -140,12 +122,18 @@ window.submitLaunchForm = (elem) => {
         statusSocket = new WebSocket(`ws://localhost:8080/hnw/my-status/${hostID}`);
 
         setInterval(() => {
-          sendObj(broadSocket)("keep-alive", {});
+          const seshSockets = Object.values(sessions).map((session) => session.channel);
+          const allSockets  = seshSockets.concat([broadSocket, statusSocket]);
+          allSockets.forEach((socket) => sendObj(socket)("keep-alive", {}));
         }, 30000);
 
+        let lastMemberCount = undefined;
         setInterval(() => {
           const numPeers = Object.values(sessions).filter((s) => s.username !== undefined).length;
-          sendObj(statusSocket)("members-update", { numPeers });
+          if (lastMemberCount !== numPeers) {
+            lastMemberCount = numPeers;
+            sendObj(statusSocket)("members-update", { numPeers });
+          }
         }, 1000);
 
         setInterval(() => {
@@ -164,60 +152,6 @@ window.submitLaunchForm = (elem) => {
 
 };
 
-// (RTCPeerConnection, String, String, String) => (Any) => Unit
-const handleNarrowMessage = (connection, nlogo, sessionName, joinerID) => ({ data }) => {
-  const datum = JSON.parse(data);
-  switch (datum.type) {
-    case "joiner-offer":
-      processOffer(connection, nlogo, sessionName, joinerID)(datum.offer);
-      break;
-    case "joiner-ice-candidate":
-      connection.addIceCandidate(datum.candidate);
-      break;
-    default:
-      console.warn(`Unknown narrow event type: ${datum.type}`);
-  }
-};
-
-// (RTCPeerConnection, String, String, String) => (RTCSessionDescription) => Unit
-const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
-
-  const rtcID       = uuidToRTCID(joinerID);
-  const channel     = connection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
-  channel.onmessage = handleChannelMessages(channel, nlogo, sessionName, joinerID);
-  channel.onclose   = () => { cleanupSession(joinerID); };
-
-  const session = sessions[joinerID];
-
-  session.connection = connection;
-  session.channel    = channel;
-
-  let knownCandies = new Set([]);
-
-  connection.onicecandidate =
-    ({ candidate }) => {
-      if (candidate !== undefined && candidate !== null) {
-        const candy = JSON.stringify(candidate.toJSON());
-        if (!knownCandies.has(candy)) {
-          knownCandies = knownCandies.add(candy);
-          sendObj(session.socket)("host-ice-candidate", { candidate: candidate.toJSON() });
-        }
-      }
-    }
-
-  connection.oniceconnectionstatechange = () => {
-    if (connection.iceConnectionState == "disconnected") {
-      cleanupSession(joinerID);
-    }
-  };
-
-  connection.setRemoteDescription(offer)
-    .then(()     => connection.createAnswer())
-    .then(answer => connection.setLocalDescription(answer))
-    .then(()     => sendObj(session.socket)("host-answer", { answer: connection.localDescription }));
-
-};
-
 // (RTCDataChannel, String, String, String) => (Any) => Unit
 const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data }) => {
   const datum = JSON.parse(data);
@@ -225,35 +159,60 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
     case "login":
       handleLogin(channel, nlogo, sessionName, datum, joinerID);
       break;
+    case "relay":
+      const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
+      babyDearest.postMessage(datum.payload, "*");
+      break;
+    case "bye-bye":
+      sessions[joinerID].channel.close();
+      delete sessions[joinerID];
+      break;
     default:
       console.warn(`Unknown WebSocket event type: ${datum.type}`);
   }
 };
 
+// (String) => () => Unit
+const handleChannelClose = (joinerID) => () => {
+  const babyDearest = document.getElementById( "nlw-frame").querySelector('iframe').contentWindow;
+  babyDearest.postMessage({ joinerID, type: "hnw-notify-disconnect" }, "*");
+  cleanupSession(joinerID);
+};
+
 // (RTCDataChannel, String, String, { username :: String, password :: String }, String) => Unit
 const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
 
-  sessions[joinerID].socket.close();
+  if (datum.username !== undefined) {
 
-  const joinerUsername  = datum.username.toLowerCase();
-  const relevantSeshes  = Object.entries(sessions).filter(([k, v]) => k !== joinerID).map(([k, v]) => v);
-  const usernameIsTaken = relevantSeshes.some((s) => s.username.toLowerCase() === joinerUsername);
+    const joinerUsername  = datum.username.toLowerCase();
+    const relevantPairs   = Object.entries(sessions).filter(([k, s]) => k !== joinerID && s.username !== undefined);
+    const usernameIsTaken = relevantPairs.some(([k, s]) => s.username.toLowerCase() === joinerUsername);
 
-  if (!usernameIsTaken) {
-    if (password === null || password === datum.password) {
+    if (!usernameIsTaken) {
+      if (password === null || password === datum.password) {
 
-      sessions[joinerID].username = datum.username;
-      sendObj(channel)("login-successful", {});
-      sendRTCBurst(channel)("here-have-a-model", { sessionName, nlogo });
+        sessions[joinerID].username      = datum.username;
+        sessions[joinerID].isInitialized = false;
+        sendObj(channel)("login-successful", {});
 
-      const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
-      babyDearest.postMessage({ type: "nlw-request-model-state" }, "*");
+        const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
+        babyDearest.postMessage({
+          type:     "hnw-request-initial-state"
+        , token:    joinerID
+        , roleName: "student"
+        , username: sessions[joinerID].username
+        }, "*");
 
+      } else {
+        sendObj(channel)("incorrect-password", {});
+        // We also need to close the channel in all of these cases
+      }
     } else {
-      sendObj(channel)("incorrect-password", {});
+      sendObj(channel)("username-already-taken", {});
     }
+
   } else {
-    sendObj(channel)("username-already-taken", {});
+    sendObj(channel)("no-username-given", {});
   }
 
 };
@@ -270,22 +229,61 @@ const cleanupHostingSession = () => {
 
 window.addEventListener("message", ({ data }) => {
 
+  const narrowcast = (type, message, recipientUUID) => {
+    const sesh   = sessions[recipientUUID];
+    const isOpen = (channel) => channel.readyState === "open" || channel.readyState === WebSocket.OPEN;
+    if (sesh !== undefined && sesh.channel !== undefined && isOpen(sesh.channel))
+      sendRTCBurst(sesh.channel)(type, message);
+  }
+
   const broadcast = (type, message) => {
-    const channels = Object.values(sessions).map((s) => s.channel)
+    const checkIsEligible = (s) => s.channel !== undefined && s.channel.readyState === WebSocket.OPEN && s.hasInitialized;
+    const channels = Object.values(sessions).filter(checkIsEligible).map((s) => s.channel);
     sendRTCBurst(...channels)(type, message);
   }
 
   switch (data.type) {
     case "nlw-state-update":
-      broadcast("here-have-an-update", { update: data.update });
+      if (data.recipient !== undefined)
+        narrowcast("here-have-an-update", { update: data.update }, data.recipient);
+      else
+        broadcast("here-have-an-update", { update: data.update });
       break;
     case "nlw-view":
-      sendObj(statusSocket)("image-update", { base64: data.base64 });
+      if (lastImageUpdate !== data.base64) {
+        lastImageUpdate = data.base64;
+        sendObj(statusSocket)("image-update", { base64: data.base64 });
+      }
+      break;
+    case "hnw-initial-state":
+      const { token, role, state, viewState } = data;
+      narrowcast("here-have-a-model", { role, token, state, view: viewState }, token);
+      sessions[token].hasInitialized = true;
+      break;
+    case "relay":
+      if (data.recipient === undefined)
+        broadcast("relay", data);
+      else
+        narrowcast("relay", data, data.recipient);
+      break;
+    case "hnw-fatal-error":
+      alert(`Fatal error received from client: ${data.subtype}`);
+      window.location.reload()
+      break;
+    case "nlw-resize":
       break;
     default:
       console.warn(`Unknown postMessage type: ${data.type}`);
   }
 
+});
+
+window.addEventListener("beforeunload", (event) => {
+  // Honestly, this will probably not run before the tab closes.  Not much I can do about that.  --JAB (8/21/20)
+  Object.entries(sessions).forEach(([joinerID, { channel }]) => {
+    sendObj(channel)("bye-bye");
+    channel.close(1000, "Terminating unneeded sockets...");
+  });
 });
 
 window.addEventListener('popstate', (event) => {

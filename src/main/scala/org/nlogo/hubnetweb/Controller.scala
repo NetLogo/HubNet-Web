@@ -65,11 +65,9 @@ object Controller {
 
       path("")                 { getFromFile("html/index.html") } ~
       path("host")             { getFromFile("html/host.html")  } ~
-      path("x-host")           { getFromFile("html/x-host.html")} ~
       path("launch-session")   { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
       path("x-launch-session") { post { entity(as[LaunchReq])(handleXLaunchReq) } } ~
       path("join")             { getFromFile("html/join.html")  } ~
-      path("x-join")           { getFromFile("html/x-join.html")  } ~
       path("available-models") { get { complete(availableModels) } } ~
       path("rtc" / "join" / Segment)           { (hostID)           => get { startJoin(toID(hostID)) } } ~
       path("rtc" / Segment / Segment / "host") { (hostID, joinerID) => handleWebSocketMessages(rtcHost(toID(hostID), toID(joinerID))) } ~

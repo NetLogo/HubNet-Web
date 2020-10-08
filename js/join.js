@@ -1,14 +1,29 @@
-const placeholderB64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wYGEwkDoISeKgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAADElEQVQI12NobmwEAAMQAYa2CjzCAAAAAElFTkSuQmCC";
-document.getElementById('session-preview-image').src = placeholderB64;
+window.hasCheckedHash = false;
+
+const placeholderBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wYGEwkDoISeKgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAADElEQVQI12NobmwEAAMQAYa2CjzCAAAAAElFTkSuQmCC";
+
+// () => Unit
+const usePlaceholderPreview = () => {
+  document.getElementById('session-preview-image').src = placeholderBase64;
+};
+
+usePlaceholderPreview();
 
 // type Session = { modelName :: String, name :: String, oracleID :: String }
 let sessionData = []; // Array[Session]
 
-let channels = {}; // Object[RTCDataChannel]
+let channels = {}; // Object[WebSocket]
 
-window.joinerConnection = new RTCPeerConnection(joinerConfig);
+let pageState   = "uninitialized";
+let pageStateTS = -1;
 
-const rtcBursts = {} // Object[String]
+let messageQueue = []; // Array[Object[Any]]
+
+let waitingForBabby = {}; // Object[Any]
+
+let mainEventLoopID = null; // Number
+
+const rtcBursts = {}; // Object[String]
 
 // (String) => Unit
 const refreshSelection = (oldActiveUUID) => {
@@ -97,7 +112,13 @@ const populateSessionList = (sessions) => {
       match.querySelector('.session-option').checked = true;
       refreshImage(selected.dataset.uuid);
     } else {
-      document.getElementById('session-preview-image').src = placeholderB64;
+      usePlaceholderPreview();
+    }
+  } else {
+    if (sessionData.length > 0) {
+      setStatus("Session list received.  Please select a session.");
+    } else {
+      setStatus("Please wait until someone starts a session, and it will appear in the list below.");
     }
   }
 
@@ -105,6 +126,22 @@ const populateSessionList = (sessions) => {
   nodes.forEach((node) => container.appendChild(node));
 
   refreshSelection(oldActiveUUID);
+
+  if (!window.hasCheckedHash) {
+    if (window.location.hash !== "") {
+      const oracleID = window.location.hash.slice(1);
+      const match    = document.querySelector(`.session-label[data-uuid='${oracleID}'] > .session-option`);
+      if (match !== null) {
+        match.click();
+        document.getElementById('username').value = prompt("Please enter your login name");
+        if (sessionData.find((x) => x.oracleID === oracleID).hasPassword) {
+          document.getElementById('password').value = prompt("Please enter the room's password");
+        }
+        document.getElementById('join-button').click();
+      }
+    }
+    window.hasCheckedHash = true;
+  }
 
 };
 
@@ -120,10 +157,13 @@ window.filterSessionList = () => {
 window.selectSession = () => {
   const activeElem = document.querySelector('.active');
   refreshSelection(activeElem !== null ? activeElem.dataset.uuid : null);
+  setStatus("Session selected.  Please enter a username, enter a password (if needed), and click 'Join'.");
 };
 
 // () => Unit
 window.join = () => {
+  setStatus("Attempting to connect...");
+  document.getElementById('join-button').disabled = true;
   const hostID = document.querySelector('.active').dataset.uuid;
   if (channels[hostID] === undefined) {
     channels[hostID] = null;
@@ -139,70 +179,27 @@ const connectAndLogin = (hostID) => {
   fetch(`/rtc/join/${hostID}`).then((response) => response.text()).then(
     (joinerID) => {
       const rtcID   = uuidToRTCID(joinerID);
-      const channel = joinerConnection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
-      return joinerConnection.createOffer().then((offer) => [joinerID, channel, offer]);
-    }
-  ).then(
-    ([joinerID, channel, offer]) => {
-
-      let knownCandies = new Set([]);
-
-      joinerConnection.onicecandidate =
-        ({ candidate }) => {
-          if (candidate !== undefined && candidate !== null) {
-            const candy = JSON.stringify(candidate.toJSON());
-            if (!knownCandies.has(candy)) {
-              knownCandies = knownCandies.add(candy);
-              sendObj(narrowSocket)("joiner-ice-candidate", { candidate: candidate.toJSON() });
-            }
-          }
-        }
-
-      joinerConnection.setLocalDescription(offer);
-
-      const narrowSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/join`);
-
+      const channel = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/join`);
+      channel.onopen    = () => { setStatus("Connected!  Attempting to log in...."); login(channel); }
+      channel.onmessage = handleChannelMessages(channel);
+      channel.onclose   = (e) => { cleanupSession(e.code === 1000, e.reason); }
       channels[hostID] = channel;
-
-      channel.onopen    = () => login(channel);
-      channel.onmessage = handleChannelMessages(channel, narrowSocket);
-      channel.onclose   = () => cleanupSession();
-
-      narrowSocket.addEventListener('open', () => sendObj(narrowSocket)("joiner-offer", { offer }));
-
-      narrowSocket.addEventListener('message', ({ data }) => {
-        const datum = JSON.parse(data);
-        switch (datum.type) {
-          case "host-answer":
-            if (joinerConnection.remoteDescription === null) {
-              joinerConnection.setRemoteDescription(datum.answer);
-            }
-            break;
-          case "host-ice-candidate":
-            joinerConnection.addIceCandidate(datum.candidate);
-            break;
-          default:
-            console.log(`Unknown message type: ${datum.type}`);
-        };
-      });
-
-      joinerConnection.oniceconnectionstatechange = () => {
-        if (joinerConnection.iceConnectionState == "disconnected") {
-          cleanupSession();
-        }
-      };
-
-    }
-  );
+      mainEventLoopID  = setInterval(processQueue, 1000 / 30);
+  });
 
 };
 
-const serverListSocket = new WebSocket(`ws://localhost:8080/hnw/session-stream`);
+// () => WebSocket
+const openListSocket = () => {
+  const socket = new WebSocket(`ws://localhost:8080/hnw/session-stream`);
+  socket.addEventListener('message', ({ data }) => {
+    sessionData = JSON.parse(data);
+    filterSessionList();
+  });
+  return socket;
+};
 
-serverListSocket.addEventListener('message', ({ data }) => {
-  sessionData = JSON.parse(data);
-  filterSessionList();
-});
+let serverListSocket = openListSocket();
 
 // (RTCDataChannel) => Unit
 const login = (channel) => {
@@ -211,30 +208,73 @@ const login = (channel) => {
   sendObj(channel)("login", { username, password });
 }
 
-// (RTCDataChannel, WebSocket) => (Any) => Unit
-const handleChannelMessages = (channel, socket) => ({ data }) => {
+// (RTCDataChannel) => (Any) => Unit
+const handleChannelMessages = (channel) => ({ data }) => {
 
   const datum = JSON.parse(data);
 
   switch (datum.type) {
 
     case "login-successful":
-      socket.close();
+      setStatus("Logged in!  Loading NetLogo and then asking for model....")
+      serverListSocket.close(1000, "Server list is not currently needed");
       switchToNLW();
       break;
 
     case "incorrect-password":
+      setStatus("Login rejected!  Use correct password.")
       alert("Bad password, pal—real bad!");
+      document.getElementById('join-button').disabled = false;
+      break;
+
+    case "no-username-given":
+      setStatus("Login rejected!  The server did not receive a username from you.")
+      alert("No username given!");
+      document.getElementById('join-button').disabled = false;
       break;
 
     case "username-already-taken":
+      setStatus("Login rejected!  Use a unique username.")
       alert("Username already in use!");
+      document.getElementById('join-button').disabled = false;
       break;
 
-    case "rtc-burst-begin":
-    case "rtc-burst-continue":
-    case "rtc-burst-end":
-      manageBurstMessage(channel, socket, datum);
+    case "rtc-burst":
+
+      const { id, index, fullLength, parcel } = datum
+
+      if (fullLength > 1) {
+        console.log("Got " + id + " (" + (index + 1) + "/" + fullLength + ")")
+      }
+
+      if (rtcBursts[id] === undefined) {
+        rtcBursts[id] = Array(fullLength).fill(null);
+      }
+
+      const bucket = rtcBursts[id];
+      bucket[index] = parcel;
+
+      if (fullLength > 100) {
+        const valids = rtcBursts[id].filter((x) => x !== null);
+        if (rtcBursts[id][0].startsWith("\"{\\\"type\\\":\\\"here-have-a-model\\\"")) {
+          setStatus(`Downloading model from host... (${valids.length}/${fullLength})`);
+        }
+      }
+
+      if (bucket.every((x) => x !== null)) {
+        const fullMessage = rtcBursts[id].join("");
+        const object      = JSON.parse(decompress(fullMessage));
+        delete rtcBursts[id];
+        enqueueMessage(object);
+      }
+
+      break;
+
+    case "bye-bye":
+      channel.close(1000, "The host disconnected.  Awaiting new selection.");
+      alert("The host disconnected from the activity");
+
+    case "keep-alive":
       break;
 
     default:
@@ -244,36 +284,82 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
 
 };
 
-// (RTCDataChannel, WebSocket, Any) => Unit
-const manageBurstMessage = (channel, socket, datum) => {
-  switch (datum.type) {
-    case "rtc-burst-begin":
-      rtcBursts[datum.id] = "";
-      break;
-    case "rtc-burst-continue":
-      rtcBursts[datum.id] += datum.parcel;
-      break;
-    case "rtc-burst-end":
-      const fullShipment = JSON.parse(decompress(rtcBursts[datum.id]));
-      delete rtcBursts[datum.id];
-      handleBurstMessage(channel, socket, fullShipment);
-      break;
-    default:
-      console.warn(`Unknown burst event type: ${datum.type}`);
-  }
-};
+// (Object[Any]) => Unit
+const enqueueMessage = (datum) => {
+  messageQueue.push(datum);
+}
 
-// (RTCDataChannel, WebSocket, Any) => Unit
-const handleBurstMessage = (channel, socket, datum) => {
+// () => Unit
+const processQueue = () => {
+
+  if (pageState === "logged in") {
+    if (pageStateTS + 60000 >= (new Date).getTime()) {
+      let stillGoing = true;
+      let deferred   = [];
+      while (stillGoing && messageQueue.length > 0) {
+        const message = messageQueue.shift();
+        if (message.type ===  "here-have-a-model") {
+          setStatus("Downloading model from host...");
+          handleBurstMessage(message);
+          stillGoing = false;
+        } else {
+          deferred.push(message);
+        }
+      }
+      deferred.forEach((d) => messageQueue.push(d));
+    } else {
+      alert("Sorry.  Something went wrong when trying to load the model.  Please try again.");
+      cleanupSession(true, "NetLogo Web failed to load the host's model.  Try again.");
+    }
+  } else if (pageState === "booted up") {
+    while (messageQueue.length > 0) {
+      const message = messageQueue.shift();
+      handleBurstMessage(message);
+    }
+  } else {
+    console.log("Skipping while in state:", pageState);
+  }
+
+}
+
+// (Object[Any]) => Unit
+const handleBurstMessage = (datum) => {
 
   switch (datum.type) {
 
     case "here-have-a-model":
-      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
-        nlogo: datum.nlogo,
-        path:  datum.sessionName,
-        type:  "nlw-load-model"
-      }, "*");
+
+      setStatus("Model and world acquired!  Waiting for NetLogo Web to be ready...");
+
+      const username = document.getElementById('username').value;
+
+      const intervalID = setInterval(
+        () => {
+          document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
+            type: "hnw-are-you-ready-for-interface" }
+          , "*");
+        }
+      , 1000);
+
+      waitingForBabby["yes-i-am-ready-for-interface"] = {
+        forPosting: {
+          type:  "hnw-load-interface"
+        , username
+        , role:  datum.role
+        , token: datum.token
+        , view:  datum.view
+        }
+      , forFollowup: "hnw-are-you-ready-for-state"
+      , forCancel:   intervalID
+      };
+
+      waitingForBabby["interface-loaded"] = {
+        forPosting: {
+          type:   "nlw-state-update"
+        , update: datum.state
+        }
+      };
+
       break;
 
     case "here-have-an-update":
@@ -281,6 +367,13 @@ const handleBurstMessage = (channel, socket, datum) => {
         update: datum.update,
         type:   "nlw-apply-update"
       }, "*");
+      break;
+
+    case "relay":
+      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage(datum.payload, "*");
+      break;
+
+    case "hnw-resize":
       break;
 
     default:
@@ -294,41 +387,191 @@ const handleBurstMessage = (channel, socket, datum) => {
 const refreshImage = (oracleID) => {
   const image = document.getElementById('session-preview-image');
   fetch(`/preview/${oracleID}`).then((response) => {
-    response.text().then((base64) => { image.src = base64; })
-  });
+    if (response.ok) {
+      response.text().then((base64) => { image.src = base64; });
+    } else {
+      usePlaceholderPreview();
+    }
+  }).catch(() => { usePlaceholderPreview(); });
 };
 
 // () => Unit
-const cleanupSession = () => {
-  window.joinerConnection = new RTCPeerConnection(joinerConfig);
-  switchToServerBrowser();
-  alert("Connection to host lost");
+const loadFakeModel = () => {
+
+  const fakeDimensions =
+    { minPxcor:           0
+    , maxPxcor:           0
+    , minPycor:           0
+    , maxPycor:           0
+    , patchSize:          1
+    , wrappingAllowedInX: true
+    , wrappingAllowedInY: true
+    };
+
+  const fakeView =
+    { bottom:           0
+    , compilation:      { success: true, messages: [] }
+    , dimensions:       fakeDimensions
+    , fontSize:         10
+    , frameRate:        30
+    , id:               0
+    , left:             0
+    , right:            0
+    , showTickCounter:  true
+    , tickCounterLabel: "ticks"
+    , top:              0
+    , type:             "view"
+    , updateMode:       "TickBased"
+    };
+
+  const fakeRole =
+    { canJoinMidRun: true
+    , isSpectator:   true
+    , limit:         -1
+    , name:          "fake role"
+    , onConnect:     ""
+    , onCursorClick: null
+    , onCursorMove:  null
+    , onDisconnect:  ""
+    , widgets:       [fakeView]
+    };
+
+  const fakePayload =
+    { role:     fakeRole
+    , token:    "invalid token"
+    , type:     "hnw-load-interface"
+    , username: "no username"
+    , view:     fakeView
+    };
+
+  document.getElementById("nlw-frame").querySelector("iframe").contentWindow.postMessage(fakePayload, "*");
+
 };
 
-// () => Unit
-const switchToNLW = () => {
-  const formFrame = document.getElementById("server-browser-frame");
-  const  nlwFrame = document.getElementById(           "nlw-frame");
-  formFrame.classList.add(   "hidden");
-  nlwFrame .classList.remove("hidden");
-  history.pushState({ name: "joined" }, "joined");
-};
+// (Boolean, String) => Unit
+const cleanupSession = (wasExpected, statusText) => {
 
-// () => Unit
-const switchToServerBrowser = () => {
+  clearInterval(mainEventLoopID);
+
+  setPageState("uninitialized");
   const formFrame = document.getElementById("server-browser-frame");
   const  nlwFrame = document.getElementById(           "nlw-frame");
   nlwFrame .classList.add(   "hidden");
   formFrame.classList.remove("hidden");
-  nlwFrame.querySelector("iframe").contentWindow.postMessage({ type: "nlw-open-new" }, "*");
+  serverListSocket = openListSocket();
+  loadFakeModel();
+  document.getElementById('join-button').disabled = false;
+
+  if (!wasExpected) {
+    alert("Connection to host lost");
+  }
+
+  if (statusText !== undefined) {
+    setStatus(statusText);
+  }
+
 };
 
-window.addEventListener('popstate', (event) => {
-  switch (event.state.name) {
-    case "joined":
-      window.joinerConnection = new RTCPeerConnection(joinerConfig);
-      switchToServerBrowser();
+// () => Unit
+const switchToNLW = () => {
+
+  document.querySelector('.session-option').checked = false;
+  usePlaceholderPreview();
+
+  const formFrame = document.getElementById("server-browser-frame");
+  const  nlwFrame = document.getElementById(           "nlw-frame");
+  formFrame.classList.add(   "hidden");
+  nlwFrame .classList.remove("hidden");
+
+  history.pushState({ name: "joined" }, "joined");
+  setPageState("logged in");
+
+};
+
+// (String) => Unit
+const setStatus = (statusText) => {
+  document.getElementById('status-value').innerText = statusText;
+};
+
+// (String) => Unit
+const setPageState = (state) => {
+  pageState   = state;
+  pageStateTS = (new Date).getTime();
+};
+
+// (String) => Unit
+const disconnectChannels = (reason) => {
+  Object.entries(channels).forEach(([hostID, channel]) => {
+    sendObj(channel)("bye-bye");
+    channel.close(1000, reason);
+    delete channels[hostID];
+  });
+};
+
+window.addEventListener('message', (event) => {
+  switch (event.data.type) {
+
+    case "relay":
+      if (event.data.payload.type === "interface-loaded") {
+        setStatus("Model loaded and ready for you to use!");
+        let stateEntry = waitingForBabby[event.data.payload.type];
+        if (stateEntry !== undefined) {
+          delete waitingForBabby[event.data.payload.type];
+          document.querySelector('#nlw-frame > iframe').contentWindow.postMessage(stateEntry.forPosting, "*");
+        }
+        setPageState("booted up");
+      } else {
+        const hostID = document.querySelector('.active').dataset.uuid;
+        sendObj(channels[hostID])("relay", event.data);
+      }
+      break;
+
+    case "hnw-fatal-error":
+      switch (event.data.subtype) {
+        case "unknown-agent":
+          alert(`We received an update for an agent that we have never heard of (${event.data.agentType} #${event.data.agentID}).\n\nIn a later version, we will add the ability to resynchronize with the server to get around this issue.  However, the only solution right now is for the activity to close.\n\nYou might have better success if you reconnect.`);
+          break;
+        default:
+          alert(`An unknown fatal error has occurred: ${event.data.subtype}`);
+      }
+      setStatus("You encountered an error and your session had to be closed.  Sorry about that.  Maybe your next session will treat you better.");
+      cleanupSession(true, undefined);
+      break;
+
+    case "yes-i-am-ready-for-interface":
+      setStatus("Loading up interface in NetLogo Web...");
+      let uiEntry = waitingForBabby[event.data.type];
+      delete waitingForBabby[event.data.type];
+      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage(uiEntry.forPosting , "*");
+      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage(uiEntry.forFollowup, "*");
+      clearInterval(uiEntry.forCancel);
+      break;
+
+    case "hnw-resize":
+      break;
+
     default:
-      console.warn(`Unknown state: ${event.state.name}`);
+      console.warn(`Unknown message type: ${event.data.type}`);
+
   }
+});
+
+window.addEventListener("beforeunload", (event) => {
+  // Honestly, this will probably not run before the tab closes.  Not much I can do about that.  --JAB (8/21/20)
+  disconnectChannels("");
+});
+
+window.addEventListener('popstate', (event) => {
+  if (event.state !== null && event.state !== undefined) {
+    switch (event.state.name) {
+      case "joined":
+        cleanupSession(true, undefined);
+      default:
+        console.warn(`Unknown state: ${event.state.name}`);
+    }
+  }
+});
+
+document.getElementById("disconnect-button").addEventListener("click", () => {
+  disconnectChannels("You disconnected from your last session.  Awaiting new selection.");
 });
