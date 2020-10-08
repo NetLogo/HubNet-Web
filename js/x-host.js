@@ -26,7 +26,7 @@ window.submitLaunchForm = (elem) => {
 
   switch (formDataPlus.modelType) {
     case "library":
-      const lm               = formData.get('libraryModel');
+      const lm               = formData.get('libraryModel').slice(4);
       formDataPlus.model     = lm;
       formDataPlus.modelName = lm;
       break;
@@ -205,6 +205,7 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
 
       } else {
         sendObj(channel)("incorrect-password", {});
+        // We also need to close the channel in all of these cases
       }
     } else {
       sendObj(channel)("username-already-taken", {});
