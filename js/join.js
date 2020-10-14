@@ -23,7 +23,11 @@ let waitingForBabby = {}; // Object[Any]
 
 let mainEventLoopID = null; // Number
 
-const rtcBursts = {}; // Object[String]
+let lastMsgID   = '00000000-0000-0000-0000-000000000000'; // UUID
+let predIDToMsg = {};                                     // Object[UUID, Any]
+
+const multiparts       = {}; // Object[UUID, String]
+const multipartHeaders = {}; // Object[UUID, String]
 
 // (String) => Unit
 const refreshSelection = (oldActiveUUID) => {
@@ -205,6 +209,7 @@ let serverListSocket = openListSocket();
 const login = (channel) => {
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
+  sendGreeting(channel);
   sendObj(channel)("login", { username, password });
 };
 
@@ -213,7 +218,76 @@ const handleChannelMessages = (channel) => ({ data }) => {
 
   const datum = JSON.parse(data);
 
+  if (datum.isOutOfBand === true) {
+    processChannelMessage(channel, datum);
+  } else {
+
+    const processMsgQueue = () => {
+      const successor = predIDToMsg[lastMsgID]
+      if (successor !== undefined) {
+        delete predIDToMsg[lastMsgID];
+        lastMsgID = successor.id
+        processChannelMessage(channel, successor);
+        processMsgQueue();
+      }
+    };
+
+    if ((datum.fullLength || 1) !== 1) {
+
+      const { id, index, fullLength, parcel } = datum
+
+      if (fullLength > 1) {
+        console.log("Got " + id + " (" + (index + 1) + "/" + fullLength + ")")
+      }
+
+      if (multiparts[id] === undefined) {
+        multiparts[id] = Array(fullLength).fill(null);
+      }
+
+      if (index === 0) {
+        multipartHeaders[id] = { type: datum.type, id, predecessorID: datum.predecessorID }
+      }
+
+      const bucket = multiparts[id];
+      bucket[index] = parcel;
+
+      if (fullLength > 100) {
+        const valids = multiparts[id].filter((x) => x !== null);
+        if (multiparts[id][0].startsWith("\"{\\\"type\\\":\\\"here-have-a-model\\\"")) {
+          setStatus(`Downloading model from host... (${valids.length}/${fullLength})`);
+        }
+      }
+
+      if (bucket.every((x) => x !== null)) {
+
+        const fullText   = multiparts[id].join("");
+        const header     = multipartHeaders[id]
+        const fullMsg    = Object.assign({}, header, { parcel: fullText });
+
+        delete multiparts[id];
+        delete multipartHeaders[id];
+
+        predIDToMsg[fullMsg.predecessorID] = fullMsg;
+        processMsgQueue();
+
+      }
+
+    } else {
+      predIDToMsg[datum.predecessorID] = datum;
+      processMsgQueue();
+    }
+
+  }
+
+};
+
+// (RTCDataChannel, datum) => Unit
+const processChannelMessage = (channel, datum) => {
+
   switch (datum.type) {
+
+    case "connection-established":
+      break;
 
     case "login-successful":
       setStatus("Logged in!  Loading NetLogo and then asking for model....")
@@ -239,35 +313,10 @@ const handleChannelMessages = (channel) => ({ data }) => {
       document.getElementById('join-button').disabled = false;
       break;
 
+
+
     case "rtc-burst":
-
-      const { id, index, fullLength, parcel } = datum
-
-      if (fullLength > 1) {
-        console.log("Got " + id + " (" + (index + 1) + "/" + fullLength + ")")
-      }
-
-      if (rtcBursts[id] === undefined) {
-        rtcBursts[id] = Array(fullLength).fill(null);
-      }
-
-      const bucket = rtcBursts[id];
-      bucket[index] = parcel;
-
-      if (fullLength > 100) {
-        const valids = rtcBursts[id].filter((x) => x !== null);
-        if (rtcBursts[id][0].startsWith("\"{\\\"type\\\":\\\"here-have-a-model\\\"")) {
-          setStatus(`Downloading model from host... (${valids.length}/${fullLength})`);
-        }
-      }
-
-      if (bucket.every((x) => x !== null)) {
-        const fullMessage = rtcBursts[id].join("");
-        const object      = JSON.parse(decompress(fullMessage));
-        delete rtcBursts[id];
-        enqueueMessage(object);
-      }
-
+      enqueueMessage(JSON.parse(decompress(datum.parcel)));
       break;
 
     case "bye-bye":
@@ -452,6 +501,9 @@ const loadFakeModel = () => {
 const cleanupSession = (wasExpected, statusText) => {
 
   clearInterval(mainEventLoopID);
+
+  lastMsgID   = '00000000-0000-0000-0000-000000000000';
+  predIDToMsg = {};
 
   setPageState("uninitialized");
   const formFrame = document.getElementById("server-browser-frame");

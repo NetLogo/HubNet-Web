@@ -110,6 +110,7 @@ window.submitLaunchForm = (elem) => {
             case "hello":
               const joinerID     = datum.joinerID
               const channel      = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/host`);
+              channel.onopen     = () => { sendGreeting(channel); };
               channel.onmessage  = handleChannelMessages(channel, nlogo, sessionName, joinerID);
               channel.onclose    = handleChannelClose(joinerID);
               sessions[joinerID] = { channel, hasInitialized: false };
@@ -124,7 +125,7 @@ window.submitLaunchForm = (elem) => {
         setInterval(() => {
           const seshSockets = Object.values(sessions).map((session) => session.channel);
           const allSockets  = seshSockets.concat([broadSocket, statusSocket]);
-          allSockets.forEach((socket) => sendObj(socket)("keep-alive", {}));
+          allSockets.forEach((socket) => sendObj(socket)("keep-alive", {}, true));
         }, 30000);
 
         let lastMemberCount = undefined;
@@ -156,6 +157,8 @@ window.submitLaunchForm = (elem) => {
 const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data }) => {
   const datum = JSON.parse(data);
   switch (datum.type) {
+    case "connection-established":
+      break;
     case "login":
       handleLogin(channel, nlogo, sessionName, datum, joinerID);
       break;

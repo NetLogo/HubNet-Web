@@ -1,3 +1,17 @@
+let lastSentIDMap = {}; // Object[String, UUID]
+
+// (String) => UUID
+const extractLastSentID = (channelID) => {
+  const lsid = lastSentIDMap[channelID];
+  if (lsid !== undefined) {
+    return lsid;
+  } else {
+    const nullary = '00000000-0000-0000-0000-000000000000';
+    lastSentIDMap[channelID] = nullary;
+    return nullary;
+  }
+}
+
 // A dummy... for now.  I'll bring in the proper library later. --JAB (7/29/19)
 const pako = {
   deflate: ((x) => x)
@@ -34,22 +48,44 @@ const chunkForRTC = (message) => {
 
 };
 
+// (WebSocket) => (String, Any, Boolean, UUID, UUID) => Unit
+const _send = (channel) => (type, obj, needsPred = true, predecessorID = extractLastSentID(channel.url), id = genUUID()) => {
+
+  const clone = Object.assign({}, obj);
+  delete clone[id];
+  delete clone[predecessorID];
+
+  const finalObj = Object.assign({}, { id }, needsPred ? { predecessorID } : {}, clone);
+  channel.send(makeMessage(type, finalObj));
+
+  lastSentIDMap[channel.url] = id;
+
+};
+
+// (WebSocket) => (String, Any) => Unit
+const send = (channel) => (type, obj) => {
+  _send(channel)(type, obj);
+};
+
+// (WebSocket) => (String, Any, Boolean) => Unit
+const sendOOB = (channel) => (type, obj) => {
+  const fullerObj = Object.assign({}, obj, { isOutOfBand: true });
+  channel.send(makeMessage(type, fullerObj));
+}
+
 // (RTCDataChannel*) => (String, Any) => Unit
 // (WebSocket*) => (String, Any) => Unit
 const sendRTCBurst = (...channels) => (type, obj) => {
 
   const messages = chunkForRTC(makeMessage(type, obj));
 
+  const id = genUUID();
+
   channels.forEach((channel) => {
-    const id = (Math.random() * 1e18).toString()
     messages.forEach(
       (m, index) => {
-        const time = parseFloat(performance.now().toFixed(5))
-        const obj  = { id, index, ts: time, fullLength: messages.length, parcel: m };
-        if (type === "here-have-a-model") {
-          console.log("Sending model (" + (index + 1) + "/" + messages.length + ")");
-        }
-        channel.send(makeMessage("rtc-burst", obj));
+        const obj = { index, fullLength: messages.length, parcel: m };
+        _send(channel)("rtc-burst", obj, index === 0, undefined, id);
       }
     );
   });
