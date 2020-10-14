@@ -206,7 +206,7 @@ const login = (channel) => {
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
   sendObj(channel)("login", { username, password });
-}
+};
 
 // (RTCDataChannel) => (Any) => Unit
 const handleChannelMessages = (channel) => ({ data }) => {
@@ -287,7 +287,7 @@ const handleChannelMessages = (channel) => ({ data }) => {
 // (Object[Any]) => Unit
 const enqueueMessage = (datum) => {
   messageQueue.push(datum);
-}
+};
 
 // () => Unit
 const processQueue = () => {
@@ -320,7 +320,7 @@ const processQueue = () => {
     console.log("Skipping while in state:", pageState);
   }
 
-}
+};
 
 // (Object[Any]) => Unit
 const handleBurstMessage = (datum) => {

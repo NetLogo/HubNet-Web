@@ -1,4 +1,4 @@
-// Dummy... for now.  I'll bring in the proper library later. --JAB (7/29/19)
+// A dummy... for now.  I'll bring in the proper library later. --JAB (7/29/19)
 const pako = {
   deflate: ((x) => x)
 , inflate: ((x) => x)

@@ -29,7 +29,7 @@ const sendObj = (...sockets) => (type, obj) => {
         break;
       case WebSocket.CLOSING:
       case WebSocket.CLOSED:
-        console.warn(`Cannot send '${type}' message to WebSocket, because it is already closed`, socket, obj);
+        console.warn(`Cannot send '${type}' message to WebSocket, because it is already closed`, type);
         break;
       case WebSocket.OPEN:
         socket.send(makeMessage(type, obj));
