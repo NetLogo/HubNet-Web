@@ -23,6 +23,8 @@ let waitingForBabby = {}; // Object[Any]
 
 let mainEventLoopID = null; // Number
 
+let recentPings = []; // Array[Number]
+
 let lastMsgID   = '00000000-0000-0000-0000-000000000000'; // UUID
 let predIDToMsg = {};                                     // Object[UUID, Any]
 
@@ -313,7 +315,21 @@ const processChannelMessage = (channel, datum) => {
       document.getElementById('join-button').disabled = false;
       break;
 
+    case "ping":
+      sendObj(channel)("pong", { id: datum.id }, true);
+      break;
 
+    case "ping-result":
+
+      recentPings.push(datum.time);
+      if (recentPings.length > 5) {
+        recentPings.shift();
+      };
+
+      const averagePing = Math.round(recentPings.reduce((x, y) => x + y) / recentPings.length);
+      document.getElementById("latency-span").innerText = averagePing;
+
+      break;
 
     case "rtc-burst":
       enqueueMessage(JSON.parse(decompress(datum.parcel)));

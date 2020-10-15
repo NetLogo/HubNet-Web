@@ -113,7 +113,7 @@ window.submitLaunchForm = (elem) => {
               channel.onopen     = () => { sendGreeting(channel); };
               channel.onmessage  = handleChannelMessages(channel, nlogo, sessionName, joinerID);
               channel.onclose    = handleChannelClose(joinerID);
-              sessions[joinerID] = { channel, hasInitialized: false };
+              sessions[joinerID] = { channel, hasInitialized: false, pingData: {} };
               break;
             default:
               console.warn(`Unknown broad event type: ${datum.type}`);
@@ -138,6 +138,14 @@ window.submitLaunchForm = (elem) => {
         }, 1000);
 
         setInterval(() => {
+          Object.values(sessions).forEach((session) => {
+            const uuid = genUUID();
+            session.pingData[uuid] = { startTime: performance.now() };
+            sendObj(session.channel)("ping", { id: uuid }, true);
+          });
+        }, 1000);
+
+        setInterval(() => {
           babyDearest.postMessage({ type: "nlw-request-view" }, "*");
         }, 8000);
 
@@ -157,21 +165,55 @@ window.submitLaunchForm = (elem) => {
 const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data }) => {
   const datum = JSON.parse(data);
   switch (datum.type) {
+
     case "connection-established":
       break;
+
     case "login":
       handleLogin(channel, nlogo, sessionName, datum, joinerID);
       break;
+
+    case "pong":
+
+      const sesh         = sessions[joinerID];
+      const pingBucket   = sesh.pingData[datum.id];
+      pingBucket.endTime = performance.now();
+      const pingTime     = pingBucket.endTime - pingBucket.startTime;
+
+      sendObj(channel)("ping-result", { time: Math.floor(pingTime) }, true);
+
+      if (sesh.recentPings === undefined) {
+        sesh.recentPings = [pingTime];
+      } else {
+        sesh.recentPings.push(pingTime);
+        if (sesh.recentPings.length > 5) {
+          sesh.recentPings.shift();
+        };
+      }
+
+      const averagePing = Math.round(sesh.pingBucket.reduce((x, y) => x + y) / sesh.recentPings.length);
+
+      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
+        type:    "hnw-latest-ping"
+      , ping:    pingTime
+      , joinerID
+      }, "*");
+
+      break;
+
     case "relay":
       const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
       babyDearest.postMessage(datum.payload, "*");
       break;
+
     case "bye-bye":
       sessions[joinerID].channel.close();
       delete sessions[joinerID];
       break;
+
     default:
       console.warn(`Unknown WebSocket event type: ${datum.type}`);
+
   }
 };
 
