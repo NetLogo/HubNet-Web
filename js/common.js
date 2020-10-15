@@ -25,7 +25,7 @@ const sendObj = (...sockets) => (type, obj, isOOB) => {
   sockets.forEach((socket) => {
     switch (socket.readyState) {
       case WebSocket.CONNECTING:
-        setTimeout(() => { sendObj(socket)(type, obj); }, 50);
+        setTimeout(() => { sendObj(socket)(type, obj, isOOB); }, 50);
         break;
       case WebSocket.CLOSING:
       case WebSocket.CLOSED:
@@ -49,7 +49,7 @@ const sendRTC = (...channels) => (type, obj, isOOB) => {
   channels.forEach((channel) => {
     switch (channel.readyState) {
       case "connecting":
-        setTimeout(() => { sendRTC(channel)(type, obj); }, 50);
+        setTimeout(() => { sendRTC(channel)(type, obj, isOOB); }, 50);
         break;
       case "closing":
       case "closed":
