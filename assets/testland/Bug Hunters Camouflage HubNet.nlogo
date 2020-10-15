@@ -153,7 +153,11 @@ to reproduce-bugs
   ;; otherwise reproduce random other bugs  until
   ;; you've reached the carrying capacity
   if count bugs < __hnw_supervisor_carrying-capacity
-  [ ask one-of bugs [ make-one-offspring ] ]
+  [
+    let room-to-grow (__hnw_supervisor_carrying-capacity - (count bugs))
+    let num-new-bugs (1 + (floor ((max (list 0 room-to-grow)) * 0.2)))
+    ask n-of num-new-bugs bugs [ make-one-offspring ]
+  ]
 end
 
 to make-one-offspring ;; turtle procedure
@@ -175,7 +179,7 @@ to make-one-offspring ;; turtle procedure
    ]
 end
 
-;;  ask all bugs to reproduce, ignoring __hnw_supervisor_carrying-capacity limits
+;;  ask all bugs to reproduce, ignoring carrying-capacity limits
 to make-generation
   ask bugs [ make-one-offspring ]
 end
@@ -302,6 +306,14 @@ to update-leader-stats
     [ ask one-of leaders [ set leader __hnw-username ] ]
     set leader-caught [caught] of one-of leaders
   ]
+end
+
+to-report num-hunters
+  report count students
+end
+
+to-report num-bugs
+  report count bugs
 end
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -1109,6 +1121,26 @@ MONITOR
 133
 449
 Relative %
+NIL
+1
+1
+
+MONITOR
+600
+10
+725
+60
+# Hunters
+NIL
+1
+1
+
+MONITOR
+600
+70
+725
+120
+# Living Prey
 NIL
 1
 1

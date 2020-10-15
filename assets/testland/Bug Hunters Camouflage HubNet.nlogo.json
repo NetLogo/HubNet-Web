@@ -8,6 +8,8 @@
     , "limit": -1
     , "widgets": [
         { "type": "hnwView",    "left": 175, "right": 585, "top":  10, "bottom": 420, "height": 410, "width": 410 }
+      , { "type": "hnwMonitor", "left": 600, "right": 725, "top":  10, "bottom":  60, "display": "# Hunters", "source": "num-hunters", "reporterStyle": "procedure", "precision": 0, "fontSize": 10 }
+      , { "type": "hnwMonitor", "left": 600, "right": 725, "top":  70, "bottom": 120, "display": "# Living Prey", "source": "num-bugs", "reporterStyle": "procedure", "precision": 0, "fontSize": 10 }
       , { "type": "hnwMonitor", "left":  10, "right": 135, "top":  10, "bottom":  59, "display": "Your name", "source": "__hnw-username", "reporterStyle": "turtle-var", "precision": 0, "fontSize": 10 }
       , { "type": "hnwTextBox", "left":  15, "right": 143, "top":  65, "bottom": 128, "display": "Try to catch bugs by clicking on them in the view to the right.", "color": 0, "fontSize": 11, "transparent": false }
       , { "type": "hnwMonitor", "left":  10, "right": 135, "top": 120, "bottom": 169, "display": "You have caught", "source": "caught", "reporterStyle": "turtle-var", "precision": 3, "fontSize": 10 }
