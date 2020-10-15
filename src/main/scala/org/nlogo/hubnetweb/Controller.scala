@@ -244,7 +244,7 @@ object Controller {
 
     val source =
       Source
-        .tick(0 seconds, 0.1 seconds, None)
+        .tick(0 seconds, 0.01 seconds, None)
         .takeWhile(_ => socketNotTerminated)
         .mapConcat(
           _ =>
@@ -287,7 +287,7 @@ object Controller {
 
     val source =
       Source
-        .tick(0 seconds, 0.1 seconds, None)
+        .tick(0 seconds, 0.01 seconds, None)
         .takeWhile(_ => socketNotTerminated)
         .mapConcat(
           _ =>
@@ -325,7 +325,7 @@ object Controller {
 
     val source =
       Source
-        .tick(0 seconds, 0.1 seconds, None)
+        .tick(0 seconds, 0.01 seconds, None)
         .takeWhile(_ => socketNotTerminated)
         .mapConcat {
           _ =>
