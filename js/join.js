@@ -518,6 +518,7 @@ const cleanupSession = (wasExpected, statusText) => {
 
   clearInterval(mainEventLoopID);
 
+  recentPings = [];
   lastMsgID   = '00000000-0000-0000-0000-000000000000';
   predIDToMsg = {};
 
