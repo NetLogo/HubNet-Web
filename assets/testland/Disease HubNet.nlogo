@@ -412,6 +412,14 @@ to-report sick?-str
   report (ifelse-value __hnw_supervisor_show-sick-on-clients? [ infected? ] [ "N/A" ])
 end
 
+to-report num-players
+  report count students
+end
+
+to-report num-androids
+  report count androids
+end
+
 ;; Supervisor role
 
 to clear-the-plot
@@ -1195,6 +1203,26 @@ true
 false
 "" ""
 PENS
+
+MONITOR
+741
+11
+866
+61
+# Players
+NIL
+1
+1
+
+MONITOR
+741
+71
+866
+121
+# Androids
+NIL
+1
+1
 
 @#$#@#$#@
 default
