@@ -191,7 +191,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
         };
       }
 
-      const averagePing = Math.round(sesh.pingBucket.reduce((x, y) => x + y) / sesh.recentPings.length);
+      const averagePing = Math.round(sesh.recentPings.reduce((x, y) => x + y) / sesh.recentPings.length);
 
       document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
         type:    "hnw-latest-ping"
