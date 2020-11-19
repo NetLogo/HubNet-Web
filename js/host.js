@@ -289,7 +289,7 @@ window.addEventListener("message", ({ data }) => {
 
   switch (data.type) {
     case "nlw-state-update":
-      if (data.recipient !== undefined)
+      if (data.isNarrowcast)
         narrowcast("here-have-an-update", { update: data.update }, data.recipient);
       else
         broadcast("here-have-an-update", { update: data.update });
@@ -306,10 +306,14 @@ window.addEventListener("message", ({ data }) => {
       sessions[token].hasInitialized = true;
       break;
     case "relay":
-      if (data.recipient === undefined)
+      if (data.isNarrowcast) {
+        const parcel = Object.assign({}, data)
+        delete parcel.isNarrowcast;
+        delete parcel.recipient;
+        narrowcast("relay", parcel, data.recipient);
+      } else {
         broadcast("relay", data);
-      else
-        narrowcast("relay", data, data.recipient);
+      }
       break;
     case "hnw-fatal-error":
       alert(`Fatal error received from client: ${data.subtype}`);
