@@ -254,8 +254,9 @@ const handleChannelMessages = (channel) => ({ data }) => {
       bucket[index] = parcel;
 
       if (fullLength > 100) {
-        const valids = multiparts[id].filter((x) => x !== null);
-        if (multiparts[id][0].startsWith("\"{\\\"type\\\":\\\"here-have-a-model\\\"")) {
+        const firsty = multiparts[id][0];
+        if (firsty !== null && firsty.startsWith("\"{\\\"type\\\":\\\"here-have-a-model\\\"")) {
+          const valids = multiparts[id].filter((x) => x !== null);
           setStatus(`Downloading model from host... (${valids.length}/${fullLength})`);
         }
       }
