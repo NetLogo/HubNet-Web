@@ -24,6 +24,12 @@ globals
   grass-max          ;; grass capacity
   food-max           ;; grass collection capacity
   bite-size          ;; amount of grass collected at each move
+
+  __hnw_supervisor_grazing-period
+  __hnw_supervisor_init-num-goats/farmer
+  __hnw_supervisor_grass-growth-rate
+  __hnw_supervisor_cost/goat
+
 ]
 
 patches-own
@@ -38,7 +44,7 @@ breed [ farmers farmer ] ;; created and controlled by clients
 goats-own
 [
   food-stored        ;; amount of grass collected from grazing
-  owner#             ;; the user-id of the farmer who owns the goat
+  owner              ;; the user-id of the farmer who owns the goat
 ]
 
 farmers-own
@@ -47,6 +53,8 @@ farmers-own
   revenue-lst        ;; list of each days' revenue collection
   total-assets       ;; total of past revenue, minus expenses
   current-revenue    ;; the revenue collected at the end of the last day
+  seller-msg
+  num-goats-to-buy
 ]
 
 
@@ -66,13 +74,11 @@ to setup
   setup-patches
   clear-output
   clear-all-plots
-  ask farmers
-    [ reset-farmers-vars ]
-TODO
-  hubnet-broadcast "Goat Seller Says:"
-    (word "Everyone starts with " init-num-goats/farmer " goats.")
-  hubnet-broadcast "num-goats-to-buy" 1
-  broadcast-system-info
+  ask farmers [
+    reset-farmers-vars
+    set seller-msg (word "Everyone starts with " __hnw_supervisor_init-num-goats/farmer " goats.")
+    set num-goats-to-buy 1
+  ]
 end
 
 ;; initialize global variables
@@ -80,10 +86,15 @@ to setup-globals
   reset-ticks
   set day 0
 
+  set __hnw_supervisor_grazing-period 34
+  set __hnw_supervisor_init-num-goats/farmer 5
+  set __hnw_supervisor_grass-growth-rate 0.5
+  set __hnw_supervisor_cost/goat 893
+
   set grass-max 50
   set food-max 50
   ;; why this particular calculation?
-  set bite-size (round (100 / (grazing-period - 1)))
+  set bite-size (round (100 / (__hnw_supervisor_grazing-period - 1)))
 
   set colors      [ white   gray   orange   brown    yellow    turquoise
                     cyan    sky    blue     violet   magenta   pink ]
@@ -112,8 +123,6 @@ to go
 
   every .1
   [
-    every .5
-      [ broadcast-system-info ]
 
     if not any? farmers
     [
@@ -125,7 +134,7 @@ to go
     tick
 
     ;; when not milking time
-    ifelse (ticks mod grazing-period) != 0
+    ifelse (ticks mod __hnw_supervisor_grazing-period) != 0
     [
       ask goats
         [ graze ]
@@ -179,7 +188,6 @@ to milk-goats  ;; farmer procedure
     [ set food-stored 0 ]
   set revenue-lst (fput current-revenue revenue-lst)
   set total-assets total-assets + current-revenue
-  send-personal-info
 end
 
 ;; the goat market setup
@@ -191,40 +199,33 @@ to go-to-market
     if num-goats-to-buy < 0
       [ lose-goats (- num-goats-to-buy) ]
     if num-goats-to-buy = 0
-    TODO
-      [ hubnet-send user-id "Goat Seller Says:" "You did not buy any goats." ]
-    send-personal-info
+      [ set seller-msg "You did not buy any goats." ]
   ]
 end
 
 ;; farmers buy goats at market
 to buy-goats [ num-goats-desired ]  ;; farmer procedure
   let got-number-desired? true
-  let num-goats-afford (int (total-assets / cost/goat))
+  let num-goats-afford (int (total-assets / __hnw_supervisor_cost/goat))
   let num-goats-purchase num-goats-desired
   if (num-goats-afford < num-goats-purchase)
   [
     set num-goats-purchase num-goats-afford
     set got-number-desired? false
   ]
-  let cost-of-purchase num-goats-purchase * cost/goat
+  let cost-of-purchase num-goats-purchase * __hnw_supervisor_cost/goat
   set total-assets (total-assets - cost-of-purchase)
-  TODO
-  hubnet-send user-id "Goat Seller Says:"
-    (seller-says got-number-desired? num-goats-desired num-goats-purchase)
-
+  set seller-msg (seller-says got-number-desired? num-goats-desired num-goats-purchase)
   ;; create the goats purchased by the farmer
-  hatch num-goats-purchase
-    [ setup-goats user-id ]
+  hatch num-goats-purchase [ setup-goats myself ]
 end
 
 ;; farmers eliminate some of their goats (with no gain in assets)
 to lose-goats [ num-to-lose ]  ;; farmer procedure
   if ((count my-goats) < num-to-lose)
     [ set num-to-lose (count my-goats) ]
-    TODO
-  hubnet-send user-id "Goat Seller Says:"
-    (word "You lost " num-to-lose " goats.")
+
+    set seller-msg (word "You lost " num-to-lose " goats.")
 
   ;; eliminate the goats ditched by the farmer
   ask (n-of num-to-lose my-goats)
@@ -234,7 +235,7 @@ end
 ;; reports the appropriate information on the transaction of purchasing goats
 to-report seller-says [ success? desired purchased ]
   let seller-message ""
-  let cost purchased * cost/goat
+  let cost purchased * __hnw_supervisor_cost/goat
   ifelse success?
   [
     ifelse (purchased > 1)
@@ -250,12 +251,12 @@ to-report seller-says [ success? desired purchased ]
 end
 
 ;; initializes goat variables
-to setup-goats [ farmer# ]  ;; turtle procedure
+to setup-goats [ farmer-turtle ]  ;; turtle procedure
   set breed goats
   setxy random-xcor random-ycor
   set shape "goat"
   set food-stored 0
-  set owner# farmer#
+  set owner farmer-turtle
   show-turtle
 end
 
@@ -263,7 +264,7 @@ end
 to reset-patches
   ask patches with [grass-stored < grass-max]
   [
-    let new-grass-amt (grass-stored + grass-growth-rate)
+    let new-grass-amt (grass-stored + __hnw_supervisor_grass-growth-rate)
     ifelse (new-grass-amt > grass-max)
       [ set grass-stored grass-max ]
       [ set grass-stored new-grass-amt ]
@@ -276,6 +277,9 @@ to color-patches  ;; patch procedure
   set pcolor (scale-color green grass-stored -5 (2 * grass-max))
 end
 
+to-report goat-pop
+  report count goats
+end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Plotting Functions ;;
@@ -285,7 +289,7 @@ end
 to plot-graph
   plot-value "Milk Supply" milk-supply
   plot-value "Grass Supply" grass-supply
-  plot-value "Goat Population" count goats
+  plot-value "Goat Population" goat-pop
   plot-value "Average Revenue" avg-revenue
 end
 
@@ -316,7 +320,7 @@ end
 
 ;; returns agentset that of goats of a particular farmer
 to-report my-goats  ;; farmer procedure
-  report goats with [ owner# = [user-id] of myself ]
+  report goats with [ owner = myself ]
 end
 
 ;; rounds given number to certain decimal-place
@@ -393,29 +397,12 @@ end
 ;; Code for interacting with the clients ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; NetLogo knows what each student turtle is supposed to be
-;; doing based on the tag sent by the node:
-;; num-goats-to-buy - determine quantity of student's desired purchase
-TODO: ???
-to execute-command [command]
-  if command = "num-goats-to-buy"
-  [
-    ask farmers with [user-id = hubnet-message-source]
-      [ set num-goats-to-buy hubnet-message ]
-    stop
-  ]
-end
-
-TODO: On join
-to create-new-farmer [ id ]
+to create-new-farmer
   create-farmers 1
   [
-    set user-id id
     setup-farm
     set-unique-color
     reset-farmers-vars
-    hubnet-send id "num-goats-to-buy" num-goats-to-buy
-    send-system-info
   ]
 end
 
@@ -440,7 +427,7 @@ to reset-farmers-vars  ;; farmer procedure
   ;; reset the farmer variable to initial values
   set revenue-lst []
   set num-goats-to-buy 1
-  set total-assets cost/goat
+  set total-assets __hnw_supervisor_cost/goat
   set current-revenue 0
 
   ;; get rid of existing goats
@@ -448,18 +435,17 @@ to reset-farmers-vars  ;; farmer procedure
     [ die ]
 
   ;; create new goats for the farmer
-  hatch init-num-goats/farmer
-    [ setup-goats user-id ]
+  hatch __hnw_supervisor_init-num-goats/farmer
+    [ setup-goats myself ]
 
-  send-personal-info
 end
 
-;; sends the appropriate monitor information back to the client
-to send-personal-info  ;; farmer procedure
-  hubnet-send user-id "My Goat Color" (color->string color)
-  hubnet-send user-id "Current Revenue" current-revenue
-  hubnet-send user-id "Total Assets" total-assets
-  hubnet-send user-id "My Goat Population" count my-goats
+to-report my-goat-color
+  report color->string color
+end
+
+to-report my-goat-population
+  report count my-goats
 end
 
 ;; returns string version of color name
@@ -467,33 +453,14 @@ to-report color->string [ color-value ]
   report item (position color-value colors) color-names
 end
 
-;; sends the appropriate monitor information back to one client
-to send-system-info  ;; farmer procedure
-  hubnet-send user-id "Milk Amt" milk-supply
-  hubnet-send user-id "Grass Amt" grass-supply
-  hubnet-send user-id "Cost per Goat" cost/goat
-  hubnet-send user-id "Day" day
-end
-
-;; broadcasts the appropriate monitor information back to all clients
-to broadcast-system-info
-  hubnet-broadcast "Milk Amt" milk-supply
-  hubnet-broadcast "Grass Amt" (int grass-supply)
-  hubnet-broadcast "Cost per Goat" cost/goat
-  hubnet-broadcast "Day" day
+to-report grass-amt
+  report int grass-supply
 end
 
 ;; delete farmers once client has exited
-TODO: On quit
-to remove-farmer [ id ]
-  let old-color 0
-  ask farmers with [user-id = id]
-  [
-    set old-color color
-    ask my-goats
-      [ die ]
-    die
-  ]
+to remove-farmer
+  let old-color color
+  ask my-goats [ die ]
   if not any? farmers with [color = old-color]
     [ set used-colors remove (position old-color colors) used-colors ]
 end
@@ -528,68 +495,6 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
-
-BUTTON
-270
-11
-363
-44
-NIL
-go
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-SLIDER
-6
-48
-224
-81
-init-num-goats/farmer
-init-num-goats/farmer
-0
-10
-5.0
-1
-1
-goats
-HORIZONTAL
-
-SLIDER
-6
-82
-224
-115
-grass-growth-rate
-grass-growth-rate
-0
-2
-0.5
-0.1
-1
-oz/cycle
-HORIZONTAL
-
-SLIDER
-225
-82
-444
-115
-cost/goat
-cost/goat
-1
-2000
-893.0
-1
-1
-$
-HORIZONTAL
 
 MONITOR
 239
@@ -696,21 +601,6 @@ false
 PENS
 "grass-amt" 1.0 0 -16777216 true "" ""
 
-SLIDER
-225
-48
-443
-81
-grazing-period
-grazing-period
-2
-50
-34.0
-1
-1
-NIL
-HORIZONTAL
-
 MONITOR
 121
 345
@@ -721,23 +611,6 @@ grass-supply
 0
 1
 11
-
-BUTTON
-75
-11
-164
-44
-NIL
-setup
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 MONITOR
 16
@@ -750,57 +623,6 @@ day
 1
 11
 
-BUTTON
-462
-61
-580
-94
-Reset Instructions
-setup-quick-start
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-798
-61
-882
-94
-NEXT >>>
-view-next
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-720
-61
-798
-94
-<<< PREV
-view-prev
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 MONITOR
 462
 10
@@ -811,23 +633,6 @@ quick-start
 0
 1
 11
-
-BUTTON
-165
-11
-269
-44
-login
-listen-to-clients TODO
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 @#$#@#$#@
 ## WHAT IS IT?
