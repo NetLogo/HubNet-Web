@@ -58,7 +58,7 @@
                     "precision": 3,
                     "reporterStyle": "global-var",
                     "fontSize": 10,
-                    "source": "cost/goat",
+                    "source": "__hnw_supervisor_cost/goat",
                     "right": 96,
                     "type": "hnwMonitor",
                     "top": 218
@@ -68,7 +68,7 @@
                     "display": "Total Assets",
                     "left": 363,
                     "precision": 3,
-                    "reporterStyle": "turtle-procedure",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
                     "source": "total-assets",
                     "right": 454,
