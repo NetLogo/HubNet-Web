@@ -38,7 +38,7 @@ patches-own
 ]
 
 breed [ goats goat ]  ;; creation controlled by farmers
-breed [ farmers farmer ] ;; created and controlled by clients
+breed [ students student ] ;; created and controlled by clients
 
 
 goats-own
@@ -47,7 +47,7 @@ goats-own
   owner              ;; the user-id of the farmer who owns the goat
 ]
 
-farmers-own
+students-own
 [
   num-goats-to-buy   ;; desired quantity of goats to purchase
   revenue-lst        ;; list of each days' revenue collection
@@ -74,7 +74,7 @@ to setup
   setup-patches
   clear-output
   clear-all-plots
-  ask farmers [
+  ask students [
     reset-farmers-vars
     set seller-msg (word "Everyone starts with " __hnw_supervisor_init-num-goats/farmer " goats.")
     set num-goats-to-buy 1
@@ -124,7 +124,7 @@ to go
   every .1
   [
 
-    if not any? farmers
+    if not any? students
     [
       user-message word "There are no farmers.  GO is stopping.  "
           "Press GO again when people have logged in."
@@ -141,7 +141,7 @@ to go
     ]
     [
       set day day + 1
-      ask farmers
+      ask students
         [ milk-goats ]
       go-to-market ;; to buy goats
       plot-graph
@@ -192,7 +192,7 @@ end
 
 ;; the goat market setup
 to go-to-market
-  ask farmers
+  ask students
   [
     if num-goats-to-buy > 0
       [ buy-goats num-goats-to-buy ]
@@ -307,7 +307,7 @@ end
 to-report milk-supply
   ;; we can just compute this from revenue, since the price of milk is
   ;; fixed at $1/1 gallon.
-  report sum [ current-revenue ] of farmers
+  report sum [ current-revenue ] of students
 end
 
 to-report grass-supply
@@ -315,7 +315,7 @@ to-report grass-supply
 end
 
 to-report avg-revenue
-  report mean [ current-revenue ] of farmers
+  report mean [ current-revenue ] of students
 end
 
 ;; returns agentset that of goats of a particular farmer
@@ -398,7 +398,7 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 to create-new-farmer
-  create-farmers 1
+  create-students 1
   [
     setup-farm
     set-unique-color
@@ -416,7 +416,7 @@ end
 ;; pick a color for the turtle
 to set-unique-color  ;; turtle procedure
   let code random num-colors
-  while [member? code used-colors and count farmers < num-colors]
+  while [member? code used-colors and count students < num-colors]
     [ set code random num-colors ]
   set used-colors (lput code used-colors)
   set color item code colors
@@ -461,7 +461,7 @@ end
 to remove-farmer
   let old-color color
   ask my-goats [ die ]
-  if not any? farmers with [color = old-color]
+  if not any? students with [color = old-color]
     [ set used-colors remove (position old-color colors) used-colors ]
 end
 

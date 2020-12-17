@@ -1,0 +1,85 @@
+{
+    "roles": [
+        {
+            "canJoinMidRun": true,
+            "onCursorMove": null,
+            "onCursorClick": null,
+            "onDisconnect": "???DC",
+            "widgets": [
+                {
+                    "height": 430,
+                    "bottom": 440,
+                    "left": 12,
+                    "width": 430,
+                    "right": 442,
+                    "type": "hnwView",
+                    "top": 10
+                }
+            ],
+            "name": "student",
+            "onConnect": "???Connect",
+            "limit": -1,
+            "isSpectator": false
+        },
+        {
+            "canJoinMidRun": true,
+            "onCursorMove": null,
+            "onCursorClick": null,
+            "onDisconnect": "???DC",
+            "widgets": [
+                {
+                    "height": 428,
+                    "bottom": 439,
+                    "left": 231,
+                    "width": 429,
+                    "right": 659,
+                    "type": "hnwView",
+                    "top": 10
+                },
+                {
+                    "forever": false,
+                    "bottom": 84,
+                    "left": 42,
+                    "buttonKind": "observer",
+                    "source": "setup",
+                    "hnwProcName": "setup",
+                    "right": 113,
+                    "type": "hnwButton",
+                    "top": 51,
+                    "disableUntilTicksStarts": true
+                },
+                {
+                    "forever": true,
+                    "bottom": 84,
+                    "left": 115,
+                    "buttonKind": "observer",
+                    "source": "go",
+                    "hnwProcName": "go",
+                    "right": 186,
+                    "type": "hnwButton",
+                    "top": 51,
+                    "disableUntilTicksStarts": false
+                },
+                {
+                    "bottom": 137,
+                    "display": "Users click on their client view\\nto reveal the color of patches\\nat that location.",
+                    "color": 0,
+                    "left": 15,
+                    "fontSize": 12,
+                    "right": 227,
+                    "type": "hnwTextBox",
+                    "top": 92,
+                    "transparent": true
+                }
+            ],
+            "name": "supervisor",
+            "onConnect": "???Connect",
+            "limit": 1,
+            "isSpectator": true
+        }
+    ],
+    "onIterate": "go",
+    "onStart": "setup",
+    "version": "hnw-alpha-1",
+    "type": "hubnet-web"
+}

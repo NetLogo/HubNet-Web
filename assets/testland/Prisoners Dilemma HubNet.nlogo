@@ -23,6 +23,13 @@ globals [
   color-names            ;; list of names of colors used for students' turtles
   used-shape-colors      ;; list of shape-color pairs that are in use
   max-possible-codes     ;; total number of unique shape/color combinations
+
+  __hnw_supervisor_allow-strategy-change?
+  __hnw_supervisor_C-C
+  __hnw_supervisor_C-D
+  __hnw_supervisor_D-C
+  __hnw_supervisor_D-D
+
 ]
 
 turtles-own [
@@ -41,6 +48,11 @@ turtles-own [
 
   user-code              ;; students create custom strategies, which are stored here
   code-changed?          ;; is true when the user changes given strategies
+
+  error-msg
+  gui-strategy
+  gui-user-code
+
 ]
 
 students-own [
@@ -52,7 +64,11 @@ students-own [
 ;;;;;;;;;;;;;;;;;;;;;
 
 to startup
-  hubnet-reset
+  set __hnw_supervisor_allow-strategy-change? true
+  set __hnw_supervisor_C-C                       1
+  set __hnw_supervisor_C-D                      -4
+  set __hnw_supervisor_D-C                       5
+  set __hnw_supervisor_D-D                      -3
   setup
 end
 
@@ -149,8 +165,36 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
 to play-n-times
-    listen-clients
   if (any? turtles) [
+
+    ask students [
+
+      if (__hnw_supervisor_allow-strategy-change? and gui-user-code != user-code) [
+         set error-msg ""
+         ;; code is taken, and tested for accuracy, so students can make more changes before playing another round
+         if ( test-strategy gui-user-code )
+         [
+           set user-code gui-user-code
+           set code-changed? true
+         ]
+      ]
+
+      if (gui-strategy != selected-strategy) [
+        ifelse (__hnw_supervisor_allow-strategy-change?) ;; if this is permitted under the current game-mode
+        [
+          set error-msg ""
+          set selected-strategy gui-strategy
+          set-code
+          set code-changed? false
+        ]
+        [
+          set error-msg "You cannot change your strategy while playing"
+          set gui-strategy selected-strategy
+        ]
+      ]
+
+    ]
+
     do-plots
     find-partners
 
@@ -183,8 +227,6 @@ to play-a-round  ;; determines the actions of turtles each turn
   ask turtles with [ partner != nobody ] [
     custom-strategy
     get-payoff                 ;; after the strategies are determined, the results of the round are determined
-    if breed = students
-      [ send-info-to-clients ]
   ]
 end
 
@@ -200,7 +242,7 @@ to custom-strategy ;; turtle procedure
     set defect-now? strategy-output
   ] [
     ifelse (breed = students) [
-      hubnet-send user-id "Errors:" (error-message)
+      set error-msg error-message
       output-show "bad strategy survived!"
     ] [
       output-show (word "Problem on android " who ": " error-message)
@@ -210,7 +252,6 @@ end
 
 to find-partners
   ;;  In this example, only turtles that haven't found a partner can move around.
-  listen-clients
   every 0.1 [
     ask turtles with [partner = nobody] [
       ;;  randomly move about the view
@@ -250,10 +291,10 @@ to-report test-strategy [ snippet ]
     ifelse is-boolean? (run-result snippet) [
       set success? true
     ] [
-      hubnet-send user-id "Errors:" ("the output must be either true or false")
+      set error-msg "the output must be either true or false"
     ]
   ] [
-    hubnet-send user-id "Errors:" (error-message)
+    set error-msg error-message
   ]
   report success?
 end
@@ -350,11 +391,11 @@ to get-payoff ;;Turtle Procedure
     set play-partner-history lput true play-partner-history  ;; it is recorded in the history of his partner
     ifelse defect-now?                 ;; if this player has defected
     [
-       set score score + D-D
+       set score score + __hnw_supervisor_D-D
        set play-history lput true play-history  ;; it is recorded in this player's history
     ]
     [
-       set score score + C-D
+       set score score + __hnw_supervisor_C-D
        set play-history lput false play-history
     ]
     set total-defects total-defects + 1  ;; used for go-by-majority strategy
@@ -364,11 +405,11 @@ to get-payoff ;;Turtle Procedure
     set play-partner-history lput false play-partner-history
     ifelse defect-now?
     [
-      set score score + D-C
+      set score score + __hnw_supervisor_D-C
       set play-history lput true play-history
     ]
     [
-      set score score + C-C
+      set score score + __hnw_supervisor_C-C
       set play-history lput false play-history
     ]
     set cooperate-total cooperate-total + 1  ;;cooperates are totaled for plotting
@@ -413,105 +454,54 @@ end
 ;; Code for interacting with the clients ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; determines which client sent a command, and what the command was
-to listen-clients
-  while [ hubnet-message-waiting? ]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-new-student ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-student ]
-      [ execute-command hubnet-message-tag ]
-    ]
-  ]
+to move-up
+  set heading 0
 end
 
-;; NetLogo knows what each student turtle is supposed to be
-;; doing based on the tag sent by the node:
-to execute-command [command]
-  if command = "strategy-choice"  ;; the user wants to change his/her strategy, by selecting a pre-made strategy
-  [
-    ask students with [ user-id = hubnet-message-source ]
-    [
-      ifelse (allow-strategy-change?) ;; if this is permitted under the current game-mode
-      [
-        hubnet-send user-id "Errors:" ("")
-        set selected-strategy hubnet-message
-        set-code
-        hubnet-send user-id "strategy" user-code
-        send-info-to-clients
-        set code-changed? false
-      ]
-      [
-        hubnet-send user-id "Errors:" ("You cannot change your strategy while playing")
-        hubnet-send user-id "strategy-choice" (selected-strategy)
-      ]
-    ]
-  ]
-  if command = "strategy"             ;; the user has modified the code of the current strategy
-  [
-     ask students with [ user-id = hubnet-message-source ]
-     [
-       if (hubnet-message = user-code or not allow-strategy-change?) [ stop ]
-       hubnet-send user-id "Errors:" ("")
-       ;; code is taken, and tested for accuracy, so students can make more changes before playing another round
-       if ( test-strategy hubnet-message )
-       [
-         set user-code hubnet-message
-         set code-changed? true
-       ]
-     ]
-  ]
-  if command = "Up"
-    [ execute-move 0 ]
-  if command = "Down"
-    [ execute-move 180 ]
-  if command = "Left"
-    [ execute-move 270 ]
-  if command = "Right"
-    [ execute-move 90 ]
-  if command = "Up-Left"
-    [ execute-move 315 ]
-  if command = "Up-Right"
-    [ execute-move 45 ]
-  if command = "Down-Left"
-    [ execute-move 225 ]
-  if command = "Down-Right"
-    [ execute-move 135 ]
-  if command = "Change Appearance"
-    [ execute-change-turtle  ]
+to move-down
+  set heading 180
+end
+
+to move-left
+  set heading 270
+end
+
+to move-right
+  set heading 90
+end
+
+to move-up-left
+  set heading 315
+end
+
+to move-up-right
+  set heading 45
+end
+
+to move-down-left
+  set heading 225
+end
+
+to move-down-right
+  set heading 135
 end
 
 ;; Create a turtle, set its shape, color, and position
 ;; and tell the node what its turtle looks like and where it is
-to create-new-student
+to create-new-student [username]
   create-students 1
   [
-    setup-student-vars
-    hubnet-send user-id "strategy" user-code
-    send-info-to-clients
+    set user-id username
+    set total 0
+    setup-turtle-vars
+    set selected-strategy "random"
+    set code-changed? false
+    set error-msg ""
+    set-code
+    set-unique-shape-and-color
   ]
 end
 
-to execute-move [angle]
-  ask students with [user-id = hubnet-message-source ]
-  [
-      set heading angle
-  ]
-end
-
-;; sets the turtle variables to appropriate initial values
-to setup-student-vars  ;; turtle procedure
-  set user-id hubnet-message-source
-  set total 0
-  setup-turtle-vars
-  set selected-strategy "random"
-  set code-changed? false
-  set-code
-  set-unique-shape-and-color
-end
 
 ;; pick a base-shape and color for the turtle
 to set-unique-shape-and-color
@@ -531,62 +521,49 @@ to-report color-string [color-value]
   report item (position color-value colors) color-names
 end
 
-;; sends the appropriate monitor information back to the client
-to send-info-to-clients
-  hubnet-send user-id "You are a:" (word (color-string color) " " base-shape)
-  hubnet-send user-id "Your Score:" (score)
-  hubnet-send user-id "Your Total:" (total)
-  ifelse partner != nobody
-  [
-    hubnet-send user-id "Partner's Score:" ([score] of partner)
-    hubnet-send user-id "Partner's History:" (map [ b -> ifelse-value b = true ["D "] ["C "] ] play-partner-history)
-    hubnet-send user-id "Your History:" ( map [ b -> ifelse-value b = true ["D "] ["C "] ] play-history)
-    hubnet-send user-id "Points:" (map [ [b1 b2] ->
+to-report descriptor
+  report (word (color-string color) " " base-shape)
+end
+
+to-report partners-score
+  report ifelse-value (partner != nobody) [ [score] of partner ] [""]
+end
+
+to-report partners-history
+  report ifelse-value (partner != nobody) [ map [ b -> ifelse-value b = true ["D "] ["C "] ] play-partner-history ] [""]
+end
+
+to-report my-history
+  report ifelse-value (partner != nobody) [ map [ b -> ifelse-value b = true ["D "] ["C "] ] play-history ] [""]
+end
+
+to-report points
+  report ifelse-value (partner != nobody) [
+    (map [ [b1 b2] ->
       ifelse-value (b1 = false) and (b2 = false)
-        [ C-C ]
+        [ __hnw_supervisor_C-C ]
         [ ifelse-value (b1 = false) and (b2 = true)
-            [ C-D ]
+            [ __hnw_supervisor_C-D ]
             [ ifelse-value (b1 = true) and (b2 = false)
-                [ D-C ]
-                [ D-D ]
+                [ __hnw_supervisor_D-C ]
+                [ __hnw_supervisor_D-D ]
             ]
         ]
-      ] play-history play-partner-history)
-  ]
-  [
-    hubnet-send user-id "Partner's Score:" ("")
-    hubnet-send user-id "Partner's History:" ("")
-    hubnet-send user-id "Your History:" ("")
-  ]
-
+    ] play-history play-partner-history)
+  ] [""]
 end
 
 ;; Kill the turtle, set its shape, color, and position
 ;; and tell the node what its turtle looks like and where it is
 to remove-student
-  ask students with [user-id = hubnet-message-source]
-  [
-    set used-shape-colors remove my-code used-shape-colors
-    die
-  ]
+  set used-shape-colors remove my-code used-shape-colors
+  die
 end
 
 ;; translates a student turtle's shape and color into a code
 to-report my-code
   report (position base-shape shape-names) + (length shape-names) * (position color colors)
 end
-
-;; users might want to change their shape and color, so that they can find themselves more easily
-to execute-change-turtle
-  ask students with [user-id = hubnet-message-source]
-  [
-    set used-shape-colors remove my-code used-shape-colors
-    show-turtle
-    set-unique-shape-and-color
-    hubnet-send user-id "You are a:" (word (color-string color) " " base-shape)
-  ]
-end
-
 
 ; Copyright 2003 Uri Wilensky.
 ; See Info tab for full copyright and license.

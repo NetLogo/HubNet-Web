@@ -13,19 +13,39 @@ globals
 
   ;; plotting variables
   walker-to-plot         ;; the walker to plot if plot-all-walkers? is false
+
+  __hnw_supervisor_simulation-speed
+  __hnw_supervisor_show-user-id?
+  __hnw_supervisor_walker-position
+  __hnw_supervisor_footprints?
+  __hnw_supervisor_animation?
+  __hnw_supervisor_trails?
+
 ]
 
 breed [ footprints footprint ]
-breed [ walkers walker ]
+breed [ students student ]
 
-walkers-own
+students-own
 [
-  user-id           ;; the name of the client corresponding to this turtle
+
+  __hnw_username    ;; the unique name users enter on their clients
   my-xcor           ;; the unwrapped horizontal position of a turtle
   xcor-initial      ;; the initial horizontal position of a turtle
   interval          ;; the current interval a turtle is moving through
   velocity          ;; current velocity of an walker
-  velocities        ;; list of velocities one for each interval
+
+  interval-0
+  interval-1
+  interval-2
+  interval-3
+  interval-4
+  interval-5
+  interval-6
+  interval-7
+  interval-8
+  interval-9
+
   base-shape        ;; either person-forward- or person-backward- so when we are animating
                     ;; we just tack on the frame number to form the name of the appropriate shape
   shape-counter     ;; keep track of where in the animation we are so it looks smooth
@@ -46,10 +66,9 @@ patches-own
 ;;;;;;;;;;;;;;;;;;;;;;
 
 to startup
-  hubnet-reset
   setup-vars
   setup-patches
-  set-default-shape walkers "person-forward-1"
+  set-default-shape students "person-forward-1"
   set-default-shape footprints "footprint"
   setup
 end
@@ -58,7 +77,8 @@ to setup
   reset-ticks
   clear-drawing
   setup-patches
-  ask walkers
+
+  ask students
   [
     pen-up
     set-position xcor-initial
@@ -71,7 +91,7 @@ to reset-clock
   reset-ticks
   clear-drawing
   setup-patches
-  ask walkers
+  ask students
   [ set-position xcor
     pen-up ]
   ask footprints [ die ]
@@ -81,7 +101,7 @@ end
 to set-random-positions
   reset-ticks
   setup-patches
-  ask walkers [ set-position random-pxcor ]
+  ask students [ set-position random-pxcor ]
   ask footprints [ die ]
   my-setup-plots
 end
@@ -89,7 +109,7 @@ end
 to set-uniform-positions
   reset-ticks
   setup-patches
-  ask walkers [ set-position walker-position ]
+  ask students [ set-position __hnw_supervisor_walker-position ]
   ask footprints [ die ]
   my-setup-plots
 end
@@ -122,13 +142,23 @@ end
 
 ;; set variables to initial values
 to setup-vars
+
   reset-ticks
+
   set num-intervals 9
   set up-trail-color green
   set down-trail-color red
 
+  set __hnw_supervisor_simulation-speed 5
+  set __hnw_supervisor_show-user-id? true
+  set __hnw_supervisor_walker-position 0
+  set __hnw_supervisor_footprints? false
+  set __hnw_supervisor_animation? true
+  set __hnw_supervisor_trails? false
+
   ;; by default have the walker to plot be nobody
   set walker-to-plot "everybody"
+
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -139,16 +169,13 @@ end
 to go
   if ticks >= num-intervals
   [ stop ]
-  ;; see if there are any messages waiting before
-  ;; we start moving
-  listen-clients
   ;; we want to move to a new interval after delay seconds
   ;; where delay is a function of simulation speed
   every delay
   [
     if ticks < num-intervals
     [
-        ask walkers
+        ask students
         [
           show-or-hide-id-labels  ;; keep labels in sync with the switches
           assign-values           ;; set the walkers' velocity to the appropriate value
@@ -157,12 +184,12 @@ to go
         do-plotting
         ;; depending on the visualizations used
         ;; we may have to do some fading at the end of each move.
-        if trails?
+        if __hnw_supervisor_trails?
         [
           ask patches with [ pcolor != base-pcolor ]
             [ fade-trail ]
         ]
-        if footprints?
+        if __hnw_supervisor_footprints?
         [
           ask footprints
           [
@@ -178,22 +205,24 @@ end
 
 ;; calculate the delay in seconds based on the simulation speed
 to-report delay
-  ifelse simulation-speed <= 0
+  ifelse __hnw_supervisor_simulation-speed <= 0
   [ report ln (10 / 0.001) ]
-  [ report ln (10 / simulation-speed) ]
+  [ report ln (10 / __hnw_supervisor_simulation-speed) ]
 end
 
 to show-or-hide-id-labels  ;; turtle procedure
-  ifelse show-user-id?
-  [ set label word user-id "     " ]
+  ifelse __hnw_supervisor_show-user-id?
+  [ set label word __hnw_username "     " ]
   [ set label "" ]
 end
 
 ;; set the student selected walker velocity for the current interval
 to assign-values  ;; turtle procedure
-  ifelse interval >= length velocities
-  [ set velocity 0 ]
-  [ set velocity item interval velocities ]
+  set velocity (select-velocity interval)
+end
+
+to-report select-velocity [index]
+  report item index (list interval-0 interval-1 interval-2 interval-3 interval-4 interval-5 interval-6 interval-7 interval-8 interval-9)
 end
 
 to move-walkers  ;; turtle procedure
@@ -213,7 +242,7 @@ to move-walkers  ;; turtle procedure
   [ set base-shape "person-forward-"]
   [ set base-shape "person-backward-" ]
 
-  if not animation?
+  if not __hnw_supervisor_animation?
   [ set shape word base-shape "1" ]
 
   ;; reduce the "frames" per step so we get smoother movement
@@ -229,7 +258,7 @@ to move-walkers  ;; turtle procedure
     ;; so as to be able to make the motion of an walker smooth
     every ( delay / speed )
     [
-      if trails?
+      if __hnw_supervisor_trails?
       [
         ;; change the patch color as we move
         ifelse velocity > 0
@@ -246,7 +275,7 @@ to move-walkers  ;; turtle procedure
         set xcor my-xcor ]
       [ hide-turtle ]
       set inner-tick inner-tick + 1
-      if animation?
+      if __hnw_supervisor_animation?
       [
         ;; increment the shape to the next shape in the
         ;; series to create the illusion of motion.
@@ -257,7 +286,7 @@ to move-walkers  ;; turtle procedure
     ]
   ]
 
-  if footprints?
+  if __hnw_supervisor_footprints?
   [
     ;; make a shape where we landed.
     ;; we can't use stamp shape because we want them to fade.
@@ -288,57 +317,29 @@ end
 ;; HubNet Procedures ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
-to listen-clients
-  while [ hubnet-message-waiting? ]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ setup-walker display ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-walker display ]
-      [ ask walkers with [ user-id = hubnet-message-source ]
-        [ execute-cmd hubnet-message-tag ] ]
-    ]
-  ]
-end
-
-to execute-cmd [ cmd ]
-  ifelse cmd = "interval-1"
-  [ set-velocity 0 ][
-  ifelse cmd = "interval-2"
-  [ set-velocity 1 ][
-  ifelse cmd = "interval-3"
-  [ set-velocity 2 ][
-  ifelse cmd = "interval-4"
-  [ set-velocity 3 ][
-  ifelse cmd = "interval-5"
-  [ set-velocity 4 ][
-  ifelse cmd = "interval-6"
-  [ set-velocity 5 ][
-  ifelse cmd = "interval-7"
-  [ set-velocity 6 ][
-  ifelse cmd = "interval-8"
-  [ set-velocity 7 ]
-  [ if cmd = "interval-9" [ set-velocity 8 ] ]
-  ] ] ] ] ] ] ]
-end
-
-to set-velocity [index]
-  set velocities replace-item index velocities hubnet-message
-end
-
-to setup-walker
-  let p one-of patches with [ pxcor = 0 and pycor > (min-pycor + 1) and not any? walkers-on patches with [ pycor = [pycor] of myself ] ]
+to setup-walker [username]
+  let p one-of patches with [ pxcor = 0 and pycor > (min-pycor + 1) and not any? students-on patches with [ pycor = [pycor] of myself ] ]
   ifelse p = nobody
   [
     user-message "A user tried to join but there is no more space for another user."
   ]
   [
-    create-walkers 1
+    create-students 1
     [
-      set user-id hubnet-message-source
-      set velocities [0 0 0 0 0 0 0 0 0]
+
+      set __hnw_username username
+
+      set interval-0 0
+      set interval-1 0
+      set interval-2 0
+      set interval-3 0
+      set interval-4 0
+      set interval-5 0
+      set interval-6 0
+      set interval-7 0
+      set interval-8 0
+      set interval-9 0
+
       set heading 0
       set interval 0
       set color one-of base-colors
@@ -352,10 +353,11 @@ to setup-walker
     ]
     my-setup-plots
   ]
+  display
 end
 
 to remove-walker
-  ask walkers with [ user-id = hubnet-message-source ] [ die ]
+  die
   my-setup-plots
 end
 
@@ -367,22 +369,22 @@ end
 to do-plotting
   ;; walker-to-plot is a string
   ;; assume we are plotting everyone
-  let guys-to-plot walkers
+  let guys-to-plot students
 
   ;; if we're not get the agentset that includes the agents
   ;; we're plotting, right now it can only be one but the code
   ;; is simpler this way.
   if walker-to-plot != "everybody"
-  [ set guys-to-plot walkers with [ user-id = walker-to-plot ] ]
+  [ set guys-to-plot students with [ __hnw_username = walker-to-plot ] ]
 
   ask guys-to-plot
   [
     set-current-plot "Position vs. Intervals"
-    set-current-plot-pen user-id
+    set-current-plot-pen __hnw_username
     plot my-xcor
 
     set-current-plot "Velocity vs. Intervals"
-    set-current-plot-pen user-id
+    set-current-plot-pen __hnw_username
     plot velocity
   ]
 
@@ -399,16 +401,16 @@ to plot-x-axis [ this-plot ]
 end
 
 to pick-walker-to-plot
-  set walker-to-plot user-one-of
-                    "Please select the walker to plot"
-                     (fput "everybody" sort [user-id] of walkers )
+  set walker-to-plot "everybody" ;user-one-of
+                     ;"Please select the walker to plot"
+                     ;(fput "everybody" sort [__hnw_username] of students )
 end
 
 ;; setup the position and velocity plot
 to my-setup-plots
   clear-all-plots
 
-  ask walkers
+  ask students
   [
     set-current-plot "Position vs. Intervals"
     setup-pens false
@@ -418,7 +420,7 @@ to my-setup-plots
 
     ;; make sure to plot the initial position
     set-current-plot "Position vs. Intervals"
-    set-current-plot-pen user-id
+    set-current-plot-pen __hnw_username
     plot my-xcor
   ]
 
@@ -429,7 +431,7 @@ end
 ;; create pens for each of the existing walkers and color the pens to be the same color as
 ;; their corresponding walker.  if bars? is true, set the pen mode to be 1 for bar mode.
 to setup-pens [ bars? ]
-  create-temporary-plot-pen user-id
+  create-temporary-plot-pen __hnw_username
   if bars?
   [ set-plot-pen-mode 1 ]
   set-plot-pen-color color
@@ -465,23 +467,6 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
-
-BUTTON
-71
-57
-153
-90
-login
-listen-clients
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 BUTTON
 18

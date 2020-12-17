@@ -25,7 +25,6 @@ students-own [
 ;;;;;;;;;;;;;;;;;;;;;
 
 to startup
-  hubnet-reset
   setup-vars
   setup
 end
@@ -36,7 +35,6 @@ end
 to setup
   ask links [ die ]
   ask students [ set label "" ]
-  send-info-to-all-clients
   reset-ticks
 end
 
@@ -75,7 +73,6 @@ to go
     ;; get commands from the clients,
     ;; execute them,
     ;; and send the clients new data
-    listen-clients
     display-angles-and-lengths
     tick
   ]
@@ -147,55 +144,36 @@ to-report less-precise [ precise-num ]
   report precision precise-num 1
 end
 
+to-report area-lp
+  report less-precise area
+end
+
+to-report perimeter-lp
+  report less-precise perimeter
+end
+
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; HubNet Procedures ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
-;; determines which client sent a command, and what the command was
-to listen-clients
-  while [ hubnet-message-waiting? ]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-new-student ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-student ]
-      [
-        ask students with [user-id = hubnet-message-source]
-        [
-          execute-command hubnet-message-tag
-          send-info-to-all-clients
-        ]
-      ]
-    ]
-  ]
+to move-forwards
+  move 1
 end
 
-;; executes the correct command sent by client
-to execute-command [command]
-  if command = "Change Appearance"
-  [ change-turtle stop ]
-  if command = "Fd"
-  [ move 1 stop ]
-  if command = "Bk"
-  [ move -1 stop ]
-  if command = "Rt"
-  [ rt turn-amount stop ]
-  if command = "Lt"
-  [ lt turn-amount stop ]
-  if command = "Get Centered" [
-    setxy round xcor round ycor
-    stop
-  ]
-  if command = "step-size" [
-    set step-size hubnet-message
-    stop
-  ]
-  if command = "turn-amount" [
-    set turn-amount hubnet-message
-    stop
-  ]
+to move-back
+  move -1
+end
+
+to turn-right
+  rt turn-amount
+end
+
+to turn-left
+  lt turn-amount
+end
+
+to get-centered
+  setxy round xcor round ycor
 end
 
 to move [ direction ] ;; student procedure
@@ -211,20 +189,19 @@ end
 
 ;; Create a turtle, set its shape, color, and position
 ;; and tell the node what its turtle looks like and where it is
-to create-new-student
+to create-new-student [username]
   create-students 1 [
-    setup-student-vars
+    setup-student-vars username
     if any? links [
       edgify
       update-plots
     ]
-    send-info-to-client
   ]
 end
 
 ;; sets the turtle variables to appropriate initial values
-to setup-student-vars  ;; turtle procedure
-  set user-id hubnet-message-source
+to setup-student-vars [username] ;; turtle procedure
+  set user-id username
   set-unique-shape-and-color
   setxy random-xcor random-ycor
   set heading 0
@@ -236,10 +213,10 @@ end
 ;; Kill the turtle, set its shape, color, and position
 ;; and tell the node what its turtle looks like and where it is
 to remove-student
-  ask students with [user-id = hubnet-message-source] [
-    set used-shape-colors remove my-code used-shape-colors
-    die
-  ]
+
+  set used-shape-colors remove my-code used-shape-colors
+  die
+
   ;; when a student leaves if there is already a polygon
   ;; automatically make a new one if there are
   ;; enough students
@@ -257,20 +234,24 @@ to remove-student
   update-plots
 end
 
-to send-info-to-all-clients
-  ask students [
-    send-info-to-client
-  ]
+to-report my-heading
+  report heading
 end
 
-;; sends the appropriate monitor information back to the client
-to send-info-to-client ;; student procedure
-  hubnet-send user-id "You are a:" (word (color-string color) " " shape)
-  hubnet-send user-id "Located at:" (word "(" less-precise xcor "," less-precise ycor ")")
-  hubnet-send user-id "Heading:" heading
-  ;; if there are no links perimeter and area don't apply
-  hubnet-send user-id "Perimeter:" ifelse-value any? links [ less-precise perimeter ] [ "" ]
-  hubnet-send user-id "Area:" ifelse-value any? links [ less-precise area ] [ "" ]
+to-report descriptor
+  report (word (color-string color) " " shape)
+end
+
+to-report location
+  report (word "(" less-precise xcor "," less-precise ycor ")")
+end
+
+to-report gui-perimeter
+  report ifelse-value any? links [ perimeter-lp ] [ "" ]
+end
+
+to-report gui-area
+  report ifelse-value any? links [ area-lp ] [ "" ]
 end
 
 to change-turtle ;; student procedure
@@ -300,6 +281,12 @@ to-report my-code ;; student procedure
   report (position shape shape-names) + (length shape-names) * (position color colors)
 end
 
+to true-edgify
+  ask links [ die ]
+  ifelse count students > 2
+  [ ask one-of students [ edgify ] ]
+  [ user-message "You need at least 3 students to edgify" ]
+end
 
 ; Copyright 2007 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -354,7 +341,7 @@ BUTTON
 299
 48
 edgify
-ask links [ die ]\nifelse count students > 2\n[ ask one-of students [ edgify ] ]\n[ user-message \"You need at least 3 students to edgify\" ]
+true-edgify
 NIL
 1
 T
@@ -407,7 +394,7 @@ MONITOR
 206
 110
 perimeter
-less-precise perimeter
+perimeter-lp
 3
 1
 11
@@ -418,7 +405,7 @@ MONITOR
 303
 110
 area
-less-precise area
+area-lp
 3
 1
 11

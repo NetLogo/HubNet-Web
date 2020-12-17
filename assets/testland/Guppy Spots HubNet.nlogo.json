@@ -1,0 +1,433 @@
+{
+    "roles": [
+        {
+            "canJoinMidRun": true,
+            "onCursorMove": null,
+            "onCursorClick": null,
+            "onDisconnect": "???DC",
+            "widgets": [
+                {
+                    "height": 406,
+                    "bottom": 416,
+                    "left": 150,
+                    "width": 406,
+                    "right": 556,
+                    "type": "hnwView",
+                    "top": 10
+                },
+                {
+                    "bottom": 314,
+                    "display": "You found",
+                    "left": 13,
+                    "precision": 0,
+                    "reporterStyle": "???2",
+                    "fontSize": 10,
+                    "source": "???1",
+                    "right": 139,
+                    "type": "hnwMonitor",
+                    "top": 265
+                },
+                {
+                    "bottom": 365,
+                    "display": "Success %",
+                    "left": 13,
+                    "precision": 1,
+                    "reporterStyle": "???2",
+                    "fontSize": 10,
+                    "source": "???1",
+                    "right": 139,
+                    "type": "hnwMonitor",
+                    "top": 316
+                },
+                {
+                    "bottom": 212,
+                    "display": "Your leader",
+                    "left": 13,
+                    "precision": 3,
+                    "reporterStyle": "???2",
+                    "fontSize": 10,
+                    "source": "???1",
+                    "right": 139,
+                    "type": "hnwMonitor",
+                    "top": 163
+                },
+                {
+                    "bottom": 263,
+                    "display": "Leader found",
+                    "left": 13,
+                    "precision": 0,
+                    "reporterStyle": "???2",
+                    "fontSize": 10,
+                    "source": "???1",
+                    "right": 139,
+                    "type": "hnwMonitor",
+                    "top": 214
+                },
+                {
+                    "bottom": 110,
+                    "display": "Your name",
+                    "left": 13,
+                    "precision": 0,
+                    "reporterStyle": "???2",
+                    "fontSize": 10,
+                    "source": "???1",
+                    "right": 139,
+                    "type": "hnwMonitor",
+                    "top": 61
+                },
+                {
+                    "bottom": 161,
+                    "display": "Your role",
+                    "left": 13,
+                    "precision": 3,
+                    "reporterStyle": "???2",
+                    "fontSize": 10,
+                    "source": "???1",
+                    "right": 139,
+                    "type": "hnwMonitor",
+                    "top": 112
+                }
+            ],
+            "name": "student",
+            "onConnect": "???Connect",
+            "limit": -1,
+            "isSpectator": false
+        },
+        {
+            "canJoinMidRun": true,
+            "onCursorMove": null,
+            "onCursorClick": null,
+            "onDisconnect": "???DC",
+            "widgets": [
+                {
+                    "height": 414,
+                    "bottom": 450,
+                    "left": 274,
+                    "width": 415,
+                    "right": 688,
+                    "type": "hnwView",
+                    "top": 35
+                },
+                {
+                    "forever": false,
+                    "bottom": 56,
+                    "left": 39,
+                    "buttonKind": "observer",
+                    "source": "setup",
+                    "hnwProcName": "setup",
+                    "right": 142,
+                    "type": "hnwButton",
+                    "top": 23,
+                    "disableUntilTicksStarts": true
+                },
+                {
+                    "forever": true,
+                    "bottom": 56,
+                    "left": 144,
+                    "buttonKind": "observer",
+                    "source": "go",
+                    "hnwProcName": "go",
+                    "right": 247,
+                    "type": "hnwButton",
+                    "top": 23,
+                    "disableUntilTicksStarts": false
+                },
+                {
+                    "max": "50",
+                    "bottom": 189,
+                    "display": "carrying-capacity",
+                    "direction": "horizontal",
+                    "default": 14,
+                    "left": 54,
+                    "variable": "carrying-capacity",
+                    "step": 1,
+                    "min": "0",
+                    "units": "fish",
+                    "right": 235,
+                    "type": "hnwSlider",
+                    "top": 156
+                },
+                {
+                    "forever": false,
+                    "bottom": 345,
+                    "display": "clear background",
+                    "left": 141,
+                    "buttonKind": "observer",
+                    "source": "clear-drawing",
+                    "hnwProcName": "clear-drawing",
+                    "right": 261,
+                    "type": "hnwButton",
+                    "top": 312,
+                    "disableUntilTicksStarts": true
+                },
+                {
+                    "max": "10",
+                    "bottom": 111,
+                    "display": "fish-speed-scale",
+                    "direction": "horizontal",
+                    "default": 7.8,
+                    "left": 50,
+                    "variable": "fish-speed-scale",
+                    "step": 0.2,
+                    "min": "0",
+                    "right": 227,
+                    "type": "hnwSlider",
+                    "top": 78
+                },
+                {
+                    "max": "98",
+                    "bottom": 387,
+                    "display": "background-color",
+                    "direction": "horizontal",
+                    "default": 97,
+                    "left": 49,
+                    "variable": "background-color",
+                    "step": 0.1,
+                    "min": "93",
+                    "right": 223,
+                    "type": "hnwSlider",
+                    "top": 354
+                },
+                {
+                    "bottom": 111,
+                    "display": "fish",
+                    "left": 780,
+                    "precision": 3,
+                    "reporterStyle": "???2",
+                    "fontSize": 11,
+                    "source": "???1",
+                    "right": 870,
+                    "type": "hnwMonitor",
+                    "top": 66
+                },
+                {
+                    "max": "1000",
+                    "bottom": 223,
+                    "display": "min-age-reproduction",
+                    "direction": "horizontal",
+                    "default": 200,
+                    "left": 54,
+                    "variable": "min-age-reproduction",
+                    "step": 1,
+                    "min": "0",
+                    "right": 235,
+                    "type": "hnwSlider",
+                    "top": 190
+                },
+                {
+                    "bottom": 155,
+                    "display": "enforce-capacity?",
+                    "left": 68,
+                    "variable": "enforce-capacity?",
+                    "right": 217,
+                    "type": "hnwSwitch",
+                    "top": 122,
+                    "on": true
+                },
+                {
+                    "bottom": 426,
+                    "display": "rock-shelters?",
+                    "left": 64,
+                    "variable": "rock-shelters?",
+                    "right": 210,
+                    "type": "hnwSwitch",
+                    "top": 393,
+                    "on": false
+                },
+                {
+                    "bottom": 258,
+                    "display": "show-age?",
+                    "left": 71,
+                    "variable": "show-age?",
+                    "right": 220,
+                    "type": "hnwSwitch",
+                    "top": 225,
+                    "on": false
+                },
+                {
+                    "bottom": 333,
+                    "display": "background",
+                    "left": 27,
+                    "variable": "background",
+                    "currentChoice": 0,
+                    "right": 134,
+                    "choices": [
+                        "quarium.jpg\" \"underwater.jp"
+                    ],
+                    "type": "hnwChooser",
+                    "top": 288
+                },
+                {
+                    "forever": false,
+                    "bottom": 310,
+                    "display": "change background",
+                    "left": 141,
+                    "buttonKind": "observer",
+                    "source": "import-drawing background",
+                    "hnwProcName": "import-drawing background",
+                    "right": 261,
+                    "type": "hnwButton",
+                    "top": 276,
+                    "disableUntilTicksStarts": true
+                },
+                {
+                    "bottom": 62,
+                    "display": "player-roles",
+                    "left": 747,
+                    "variable": "player-roles",
+                    "currentChoice": 1,
+                    "right": 901,
+                    "choices": [
+                        "ll predators\" \"all mates\" \"predators v. mate"
+                    ],
+                    "type": "hnwChooser",
+                    "top": 17
+                },
+                {
+                    "bottom": 163,
+                    "display": " mates",
+                    "left": 722,
+                    "precision": 0,
+                    "reporterStyle": "???2",
+                    "fontSize": 11,
+                    "source": "???1",
+                    "right": 812,
+                    "type": "hnwMonitor",
+                    "top": 118
+                },
+                {
+                    "bottom": 163,
+                    "display": "predators",
+                    "left": 842,
+                    "precision": 0,
+                    "reporterStyle": "???2",
+                    "fontSize": 11,
+                    "source": "???1",
+                    "right": 932,
+                    "type": "hnwMonitor",
+                    "top": 118
+                },
+                {
+                    "bottom": 216,
+                    "display": "NIL",
+                    "left": 704,
+                    "precision": 0,
+                    "reporterStyle": "???2",
+                    "fontSize": 11,
+                    "source": "???1",
+                    "right": 827,
+                    "type": "hnwMonitor",
+                    "top": 171
+                },
+                {
+                    "bottom": 263,
+                    "display": "NIL",
+                    "left": 704,
+                    "precision": 0,
+                    "reporterStyle": "???2",
+                    "fontSize": 11,
+                    "source": "???1",
+                    "right": 827,
+                    "type": "hnwMonitor",
+                    "top": 218
+                },
+                {
+                    "bottom": 216,
+                    "display": "NIL",
+                    "left": 832,
+                    "precision": 0,
+                    "reporterStyle": "???2",
+                    "fontSize": 11,
+                    "source": "???1",
+                    "right": 951,
+                    "type": "hnwMonitor",
+                    "top": 171
+                },
+                {
+                    "bottom": 263,
+                    "display": "NIL",
+                    "left": 832,
+                    "precision": 0,
+                    "reporterStyle": "???2",
+                    "fontSize": 11,
+                    "source": "???1",
+                    "right": 951,
+                    "type": "hnwMonitor",
+                    "top": 218
+                },
+                {
+                    "bottom": 310,
+                    "display": "NIL",
+                    "left": 704,
+                    "precision": 3,
+                    "reporterStyle": "???2",
+                    "fontSize": 11,
+                    "source": "???1",
+                    "right": 827,
+                    "type": "hnwMonitor",
+                    "top": 265
+                },
+                {
+                    "bottom": 310,
+                    "display": "NIL",
+                    "left": 832,
+                    "precision": 3,
+                    "reporterStyle": "???2",
+                    "fontSize": 11,
+                    "source": "???1",
+                    "right": 951,
+                    "type": "hnwMonitor",
+                    "top": 265
+                },
+                {
+                    "bottom": 479,
+                    "display": "Found v. Time",
+                    "yAxis": "Found",
+                    "xmin": 0,
+                    "ymax": 10,
+                    "legendOn": false,
+                    "left": 701,
+                    "xAxis": "Time",
+                    "autoPlotOn": true,
+                    "xmax": 10,
+                    "setupCode": "",
+                    "pens": [
+                        {
+                            "updateCode": "plot  total-prey-found",
+                            "display": "prey",
+                            "color": -16777216,
+                            "mode": 0,
+                            "interval": 1,
+                            "setupCode": "",
+                            "type": "pen",
+                            "inLegend": true
+                        },
+                        {
+                            "updateCode": "plot  total-mates-found",
+                            "display": "mates",
+                            "color": -8630108,
+                            "mode": 0,
+                            "interval": 1,
+                            "setupCode": "",
+                            "type": "pen",
+                            "inLegend": true
+                        }
+                    ],
+                    "right": 955,
+                    "type": "hnwPlot",
+                    "ymin": 0,
+                    "top": 320,
+                    "update": ""
+                }
+            ],
+            "name": "supervisor",
+            "onConnect": "???Connect",
+            "limit": 1,
+            "isSpectator": true
+        }
+    ],
+    "onIterate": "go",
+    "onStart": "setup",
+    "version": "hnw-alpha-1",
+    "type": "hubnet-web"
+}

@@ -1,13 +1,21 @@
 globals [
+
   colors         ;; the available team colors (don't use all of them for aesthetic reasons)
   color-names    ;; the colors in words
   roles          ;; the names of the possible roles on each team
+
+  __hnw_supervisor_weeks-of-simulation
+  __hnw_supervisor_periods-of-delay
+
 ]
 
 ;; each client is represented by a player turtle
-breed [ players player ]
-players-own
+breed [ students student ]
+students-own
 [
+
+  __hnw_username
+
   inventory
   back-orders       ;; at the end of each week back-orders will be calculated if
                     ;; your inventory does not meet the demand
@@ -67,8 +75,10 @@ demand-links-own
 ;;
 to startup
   ;; setup basic appearance globals
-  set-default-shape players "circle"
+  set-default-shape students "circle"
   set-default-shape teams "square"
+  set __hnw_supervisor_weeks-of-simulation 30
+  set __hnw_supervisor_weeks-of-simulation 2
   set colors [ red blue green violet pink orange brown yellow ]
   set color-names [ "red" "blue" "green" "violet" "pink" "orange" "brown" "yellow" ]
   set roles [ "retailer" "distributor" "wholesaler" "factory" ]
@@ -81,7 +91,7 @@ end
 ;; and has an inventory of 12.
 to setup
   ask supply-links
-    [ set orders-filled n-values periods-of-delay [ 0 ]  ]
+    [ set orders-filled n-values __hnw_supervisor_periods-of-delay [ 0 ]  ]
   ask demand-links
     [ set orders-placed 4 ]
   ask teams [
@@ -90,7 +100,7 @@ to setup
     if not any? out-demand-link-neighbors
     [ die ]
   ]
-  ask players
+  ask students
   [
     set inventory 12
     set back-orders 0
@@ -98,7 +108,6 @@ to setup
     set order-placed? false
     set color [color] of my-team + 2
     set ordered 4
-    update-player
   ]
   reset-plot
 end
@@ -117,7 +126,7 @@ end
 to end-week ;; team procedure
   ;; calculate the cost for the entire team
   set cost sum [ inventory * 0.5 + back-orders ] of
-                   players with [ my-team = myself ]
+                   students with [ my-team = myself ]
 
   plot-cost
   plot-shipped
@@ -155,7 +164,7 @@ to end-week ;; team procedure
   ;; advance the week
   set clock clock + 1
   ;; update the client information for the next round
-  ask players with [ my-team = myself ]
+  ask students with [ my-team = myself ]
   [
     set order-placed? false
     set color [color] of my-team + 2
@@ -164,39 +173,41 @@ to end-week ;; team procedure
 end
 
 to place-order ;; player procedure
-  ;; only change the order if we haven't
-  ;; done so this week as each player can only
-  ;; place 1 order per day and cannot change it
-  ;; once it is placed
-  if not order-placed?
-  [
-    set order-placed? true
-    set color [color] of my-team
-    set ordered order
-    update-player
+
+  if [clock] of my-team <= __hnw_supervisor_weeks-of-simulation [
+
+    ;; only change the order if we haven't
+    ;; done so this week as each player can only
+    ;; place 1 order per day and cannot change it
+    ;; once it is placed
+    if not order-placed?
+    [
+      set order-placed? true
+      set color [color] of my-team
+      set ordered order
+    ]
+
+    let teammates students with [ my-team = [my-team] of myself ]
+
+    ;; once the last player has placed an order
+    ;; all players ship and advance the week
+    if not any? teammates with [ not order-placed? ]
+    [
+      ask teammates
+      [
+        ship
+        ask my-out-demand-links
+          [ set orders-placed [ordered] of myself ]
+      ]
+      ask my-team
+      [
+        if clock <= __hnw_supervisor_weeks-of-simulation
+        [ end-week ]
+      ]
+    ]
+
   ]
 
-  let teammates players with [ my-team = [my-team] of myself ]
-
-  ;; once the last player has placed an order
-  ;; all players ship and advance the week
-  if not any? teammates with [ not order-placed? ]
-  [
-    ask teammates
-    [
-      ship
-      ask my-out-demand-links
-        [ set orders-placed [ordered] of myself ]
-    ]
-    ask my-team
-    [
-      if clock <= weeks-of-simulation
-      [ end-week ]
-    ]
-    ;; make sure the info on the client gets updated
-    ask teammates
-    [ update-player ]
-  ]
 end
 
 to ship
@@ -233,14 +244,15 @@ end
 ;; HubNet Procedures
 ;;
 
-TODO: On join
-to create-new-student
+to-report create-new-student [username]
+
   ;; if there are no incomplete teams
   ;; create a new one
   if not any? teams with [ members < 4 ]
   [ create-team ]
 
-  add-student-to one-of teams with [ members < 4 ]
+  report (add-student-to (one-of teams with [ members < 4 ]) username)
+
 end
 
 to create-team
@@ -281,11 +293,14 @@ to set-color
   set color-names remove-item index color-names
 end
 
-to add-student-to [this-team]
-  create-players 1
+to-report add-student-to [this-team username]
+  let out 0
+  create-students 1
   [
-    set user-id hubnet-message-source
-    set label user-id
+    set out who
+
+    set __hnw_username username
+    set label username
     set inventory 12
     set back-orders 0
     set order 4
@@ -296,7 +311,7 @@ to add-student-to [this-team]
        create-demand-link-to myself
          [ set orders-placed 4 ]
        create-supply-link-from myself
-         [ set orders-filled n-values periods-of-delay [ 0 ] ]
+         [ set orders-filled n-values __hnw_supervisor_periods-of-delay [ 0 ] ]
     ]
     ;; set up directly left of the current last player
     setxy [xcor] of [last-player] of this-team - 1 [ycor] of [last-player] of this-team
@@ -309,14 +324,14 @@ to add-student-to [this-team]
       ask my-out-supply-links [ die ]
       ask my-in-demand-links [ die ]
       create-supply-link-to myself
-        [ set orders-filled n-values periods-of-delay [ 0 ] hide-link ]
+        [ set orders-filled n-values __hnw_supervisor_periods-of-delay [ 0 ] hide-link ]
       create-demand-link-from myself
         [ set orders-placed 4 hide-link ]
     ]
     set order-placed? false
     set color [color] of this-team + 2
-    init-player
   ]
+  report out
 end
 
 ;; set size appropriate to your position in the chain.
@@ -334,12 +349,6 @@ to reassign-role
   let degree [xcor] of my-team - xcor - 1
   set role my-role degree
   set role item degree roles
-end
-
-TODO: On quit
-to remove-student
-  ask players with [ user-id = hubnet-message-source ]
-    [ remove-self ]
 end
 
 to remove-self
@@ -377,7 +386,7 @@ to remove-self
 
   ;; players up the chain from me move into their
   ;; new position so there aren't gaps
-  let affected-players players with [ my-team = [my-team] of myself and xcor < [xcor] of myself ]
+  let affected-players students with [ my-team = [my-team] of myself and xcor < [xcor] of myself ]
   ask affected-players
     [ set xcor xcor + 1 ]
 
@@ -388,7 +397,7 @@ to remove-self
   [
     if n != nobody and not out-supply-link-neighbor? n
     [ create-supply-link-to n
-      [ set orders-filled n-values periods-of-delay [ 0 ] ] ]
+      [ set orders-filled n-values __hnw_supervisor_periods-of-delay [ 0 ] ] ]
   ]
 
   set n one-of out-demand-link-neighbors
@@ -401,60 +410,32 @@ to remove-self
   ask affected-players
   [
     reassign-role
-    init-player
   ]
   die
 end
 
-;; there are only two client actions.
-;; moving the ORDERS-TO-PLACE slider
-;; and placing the order.
-TODO: ???
-to execute-command [cmd]
-  ask players with [ user-id = hubnet-message-source ]
-  [
-    ;; don't let players keep going once they've reached the
-    ;; end of the simulation
-    if [clock] of my-team <= weeks-of-simulation
-    [
-      ;; catch changes to the slider
-      ifelse hubnet-message-tag = "orders-to-place"
-      [ set order hubnet-message ]
-      ;; lock in the order
-      [ if hubnet-message-tag = "place-order"
-        [
-          ask players with [ user-id = hubnet-message-source ]
-            [ place-order ]
-        ]
-      ]
-    ]
-  ]
+to-report team-color
+  report [color-name] of my-team
 end
 
-;; send everything
-to init-player
-TODO
-  hubnet-send user-id "team" [color-name] of my-team
-  hubnet-send user-id "role" role
-  update-player
+to-report my-demand
+  report [orders-placed] of one-of my-in-demand-links
 end
 
-;; send the stuff that changes
-to update-player
-  if [clock] of my-team <= weeks-of-simulation
-  [
-  TODO
-    hubnet-send user-id "demand" [orders-placed] of one-of my-in-demand-links
-    hubnet-send user-id "inventory" inventory
-    hubnet-send user-id "back-orders" back-orders
-    hubnet-send user-id "my-cost" inventory * 0.5 + back-orders
-    hubnet-send user-id "last-amount-shipped" sum [ last orders-filled ] of my-out-supply-links
+to-report last-amount-shipped
+  report sum [ last orders-filled ] of my-out-supply-links
+end
 
-    hubnet-send user-id "last-amount-received" round last-received
-    hubnet-send user-id "week" round [clock] of my-team
-    hubnet-send user-id "order-placed?" order-placed?
-    hubnet-send user-id "order-placed" ordered
-  ]
+to-report last-amount-received
+  report round last-received
+end
+
+to-report week
+  report round [clock] of my-team
+end
+
+to-report my-cost
+  report inventory * 0.5 + back-orders
 end
 
 ;;

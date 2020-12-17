@@ -4,7 +4,7 @@ breed [ students student ]
 
 students-own
 [
-  user-id   ;; students choose a user name when they log in whenever you receive a
+  __hnw_username   ;; students choose a user name when they log in whenever you receive a
             ;; message from the student associated with this turtle hubnet-message-source
             ;; will contain the user-id
   step-size ;; you should have a turtle variable for every widget in the client interface that
@@ -12,12 +12,6 @@ students-own
             ;; from the client whenever the value changes. However, you will not be able to
             ;; retrieve the value at will unless you store it in a variable on the server.
 ]
-
-;; the STARTUP procedure runs only once at the beginning of the model
-;; at this point you must initialize the system.
-to startup
-  hubnet-reset
-end
 
 to setup
   clear-patches
@@ -30,17 +24,12 @@ to setup
   ask turtles
   [
     set step-size 1
-    hubnet-send user-id "step-size" step-size
   ]
   ;; calling reset-ticks enables the 'go' button
   reset-ticks
 end
 
 to go
-  ;; process incoming messages and respond to them (if needed)
-  ;; listening for messages outside of the every block means that messages
-  ;; get processed and responded to as fast as possible
-  listen-clients
   every 0.1
   [
     ;; tick (and display) causes world updates messages to be sent to clients
@@ -55,42 +44,21 @@ end
 ;; HubNet Procedures
 ;;
 
-to listen-clients
-  ;; as long as there are more messages from the clients
-  ;; keep processing them.
-  while [ hubnet-message-waiting? ]
-  [
-    ;; get the first message in the queue
-    hubnet-fetch-message
-    ifelse hubnet-enter-message? ;; when clients enter we get a special message
-    [ create-new-student ]
-    [
-      ifelse hubnet-exit-message? ;; when clients exit we get a special message
-      [ remove-student ]
-      [ ask students with [user-id = hubnet-message-source]
-        [ execute-command hubnet-message-tag ] ;; otherwise the message means that the user has
-      ]                                        ;; done something in the interface hubnet-message-tag
-                                               ;; is the name of the widget that was changed
-    ]
-  ]
-end
-
 ;; when a new user logs in create a student turtle
 ;; this turtle will store any state on the client
 ;; values of sliders, etc.
-to create-new-student
+to create-new-student [username]
   create-students 1
   [
     ;; store the message-source in user-id now
     ;; so when you get messages from this client
     ;; later you will know which turtle it affects
-    set user-id hubnet-message-source
-    set label user-id
+    set __hnw_username username
+    set label __hnw_username
     ;; initialize turtle variables to the default
     ;; value of the corresponding widget in the client interface
     set step-size 1
     ;; update the clients with any information you have set
-    send-info-to-clients
   ]
 end
 
@@ -100,48 +68,34 @@ end
 ;; turtles of variables reference this turtle make sure to clean
 ;; up those references too.
 to remove-student
-  ask students with [user-id = hubnet-message-source]
-  [ die ]
+  die
 end
 
-;; Other messages correspond to users manipulating the
-;; client interface, handle these individually.
-to execute-command [command]
-  ;; you should have one if statement for each widget that
-  ;; can affect the outcome of the model, buttons, sliders, switches
-  ;; choosers and the view, if the user clicks on the view you will receive
-  ;; a message with the tag "View" and the hubnet-message will be a
-  ;; two item list of the coordinates
-  if command = "step-size"
-  [
-    ;; note that the hubnet-message will vary depending on
-    ;; the type of widget that corresponds to the tag
-    ;; for example if the widget is a slider the message
-    ;; will be a number, of the widget is switch the message
-    ;; will be a boolean value
-    set step-size hubnet-message
-    stop
-  ]
-  if command = "up"
-  [ execute-move 0 stop ]
-  if command = "down"
-  [ execute-move 180 stop ]
-  if command = "right"
-  [ execute-move 90 stop ]
-  if command = "left"
-  [ execute-move 270 stop ]
+to execute-up
+  execute-move 0
+end
+
+to execute-down
+  execute-move 180
+end
+
+to execute-right
+  execute-move 90
+end
+
+to execute-left
+  execute-move 270
 end
 
 ;; whenever something in world changes that should be displayed in
 ;; a monitor on the client send the information back to the client
-to send-info-to-clients ;; turtle procedure
-  hubnet-send user-id "location" (word "(" pxcor "," pycor ")")
+to-report student-location
+  report (word "(" pxcor "," pycor ")")
 end
 
 to execute-move [new-heading]
   set heading new-heading
   fd step-size
-  send-info-to-clients
 end
 
 

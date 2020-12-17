@@ -40,8 +40,8 @@ customers-own [
 ]
 
 restaurants-own [
+
  ;; Owner Information
- user-id              ;; unique user-id, input by the client when they log in, to identify each student's restaurant
  auto?                ;; is the owner automated
  bankrupt?            ;; is the owner bankrupt
  account-balance      ;; total amount of money the owner has
@@ -65,6 +65,7 @@ restaurants-own [
  days-profit          ;; profit made so far today
  num-customers        ;; number of customers today
  profit-customer  ;; avg profit made per customer
+
 ]
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -204,7 +205,7 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;
 
 to go
-  listen-to-clients
+
   every .5
   [ broadcast-system-info
     ask restaurants with [ auto? = false ]
@@ -213,6 +214,18 @@ to go
   if not any? restaurants
   [ user-message "There are no restaurant owners. Log people in or create restaurants."
     stop ]
+
+  ask restaurants [
+
+    ifelse (restaurant-cuisine = "American")
+    [ set shape "restaurant american" ]
+    [ ifelse (restaurant-cuisine = "Asian")
+      [ set shape "restaurant asian" ]
+      [ set shape "restaurant european" ] ]
+
+    set profit-customer round (restaurant-price - ((service-cost * restaurant-service) + (quality-cost * restaurant-quality)))
+
+  ]
 
   ask restaurants with [ bankrupt? = false ] ;; Let the Restaurants work
   [ serve-customers
@@ -454,54 +467,14 @@ end
 ;; Code for interacting with the clients ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; determines which client sent a command, and what the command was
-to listen-to-clients
-  while [ hubnet-message-waiting? ]
-  [ hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-new-restaurant hubnet-message-source ]
-    [ ifelse hubnet-exit-message?
-      [ remove-restaurant hubnet-message-source ]
-      [ execute-command hubnet-message-tag ] ] ]
-end
-
-;; NetLogo knows what each student's restaurant patch is supposed to be
-;; doing based on the tag sent by the name Cuisine, Service, Price and Quality
-to execute-command [command]
-  if command = "Cuisine"
-  [ ask restaurants with [ user-id = hubnet-message-source ]
-    [ set restaurant-cuisine hubnet-message
-      ifelse (restaurant-cuisine = "American")
-      [ set shape "restaurant american" ]
-      [ ifelse (restaurant-cuisine = "Asian")
-        [ set shape "restaurant asian" ]
-        [ set shape "restaurant european" ] ] ]
-    stop ]
-  if command = "Service"
-  [ ask restaurants with [ user-id = hubnet-message-source ]
-    [ set restaurant-service hubnet-message
-      set profit-customer round (restaurant-price - ((service-cost * restaurant-service) + (quality-cost * restaurant-quality))) ]
-    stop ]
-  if command = "Quality"
-  [ ask restaurants with [ user-id = hubnet-message-source ]
-    [ set restaurant-quality hubnet-message
-      set profit-customer round (restaurant-price - ((service-cost * restaurant-service) + (quality-cost * restaurant-quality))) ]
-    stop ]
-  if command = "Price"
-  [ ask restaurants with [ user-id = hubnet-message-source ]
-    [ set restaurant-price hubnet-message
-      set profit-customer round (restaurant-price - ((service-cost * restaurant-service) + (quality-cost * restaurant-quality))) ]
-    stop ]
-end
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Owner Setup Functions ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; creates a new owner
-to create-new-restaurant [ id ]
+to create-new-restaurant
   create-restaurants 1
-  [ set user-id id
+  [
     set auto? false
     reset-owner-variables
     setup-restaurant
@@ -571,12 +544,8 @@ to reset-owner-variables  ;; owner procedure
 end
 
 ;; delete restaurant once client has exited
-to remove-restaurant [ id ] ;; owner procedure
-  let old-color false
-  ask restaurants with [user-id = id] ;; remove the owner's turtle
-  [ set old-color restaurant-color
-    die ]
-
+to remove-restaurant
+  let old-color restaurant-color
   if not any? restaurants with [ color = old-color ] ;; make the unused color available again
   [ set used-colors remove (position old-color colors) used-colors ]
 end
@@ -592,6 +561,35 @@ to send-personal-info ;; restaurant procedure
   hubnet-send user-id "Service" restaurant-service
   hubnet-send user-id "Quality" restaurant-quality
   hubnet-send user-id "Price" restaurant-price
+
+
+
+ ;; Owner Information
+ ;auto?                ;; is the owner automated
+ ;bankrupt?            ;; is the owner bankrupt
+ ;account-balance      ;; total amount of money the owner has
+
+ ;;; Ranking Statistics
+ ;received-rank?       ;; if given a rank, ranked? is true, otherwise false
+ ;rank                 ;; rank number according to account balance
+
+ ;;; Restaurant Information
+ ;restaurant-color        ;; color of the restaurant
+
+ ;;; Restaurant Taste Profile
+ ;restaurant-cuisine      ;; the type of cuisine the restaurant serves
+ ;restaurant-service      ;; the quality of the service
+ ;restaurant-quality      ;; the quality of the food
+ ;restaurant-price        ;; the price of a meal at the restaurant
+
+ ;;; Restaurant Statistics
+ ;days-revenue         ;; amount of revenue generated so far today
+ ;days-cost            ;; amount of costs accumulated so far today
+ ;days-profit          ;; profit made so far today
+ ;num-customers        ;; number of customers today
+ ;profit-customer  ;; avg profit made per customer
+
+
 end
 
 ;; returns string version of color name

@@ -59,8 +59,6 @@ end
 
 to setup
   ask androids [ die ]
-  show "hi"
-
   set __hnw_supervisor_number 10
   make-androids
 
@@ -1044,7 +1042,7 @@ Line -7500403 true 40 216 269 79
 Line -7500403 true 84 40 221 269
 Circle -2674135 true false 156 156 108
 @#$#@#$#@
-NetLogo 6.1.1-RC1
+NetLogo 6.1.0
 @#$#@#$#@
 need-to-manually-make-preview-for-this-model
 @#$#@#$#@
@@ -1208,7 +1206,7 @@ MONITOR
 741
 11
 866
-61
+60
 # Players
 NIL
 1
@@ -1218,7 +1216,7 @@ MONITOR
 741
 71
 866
-121
+120
 # Androids
 NIL
 1

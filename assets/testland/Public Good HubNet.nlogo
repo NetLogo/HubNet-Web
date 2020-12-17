@@ -8,6 +8,10 @@ globals
    bank
 
    good-patches
+
+   __hnw_supervisor_labels-on?
+   __hnw_supervisor_total-turn-time
+
 ]
 
 breed [ students student ]
@@ -15,7 +19,6 @@ breed [ students student ]
 students-own
 [
   user-id
-  investment
   my-money
   return-investment
   invested
@@ -30,8 +33,9 @@ students-own
 ;;;;;;;;;;;;;;;;;;;;;
 
 to startup
+  set __hnw_supervisor_labels-on? true
+  set __hnw_supervisor_total-turn-time 30
   setup
-  hubnet-reset
 end
 
 to setup
@@ -45,8 +49,6 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;
 
 to go
-  ;; get commands and data from the clients
-  listen-clients
 
   every 0.5 [
     ask students
@@ -69,10 +71,7 @@ to start-over
 end
 
 to reset-student-money
-  set my-money 10
-  hubnet-send user-id "my-money" standardize-money my-money
-  set investment 5
-  hubnet-send user-id "Money Put In" (investment)
+  set my-money (standardize-money 10)
   set invested 0
   set return-investment 0
   set label ""
@@ -85,11 +84,6 @@ to-report standardize-money [ money ]
 end
 
 to take-money
-   ask students
-   [
-     set investment round ( fraction-put-in * my-money )
-     hubnet-send user-id "Money Put In" (investment)
-   ]
 
   ;;;turn turtles from green to white
   ask turtles [set color base-color]
@@ -107,7 +101,6 @@ to take-money
   [
     set bank  investment  + bank
     set my-money standardize-money ( my-money -  investment )
-    hubnet-send user-id "my-money" (my-money)
     set punishing 0
   ]
   plot bank
@@ -134,10 +127,8 @@ to give-money
 
   ask students
   [
-    set my-money my-money + ( bank / count students )
-    set my-money standardize-money my-money
+    set my-money (standardize-money (my-money + ( bank / count students )))
 
-    hubnet-send user-id "my-money" (my-money)
     ifelse (labels-on?)
     [
       set label ( word  user-id ", " my-money )
@@ -150,91 +141,63 @@ to give-money
   set bank 0
 end
 
+to wrap-go
+  go
+  every total-turn-time [
+    take-money give-money
+  ]
+end
+
+to wrap-setup
+  setup
+  start-over
+end
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Code for interacting with the clients ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; determines which client sent a command, and what the command was
-to listen-clients
-  while [ hubnet-message-waiting? ]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-new-student display ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-student display ]
-      [ execute-command hubnet-message-tag ]
-    ]
-  ]
-end
+to punish-the-rich
 
-to execute-command [command]
-  if command = "fraction-put-in"
+  set my-money my-money - 1
+
+  ask max-one-of students [my-money]
   [
-      ask students with [user-id = hubnet-message-source]
-      [
-        set fraction-put-in hubnet-message
-      ]
-      ask students
-      [
-        set investment round ( fraction-put-in * my-money )
-        hubnet-send user-id "Money Put In" (investment)
-      ]
+    set my-money my-money - 1
+    set punishing 1
   ]
 
-  if command = "pay-1-dollar-to-punish-the-rich"
-  [
-    ask students with [user-id = hubnet-message-source]
-    [
-      set my-money my-money - 1
-      hubnet-send user-id "my-money" (my-money)
-    ]
-
-    ask max-one-of students [my-money]
-    [
-      set my-money my-money - 1
-      hubnet-send user-id "my-money" (my-money)
-      set punishing 1
-    ]
-  ]
-end
-
-to create-new-student
-  create-students 1
-  [
-    setup-student-vars
-    send-info-to-clients
-  ]
 end
 
 ;; sets the turtle variables to appropriate initial values
-to setup-student-vars  ;; turtle procedure
-  set user-id hubnet-message-source
-  set shape "circle"
-  set base-color one-of [ blue gray yellow brown red orange magenta cyan violet ]
-  set color base-color
-  set label-color black
-  set fraction-put-in 0.50
-  let my-patch one-of good-patches with [ not any? turtles-here ]
-  ifelse (my-patch != nobody)
-    [ move-to my-patch ]
-    [ setxy random-xcor random-ycor ]
-  reset-student-money
-end
-
-;; sends the appropriate monitor information back to the client
-to send-info-to-clients
-  hubnet-send user-id "You are:" (user-id)
+to create-new-student [username]
+  create-students 1
+  [
+    set user-id username
+    set shape "circle"
+    set base-color one-of [ blue gray yellow brown red orange magenta cyan violet ]
+    set color base-color
+    set label-color black
+    set fraction-put-in 0.50
+    let my-patch one-of good-patches with [ not any? turtles-here ]
+    ifelse (my-patch != nobody)
+      [ move-to my-patch ]
+      [ setxy random-xcor random-ycor ]
+    reset-student-money
+  ]
+  display
 end
 
 ;; Kill the turtle, set its shape, color, and position
 ;; and tell the node what its turtle looks like and where it is
 to remove-student
-  ask students with [user-id = hubnet-message-source]
-  [ die ]
+  die
+  display
 end
 
+to-report investment
+  report round (fraction-put-in * my-money)
+end
 
 ; Copyright 2003 Uri Wilensky.
 ; See Info tab for full copyright and license.

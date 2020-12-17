@@ -17,7 +17,8 @@ globals
 
 turtles-own
 [
-  user-id       ;; unique id, input by the client when they log in, to identify each student turtle
+  __hnw_username
+  ui-slider-value
   slider-value  ;; the value of the client's choice slider
   my-choices    ;; list of my choices for each question
 ]
@@ -28,7 +29,6 @@ turtles-own
 ;;;;;;;;;;;;;;;;;;;;;
 
 to startup
-  hubnet-reset
   setup
 end
 
@@ -58,8 +58,6 @@ end
 
 to clear-all-data-and-questions
   clear-plot
-  hubnet-broadcast "Current Question" ""
-  hubnet-broadcast "Current Choice" ""
   set current-question 0
   set question-list [""]
   ask turtles [ clear-my-data ]
@@ -88,7 +86,6 @@ to clear-current-data
   [
     set color not-voted?-color
     set my-choices replace-item current-question my-choices false
-    hubnet-send user-id "Current Choice" ""
   ]
 end
 
@@ -98,7 +95,6 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
 to go
-  listen-clients
   every 0.5
   [
     ask turtles [ wander ]
@@ -130,17 +126,10 @@ to set-current-question [n]
       while [length my-choices < current-question + 1]
       [ set my-choices lput false my-choices ]
       ifelse (item current-question my-choices) = false
-      [
-        set color not-voted?-color
-        hubnet-send user-id "Current Choice" ""
-      ]
-      [
-        set color voted?-color
-        hubnet-send user-id "Current Choice" (item current-question my-choices)
-      ]
+      [ set color not-voted?-color ]
+      [ set color voted?-color ]
     ]
     do-plot
-    hubnet-broadcast "Current Question" (item current-question question-list)
   ]
 end
 
@@ -158,59 +147,36 @@ end
 ;; HubNet Procedures
 ;;
 
-to listen-clients
-  while [hubnet-message-waiting?]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ execute-create ]
-    [
-      ifelse hubnet-exit-message?
-      [
-        ask turtles with [user-id = hubnet-message-source] [ die ]
-        do-plot
-      ]
-      [
-        if hubnet-message-tag = "Choose"
-        [ execute-choose ]
-        if hubnet-message-tag = "Choice"
-        [ change-choice ]
-      ]
-    ]
-  ]
-end
-
-to execute-create
+to execute-create [username]
   create-turtles 1
   [
+    set __hnw_username username
     let pos one-of patches with [not any? turtles-here]
     ifelse pos != nobody
     [ move-to pos ]
     [ user-message "Too many students. Make a bigger view." ]
-    set user-id hubnet-message-source
-    set label word user-id "   "
+    set label word __hnw_username "   "
     set slider-value 0
     clear-my-data
-    hubnet-send user-id "Current Question" (item current-question question-list)
   ]
 end
 
+to handle-quit
+  die
+  do-plot
+end
+
 to execute-choose
-  ask turtles with [user-id = hubnet-message-source]
+  if allow-change? or color = not-voted?-color
   [
-    if allow-change? or color = not-voted?-color
-    [
-      set color voted?-color
-      set my-choices replace-item current-question my-choices slider-value
-      hubnet-send hubnet-message-source "Current Choice" slider-value
-    ]
+    set color voted?-color
+    set my-choices replace-item current-question my-choices slider-value
   ]
   do-plot
 end
 
 to change-choice
-  ask turtles with [user-id = hubnet-message-source]
-  [ set slider-value hubnet-message ]
+  set slider-value ui-slider-value
 end
 
 
@@ -338,6 +304,21 @@ to view-prev-quick-start
   set quick-start (item qs-item qs-items)
 end
 
+to-report current-question-value
+  report item current-question question-list
+end
+
+to-report current-choice-value
+  report item current-question my-choices
+end
+
+to-report mean-of-choices
+  report mean [item current-question my-choices] of turtles
+end
+
+to-report median-of-choices
+  report median [item current-question my-choices] of turtles
+end
 
 ; Copyright 2000 Uri Wilensky and Walter Stroup.
 ; See Info tab for full copyright and license.
@@ -458,7 +439,7 @@ MONITOR
 455
 446
 Current Question
-item current-question question-list
+current-question-value
 3
 1
 11
@@ -548,7 +529,7 @@ MONITOR
 72
 215
 mean
-mean [item current-question my-choices] of turtles
+mean-of-choices
 3
 1
 11
@@ -559,7 +540,7 @@ MONITOR
 149
 215
 median
-median [item current-question my-choices] of turtles
+median-of-choices
 3
 1
 11

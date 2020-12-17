@@ -32,6 +32,15 @@ globals
   r-square              ;; r^2, from linear regression
   slope                 ;; slope of linear regression
   y-intercept           ;; y-intercept of linear regression
+
+  __hnw_supervisor_x-minimum
+  __hnw_supervisor_x-maximum
+  __hnw_supervisor_y-minimum
+  __hnw_supervisor_y-maximum
+  __hnw_supervisor_reveal-legend?
+  __hnw_supervisor_linear-regression?
+  __hnw_supervisor_grid?
+
 ]
 
 patches-own
@@ -50,20 +59,27 @@ students-own
   my-equation        ;; the last equation turned in by the student
 ]
 
-
 ;;;;;;;;;;;
 ;; Setup ;;
 ;;;;;;;;;;;
 
 to startup
   clear-all
-  hubnet-reset
+
+  set __hnw_supervisor_x-minimum -10
+  set __hnw_supervisor_x-maximum 10
+  set __hnw_supervisor_y-minimum -10
+  set __hnw_supervisor_y-maximum 10
+  set __hnw_supervisor_reveal-legend? true
+  set __hnw_supervisor_linear-regression? false
+  set __hnw_supervisor_grid? true
+
   set margin 10
   set rule ""
   set graphed-equation-list []
   set student-index -1
-  set old-grid? grid?
-  set old-legend? reveal-legend?
+  set old-grid? __hnw_supervisor_grid?
+  set old-legend? __hnw_supervisor_reveal-legend?
   set y-intercept ""
   set slope ""
   set r-square ""
@@ -91,29 +107,28 @@ end
 to go
   every 0.1
   [
-    if any? turtles
-    [
-      ask students [ send-info-to-clients ]
-    ]
-    listen-clients
+
+    if __hnw_supervisor_linear-regression? and not old-linear-regression? [ linear-regression ]
+    set old-linear-regression? __hnw_supervisor_linear-regression?
+
     ;; keep the display in sync with the
     ;; switches
-    if old-grid? != grid?
+    if old-grid? != __hnw_supervisor_grid?
     [
-      ifelse grid?
+      ifelse __hnw_supervisor_grid?
       [
         draw-grid
         draw-axes
       ]
       [ clear-drawing ]
-      set old-grid? grid?
+      set old-grid? __hnw_supervisor_grid?
     ]
-    if old-legend? != reveal-legend?
+    if old-legend? != __hnw_supervisor_reveal-legend?
     [
       ask grid [ set plabel "" ]
-      if reveal-legend?
+      if __hnw_supervisor_reveal-legend?
         [ draw-legend ]
-      set old-legend? reveal-legend?
+      set old-legend? __hnw_supervisor_reveal-legend?
     ]
     display
   ]
@@ -239,14 +254,14 @@ to graph-equation [full-phrase add-to-list? current-color ]
   ;; estimate the equation at every value of x
   ;; going across the grid.
   let delta-x grids-per-patch-x
-  set x x-minimum
+  set x __hnw_supervisor_x-minimum
   ;; if we're not close enough in the y direction from the last
   ;; point in the function draw we need to detect this and make
   ;; the lines appear to be connected.
   let last-py 0
   let last-defined? false
 
-  while [ x <= x-maximum ]
+  while [ x <= __hnw_supervisor_x-maximum ]
   [
     ;; we do this in carefully for two reasons
     ;; first, there may be a syntax error in the equation.
@@ -260,7 +275,7 @@ to graph-equation [full-phrase add-to-list? current-color ]
 
       ;; if we're inside the grid ask the patch with the nearest x and y coords to set pcolor
       ;; to the color of this equation.
-      ifelse y <= y-maximum and y >= y-minimum ;; if we're outside the viewable world don't plot anything
+      ifelse y <= __hnw_supervisor_y-maximum and y >= __hnw_supervisor_y-minimum ;; if we're outside the viewable world don't plot anything
       [
         if member? op "=" ;; plot the actual function
         [
@@ -293,7 +308,7 @@ to graph-equation [full-phrase add-to-list? current-color ]
       [ set last-defined? false ]
 
       ;; keep the y inside the grid
-      let new-y  min list y-maximum (max (list y-minimum y))
+      let new-y  min list __hnw_supervisor_y-maximum (max (list __hnw_supervisor_y-minimum y))
       ;; if the operator has an inequality portion
       ;; fill in the rest of the column in the appropriate
       ;; direction.
@@ -334,7 +349,7 @@ to graph-equation [full-phrase add-to-list? current-color ]
       ;; each item in the graphed-equation-list is a list, first item is the
       ;; equation phrase and the second is the color it is displayed in.
       set graphed-equation-list lput (list (word "y " op phrase) current-color) graphed-equation-list
-      if reveal-legend?
+      if __hnw_supervisor_reveal-legend?
         [ draw-legend ]
     ]
   ]
@@ -377,7 +392,7 @@ to clear-last-equation
     foreach graphed-equation-list [ equation -> graph-equation item 0 equation false item 1 equation ]
   ]
 
-  if reveal-legend?
+  if __hnw_supervisor_reveal-legend?
   [
     ask grid [ set plabel "" ]
     draw-legend
@@ -387,19 +402,6 @@ end
 ;; set the rule to the value that the user enters in an input dialog
 to set-rule
   set rule user-input "Enter the Verbal Rule:"
-end
-
-;; send a list of the position of every student's turtle, to every student
-to send-points-to-students
-  let point-list ""
-  ask students
-  [
-    let point-place (word "(" precision my-x 1 "," precision my-y 1 ")")
-    set point-list (word point-list point-place " ")
-  ]
-  set point-list substring point-list 0 (length point-list - 1)
-  ask students
-  [ hubnet-send user-id "points" (point-list) ]
 end
 
 ;;
@@ -469,10 +471,10 @@ end
 to setup-grid
   clear-patches
   clear-drawing
-  set old-grid? grid?
+  set old-grid? __hnw_supervisor_grid?
 
-  set width x-maximum - x-minimum
-  set height y-maximum - y-minimum
+  set width __hnw_supervisor_x-maximum - __hnw_supervisor_x-minimum
+  set height __hnw_supervisor_y-maximum - __hnw_supervisor_y-minimum
 
   set grids-per-patch-x width / (world-width - (2 * margin))
   set grids-per-patch-y height / (world-height - (2 * margin))
@@ -500,24 +502,24 @@ to setup-grid
 
   ;; label x and y , minimums and maximums
   ask patches with [ pxcor = min-pxcor + margin + 3 and pycor = min-pycor + margin - 4 ]
-    [ set plabel x-minimum ]
+    [ set plabel __hnw_supervisor_x-minimum ]
   ask patches with [ pxcor = max-pxcor - margin and pycor = min-pycor + margin - 4 ]
-    [ set plabel x-maximum ]
+    [ set plabel __hnw_supervisor_x-maximum ]
   ask patches with [ pxcor = min-pxcor + (margin - 2) and pycor = min-pycor + margin ]
-    [ set plabel y-minimum ]
+    [ set plabel __hnw_supervisor_y-minimum ]
   ask patches with [ pxcor = min-pxcor + (margin - 2) and pycor = max-pycor - margin ]
-    [ set plabel y-maximum ]
+    [ set plabel __hnw_supervisor_y-maximum ]
 
   ;; show x and y axes
-  set x-axis round ( abs y-minimum * patches-per-grid-x + min-pycor + margin - 0.5 )
-  set y-axis round( abs x-minimum * patches-per-grid-y + min-pxcor + margin - 0.5 )
+  set x-axis round ( abs __hnw_supervisor_y-minimum * patches-per-grid-x + min-pycor + margin - 0.5 )
+  set y-axis round( abs __hnw_supervisor_x-minimum * patches-per-grid-y + min-pxcor + margin - 0.5 )
 
   ;; if range is from
   ;; if range is from -20 to 20 do every 10
   ;; from -10 to 10 do every 1
   ;; from -1 to 1 do every .1
 
-  if grid?[ draw-grid ]
+  if __hnw_supervisor_grid? [ draw-grid ]
 
   draw-axes
 end
@@ -573,17 +575,17 @@ end
 to-report random-grid-coord-x
   ifelse width > 10
   ;if the width is greater than 10, place students at whole numbers
-  [ report random width + x-minimum ]
+  [ report random width + __hnw_supervisor_x-minimum ]
   ;if the range between 10 and 0, place students whole or half numbers
-  [ report (random (width * 2)) / 2 + x-minimum ]
+  [ report (random (width * 2)) / 2 + __hnw_supervisor_x-minimum ]
 end
 
 to-report random-grid-coord-y
   ifelse height > 10
   ;if the width is greater than 10, place students at whole numbers
-  [ report random height + y-minimum ]
+  [ report random height + __hnw_supervisor_y-minimum ]
   ;if the range between 10 and 0, place students whole or half numbers
-  [ report (random (height * 2)) / 2 + y-minimum ]
+  [ report (random (height * 2)) / 2 + __hnw_supervisor_y-minimum ]
 end
 
 ;; report the coordinates of the mouse, with respect to the range and scale of the graph
@@ -606,126 +608,80 @@ to draw-legend
       set y-coord y-coord + 5
       set i i + 1
     ]
-  set old-legend? reveal-legend?
+  set old-legend? __hnw_supervisor_reveal-legend?
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; HubNet Procedures ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
-to listen-clients
-  let at-least-one-message? false
-
-  while [ hubnet-message-waiting? ]
-  [
-    set at-least-one-message? true
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-new-student ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-student ]
-      [ execute-command hubnet-message-tag ]
-    ]
-  ]
-
-  if linear-regression? and (at-least-one-message? or not old-linear-regression?)
-    [ linear-regression ]
-  set old-linear-regression? linear-regression?
+to-report location
+  report (word "(" precision (my-x) 2 "," precision (my-y) 2 ")")
 end
 
-;; update the client monitors
-to send-info-to-clients ;; turtle procedure
-  hubnet-send user-id "Located at:" (word "(" precision (my-x) 2 "," precision (my-y) 2 ")")
-  hubnet-send user-id "You are a:" (shape-combo)
-  hubnet-send user-id "rule" (rule)
-end
-
-to create-new-student
+to create-new-student [username]
   create-students 1
   [
-    setup-student-vars
-    send-info-to-clients
+    set user-id username
+
+    set my-x random-grid-coord-x
+    set my-y random-grid-coord-y
+
+    ;translate my-x and my-y into patches
+    setxy patch-x my-x
+          patch-y my-y
+
+    change-shape
+
+    face one-of neighbors4
+    set step-size 1
+    set size 9
+    set my-equation ""
   ]
 end
 
 to remove-student
-  ask students with [user-id = hubnet-message-source]
-  [
-    set available-shapes sentence available-shapes shape-combo ;; make sure to return the shape to available
-    die
-  ]
+  set available-shapes sentence available-shapes shape-combo ;; make sure to return the shape to available
+  die
 end
 
 to execute-move [new-heading]
-  ask students with [user-id = hubnet-message-source]
+  set heading new-heading
+  let dist 0
+  ifelse heading mod 180 = 0
   [
-    set heading new-heading
-    let dist 0
-    ifelse heading mod 180 = 0
-    [
-      set dist step-size * patches-per-grid-y
-    ]
-    [
-      set dist step-size * patches-per-grid-x
-    ]
-    if can-move? dist and not [border?] of patch-ahead dist
-    [ fd dist ]
-
-    set my-x xcor * grids-per-patch-x
-    set my-y ycor * grids-per-patch-y
-
-    hubnet-send user-id "Located at:" (word "(" precision my-x 2 "," precision my-y 2 ")")
+    set dist step-size * patches-per-grid-y
   ]
+  [
+    set dist step-size * patches-per-grid-x
+  ]
+  if can-move? dist and not [border?] of patch-ahead dist
+  [ fd dist ]
+
+  set my-x xcor * grids-per-patch-x
+  set my-y ycor * grids-per-patch-y
 end
 
-to execute-command [command]
-  ifelse command = "Step-Size"
-  [
-    ask students with [user-id = hubnet-message-source]
-      [ set step-size hubnet-message ]
-  ][
-  ifelse command = "up"
-  [ execute-move 0 ][
-  ifelse command = "down"
-  [ execute-move 180 ][
-  ifelse command = "right"
-  [ execute-move 90 ][
-  ifelse command = "left"
-  [ execute-move 270 ][
-  ifelse command = "Change Appearance"
-  [ ask students with [ user-id = hubnet-message-source ]
-      [ change-shape ] ][
-  if command = "my-equation"
-  [
-    let eq hubnet-message
-    ask students with [ user-id = hubnet-message-source ] [ set my-equation eq ] ]
-  ] ] ] ] ] ]
+to move-up
+  execute-move 0
 end
 
-to setup-student-vars  ;; turtle procedure
-  set user-id hubnet-message-source
+to move-down
+  execute-move 180
+end
 
-  set my-x random-grid-coord-x
-  set my-y random-grid-coord-y
+to move-right
+  execute-move 90
+end
 
-  ;translate my-x and my-y into patches
-  setxy patch-x my-x
-        patch-y my-y
-
-  change-shape
-
-  face one-of neighbors4
-  set step-size 1
-  set size 9
-  set my-equation ""
+to move-left
+  execute-move 270
 end
 
 to change-shape ;; turtle procedure
   set shape one-of all-shapes
   set color one-of all-colors
   set shape-combo (word (color-name color) " " shape)
-  hubnet-send user-id "You are a:" shape-combo
 end
 
 to-report color-name [c]

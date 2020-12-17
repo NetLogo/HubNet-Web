@@ -6,11 +6,15 @@ globals [
   quick-start  ;; current quickstart instruction displayed in the quickstart monitor
   qs-item      ;; index of the current quickstart instruction
   qs-items     ;; list of quickstart instructions
+
+  __hnw_supervisor_car-cost
+  __hnw_supervisor_interest-rate
 ]
 
 breed [ students student ]
 students-own
 [
+
   user-id    ;; the name selected by each user
   fraction   ;; the fraction of current money the user has selected to invest
   investment ;; the amount the user has invested
@@ -18,6 +22,9 @@ students-own
   return-investment ;; the interest plus the principle returned on the investment
   cars        ;; the number of cars purchased
   invested?    ;; boolean variable indicating whether the user has invested this round
+
+  gui-fraction
+
 ]
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -27,7 +34,8 @@ students-own
 to startup
   clear-all
   ask patches [ set pcolor gray ]
-  hubnet-reset
+  set __hnw_supervisor_car-cost 50
+  set __hnw_supervisor_interest-rate 0.15
 end
 
 ;; reset all the clients to begin the activity again
@@ -36,7 +44,6 @@ to setup
   ask students
     [
       reset-client
-      send-info-to-clients
     ]
 end
 
@@ -45,8 +52,11 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;
 
 to go
-  every .1
-  [ listen-clients ] ;; get commands and data from the clients
+  ask students [
+    if not invested? [
+      set fraction gui-fraction
+    ]
+  ]
 end
 
 ;; move on the the next round, calculate interest and update the variables on the clients
@@ -59,81 +69,59 @@ end
 ;; Code for interacting with the clients ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; standard hubnet procedure to collect data sent by clients
-to listen-clients
-  while [ hubnet-message-waiting? ]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-new-student display ]
+;; when the student press the INVEST button move the money from My Money into investment
+to invest
+  if not invested? ;; students may only invest once per round
     [
-      ifelse hubnet-exit-message?
-      [ remove-student display ]
-      [ execute-command hubnet-message-tag ]
+      set investment        my-money * fraction
+      set my-money          my-money - investment
+      set return-investment 0
+      set invested? true
     ]
+end
+
+to buy-car
+  if (my-money >= __hnw_supervisor_car-cost)
+  [
+    set cars cars + 1
+    set my-money my-money - __hnw_supervisor_car-cost
   ]
 end
 
-;; interpret each hubnet message as a command
-to execute-command [command]
-  if command = "fraction-to-invest" ;; every time a student adjusts their fraction to invest button update the turtle variable
-  [
-    ask students with [user-id = hubnet-message-source]
-     [
-        if (invested? = false)
-        [ set fraction hubnet-message ]
-     ]
-  ]
+to-report investment-rounded
+  report rounded (my-money * fraction)
+end
 
-  if command = "invest"
-    [
-      ask students with [user-id = hubnet-message-source] ;; when the student press the INVEST button move the money from My Money into investment
-         [
-           if (invested? = false) ;; students may only invest once per round
-             [
-               set investment my-money * fraction
-               set my-money my-money - investment
-               set return-investment 0
-               hubnet-send user-id "investment" precision investment 2
-               hubnet-send user-id "My Money" precision my-money 2
-               hubnet-send user-id "investment-return" precision return-investment 2
-               set invested? true
-             ]
-         ]
-     ]
+to-report my-money-rounded
+  report rounded (my-money - investment)
+end
 
-  if command = "buy-car"
-  [
-     ask students with [user-id = hubnet-message-source]
-      [
-        if (my-money >= car-cost)
-        [
-          set cars cars + 1
-          set my-money my-money - car-cost
-          hubnet-send user-id "cars" cars
-          hubnet-send user-id "My Money" precision my-money 2
-        ]
-     ]
-  ]
+to-report return-investment-rounded
+  report rounded return-investment
+end
+
+to-report rounded [x]
+  report precision x 2
 end
 
 ;; manage the turtles as clients enter and exit
-to create-new-student
+to create-new-student [username]
   let p one-of patches with [ count neighbors = 8 and not any? turtles-here and
                                      not any? neighbors4 with [ any? turtles-here ] ]
   ifelse p = nobody
   [ user-message "All of the spaces in the view are full, no more students can join." ]
   [ create-students 1
     [
-      setup-student-vars p
+      setup-student-vars username p
       reset-client
-      send-info-to-clients
     ]
   ]
+  display
 end
 
 to remove-student
-  ask students with [user-id = hubnet-message-source] [ die ]
+  die
+  display
 end
 
 ;; sets the turtle variables to appropriate initial values
@@ -143,8 +131,8 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; setup the visual components of each turtle
-to setup-student-vars [ p ]
-  set user-id hubnet-message-source
+to setup-student-vars [ username p ]
+  set user-id username
   set shape "circle"
   set color one-of [ red blue pink cyan green ]
   set label-color black
@@ -158,29 +146,22 @@ to reset-client
   set invested? false
   set return-investment 0
   set cars 0
+  set gui-fraction fraction
   set label ( word  user-id ", " precision my-money 2 )
 end
 
 ;; calculate investments and send the results to the clients
 to update-student
-  set return-investment ( investment * ( interest-rate + 1 ) )
+  set return-investment ( investment * ( __hnw_supervisor_interest-rate + 1 ) )
   set my-money ( my-money + return-investment )
   set label ( word  user-id ", " precision my-money 2 ", " cars)
   set invested? false
   set investment 0
-  send-info-to-clients
 end
 
-;; send the appropriate monitor information back to the client
-to send-info-to-clients
-  hubnet-send user-id "I am:" user-id
-  hubnet-send user-id "Round" ticks
-  hubnet-send user-id "My Money" precision my-money 2
-  hubnet-send user-id "investment" precision investment 2
-  hubnet-send user-id "investment-return" precision return-investment 2
-  hubnet-send user-id "cars" cars
+to-report tick-count
+  report ticks
 end
-
 
 ; Copyright 2004 Uri Wilensky.
 ; See Info tab for full copyright and license.

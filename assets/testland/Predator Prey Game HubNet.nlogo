@@ -5,6 +5,15 @@ globals
   colors            ;; list that holds the colors used for students' turtles
   color-names       ;; list that holds the names of the colors used for students' turtles
   all-shapes        ;; list that holds all the possible shapes used in the game
+
+  __hnw_supervisor_android-delay
+  __hnw_supervisor_wander?
+  __hnw_supervisor_predator-gain-from-food
+  __hnw_supervisor_prey-gain-from-food
+  __hnw_supervisor_plant-regrowth-rate
+  __hnw_supervisor_predator-reproduce
+  __hnw_supervisor_prey-reproduce
+
 ]
 
 breed [ icons icon ]
@@ -24,6 +33,7 @@ students-own
   predator?
   energy
   step-size
+  status
 ]
 
 icons-own
@@ -35,8 +45,14 @@ icons-own
 ;; Setup Procedures
 ;;
 to startup
-  ;; standard hubnet setup code
-  hubnet-reset
+
+  set __hnw_supervisor_android-delay 0.4
+  set __hnw_supervisor_wander? true
+  set __hnw_supervisor_predator-gain-from-food 10
+  set __hnw_supervisor_prey-gain-from-food 2
+  set __hnw_supervisor_plant-regrowth-rate 5
+  set __hnw_supervisor_predator-reproduce 5
+  set __hnw_supervisor_prey-reproduce 4
 
   ;; setup the model itself
   setup-vars
@@ -71,7 +87,6 @@ to setup
     [ set shape "wolf" ]
     [ set shape "sheep" ]
     ask my-icon [ move-to myself ]
-    send-info-to-client
   ]
 
   ;; kill all the androids
@@ -124,7 +139,6 @@ to go
   ;; listen to the hubnet client
   every 0.1
   [
-    listen-clients
     display
   ]
 
@@ -144,7 +158,6 @@ to go
         set energy energy - 0.5
         if energy <= 0
         [ student-die ]
-        update-energy-monitor
       ]
       do-plot
     ]
@@ -243,8 +256,7 @@ to make-students-prey
     set predator? false
     set shape "sheep"
     set color grey
-    send-info-to-client
-    hubnet-send user-id "status" "You are now prey"
+    set status "You are now prey"
   ]
 end
 
@@ -254,8 +266,7 @@ to make-students-predators
     set predator? true
     set shape "wolf"
     set color black
-    send-info-to-client
-    hubnet-send user-id "status" "You are now a predator"
+    set status "You are now a predator"
   ]
 end
 
@@ -263,83 +274,49 @@ end
 ;; HubNet Procedures
 ;;
 
-;; get commands from the clients
-to listen-clients
-  while [ hubnet-message-waiting? ]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-new-student ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-student ]
-      [ execute-command hubnet-message-tag ]
-    ]
+to move-up
+  execute-move 0
+end
+
+to move-down
+  execute-move 180
+end
+
+to move-right
+  execute-move 90
+end
+
+to move-left
+  execute-move 270
+end
+
+to recreate-as-prey
+  if energy < 0 [
+    setup-student-vars false
+    set status "You are now prey"
   ]
 end
 
-;; how to execute a command that was received
-to execute-command [ command ]
-  ask students with [ user-id = hubnet-message-source ]
-  [
-    ;; animals can only move if they have energy
-    ;; and can only recreate themselves if they are dead
-    ifelse energy > 0
-    [
-      if command = "up"
-      [ execute-move 0 ]
-      if command = "down"
-      [ execute-move 180 ]
-      if command = "right"
-      [ execute-move 90 ]
-      if command = "left"
-      [ execute-move 270 ]
-    ]
-    [
-      if command = "recreate as predator"
-      [
-        setup-student-vars true
-        send-info-to-client
-        hubnet-send user-id "status" "You are now a predator"
-      ]
-      if command = "recreate as prey"
-      [
-        setup-student-vars false
-        send-info-to-client
-        hubnet-send user-id "status" "You are now prey"
-      ]
-    ]
-    if command = "Change Appearance"
-    [ execute-change-turtle ]
-    if command = "step-size"
-    [
-      set step-size hubnet-message
-    ]
+to recreate-as-predator
+  if energy < 0 [
+    setup-student-vars true
+    set status "You are now a predator"
   ]
 end
 
 to student-die
   set shape "face sad"
-  send-info-to-client
-  update-energy-monitor
 end
 
 ;; create a new student agent
-to create-new-student
+to create-new-student [username]
   create-students 1
   [
-    init-student
-    send-info-to-client
+    set user-id username
+    move-to one-of patches
+    create-icon
+    setup-student-vars random 2 = 0
   ]
-end
-
-;; turtle procedure
-;; initialize the student agent
-to init-student
-  set user-id hubnet-message-source
-  move-to one-of patches
-  create-icon
-  setup-student-vars random 2 = 0
 end
 
 ;; to create the variables for a student agent
@@ -374,12 +351,12 @@ to set-unique-shape-and-color
   set color-name item (position color colors) color-names
 end
 
-;; sends the appropriate monitor information back to the client
-to send-info-to-client
-  hubnet-send user-id "You are a:" (word [color-name] of my-icon " " [shape] of my-icon)
-  hubnet-send user-id "Located at:" (word "(" pxcor "," pycor ")")
-  hubnet-send user-id "role" my-role
-  update-energy-monitor
+to-report descriptor
+  report (word [color-name] of my-icon " " [shape] of my-icon)
+end
+
+to-report location
+  report (word "(" pxcor "," pycor ")")
 end
 
 ;; turtle procedure
@@ -390,43 +367,39 @@ to-report my-role
   report ifelse-value shape = "wolf" [ "predator" ][ "prey" ]
 end
 
-;; show the appropriate amount of energy
-to update-energy-monitor
-  hubnet-send user-id "energy" max list 0 precision energy 2
-  if energy <= 0
-  [
-    hubnet-send user-id "role" my-role
-    hubnet-send user-id "status" "You died, you may recreate as a predator or prey"
-  ]
+to-report gui-energy
+  report max list 0 precision energy 2
+end
+
+to-report gui-status
+  report ifelse-value energy > 0 [ status ] [ "You died, you may recreate as a predator or prey" ]
 end
 
 ;; remove students that are no longer connected
 to remove-student
-  ask students with [ user-id = hubnet-message-source ]
-  [
-    ask my-icon [ die ]
-    die
-  ]
+  ask my-icon [ die ]
+  die
 end
 
 ;; turtle procedure
 ;; move the student agent
 to execute-move [ new-heading ]
-  set heading new-heading
-  fd step-size
-  set energy energy - 0.5
-  ask my-icon
-  [
+  ;; animals can only move if they have energy
+  if energy > 0 [
     set heading new-heading
-    fd [step-size] of myself
+    fd step-size
+    set energy energy - 0.5
+    ask my-icon
+    [
+      set heading new-heading
+      fd [step-size] of myself
+    ]
+    ifelse predator?
+      [ eat-prey ]
+      [ eat-grass ]
+    if energy <= 0
+    [ student-die ]
   ]
-  ifelse predator?
-    [ eat-prey ]
-    [ eat-grass ]
-  update-energy-monitor
-  hubnet-send user-id "Located at:" (word "(" pxcor "," pycor ")")
-  if energy <= 0
-  [ student-die ]
 end
 
 ;; turtle procedure
@@ -434,7 +407,6 @@ end
 to execute-change-turtle
   show-turtle
   ask my-icon [ set-unique-shape-and-color ]
-  hubnet-send user-id "You are a:" (word ([color-name] of my-icon) " " [shape] of my-icon)
 end
 
 ;;
@@ -461,6 +433,13 @@ to do-plot
   plot count players with [ not predator? ]
 end
 
+to-report predator-count
+  report count androids with [ predator? ] + count students with [ predator? ]
+end
+
+to-report prey-count
+  report count androids with [ not predator? ] + count students with [ not predator? ]
+end
 
 ; Copyright 2002 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -656,7 +635,7 @@ MONITOR
 204
 207
 predators
-count androids with [ predator? ] + count students with [ predator? ]
+predator-count
 0
 1
 11
@@ -667,7 +646,7 @@ MONITOR
 279
 207
 prey
-count androids with [ not predator? ] + count students with [ not predator? ]\n
+prey-count
 3
 1
 11

@@ -9,7 +9,7 @@ patches-own [ true-color ] ;; value of the color of each patch is either green o
                            ;; the displayed color is gray keep track of the real color here
 
 ;; client turtles keep state information about the clients
-breed [ clients client ]
+breed [ students student ]
 clients-own
 [
   my-sample-size          ;; current value of the my-sample-size slider on the client
