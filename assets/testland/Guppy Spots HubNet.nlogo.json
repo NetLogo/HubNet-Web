@@ -3,8 +3,8 @@
         {
             "canJoinMidRun": true,
             "onCursorMove": null,
-            "onCursorClick": null,
-            "onDisconnect": "???DC",
+            "onCursorClick": "select-fish",
+            "onDisconnect": null,
             "widgets": [
                 {
                     "height": 406,
@@ -20,9 +20,9 @@
                     "display": "You found",
                     "left": 13,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "found",
                     "right": 139,
                     "type": "hnwMonitor",
                     "top": 265
@@ -32,9 +32,9 @@
                     "display": "Success %",
                     "left": 13,
                     "precision": 1,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-procedure",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "success-percentage",
                     "right": 139,
                     "type": "hnwMonitor",
                     "top": 316
@@ -44,9 +44,9 @@
                     "display": "Your leader",
                     "left": 13,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-procedure",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "my-leader",
                     "right": 139,
                     "type": "hnwMonitor",
                     "top": 163
@@ -56,9 +56,9 @@
                     "display": "Leader found",
                     "left": 13,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-procedure",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "my-leaders-score",
                     "right": 139,
                     "type": "hnwMonitor",
                     "top": 214
@@ -68,9 +68,9 @@
                     "display": "Your name",
                     "left": 13,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "user-name",
                     "right": 139,
                     "type": "hnwMonitor",
                     "top": 61
@@ -80,16 +80,16 @@
                     "display": "Your role",
                     "left": 13,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "role",
                     "right": 139,
                     "type": "hnwMonitor",
                     "top": 112
                 }
             ],
-            "name": "student",
-            "onConnect": "???Connect",
+            "name": "player",
+            "onConnect": "add-player",
             "limit": -1,
             "isSpectator": false
         },
@@ -97,7 +97,7 @@
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
-            "onDisconnect": "???DC",
+            "onDisconnect": null,
             "widgets": [
                 {
                     "height": 414,
@@ -107,30 +107,6 @@
                     "right": 688,
                     "type": "hnwView",
                     "top": 35
-                },
-                {
-                    "forever": false,
-                    "bottom": 56,
-                    "left": 39,
-                    "buttonKind": "observer",
-                    "source": "setup",
-                    "hnwProcName": "setup",
-                    "right": 142,
-                    "type": "hnwButton",
-                    "top": 23,
-                    "disableUntilTicksStarts": true
-                },
-                {
-                    "forever": true,
-                    "bottom": 56,
-                    "left": 144,
-                    "buttonKind": "observer",
-                    "source": "go",
-                    "hnwProcName": "go",
-                    "right": 247,
-                    "type": "hnwButton",
-                    "top": 23,
-                    "disableUntilTicksStarts": false
                 },
                 {
                     "max": "50",
@@ -193,9 +169,9 @@
                     "display": "fish",
                     "left": 780,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "procedure",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "count-fish",
                     "right": 870,
                     "type": "hnwMonitor",
                     "top": 66
@@ -252,7 +228,7 @@
                     "currentChoice": 0,
                     "right": 134,
                     "choices": [
-                        "quarium.jpg\" \"underwater.jp"
+                        "aquarium.jpg", "underwater.jpg"
                     ],
                     "type": "hnwChooser",
                     "top": 288
@@ -278,7 +254,7 @@
                     "currentChoice": 1,
                     "right": 901,
                     "choices": [
-                        "ll predators\" \"all mates\" \"predators v. mate"
+                        "all predators", "all mates", "predators v. mates"
                     ],
                     "type": "hnwChooser",
                     "top": 17
@@ -288,9 +264,9 @@
                     "display": " mates",
                     "left": 722,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "procedure",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "count-mates",
                     "right": 812,
                     "type": "hnwMonitor",
                     "top": 118
@@ -300,9 +276,9 @@
                     "display": "predators",
                     "left": 842,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "procedure",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "count-predators",
                     "right": 932,
                     "type": "hnwMonitor",
                     "top": 118
@@ -312,9 +288,9 @@
                     "display": "NIL",
                     "left": 704,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "mate-leader",
                     "right": 827,
                     "type": "hnwMonitor",
                     "top": 171
@@ -324,9 +300,9 @@
                     "display": "NIL",
                     "left": 704,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "predator-leader",
                     "right": 827,
                     "type": "hnwMonitor",
                     "top": 218
@@ -336,9 +312,9 @@
                     "display": "NIL",
                     "left": 832,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "mates-found",
                     "right": 951,
                     "type": "hnwMonitor",
                     "top": 171
@@ -348,9 +324,9 @@
                     "display": "NIL",
                     "left": 832,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "prey-found",
                     "right": 951,
                     "type": "hnwMonitor",
                     "top": 218
@@ -360,9 +336,9 @@
                     "display": "NIL",
                     "left": 704,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "total-mates-found",
                     "right": 827,
                     "type": "hnwMonitor",
                     "top": 265
@@ -372,9 +348,9 @@
                     "display": "NIL",
                     "left": 832,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "total-prey-found",
                     "right": 951,
                     "type": "hnwMonitor",
                     "top": 265
@@ -421,7 +397,7 @@
                 }
             ],
             "name": "supervisor",
-            "onConnect": "???Connect",
+            "onConnect": null,
             "limit": 1,
             "isSpectator": true
         }

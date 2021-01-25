@@ -1,3 +1,5 @@
+extensions [fetch import-a]
+
 globals
 [
   ;; used to keep score
@@ -20,6 +22,17 @@ globals
   max-fish-size
   max-size-mutation-step
   max-color-mutation-step
+
+  __hnw_supervisor_carrying-capacity
+  __hnw_supervisor_fish-speed-scale
+  __hnw_supervisor_background-color
+  __hnw_supervisor_min-age-reproduction
+  __hnw_supervisor_enforce-capacity?
+  __hnw_supervisor_rock-shelters?
+  __hnw_supervisor_show-age?
+  __hnw_supervisor_background
+  __hnw_supervisor_player-roles
+
 ]
 
 breed [ fish a-fish ]
@@ -55,7 +68,6 @@ fish-parts-own [
 ;; Setup Procedures
 ;;;;;;;;;;;;;;;;;;;
 to startup
-  hubnet-reset
   init-globals
   setup-environment
   make-initial-fish
@@ -63,6 +75,17 @@ end
 
 ;; set constants once at the very beginning.
 to init-globals
+
+  set __hnw_supervisor_carrying-capacity 14
+  set __hnw_supervisor_fish-speed-scale 7.8
+  set __hnw_supervisor_background-color 97
+  set __hnw_supervisor_min-age-reproduction 200
+  set __hnw_supervisor_enforce-capacity? true
+  set __hnw_supervisor_rock-shelters? false
+  set __hnw_supervisor_show-age? false
+  set __hnw_supervisor_background "aquarium.jpg"
+  set __hnw_supervisor_player-roles "all mates"
+
   set wander-angle 40
   set chance-mutate-color 20
   set chance-mutate-size 20
@@ -71,6 +94,7 @@ to init-globals
   set max-size 5
   set max-size-mutation-step 1
   set max-color-mutation-step 50
+
 end
 
 ;; reset the fish, predators, and mates
@@ -85,16 +109,12 @@ to setup
   init-globals
   setup-environment
   make-initial-fish
-  ask players
-  [
-    init-player-variables
-    update-player
-  ]
+  ask players [ init-player-variables ]
 end
 
 to setup-environment
-  ask patches [ set pcolor background-color ]
-  if (rock-shelters?)
+  ask patches [ set pcolor __hnw_supervisor_background-color ]
+  if (__hnw_supervisor_rock-shelters?)
   [
     create-rocks 1 [
       set size world-width
@@ -102,14 +122,16 @@ to setup-environment
       set shape "rocks"
     ]
   ]
- import-drawing background
+  let base-url "/assets/modelslib/HubNet%20Activities/Unverified"
+  let url (word base-url "/" __hnw_supervisor_background)
+  fetch:url-async url import-a:drawing
 end
 
 ;; each fish consists of several turtles, one for the body
 ;; one for the tail, and one for each of the fins
 ;; so the colors can vary separately
 to make-initial-fish
-  create-fish carrying-capacity [
+  create-fish __hnw_supervisor_carrying-capacity [
     set shape "fish-body"
     assign-initial-body-genotype-and-phenotype
     setxy random-xcor random-ycor
@@ -118,7 +140,7 @@ to make-initial-fish
     set age 0
     set eaten? false
     set reproduce? false
-    if show-age?
+    if __hnw_supervisor_show-age?
     [
       set label-color red
       set label (word age "      ")
@@ -172,10 +194,10 @@ to toggle-labels
   ;; only change the labels when the switch is
   ;; changed so they don't flicker and slow the
   ;; model down.
-  if old-show-age? != show-age?
+  if old-show-age? != __hnw_supervisor_show-age?
   [
     ask fish [
-      ifelse show-age?
+      ifelse __hnw_supervisor_show-age?
       [
         set label-color red
         set label (word age "      ") ;; add spaces at the end to the label is shifted to the left a bit
@@ -184,7 +206,7 @@ to toggle-labels
         set label ""
       ]
     ]
-    set old-show-age? show-age?
+    set old-show-age? __hnw_supervisor_show-age?
   ]
 end
 
@@ -193,18 +215,15 @@ end
 to make-rock-shelter
   ;; keep the existence of the rock shelters in
   ;; sync with the switch.
-  if rock-shelters? and count rocks = 0
+  if __hnw_supervisor_rock-shelters? and count rocks = 0
   [
-    if (rock-shelters?)
-     [
-       create-rocks 1 [
-         set size world-width
-         set color ( brown - 3)
-         set shape "rocks"
-       ]
+     create-rocks 1 [
+       set size world-width
+       set color ( brown - 3)
+       set shape "rocks"
      ]
   ]
-  if not rock-shelters? and count rocks > 0
+  if not __hnw_supervisor_rock-shelters? and count rocks > 0
   [ ask rocks [ die ] ]
 end
 
@@ -223,7 +242,6 @@ to go
   make-rock-shelter
   enforce-capacity
 
-  every 0.01 [ listen-clients ]
   tick
   update-plots
 end
@@ -237,8 +255,8 @@ to move-fish ;; fish procedure
   ;; to make the game more playable without slowing
   ;; down the entire model.
   ifelse (count fish <= 50)
-  [ set move-forward fish-speed-scale * 0.001 * (count fish) ]
-  [ set move-forward fish-speed-scale * 0.001 * 50 ]
+  [ set move-forward __hnw_supervisor_fish-speed-scale * 0.001 * (count fish) ]
+  [ set move-forward __hnw_supervisor_fish-speed-scale * 0.001 * 50 ]
 
   ;; move myself and my fins and tail.
   ask my-parts
@@ -274,12 +292,12 @@ to enforce-capacity
  ;; keeps the world population
  ;; constant so there is no population
  ;; boom or bust.
- if enforce-capacity? [
+ if __hnw_supervisor_enforce-capacity? [
    if count fish > 0
    [
-     while [ count fish < carrying-capacity ]
+     while [ count fish < __hnw_supervisor_carrying-capacity ]
        [ reproduce-fish ]
-     while [ count fish with [ eaten? = false ]  > carrying-capacity ]
+     while [ count fish with [ eaten? = false ]  > __hnw_supervisor_carrying-capacity ]
        [ eat-one-random-fish ]
    ]
  ]
@@ -309,7 +327,7 @@ to make-offspring-parts [parent] ;; fish procedure
   let baby-xcor random-pxcor
   let baby-ycor (1 + min-pycor)
 
-  if rock-shelters? [
+  if __hnw_supervisor_rock-shelters? [
     setxy baby-xcor baby-ycor
     set heading 0
   ]
@@ -327,7 +345,7 @@ to make-offspring-parts [parent] ;; fish procedure
      set blue-pigment-gene-frequency color-mutation blue-pigment-gene-frequency
      set-phenotype-color
      size-mutation
-     if rock-shelters?
+     if __hnw_supervisor_rock-shelters?
      [
        setxy baby-xcor baby-ycor
        set heading 0
@@ -341,14 +359,11 @@ end
 ;; everytime a predator or mate catches a fish update
 ;; his found variable and the totals for that role
 to update-found-stats
-  ask players with [ user-name = hubnet-message-source ]
-  [
-    set found found + 1
-    if role = "predator"
-    [ set total-prey-found total-prey-found + 1 ]
-    if role = "mate"
-    [ set total-mates-found total-mates-found + 1 ]
-  ]
+  set found found + 1
+  if role = "predator"
+  [ set total-prey-found total-prey-found + 1 ]
+  if role = "mate"
+  [ set total-mates-found total-mates-found + 1 ]
 end
 
 ;; update the stats for the leaders in the game
@@ -375,37 +390,28 @@ end
 ;; extract the coordinates of the mouse event
 ;; on client, find any fish on that location
 ;; and mark them for reproduction or eating
-to select-fish
+to select-fish [x y]
+
   let owner nobody
-  let clicked-xcor  (round item 0 hubnet-message)
-  let clicked-ycor  (round item 1 hubnet-message)
   let this-players-role ""
 
-  let fishies-here fish-on patch clicked-xcor clicked-ycor
+  let fishies-here fish-on patch (round x) (round y)
 
-  ask players with [user-name = hubnet-message-source]
-  [
-    set attempts attempts + 1
-    if any? fishies-here [
-      update-found-stats
-      ;; predators or mates only get one of the fish here
-      ;; each time they click.
-      ask one-of fishies-here [
-        ifelse [role] of myself = "mate"
-        [ if age > min-age-reproduction
-          [ set reproduce? true ] ]
-        [ set eaten? true ]
-      ]
-      update-leader-stats
-
-      ;; every time any player finds a fish update the
-      ;; monitors on all the players with the same
-      ;; role, so the leader stats don't get out of date
-      ;; if they don't click for awhile
-      ask players with [ role = [role] of myself ]
-        [ update-player ]
+  set attempts attempts + 1
+  if any? fishies-here [
+    update-found-stats
+    ;; predators or mates only get one of the fish here
+    ;; each time they click.
+    ask one-of fishies-here [
+      ifelse [role] of myself = "mate"
+      [ if age > __hnw_supervisor_min-age-reproduction
+        [ set reproduce? true ] ]
+      [ set eaten? true ]
     ]
+    update-leader-stats
+
   ]
+
 end
 
 ;; mutate the size, don't let the size go outside
@@ -445,22 +451,6 @@ end
 ;;
 ;; HubNet Procedures
 ;;
-to listen-clients
-  while [hubnet-message-waiting?]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ add-player ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-player ]
-      [
-        if hubnet-message-tag = "View"
-        [ select-fish ]
-      ]
-    ]
-  ]
-end
 
 ;; report name of the leader of a players group
 to-report my-leader ;; player procedure
@@ -473,25 +463,16 @@ to-report my-leaders-score ;; player procedure
   report max [ found ] of players with [ role = [role] of myself ]
 end
 
-;; update all the monitors that change on the clients
-to update-player ;; player procedure
-  hubnet-send user-name "Your role" role
-  let max-found my-leaders-score
-  hubnet-send user-name "Your leader" my-leader
-  hubnet-send user-name "Leader found" max-found
-  hubnet-send user-name "You found" found
-  ifelse max-found = 0
-  [ hubnet-send user-name "Success %"  100  ]
-  [ hubnet-send user-name "Success %"  precision ((found / max-found) * 100)  2 ]
+to-report success-percentage ;; player procedure
+  report ifelse-value (my-leaders-score = 0)
+  [ 100  ]
+  [ precision ((found / my-leaders-score) * 100)  2 ]
 end
 
-to add-player
-  create-players 1
-  [
-    set user-name hubnet-message-source
+to add-player [username]
+  create-players 1 [
+    set user-name username
     init-player-variables
-    hubnet-send user-name "Your name" user-name
-    update-player
   ]
 end
 
@@ -499,11 +480,11 @@ end
 to init-player-variables ;; player procedure
   set attempts 0
   set found 0
-  if player-roles = "all predators"
+  if __hnw_supervisor_player-roles = "all predators"
   [ set role "predator" ]
-  if player-roles = "all mates"
+  if __hnw_supervisor_player-roles = "all mates"
   [ set role "mate" ]
-  if player-roles = "predators v. mates" [
+  if __hnw_supervisor_player-roles = "predators v. mates" [
     ifelse random 2 = 0
     [ set role "predator" ]
     [ set role "mate" ]
@@ -511,11 +492,17 @@ to init-player-variables ;; player procedure
   set hidden? true
 end
 
-to remove-player
-  ask players with [user-name = hubnet-message-source ]
-    [ die ]
+to-report count-fish
+  report count fish
 end
 
+to-report count-mates
+  report count players with [role = "mate"]
+end
+
+to-report count-predators
+  report count players with [role = "predator"]
+end
 
 ; Copyright 2006 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -718,7 +705,7 @@ BUTTON
 261
 310
 change background
-import-drawing background
+import-drawing __hnw_supervisor_background
 NIL
 1
 T
