@@ -26,6 +26,15 @@ globals [
   quick-start  ;; current quickstart instruction displayed in the quickstart monitor
   qs-item      ;; index of the current quickstart instruction
   qs-items     ;; list of quickstart instructions
+
+  news-message
+
+  __hnw_supervisor_demand-sensitivity
+  __hnw_supervisor_base-demand
+  __hnw_supervisor_marginal-cost
+  __hnw_supervisor_penalty-severity
+  __hnw_supervisor_perfect-information?
+
 ]
 
 breed [ sellers seller ]         ;; every client is a seller
@@ -56,7 +65,6 @@ sellers-own [
 ;; STARTUP - auto-setup when the model is opened
 ;; ---------------------------------------------------------
 to startup
-  hubnet-reset
 
   ;; Set up the Quick Start window
   quick-start-reset
@@ -87,9 +95,15 @@ end
 ;; INIT-GLOBALS - initialize our global variables
 ;; ---------------------------------------------------------
 to init-globals
+  set __hnw_supervisor_demand-sensitivity 2.75
+  set __hnw_supervisor_base-demand 130
+  set __hnw_supervisor_marginal-cost 57.5
+  set __hnw_supervisor_penalty-severity 7
+  set __hnw_supervisor_perfect-information? true
+  set news-message ""
   set num-sellers 0
   set market-running? false
-  set perfect-information? true
+  set __hnw_supervisor_perfect-information? true
   set age-of-news 0
   set caught-cheating []
 end
@@ -101,9 +115,6 @@ end
 ;; ---------------------------------------------------------
 to initial-login
   set market-running? false
-
-  ;; Listen for logins, etc.
-  listen-to-clients
 
   ;; Recalculate market conditions
   recompute-market-internals
@@ -124,16 +135,13 @@ to run-market
   if (market-running? != true) [ plot-supply-and-demand ]
 
   ;; Hide buyers when perfect information is turned off
-  ask buyers [ set hidden? not perfect-information? ]
+  ask buyers [ set hidden? not __hnw_supervisor_perfect-information? ]
 
   ;; Since there is no `setup` procedure where `reset-ticks` could be
   ;; called in this model, we have to use `display` instead of `tick`.
   display
 
   set market-running? true
-
-  ;; Check if clients have moved their sliders
-  listen-to-clients
 
   ;; Calculate market conditions
   recompute-market-internals
@@ -176,8 +184,8 @@ to recompute-market-internals
   ;; Determine the profit-maximizing total quantity the cartel should produce if it were
   ;; behaving as a unitary monopolist.  Economic theory predicts that is will be were MR = MC
   ;; Solving for quantity results in the equations below
-  set monopoly-quantity filter-zero-or-greater (round ((base-demand - marginal-cost) / (2 * demand-sensitivity)))
-  set monopoly-price filter-zero-or-greater (base-demand - (demand-sensitivity * monopoly-quantity))
+  set monopoly-quantity filter-zero-or-greater (round ((__hnw_supervisor_base-demand - __hnw_supervisor_marginal-cost) / (2 * __hnw_supervisor_demand-sensitivity)))
+  set monopoly-price filter-zero-or-greater (__hnw_supervisor_base-demand - (__hnw_supervisor_demand-sensitivity * monopoly-quantity))
 
   ;; The actual amount supplied, including cheating
   ifelse num-sellers > 0 and market-running? = true
@@ -185,12 +193,12 @@ to recompute-market-internals
     [ set real-supply 0 ]
 
   ;; The current price
-  set current-price filter-zero-or-greater (base-demand - (demand-sensitivity * real-supply))
+  set current-price filter-zero-or-greater (__hnw_supervisor_base-demand - (__hnw_supervisor_demand-sensitivity * real-supply))
 
   ;; Determine what the total quantity would be if this were a perfectly competitive market
   ;; Economic theory predicts that price = mc.  Solving for quantity results in the equations below
-  set perfect-market-quantity filter-zero-or-greater (round ((base-demand - marginal-cost) / demand-sensitivity))
-  set perfect-market-price (base-demand - (demand-sensitivity * perfect-market-quantity))
+  set perfect-market-quantity filter-zero-or-greater (round ((__hnw_supervisor_base-demand - __hnw_supervisor_marginal-cost) / __hnw_supervisor_demand-sensitivity))
+  set perfect-market-price (__hnw_supervisor_base-demand - (__hnw_supervisor_demand-sensitivity * perfect-market-quantity))
 
   ;; Calculate the market's inefficiency, the "deadweight loss"
   set market-inefficiency (0.5 * (perfect-market-quantity - real-supply) * (current-price - perfect-market-price))
@@ -209,7 +217,7 @@ to sell-oil-at-market
   ask sellers [
     ;; Figure out how much to really sell
     set real-amount base-amount-to-sell + amount-to-cheat
-    set last-sale-profit (real-amount * current-price) - (real-amount * marginal-cost)
+    set last-sale-profit (real-amount * current-price) - (real-amount * __hnw_supervisor_marginal-cost)
     set bank-account bank-account + last-sale-profit
   ]
 
@@ -236,7 +244,7 @@ to catch-cheaters
       if (random 100) <= ([anti-cheat-investment] of myself) [
 
         ;; Caught! Calculate the penalty
-        let penalty penalty-severity * amount-to-cheat * current-price
+        let penalty __hnw_supervisor_penalty-severity * amount-to-cheat * current-price
 
         ;; Remember who was caught for the news
         set caught-cheating lput user-id caught-cheating
@@ -257,41 +265,6 @@ to catch-cheaters
     ]
   ]
 end
-
-;; ---------------------------------------------------------
-;; LISTEN-TO-CLIENTS - handle connecting clients
-;; ---------------------------------------------------------
-to listen-to-clients
-  while [ hubnet-message-waiting? ]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-new-seller hubnet-message-source ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-seller hubnet-message-source ]
-      [ execute-command hubnet-message-tag ]
-    ]
-  ]
-end
-
-
-;; ---------------------------------------------------------
-;; EXECUTE-COMMAND - execute the command received
-;; ---------------------------------------------------------
-to execute-command [command]
-    ifelse command = "amount-to-cheat"
-    [
-      ask sellers with [user-id = hubnet-message-source]
-        [ set amount-to-cheat hubnet-message ]
-    ]
-    [if command = "anti-cheat-investment"
-    [
-      ask sellers with [user-id = hubnet-message-source]
-        [ set anti-cheat-investment hubnet-message ]
-    ]]
-end
-
 
 ;; ---------------------------------------------------------
 ;; CREATE-NEW-SELLER - create a new seller when a client
@@ -326,28 +299,32 @@ to init-seller-vars    ;; seller procedure
     set penalties-paid 0
 end
 
+to-report price-of-oil
+  report precision current-price 2
+end
+
+to-report bank-account-trimmed
+  report precision (bank-account / 1000000) 3
+end
+
+to-report latest-profit-trimmed
+  report precision last-sale-profit 4
+end
+
+to-report penalties-paid-trimmed
+  report precision (penalties-paid / 1000000) 3
+end
+
+to-report income-from-penalties-trimmed
+  report precision (income-from-penalties / 1000000) 3
+end
 
 ;; ---------------------------------------------------------
 ;; UPDATE-CLIENTS - update the info in the clients' displays
 ;; ---------------------------------------------------------
 to update-clients
-
-  ;; Broadcast some market data
-  hubnet-broadcast "Price of Oil" precision current-price 2
+  ;; Update news and info about cheating
   if not empty? caught-cheating [ send-news-item word "Caught cheating: " caught-cheating ]
-
-  ;; Send individual data
-  ask sellers [
-    hubnet-send user-id "# Suppliers" precision num-sellers 0
-    hubnet-send user-id "Bank Account" precision (bank-account / 1000000) 3
-    hubnet-send user-id "Current Profit" precision last-sale-profit 4
-    hubnet-send user-id "Penalties Paid" precision (penalties-paid / 1000000) 3
-    hubnet-send user-id "Income From Penalties" precision (income-from-penalties / 1000000) 3
-    hubnet-send user-id "Rank" rank
-    hubnet-send user-id "Severity of Penalties" penalty-severity
-  ]
-
-  ;; Clear old news items
   if age-of-news > 15 [ send-news-item " " ]
   set age-of-news age-of-news + 1
   set caught-cheating []
@@ -432,20 +409,20 @@ to-report filter-zero-or-greater [ value ]
 end
 
 to send-news-item [ msg-text ]
-  hubnet-broadcast "Market News" msg-text
+  set news-message msg-text
   set age-of-news 0
 end
 
 to-report market-characteristics-changed?
-  report (demand-sensitivity != last-demand-sensitivity) or
-         (base-demand != last-base-demand) or
-         (marginal-cost != last-marginal-cost)
+  report (__hnw_supervisor_demand-sensitivity != last-demand-sensitivity) or
+         (__hnw_supervisor_base-demand != last-base-demand) or
+         (__hnw_supervisor_marginal-cost != last-marginal-cost)
 end
 
 to log-market-characteristics
-  set last-demand-sensitivity demand-sensitivity
-  set last-base-demand base-demand
-  set last-marginal-cost marginal-cost
+  set last-demand-sensitivity __hnw_supervisor_demand-sensitivity
+  set last-base-demand __hnw_supervisor_base-demand
+  set last-marginal-cost __hnw_supervisor_marginal-cost
 end
 
 ;; Adjust the buyer population's colors so that there is the specified number of the
@@ -504,7 +481,7 @@ end
 
 to plot-supply-and-demand
   ;; Clients don't get to see this if perfect information is off
-  if perfect-information? = false [
+  if __hnw_supervisor_perfect-information? = false [
     stop
   ]
 
@@ -513,21 +490,21 @@ to plot-supply-and-demand
 
   ;; Plot until demand crosses the x-axis (until demand's price is 0)
   let quantity 0
-  while [ (base-demand - (demand-sensitivity * quantity)) >= 0 ] [
+  while [ (__hnw_supervisor_base-demand - (__hnw_supervisor_demand-sensitivity * quantity)) >= 0 ] [
 
     ;; Plot demand
     set-current-plot-pen "Demand"
-    plot (base-demand - (demand-sensitivity * quantity))
+    plot (__hnw_supervisor_base-demand - (__hnw_supervisor_demand-sensitivity * quantity))
 
     ;; Plot marginal revenue
     set-current-plot-pen "Marginal Revenue"
-    if base-demand - (2 * demand-sensitivity * quantity) >= 0 [
-      plot (base-demand - (2 * demand-sensitivity * quantity))
+    if __hnw_supervisor_base-demand - (2 * __hnw_supervisor_demand-sensitivity * quantity) >= 0 [
+      plot (__hnw_supervisor_base-demand - (2 * __hnw_supervisor_demand-sensitivity * quantity))
     ]
 
     ;; Plot marginal cost
     set-current-plot-pen "Marginal Cost"
-    plot marginal-cost
+    plot __hnw_supervisor_marginal-cost
 
     set quantity (quantity + 1)
   ]
