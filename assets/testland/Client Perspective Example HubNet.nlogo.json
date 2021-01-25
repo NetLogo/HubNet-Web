@@ -2,10 +2,10 @@
     "roles": [
         {
             "canJoinMidRun": true,
-            "perspectiveVar": "perspective",
             "onCursorMove": null,
             "onCursorClick": null,
             "onDisconnect": "remove-student",
+            "perspectiveVar": "perspective",
             "widgets": [
                 {
                     "height": 420,
