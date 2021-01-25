@@ -20,6 +20,15 @@ globals
 
   num-infected-last-plotted ;; used in plotting only
                             ;; number of turtles that had infected? = true the last time we plotted.
+
+  __hnw_supervisor_infection-chance
+  __hnw_supervisor_android-delay
+  __hnw_supervisor_number
+  __hnw_supervisor_initial-number-sick
+  __hnw_supervisor_show-sick?
+  __hnw_supervisor_show-sick-on-clients?
+  __hnw_supervisor_android-behavior
+
 ]
 
 turtles-own
@@ -32,18 +41,11 @@ turtles-own
 breed [ androids android ]  ;; created by the CREATE ANDROIDS button; not controlled by anyone, but can become sick and spread sickness
 breed [ students student ]  ;; created and controlled by the clients
 
-students-own
-[
-  user-id  ;; unique id, input by the client when they log in, to identify each student turtle
-]
-
-
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Setup Procedures ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
 to startup
-  hubnet-reset
   setup-vars
   setup-quick-start
   reset-ticks
@@ -61,8 +63,6 @@ to cure-all
   ask turtles
   [
     set infected? false
-    if breed = students
-    [ update-sick?-monitor ]
     set shape base-shape
   ]
   set run-number run-number + 1
@@ -71,6 +71,15 @@ end
 
 ;; initialize global variables
 to setup-vars
+
+  set __hnw_supervisor_infection-chance 100
+  set __hnw_supervisor_android-delay 0.4
+  set __hnw_supervisor_number 5
+  set __hnw_supervisor_initial-number-sick 1
+  set __hnw_supervisor_show-sick? true
+  set __hnw_supervisor_show-sick-on-clients? true
+  set __hnw_supervisor_android-behavior "wander"
+
   set shape-names ["box" "star" "wheel" "target" "cat" "dog"
                    "butterfly" "leaf" "car" "airplane"
                    "monster" "key" "cow skull" "ghost"
@@ -91,7 +100,7 @@ end
 
 ;; creates turtles that wander at random
 to make-androids
-  create-androids number
+  create-androids __hnw_supervisor_number
   [
     move-to one-of patches
     face one-of neighbors4
@@ -108,14 +117,12 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
 to go
-  ;; get commands and data from the clients
-  listen-clients
 
   every 0.1
   [
     ;;allow the androids to wander around the view
-    if android-behavior = "wander" [ androids-wander ]
-    if android-behavior = "avoid" [ androids-avoid ]
+    if __hnw_supervisor_android-behavior = "wander" [ androids-wander ]
+    if __hnw_supervisor_android-behavior = "avoid" [ androids-avoid ]
 
     ask turtles with [ infected? ]
     [ spread-disease ]
@@ -131,7 +138,7 @@ end
 
 ;; controls the motion of the androids
 to androids-wander
-  every android-delay
+  every __hnw_supervisor_android-delay
   [
     ask androids
     [
@@ -143,7 +150,7 @@ end
 
 ;; androids try to avoid infected turtles
 to androids-avoid
-  every android-delay [
+  every __hnw_supervisor_android-delay [
     ask androids [
       let target one-of neighbors4 with [ not any? turtles-here with [ infected? ] ]
       ifelse target != nobody
@@ -173,7 +180,7 @@ end
 ;; turtle procedure -- roll the dice and maybe get sick
 to maybe-get-sick
   if not infected? [
-    if ((random 100) + 1) <= infection-chance
+    if ((random 100) + 1) <= __hnw_supervisor_infection-chance
     [ get-sick ] ]
 end
 
@@ -181,15 +188,13 @@ end
 to get-sick
   set infected? true
   set-sick-shape
-  if breed = students
-  [ update-sick?-monitor ]
 end
 
 ;; turtle procedure -- change the shape of turtles to its sick shape
 ;; if show-sick? is true and change the shape to the base-shape if
 ;; show-sick? is false
 to set-sick-shape
-  ifelse show-sick?
+  ifelse __hnw_supervisor_show-sick?
   [
     ;; we want to check if the turtles shape is already a sick shape
     ;; to prevent flickering in the turtles
@@ -210,7 +215,7 @@ end
 to infect-turtles
   let healthy-turtles turtles with [ not infected? ]
 
-  ifelse count healthy-turtles < initial-number-sick
+  ifelse count healthy-turtles < __hnw_supervisor_initial-number-sick
   [
     ask healthy-turtles
     [
@@ -221,7 +226,7 @@ to infect-turtles
     stop
   ]
   [
-    ask n-of initial-number-sick healthy-turtles
+    ask n-of __hnw_supervisor_initial-number-sick healthy-turtles
     [
       get-sick
       set-sick-shape
@@ -233,51 +238,20 @@ end
 ;; HubNet Procedures ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
-;; determines which client sent a command, and what the command was
-to listen-clients
-  while [ hubnet-message-waiting? ]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-new-student ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-student ]
-      [
-        ask students with [ user-id = hubnet-message-source ]
-          [ execute-command hubnet-message-tag ]
-      ]
-    ]
-  ]
-
-  ask students
-    [ update-sick?-monitor ]
+to move-up
+  execute-move 0
 end
 
-;; NetLogo knows what each student turtle is supposed to be
-;; doing based on the tag sent by the node:
-;; step-size - set the turtle's step-size
-;; Up    - make the turtle move up by step-size
-;; Down  - make the turtle move down by step-size
-;; Right - make the turtle move right by step-size
-;; Left  - make the turtle move left by step-size
-;; Get a Different Turtle - change the turtle's shape and color
-to execute-command [command]
-  if command = "step-size"
-  [
-    set step-size hubnet-message
-    stop
-  ]
-  if command = "Up"
-  [ execute-move 0 stop ]
-  if command = "Down"
-  [ execute-move 180 stop ]
-  if command = "Right"
-  [ execute-move 90 stop ]
-  if command = "Left"
-  [ execute-move 270 stop ]
-  if command = "Change Appearance"
-  [ execute-change-turtle stop ]
+to move-right
+  execute-move 90
+end
+
+to move-down
+  execute-move 180
+end
+
+to move-left
+  execute-move 270
 end
 
 ;; Create a turtle, set its shape, color, and position
@@ -286,7 +260,6 @@ to create-new-student
   create-students 1
   [
     setup-student-vars
-    send-info-to-clients
     ;; we want to make sure that the clients all have the same plot ranges,
     ;; so when somebody logs in, set the plot ranges to themselves so that
     ;; everybody will have the same size plots.
@@ -297,7 +270,6 @@ end
 
 ;; sets the turtle variables to appropriate initial values
 to setup-student-vars  ;; turtle procedure
-  set user-id hubnet-message-source
   set-unique-shape-and-color
   move-to one-of patches
   face one-of neighbors4
@@ -323,27 +295,22 @@ to-report color-string [color-value]
   report item (position color-value colors) color-names
 end
 
-;; sends the appropriate monitor information back to the client
-to send-info-to-clients
-  hubnet-send user-id "You are a:" (word (color-string color) " " base-shape)
-  hubnet-send user-id "Located at:" (word "(" pxcor "," pycor ")")
-  update-sick?-monitor
+to-report my-description
+  report (word (color-string color) " " base-shape)
 end
 
-to update-sick?-monitor
-  ifelse show-sick-on-clients?
-  [ hubnet-send user-id "Sick?" infected? ]
-  [ hubnet-send user-id "Sick?" "N/A" ]
+to-report my-location
+  report (word "(" pxcor "," pycor ")")
+end
+
+to-report my-status
+  report ifelse-value (show-sick-on-clients?) [ infected? ] [ "N/A" ]
 end
 
 ;; Kill the turtle, set its shape, color, and position
 ;; and tell the node what its turtle looks like and where it is
 to remove-student
-  ask students with [user-id = hubnet-message-source]
-  [
-    set used-shape-colors remove my-code used-shape-colors
-    die
-  ]
+  set used-shape-colors remove my-code used-shape-colors
 end
 
 ;; translates a student turtle's shape and color into a code
@@ -355,22 +322,17 @@ end
 to execute-move [new-heading]
   set heading new-heading
   fd step-size
-  hubnet-send user-id "Located at:" (word "(" pxcor "," pycor ")")
 
   ;; maybe infect or get infected by turtles on the patch student moved to
   student-move-check-infect
 end
 
 to execute-change-turtle
-  ask students with [user-id = hubnet-message-source]
-  [
-    set used-shape-colors remove my-code used-shape-colors
-    show-turtle
-    set-unique-shape-and-color
-    hubnet-send user-id "You are a:" (word (color-string color) " " base-shape)
-    if infected?
-    [ set-sick-shape ]
-  ]
+  set used-shape-colors remove my-code used-shape-colors
+  show-turtle
+  set-unique-shape-and-color
+  if infected?
+  [ set-sick-shape ]
 end
 
 ;;; this procedure is handy for testing out additional shapes and colors;
@@ -456,6 +418,13 @@ to view-prev
   set quick-start (item qs-item qs-items)
 end
 
+to-report turtle-count
+  report count turtles
+end
+
+to-report infected-count
+  report count turtles with [infected?]
+end
 
 ; Copyright 1999 Uri Wilensky.
 ; See Info tab for full copyright and license.

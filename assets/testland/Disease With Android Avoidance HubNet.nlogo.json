@@ -4,7 +4,7 @@
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
-            "onDisconnect": "???DC",
+            "onDisconnect": "remove-student",
             "widgets": [
                 {
                     "height": 420,
@@ -21,10 +21,10 @@
                     "display": "Up",
                     "disableUntilTicksStart": true,
                     "left": 91,
-                    "buttonKind": "???3",
+                    "buttonKind": "turtle-procedure",
                     "actionKey": "I",
-                    "source": "???1",
-                    "hnwProcName": "???2",
+                    "source": "move-up",
+                    "hnwProcName": "move-up",
                     "right": 153,
                     "type": "hnwButton",
                     "top": 133
@@ -35,10 +35,10 @@
                     "display": "Down",
                     "disableUntilTicksStart": true,
                     "left": 91,
-                    "buttonKind": "???3",
+                    "buttonKind": "turtle-procedure",
                     "actionKey": "K",
-                    "source": "???1",
-                    "hnwProcName": "???2",
+                    "source": "move-down",
+                    "hnwProcName": "move-down",
                     "right": 153,
                     "type": "hnwButton",
                     "top": 199
@@ -49,10 +49,10 @@
                     "display": "Right",
                     "disableUntilTicksStart": true,
                     "left": 153,
-                    "buttonKind": "???3",
+                    "buttonKind": "turtle-procedure",
                     "actionKey": "L",
-                    "source": "???1",
-                    "hnwProcName": "???2",
+                    "source": "move-right",
+                    "hnwProcName": "move-right",
                     "right": 215,
                     "type": "hnwButton",
                     "top": 166
@@ -63,10 +63,10 @@
                     "display": "Left",
                     "disableUntilTicksStart": true,
                     "left": 29,
-                    "buttonKind": "???3",
+                    "buttonKind": "turtle-procedure",
                     "actionKey": "J",
-                    "source": "???1",
-                    "hnwProcName": "???2",
+                    "source": "move-left",
+                    "hnwProcName": "move-left",
                     "right": 91,
                     "type": "hnwButton",
                     "top": 166
@@ -90,9 +90,9 @@
                     "display": "Located at:",
                     "left": 156,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-procedure",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "my-location",
                     "right": 243,
                     "type": "hnwMonitor",
                     "top": 10
@@ -102,9 +102,9 @@
                     "display": "You are a:",
                     "left": 3,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-procedure",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "my-description",
                     "right": 153,
                     "type": "hnwMonitor",
                     "top": 10
@@ -114,9 +114,9 @@
                     "display": "Sick?",
                     "left": 156,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-procedure",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "my-status",
                     "right": 243,
                     "type": "hnwMonitor",
                     "top": 79
@@ -127,9 +127,9 @@
                     "display": "Change Appearance",
                     "disableUntilTicksStart": true,
                     "left": 3,
-                    "buttonKind": "???3",
-                    "source": "???1",
-                    "hnwProcName": "???2",
+                    "buttonKind": "turtle",
+                    "source": "execute-change-turtle",
+                    "hnwProcName": "execute-change-turtle",
                     "right": 153,
                     "type": "hnwButton",
                     "top": 57
@@ -155,7 +155,7 @@
                 }
             ],
             "name": "student",
-            "onConnect": "???Connect",
+            "onConnect": "create-new-student",
             "limit": -1,
             "isSpectator": false
         },
@@ -163,7 +163,7 @@
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
-            "onDisconnect": "???DC",
+            "onDisconnect": null,
             "widgets": [
                 {
                     "height": 428,
@@ -173,18 +173,6 @@
                     "right": 715,
                     "type": "hnwView",
                     "top": 94
-                },
-                {
-                    "forever": true,
-                    "bottom": 43,
-                    "left": 131,
-                    "buttonKind": "observer",
-                    "source": "go",
-                    "hnwProcName": "go",
-                    "right": 209,
-                    "type": "hnwButton",
-                    "top": 10,
-                    "disableUntilTicksStarts": false
                 },
                 {
                     "max": "100",
@@ -301,9 +289,9 @@
                     "display": "Turtles",
                     "left": 37,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "procedure",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "turtle-count",
                     "right": 127,
                     "type": "hnwMonitor",
                     "top": 309
@@ -313,9 +301,9 @@
                     "display": "Number Sick",
                     "left": 128,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "procedure",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "infected-count",
                     "right": 218,
                     "type": "hnwMonitor",
                     "top": 309
@@ -333,18 +321,6 @@
                     "right": 231,
                     "type": "hnwSlider",
                     "top": 79
-                },
-                {
-                    "forever": false,
-                    "bottom": 43,
-                    "left": 53,
-                    "buttonKind": "observer",
-                    "source": "setup",
-                    "hnwProcName": "setup",
-                    "right": 130,
-                    "type": "hnwButton",
-                    "top": 10,
-                    "disableUntilTicksStarts": true
                 },
                 {
                     "bottom": 146,
@@ -413,9 +389,9 @@
                     "display": "Quick Start Instructions- More in Info Window",
                     "left": 287,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "quick-start",
                     "right": 707,
                     "type": "hnwMonitor",
                     "top": 10
@@ -440,14 +416,14 @@
                     "currentChoice": 1,
                     "right": 137,
                     "choices": [
-                        "tay\" \"wander\" \"avoi"
+                        "stay", "wander", "avoid"
                     ],
                     "type": "hnwChooser",
                     "top": 252
                 }
             ],
             "name": "supervisor",
-            "onConnect": "???Connect",
+            "onConnect": null,
             "limit": 1,
             "isSpectator": true
         }
