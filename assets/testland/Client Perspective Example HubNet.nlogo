@@ -1,13 +1,16 @@
 breed [students student]
 
+globals [ __hnw_supervisor_radius ]
+
 students-own
 [
   user-id
   step-size
+  perspective
 ]
 
 to startup
-  hubnet-reset
+  set __hnw_supervisor_radius 2
 end
 
 to setup
@@ -17,13 +20,11 @@ to setup
   ask turtles
   [
     set step-size 1
-    hubnet-send user-id "step-size" step-size
   ]
   reset-ticks
 end
 
 to go
-  listen-clients
   every 0.1
   [
     tick
@@ -34,64 +35,61 @@ end
 ;; HubNet Procedures
 ;;
 
-to listen-clients
-  while [hubnet-message-waiting?]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-new-student ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-student ]
-      [ ask students with [user-id = hubnet-message-source]
-        [ execute-command hubnet-message-tag ]
-      ]
-    ]
-  ]
-end
-
-to create-new-student
+to create-new-student [username]
   create-students 1
   [
-    set user-id hubnet-message-source
+    set user-id username
     set label user-id
     set step-size 1
     pen-down
-    send-info-to-clients
   ]
 end
 
-to remove-student
-  ask students with [user-id = hubnet-message-source]
-  [ die ]
+to move-up
+  execute-move 0
 end
 
-to execute-command [command]
-  if command = "step-size"
-  [
-    set step-size hubnet-message
-    stop
-  ]
-  if command = "up"
-  [ execute-move 0 stop ]
-  if command = "down"
-  [ execute-move 180 stop ]
-  if command = "right"
-  [ execute-move 90 stop ]
-  if command = "left"
-  [ execute-move 270 stop ]
+to move-down
+  execute-move 180
 end
 
-to send-info-to-clients ;; turtle procedure
-  hubnet-send user-id "location" (word "(" pxcor "," pycor ")")
+to move-left
+  execute-move 270
+end
+
+to move-right
+  execute-move 90
+end
+
+to-report location ;; turtle procedure
+  report (word "(" pxcor "," pycor ")")
 end
 
 to execute-move [new-heading]
   set heading new-heading
   fd step-size
-  send-info-to-clients
 end
 
+to enable-student-follow
+  ask students
+  [
+    set perspective (list "follow" self __hnw_supervisor_radius)
+  ]
+end
+
+to enable-student-watch
+  ask students
+  [
+    set perspective (list "watch" self)
+  ]
+end
+
+to disable-student-perspectives
+  ask students
+  [
+    set perspective []
+  ]
+end
 
 ; Public Domain:
 ; To the extent possible under law, Uri Wilensky has waived all
@@ -164,7 +162,7 @@ BUTTON
 454
 539
 NIL
-ask students [ hubnet-send-follow user-id self radius ]
+ask students [ set perspective (list "follow" self radius) ]
 NIL
 1
 T
@@ -181,7 +179,7 @@ BUTTON
 454
 573
 NIL
-ask students [ hubnet-send-watch user-id self ]
+ask students [ set perspective (list "watch" self) ]
 NIL
 1
 T
@@ -217,7 +215,7 @@ SLIDER
 radius
 radius
 0
-max-pxcor
+max-pxcor ;; TODO: This was throwing a JS error, as the JS was `return max-pxcor`, and somehow not compiled; I replaced it in the JSON with the literal value
 2.0
 1
 1
