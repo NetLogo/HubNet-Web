@@ -60,6 +60,24 @@ globals
   bottom-ground-previous-value  ;; keeps track of previous bottom-ground value from that chooser, in case it is changed while GO/STOP is running
   top-water-previous-value      ;; keeps track of previous top-water value from that chooser, in case it is changed while GO/STOP is running
   bottom-water-previous-value   ;; keeps track of previous bottom-water value from that chooser, in case it is changed while GO/STOP is running
+
+  __hnw_supervisor_tank-capacity
+  __hnw_supervisor_client-roles
+  __hnw_supervisor_amount-of-debris
+  __hnw_supervisor_color-mutations?
+  __hnw_supervisor_spot-mutations?
+  __hnw_supervisor_swim-mutations?
+  __hnw_supervisor_top-ground
+  __hnw_supervisor_bottom-ground
+  __hnw_supervisor_top-water
+  __hnw_supervisor_bottom-water
+  __hnw_supervisor_top-flow
+  __hnw_supervisor_bottom-flow
+  __hnw_supervisor_size-mutations?
+  __hnw_supervisor_bottom-initial-fish
+  __hnw_supervisor_top-initial-fish
+  __hnw_supervisor_listening?
+
 ]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -67,8 +85,6 @@ globals
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 to startup
-  ;; standard HubNet setup
-  hubnet-reset
   setup-clear
 end
 
@@ -76,6 +92,24 @@ end
 ;; so we don't necessarily want to do this each time we setup
 to setup-clear
   clear-all
+
+  set __hnw_supervisor_tank-capacity 15
+  set __hnw_supervisor_client-roles "all mates"
+  set __hnw_supervisor_amount-of-debris 100
+  set __hnw_supervisor_color-mutations? true
+  set __hnw_supervisor_spot-mutations? true
+  set __hnw_supervisor_swim-mutations? false
+  set __hnw_supervisor_top-ground "sand"
+  set __hnw_supervisor_bottom-ground "plants"
+  set __hnw_supervisor_top-water "ripples"
+  set __hnw_supervisor_bottom-water "debris"
+  set __hnw_supervisor_top-flow 0.16
+  set __hnw_supervisor_bottom-flow 0.06
+  set __hnw_supervisor_size-mutations? true
+  set __hnw_supervisor_bottom-initial-fish "multi-colored"
+  set __hnw_supervisor_top-initial-fish "multi-colored"
+  set __hnw_supervisor_listening? true
+
   set adult-age 20
   set offspring-distance 3
   setup
@@ -130,10 +164,6 @@ to setup
   adjust-fish-population-size-to-carrying-capacity
 
   calculate-statistics
-  ask players [
-    send-player-info
-    broadcast-competition-info
-  ]
   tick
 end
 
@@ -152,17 +182,17 @@ to make-one-initial-fish [in-tank]
 end
 
 to assign-initial-color-genes ;; fish procedure
-  if (top-initial-fish = "multi-colored" and tank = 1) or (bottom-initial-fish = "multi-colored" and tank = 2) [
+  if (__hnw_supervisor_top-initial-fish = "multi-colored" and tank = 1) or (__hnw_supervisor_bottom-initial-fish = "multi-colored" and tank = 2) [
     set red-gene        (random 255)
     set blue-gene       (random 255)
     set green-gene      (random 255)
   ]
-  if (top-initial-fish = "all gray" and tank = 1) or (bottom-initial-fish = "all gray" and tank = 2) [
+  if (__hnw_supervisor_top-initial-fish = "all gray" and tank = 1) or (__hnw_supervisor_bottom-initial-fish = "all gray" and tank = 2) [
     set red-gene   150
     set blue-gene  150
     set green-gene 150
   ]
-  if (top-initial-fish = "black or white" and tank = 1) or (bottom-initial-fish = "black or white" and tank = 2) [
+  if (__hnw_supervisor_top-initial-fish = "black or white" and tank = 1) or (__hnw_supervisor_bottom-initial-fish = "black or white" and tank = 2) [
     ifelse random 2 = 0 [
        set red-gene 0
        set blue-gene 0
@@ -194,11 +224,11 @@ to change-bottom
   let top-patches patches with [pycor > 0]
 
   clear-drawing
-  create-rocks 1 [set shape top-ground set which-tank "top tank"]
-  create-rocks 1 [set shape bottom-ground set which-tank "bottom tank"]
+  create-rocks 1 [set shape __hnw_supervisor_top-ground set which-tank "top tank"]
+  create-rocks 1 [set shape __hnw_supervisor_bottom-ground set which-tank "bottom tank"]
 
-  ask top-patches [ set pcolor ground-color top-ground ]
-  ask bottom-patches [ set pcolor ground-color bottom-ground ]
+  ask top-patches [ set pcolor ground-color __hnw_supervisor_top-ground ]
+  ask bottom-patches [ set pcolor ground-color __hnw_supervisor_bottom-ground ]
 
   ;; 3000 repetitions ensures that the bottom looks covered with rocks or plants or sand
   repeat 3000 [
@@ -269,7 +299,6 @@ to go
     check-debris-count
     check-changed-tank
   ]
-  listen-clients
   move-debris
   wander
   ask fish [grow-this-fish]
@@ -313,13 +342,13 @@ to adjust-fish-population-size-to-carrying-capacity
   ;; adjust top tank
   if #-fish-top-tank = 0 [
     ;; if all the fish are removed by predators at once, make a new batch of random fish
-    create-fish tank-capacity [make-one-initial-fish 1]
+    create-fish __hnw_supervisor_tank-capacity [make-one-initial-fish 1]
   ]
-  if #-fish-top-tank < tank-capacity [
+  if #-fish-top-tank < __hnw_supervisor_tank-capacity [
     ;; reproduce random other fish until you've reached the carrying capacity
     ask one-of fish with [tank = 1][ make-one-offspring-fish ]
   ]
-  if #-fish-top-tank > tank-capacity [
+  if #-fish-top-tank > __hnw_supervisor_tank-capacity [
     ;; remove other fish until you've reached the carrying capacity
     ask one-of fish with [tank = 1][ remove-fish ]
   ]
@@ -327,13 +356,13 @@ to adjust-fish-population-size-to-carrying-capacity
   ;; adjust bottom tank
   if #-fish-bottom-tank = 0 [
     ;; if all the fish are removed by predators at once, make a new batch of random fish
-    create-fish tank-capacity [make-one-initial-fish 2]
+    create-fish __hnw_supervisor_tank-capacity [make-one-initial-fish 2]
   ]
-  if #-fish-bottom-tank < tank-capacity [
+  if #-fish-bottom-tank < __hnw_supervisor_tank-capacity [
     ;; reproduce random other fish until you've reached the carrying capacity
     ask one-of fish with [tank = 2][ make-one-offspring-fish ]
   ]
-  if #-fish-bottom-tank > tank-capacity [
+  if #-fish-bottom-tank > __hnw_supervisor_tank-capacity [
     ;; remove other fish until you've reached the carrying capacity
     ask one-of fish with [tank = 2][ remove-fish ]
   ]
@@ -348,10 +377,10 @@ to make-one-offspring-fish ;; fish procedure
   hatch 1
   [
      set size 0
-     if color-mutations? [mutate-body-color]
-     if spot-mutations? [mutate-spot-transparency]
-     if swim-mutations? [mutate-motion]
-     if swim-mutations? [mutate-size]
+     if __hnw_supervisor_color-mutations? [mutate-body-color]
+     if __hnw_supervisor_spot-mutations? [mutate-spot-transparency]
+     if __hnw_supervisor_swim-mutations? [mutate-motion]
+     if __hnw_supervisor_swim-mutations? [mutate-size]
      add-fish-spots
      color-this-fish
      grow-this-fish
@@ -402,17 +431,17 @@ to move-debris
   let top-debris debris with [tank = 1]
   let bottom-debris debris with [tank = 2]
   ask debris [
-    if (top-water = "debris" and tank = 1) or (bottom-water = "debris" and tank = 2) [rt random-float 10 lt random-float 10] ;; drift
-    if tank = 1 [fd top-flow ]
-    if tank = 2 [fd bottom-flow ]
+    if (__hnw_supervisor_top-water = "debris" and tank = 1) or (__hnw_supervisor_bottom-water = "debris" and tank = 2) [rt random-float 10 lt random-float 10] ;; drift
+    if tank = 1 [fd __hnw_supervisor_top-flow ]
+    if tank = 2 [fd __hnw_supervisor_bottom-flow ]
     ifelse type-of-patch = "outside-tank" [set hidden? true][set hidden? false]
     if pycor = 0 or pycor = min-pycor or pycor = max-pycor [die]
   ]
 end
 
 to check-changed-tank
-  let ground-changed (top-ground != top-ground-previous-value or bottom-ground != bottom-ground-previous-value)
-  let water-changed (top-water != top-water-previous-value or bottom-water != bottom-water-previous-value)
+  let ground-changed (__hnw_supervisor_top-ground != top-ground-previous-value or __hnw_supervisor_bottom-ground != bottom-ground-previous-value)
+  let water-changed (__hnw_supervisor_top-water != top-water-previous-value or __hnw_supervisor_bottom-water != bottom-water-previous-value)
   if ground-changed or water-changed [
       if ground-changed [user-message "this change will take a few seconds" change-bottom]
       if water-changed [ask debris [set-debris-appearance] ]
@@ -421,10 +450,10 @@ to check-changed-tank
 end
 
 to update-tank-states
-  set top-ground-previous-value top-ground
-  set bottom-ground-previous-value bottom-ground
-  set top-water-previous-value top-water
-  set bottom-water-previous-value bottom-water
+  set top-ground-previous-value __hnw_supervisor_top-ground
+  set bottom-ground-previous-value __hnw_supervisor_bottom-ground
+  set top-water-previous-value __hnw_supervisor_top-water
+  set bottom-water-previous-value __hnw_supervisor_bottom-water
 end
 
 to check-debris-count
@@ -434,7 +463,7 @@ to check-debris-count
   foreach [1 2] [ this-tank ->
    set floating-debris debris with [tank = this-tank]
    set tank-patches patches with [tank = this-tank]
-   set target-debris round ((amount-of-debris / 100) * count tank-patches)
+   set target-debris round ((__hnw_supervisor_amount-of-debris / 100) * count tank-patches)
    if target-debris > count floating-debris  ;; need more debris
      [ ask n-of (target-debris - count floating-debris) tank-patches [setup-debris-at-this-patch] ]
    if target-debris < count floating-debris  ;; need less debris
@@ -450,15 +479,15 @@ to setup-debris-at-this-patch
 end
 
 to set-debris-appearance
-  if top-water = "clear" and tank = 1 [
+  if __hnw_supervisor_top-water = "clear" and tank = 1 [
     set heading 90
     set shape "empty"
   ]
-  if bottom-water = "clear" and tank = 2 [
+  if __hnw_supervisor_bottom-water = "clear" and tank = 2 [
     set heading 90
     set shape "empty"
   ]
-  if top-water = "ripples" and tank = 1 [
+  if __hnw_supervisor_top-water = "ripples" and tank = 1 [
     set heading 0
     bk 0.5
     fd random-float 1
@@ -468,7 +497,7 @@ to set-debris-appearance
     set color ripple-debris-color
     set shape "ripples"
   ]
-  if bottom-water = "ripples" and tank = 2 [
+  if __hnw_supervisor_bottom-water = "ripples" and tank = 2 [
     set heading 0
     bk 0.5
     fd random-float 1
@@ -478,12 +507,12 @@ to set-debris-appearance
     set color ripple-debris-color
     set shape "ripples"
   ]
-  if top-water = "debris" and tank = 1 [
+  if __hnw_supervisor_top-water = "debris" and tank = 1 [
     set heading random 360
     set color (list 0 (100 + random 155) 0 (50 + random 205))
     set shape "debris"
   ]
-  if bottom-water = "debris" and tank = 2 [
+  if __hnw_supervisor_bottom-water = "debris" and tank = 2 [
     set heading random 360
     set color (list 0 (100 + random 155) 0 (50 + random 205))
     set shape "debris"
@@ -494,29 +523,10 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; HubNet Procedures ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-to listen-clients
-  while [hubnet-message-waiting?] [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ add-player ]
-    [
-     ifelse hubnet-exit-message?
-       [ remove-player ]
-       [
-         if ( listening? ) [
-           if hubnet-message-tag = "View" [
-             ask players with [ user-name = hubnet-message-source ] [check-caught-fish]
-           ]
-         ]
-       ]
-    ]
-  ]
-end
-
 ;; when a client logs in make a new player and give it the default attributes
-to add-player
+to add-player [username]
  create-players 1 [
-    set user-name hubnet-message-source
+    set user-name username
     initialize-player
   ]
 end
@@ -525,55 +535,41 @@ to initialize-player ;; player procedure
   hide-turtle
   set number-of-mates count players with [role = "mate"]
   set number-of-predators count players with [role = "predator"]
-  if client-roles = "all mates"     [set role "mate"]
-  if client-roles = "all predators" [set role "predator"]
-  if client-roles = "mix of mates & predators" [
+  if __hnw_supervisor_client-roles = "all mates"     [set role "mate"]
+  if __hnw_supervisor_client-roles = "all predators" [set role "predator"]
+  if __hnw_supervisor_client-roles = "mix of mates & predators" [
     ifelse number-of-mates >= number-of-predators
       [set role "predator"]
       [set role "mate"]
   ]
   set attempts 0
   set caught 0
-
-  send-player-info
-  broadcast-competition-info
 end
 
 to check-change-player-roles
   set number-of-mates count players with [role = "mate"]
   set number-of-predators count players with [role = "predator"]
 
-  if old-client-roles != client-roles [
+  if old-client-roles != __hnw_supervisor_client-roles [
     ask players [
       set number-of-mates count players with [role = "mate"]
       set number-of-predators count players with [role = "predator"]
-      if client-roles = "all mates" [set role "mate"]
-      if client-roles = "all predators" [set role "predator"]
-      if client-roles = "mix of mates & predators"  [
+      if __hnw_supervisor_client-roles = "all mates" [set role "mate"]
+      if __hnw_supervisor_client-roles = "all predators" [set role "predator"]
+      if __hnw_supervisor_client-roles = "mix of mates & predators"  [
         ifelse number-of-mates >= number-of-predators [set role "predator"] [set role "mate"]
       ]
-      send-player-info
-      broadcast-competition-info
     ]
-    set old-client-roles client-roles
+    set old-client-roles __hnw_supervisor_client-roles
   ]
 end
 
-;; when clients log out simply get rid of the player turtle
-to remove-player
-  ask players with [ user-name = hubnet-message-source ] [ die ]
-end
+to check-caught-fish [clicked-xcor clicked-ycor]
+  if __hnw_supervisor_listening? [
+    let this-tank 0
+    if clicked-ycor > 0 [set this-tank 1]
+    if clicked-ycor < 0 [set this-tank 2]
 
-to check-caught-fish
-  ;; extract the coords from the hubnet message
-  let clicked-xcor (item 0 hubnet-message)
-  let clicked-ycor (item 1 hubnet-message)
-  let this-tank 0
-  if clicked-ycor > 0 [set this-tank 1]
-  if clicked-ycor < 0 [set this-tank 2]
-
-  ask players with [ user-name = hubnet-message-source ]
-  [
     let this-player-role role
     set xcor clicked-xcor      ;; go to the location of the click
     set ycor clicked-ycor
@@ -584,7 +580,7 @@ to check-caught-fish
     ;;  if they click within one shape radius (approximately since the shape of the fish isn't
     ;;  a perfect circle, even if the size of the fish is other than 1)
     let candidates fish with [(distance myself) < size / 2 and tank = this-tank]
-    ifelse any? candidates
+    if any? candidates
     [
       ;; randomly select one of the fish you clicked on
       let caught-fish one-of candidates
@@ -603,32 +599,16 @@ to check-caught-fish
       update-leader-stats
       ;; all the players have monitors displaying information about the leader
       ;; so we need to make sure that gets updated when the leader changed
-      ask players
-      [
-        send-player-info
-        broadcast-competition-info
-      ]
     ]
-    ;; even if we didn't catch a fish we need to update the attempts monitor
-    [ send-player-info broadcast-competition-info]
   ]
 end
 
-;; update the monitors on the client
-to send-player-info ;; player procedure
-  hubnet-send user-name "Your name" user-name
-  hubnet-send user-name "Your role" role
-  hubnet-send user-name "You have found" caught
-  hubnet-send user-name "# Attempts"  attempts
+to-report mate-count
+  report count players with [role = "mate"]
 end
 
-to broadcast-competition-info
-  hubnet-broadcast "# of predators" count players with [role = "predator"]
-  hubnet-broadcast "Top predator" predator-leader
-  hubnet-broadcast "Top predator's catches" predator-leader-caught
-  hubnet-broadcast "# of mates" count players with [role = "mate"]
-  hubnet-broadcast "Top mate" mate-leader
-  hubnet-broadcast "Top mate's matings" mate-leader-caught
+to-report predator-count
+  report count players with [role = "predator"]
 end
 
 ;; do the bookkeeping to display the proper leader and score
@@ -710,8 +690,8 @@ end
 
 to-report my-tank
   let value-to-report ""
-  if which-tank = "top tank"    [ set value-to-report top-ground]
-  if which-tank = "bottom tank" [ set value-to-report  bottom-ground]
+  if which-tank = "top tank"    [ set value-to-report __hnw_supervisor_top-ground]
+  if which-tank = "bottom tank" [ set value-to-report  __hnw_supervisor_bottom-ground]
   report value-to-report
 end
 
