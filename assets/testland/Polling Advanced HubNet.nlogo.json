@@ -4,16 +4,17 @@
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
-            "onDisconnect": "???DC",
+            "onDisconnect": "execute-disconnect",
             "widgets": [
+                { "type": "hnwView", "left": 800, "right": 801, "top": 0, "bottom": 1, "height": 1, "width": 1 },
                 {
                     "bottom": 177,
                     "display": "Question Three",
                     "left": 14,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "question-three",
                     "right": 558,
                     "type": "hnwMonitor",
                     "top": 128
@@ -23,9 +24,9 @@
                     "display": "Question Number",
                     "left": 14,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "my-current-question",
                     "right": 123,
                     "type": "hnwMonitor",
                     "top": 14
@@ -34,11 +35,11 @@
                     "forever": false,
                     "bottom": 220,
                     "display": "<<PREV",
-                    "disableUntilTicksStart": true,
+                    "disableUntilTicksStart": false,
                     "left": 174,
-                    "buttonKind": "???3",
-                    "source": "???1",
-                    "hnwProcName": "???2",
+                    "buttonKind": "turtle-procedure",
+                    "source": "execute-prev",
+                    "hnwProcName": "execute-prev",
                     "right": 275,
                     "type": "hnwButton",
                     "top": 187
@@ -47,11 +48,11 @@
                     "forever": false,
                     "bottom": 220,
                     "display": "NEXT>>",
-                    "disableUntilTicksStart": true,
+                    "disableUntilTicksStart": false,
                     "left": 285,
-                    "buttonKind": "???3",
-                    "source": "???1",
-                    "hnwProcName": "???2",
+                    "buttonKind": "turtle-procedure",
+                    "source": "execute-next",
+                    "hnwProcName": "execute-next",
                     "right": 391,
                     "type": "hnwButton",
                     "top": 187
@@ -63,7 +64,7 @@
                     "direction": "horizontal",
                     "default": 25,
                     "left": 122,
-                    "variable": "Choice",
+                    "variable": "slider-value",
                     "step": 1,
                     "min": "0.0",
                     "right": 428,
@@ -74,12 +75,12 @@
                     "forever": false,
                     "bottom": 378,
                     "display": "Choose",
-                    "disableUntilTicksStart": true,
+                    "disableUntilTicksStart": false,
                     "left": 206,
-                    "buttonKind": "???3",
+                    "buttonKind": "turtle-procedure",
                     "actionKey": "C",
-                    "source": "???1",
-                    "hnwProcName": "???2",
+                    "source": "execute-choose",
+                    "hnwProcName": "execute-choose",
                     "right": 351,
                     "type": "hnwButton",
                     "top": 345
@@ -87,9 +88,9 @@
                 {
                     "bottom": 557,
                     "left": 13,
-                    "variable": "Typed-Response",
+                    "variable": "typed-response",
                     "boxedValue": {
-                        "value": "Click on the CHANGE button \\n(in the top right corner of this widget)\\nto type a response.",
+                        "value": "",
                         "multiline": true,
                         "type": "String"
                     },
@@ -102,9 +103,9 @@
                     "display": "Current Choice",
                     "left": 204,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "my-choice",
                     "right": 350,
                     "type": "hnwMonitor",
                     "top": 252
@@ -114,9 +115,9 @@
                     "display": "Question Two",
                     "left": 14,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "question-two",
                     "right": 558,
                     "type": "hnwMonitor",
                     "top": 99
@@ -126,16 +127,16 @@
                     "display": "Question",
                     "left": 14,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "question-one",
                     "right": 558,
                     "type": "hnwMonitor",
                     "top": 69
                 }
             ],
-            "name": "student",
-            "onConnect": "???Connect",
+            "name": "poll-client",
+            "onConnect": "execute-create",
             "limit": -1,
             "isSpectator": false
         },
@@ -143,7 +144,7 @@
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
-            "onDisconnect": "???DC",
+            "onDisconnect": null,
             "widgets": [
                 {
                     "height": 281,
@@ -153,19 +154,6 @@
                     "right": 598,
                     "type": "hnwView",
                     "top": 142
-                },
-                {
-                    "forever": true,
-                    "bottom": 63,
-                    "display": "GO",
-                    "left": 270,
-                    "buttonKind": "observer",
-                    "source": "go",
-                    "hnwProcName": "go",
-                    "right": 380,
-                    "type": "hnwButton",
-                    "top": 10,
-                    "disableUntilTicksStarts": true
                 },
                 {
                     "bottom": 396,
@@ -242,9 +230,9 @@
                     "display": "Current Question",
                     "left": 64,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "procedure",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "current-question-string",
                     "right": 461,
                     "type": "hnwMonitor",
                     "top": 78
@@ -339,9 +327,9 @@
                     "display": "Number",
                     "left": 9,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "current-question",
                     "right": 65,
                     "type": "hnwMonitor",
                     "top": 78
@@ -364,7 +352,7 @@
                     "currentChoice": 0,
                     "right": 721,
                     "choices": [
-                        "it\" \"Wander\" \"Line-Up\" \"Word-Sor"
+                        "Sit", "Wander", "Line-Up", "Word-Sort"
                     ],
                     "type": "hnwChooser",
                     "top": 179
@@ -374,9 +362,9 @@
                     "display": "Who is it?",
                     "left": 602,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "procedure",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "who-it-is",
                     "right": 721,
                     "type": "hnwMonitor",
                     "top": 227
@@ -440,23 +428,10 @@
                     "currentChoice": 0,
                     "right": 309,
                     "choices": [
-                        "istogram\" \"Averag"
+                        "Histogram", "Average"
                     ],
                     "type": "hnwChooser",
                     "top": 403
-                },
-                {
-                    "forever": false,
-                    "bottom": 62,
-                    "display": "SETUP",
-                    "left": 8,
-                    "buttonKind": "observer",
-                    "source": "setup-prompt",
-                    "hnwProcName": "setup-prompt",
-                    "right": 102,
-                    "type": "hnwButton",
-                    "top": 10,
-                    "disableUntilTicksStarts": true
                 },
                 {
                     "forever": false,
@@ -528,9 +503,9 @@
                     "display": "NIL",
                     "left": 602,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "sort-up",
                     "right": 720,
                     "type": "hnwMonitor",
                     "top": 286
@@ -540,9 +515,9 @@
                     "display": "NIL",
                     "left": 602,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "sort-right",
                     "right": 720,
                     "type": "hnwMonitor",
                     "top": 372
@@ -565,9 +540,9 @@
                     "display": "Current Question",
                     "left": 916,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "procedure",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "current-question-string",
                     "right": 1448,
                     "type": "hnwMonitor",
                     "top": 312
@@ -577,9 +552,9 @@
                     "display": "Number",
                     "left": 852,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "current-question",
                     "right": 915,
                     "type": "hnwMonitor",
                     "top": 312
@@ -611,38 +586,13 @@
                     "disableUntilTicksStarts": true
                 },
                 {
-                    "bottom": 100,
-                    "display": "Auto-save directory",
-                    "left": 1070,
-                    "precision": 3,
-                    "reporterStyle": "???2",
-                    "fontSize": 11,
-                    "source": "???1",
-                    "right": 1529,
-                    "type": "hnwMonitor",
-                    "top": 55
-                },
-                {
-                    "forever": false,
-                    "bottom": 104,
-                    "display": "CHANGE ->",
-                    "left": 987,
-                    "buttonKind": "observer",
-                    "source": "auto-save-directory-change",
-                    "hnwProcName": "auto-save-directory-change",
-                    "right": 1068,
-                    "type": "hnwButton",
-                    "top": 55,
-                    "disableUntilTicksStarts": true
-                },
-                {
                     "bottom": 151,
                     "display": "Auto-save base name",
                     "left": 1070,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "auto-save-file",
                     "right": 1222,
                     "type": "hnwMonitor",
                     "top": 106
@@ -678,9 +628,9 @@
                     "display": "Type",
                     "left": 1249,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "procedure",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "the-type",
                     "right": 1358,
                     "type": "hnwMonitor",
                     "top": 106
@@ -726,19 +676,6 @@
                 },
                 {
                     "forever": false,
-                    "bottom": 310,
-                    "display": "SETUP",
-                    "left": 1105,
-                    "buttonKind": "observer",
-                    "source": "setup-prompt",
-                    "hnwProcName": "setup-prompt",
-                    "right": 1230,
-                    "type": "hnwButton",
-                    "top": 277,
-                    "disableUntilTicksStarts": true
-                },
-                {
-                    "forever": false,
                     "bottom": 233,
                     "display": "Save INDIVIDUAL responses",
                     "left": 1186,
@@ -760,13 +697,13 @@
                 }
             ],
             "name": "supervisor",
-            "onConnect": "???Connect",
+            "onConnect": null,
             "limit": 1,
             "isSpectator": true
         }
     ],
     "onIterate": "go",
-    "onStart": "setup",
+    "onStart": "setup-prompt",
     "version": "hnw-alpha-1",
     "type": "hubnet-web"
 }

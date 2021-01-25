@@ -9,6 +9,8 @@
 ;; Variable and Breed declarations ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+extensions [dialog export-the fetch send-to]
+
 globals
 [
   current-question  ;; index of the current question in the question list
@@ -21,7 +23,6 @@ globals
   activity          ;; how many votes have been cast since last autosave?
   auto-saving?      ;; autosave poll data?
   auto-save-file    ;; base file name for the autosave files
-  auto-save-directory ;; directory for autosave files
   auto-saving-web?
   auto-save-web     ;; full directory information for auto-saving polls as HTML
 
@@ -52,6 +53,15 @@ globals
   tmp3
   tmp4
 
+  __hnw_supervisor_allow-change?
+  __hnw_supervisor_show-data?
+  __hnw_supervisor_lock-step?
+  __hnw_supervisor_see-names?
+  __hnw_supervisor_auto-save?
+  __hnw_supervisor_turtle-display
+  __hnw_supervisor_auto-save-every
+  __hnw_supervisor_plot-mode
+
 ]
 
 breed [ poll-clients poll-client ]
@@ -61,8 +71,14 @@ turtles-own
 [
   user-id       ;; unique id, input by the client when they log in, to identify each student turtle
   slider-value  ;; the value of the client's choice slider
+  my-choice
   my-choices    ;; list of my choices for each question
   my-current-question   ;; which question is the student currently on?
+  question-one
+  question-two
+  question-three
+  typed-response
+  last-typed-response
 ]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -98,6 +114,14 @@ end
 ;;  Startup ONLY runs when the model is first loaded.  It initializes the
 ;;  model's network capabilities and clears everything.
 to startup
+  set __hnw_supervisor_allow-change? true
+  set __hnw_supervisor_show-data? true
+  set __hnw_supervisor_lock-step? false
+  set __hnw_supervisor_see-names? false
+  set __hnw_supervisor_auto-save? false
+  set __hnw_supervisor_turtle-display "Sit"
+  set __hnw_supervisor_auto-save-every 5
+  set __hnw_supervisor_plot-mode "Histogram"
   setup
 end
 
@@ -117,7 +141,6 @@ end
 ;; Also loads the data lists, if so desired.
 ;; Only called by SETUP-PROMPT, which is called by the setup button, and STARTUP.
 to setup
-  hubnet-reset
   clear-all
   clear-output
   setup-vars
@@ -135,43 +158,42 @@ to startup-walkthrough
     [load-questions-prompt]
     ifelse user-yes-or-no? "Would you like to AUTOSAVE world data?"
     [auto-save-prompt]
-    [set auto-save? false]
+    [set __hnw_supervisor_auto-save? false]
 end
 
 to setup-vars-walkthrough
     ifelse user-yes-or-no? "Allow students to change their responses?"
-    [  set allow-change? true]
-    [  set allow-change? false]
+    [  set __hnw_supervisor_allow-change? true]
+    [  set __hnw_supervisor_allow-change? false]
     ifelse user-yes-or-no? "Plot student responses?"
-    [  set show-data? true   set plot-showing? show-data?]
-    [  set show-data? false  set plot-showing? show-data?]
+    [  set __hnw_supervisor_show-data? true   set plot-showing? __hnw_supervisor_show-data?]
+    [  set __hnw_supervisor_show-data? false  set plot-showing? __hnw_supervisor_show-data?]
     ifelse user-yes-or-no? "Allow students to see questions at their own pace?"
-    [  set lock-step? false  set steps-locked? false]
-    [  set lock-step? true  set steps-locked? true]
+    [  set __hnw_supervisor_lock-step? false  set steps-locked? false]
+    [  set __hnw_supervisor_lock-step? true  set steps-locked? true]
     ifelse user-yes-or-no? "See student names?"
-    [  set see-names? true]
-    [  set see-names? false]
+    [  set __hnw_supervisor_see-names? true]
+    [  set __hnw_supervisor_see-names? false]
 end
 
 ;; initialize global variables
 to setup-vars
   set not-voted?-color green - 2
   set voted?-color red + 2
-  set plot-showing? show-data?
+  set plot-showing? __hnw_supervisor_show-data?
   set plot-dirty? true
-  set steps-locked? lock-step?
+  set steps-locked? __hnw_supervisor_lock-step?
 
   set activity 0
   set auto-saving? false
   set auto-save-file ""
-  set auto-save-directory ""
   set auto-saving-web? false
   set auto-save-web ""
 
-  set names-showing? see-names?
-  set graphics-display turtle-display
-  set plot-mode "Histogram"
-  set plot-mode-is? plot-mode
+  set names-showing? __hnw_supervisor_see-names?
+  set graphics-display __hnw_supervisor_turtle-display
+  set __hnw_supervisor_plot-mode "Histogram"
+  set plot-mode-is? __hnw_supervisor_plot-mode
   set sort-up ""
   set sort-right ""
 
@@ -230,12 +252,6 @@ end
 
 to clear-all-data-and-questions
   clear-plot
-  hubnet-broadcast "Question" ""
-  hubnet-broadcast "Question Two" ""
-  hubnet-broadcast "Question Three" ""
-  hubnet-broadcast "Question Number" ""
-  hubnet-broadcast "Current Choice" ""
-  hubnet-broadcast "Typed-Response" "Click on the CHANGE button\n(in the top right corner of this widget)\nto type a response."
   set activity 0
   set current-question 0
   set question-list []
@@ -295,9 +311,6 @@ to go
   see-names-listener
   see-typed-listener
 
-  ;;  Anything from the clients?
-  if length question-list > 0 [listen-clients]
-
   plot-mode-listener
 
   every 0.5
@@ -308,7 +321,7 @@ to go
 
   auto-save-listener
   if auto-saving? or auto-saving-web?
-  [  if activity >= auto-save-every
+  [  if activity >= __hnw_supervisor_auto-save-every
      [  auto-save ]
   ]
 
@@ -316,23 +329,23 @@ to go
 end
 
 to lock-step-listener
-  ;;check to see if lock-step? status has changed.  If it has changed to TRUE, then adjust clients.
-  if lock-step? = true and steps-locked? = false
+  ;;check to see if __hnw_supervisor_lock-step? status has changed.  If it has changed to TRUE, then adjust clients.
+  if __hnw_supervisor_lock-step? = true and steps-locked? = false
   [    set steps-locked? true
       ask turtles [ set-my-current-question current-question ]
   ]
-  if lock-step? = false and steps-locked? = true
+  if __hnw_supervisor_lock-step? = false and steps-locked? = true
   [  set steps-locked? false
   ]
 end
 
 to see-names-listener
-  ifelse see-names?
+  ifelse __hnw_supervisor_see-names?
   [  if not names-showing?
-     [  ask turtles [ set label word user-id "   "]  set names-showing? see-names? ]
+     [  ask turtles [ set label word user-id "   "]  set names-showing? __hnw_supervisor_see-names? ]
   ]
   [  if names-showing?
-     [  ask turtles [ set label ""]  set names-showing? see-names? ]
+     [  ask turtles [ set label ""]  set names-showing? __hnw_supervisor_see-names? ]
   ]
 end
 
@@ -352,16 +365,16 @@ to see-typed-listener
 end
 
 to plot-mode-listener
-    if plot-mode-is? != plot-mode
-    [  if plot-mode = "Average" [ plot-average-prompt ]
-       set plot-mode-is? plot-mode
+    if plot-mode-is? != __hnw_supervisor_plot-mode
+    [  if __hnw_supervisor_plot-mode = "Average" [ plot-average-prompt ]
+       set plot-mode-is? __hnw_supervisor_plot-mode
        set plot-dirty? true
     ]
 end
 
 to show-data-listener
     ;;  Check to see if the poll data is to be displayed.
-    ifelse show-data?
+    ifelse __hnw_supervisor_show-data?
     [ if not plot-showing?
       [ set plot-showing? true
         set plot-dirty? true
@@ -379,8 +392,8 @@ to show-data-listener
 end
 
 to turtle-movement-listener
-  if not (graphics-display = turtle-display)
-  [ set graphics-display turtle-display
+  if not (graphics-display = __hnw_supervisor_turtle-display)
+  [ set graphics-display __hnw_supervisor_turtle-display
     if graphics-display = "Word-Sort"
     [ if sort-up = "" [set sort-up user-input "Sort up / down word -"]
       if sort-right = "" [set sort-right user-input "Sort right / left word -"]
@@ -393,28 +406,32 @@ to turtle-movement-listener
 end
 
 to auto-save-listener
-  if auto-save? and not auto-saving?
-  [  set auto-saving? auto-save?
+  if __hnw_supervisor_auto-save? and not auto-saving?
+  [  set auto-saving? __hnw_supervisor_auto-save?
      auto-save-prompt
   ]
-  if auto-saving? and not auto-save?
+  if auto-saving? and not __hnw_supervisor_auto-save?
   [  ifelse user-yes-or-no? "Do you really want to turn off auto-save world data?"
      [  set auto-saving? false]
-     [  set auto-save? true ]
+     [  set __hnw_supervisor_auto-save? true ]
   ]
 
 end
 
 to save-button-prompt
-  let option user-one-of (word "save QUESTIONS\n"
+  dialog:user-one-of (word "save QUESTIONS\n"
     "save all responses to a WEB page\n"
     "save INDividual responses to separate web pages\n"
     "save ALL data to a file\n"
     "auto-save NOW\n"
-    "CANCEL" ) ["QUESTIONS" "ALL" "NOW" "CANCEL"]
-  if option = "QUESTIONS" [save-questions-prompt]
-  if option = "ALL" [save-world-prompt]
-  if option = "NOW" [auto-save-now]
+    "CANCEL" )
+    ["QUESTIONS" "ALL" "NOW" "CANCEL"]
+    [
+      option ->
+        if option = "QUESTIONS" [save-questions-prompt]
+        if option = "ALL" [save-world-prompt]
+        if option = "NOW" [auto-save-now]
+    ]
 end
 
 
@@ -514,109 +531,78 @@ end
 ;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-to listen-clients
-  while [hubnet-message-waiting?]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ execute-create ]
-    [
-      ifelse hubnet-exit-message?
-      [
-        ask turtles with [user-id = hubnet-message-source] [ die ]
-        set plot-dirty? true
-      ]
-      [
-        ;;  If the client hits the Choose button, then run this code.
-        if hubnet-message-tag = "Choose"
-        [ execute-choose ]
-        ;;  Whenever the client adjusts the slider Choice, run this code.
-        if hubnet-message-tag = "Choice"
-        [ change-choice ]
-        if hubnet-message-tag = "Typed-Response"
-        [ execute-type ]
-        ;;  If the clients can view questions as they like, then run this code.
-        if steps-locked? = false
-        [
-          ;;  When the client hits the PREV button
-          if hubnet-message-tag = "<<PREV"
-          [ execute-prev ]
-          ;;  When the client hits the NEXT button
-          if hubnet-message-tag = "NEXT>>"
-          [ execute-next ]
-        ]
-      ]
-    ]
-  ]
-end
-
-to execute-create
+to execute-create [username]
   create-poll-clients 1
   [
     let pos one-of patches with [not any? turtles-here]
     ifelse pos != nobody
     [ move-to pos ]
     [ user-message "Too many students. Make a bigger view." ]
-    set user-id hubnet-message-source
+    set user-id username
     if names-showing? [ set label word user-id "   "]
     set slider-value 25
     clear-my-data
-    if any? non-clients with [user-id = hubnet-message-source]
-    [ set my-choices [my-choices] of one-of non-clients with [user-id = hubnet-message-source]]
-    ask non-clients with [user-id = hubnet-message-source] [die]
+    if any? non-clients with [user-id = username]
+    [ set my-choices [my-choices] of one-of non-clients with [user-id = username] ]
+    set my-choice 25
+    ask non-clients with [user-id = username] [die]
     if steps-locked? = true
     [  set my-current-question current-question]
     set-my-current-question my-current-question
+
+    set question-one ""
+    set question-two ""
+    set question-three ""
+    set typed-response ""
+    set last-typed-response ""
+
   ]
 end
 
+to execute-disconnect
+  set plot-dirty? true
+end
+
 to execute-choose
-  ask poll-clients with [user-id = hubnet-message-source]
+  if (__hnw_supervisor_allow-change? or color = not-voted?-color)
   [
-    if (allow-change? or color = not-voted?-color)
-    [
-      if my-current-question = current-question [set color voted?-color]
-      set my-choices replace-item my-current-question my-choices slider-value
-      hubnet-send hubnet-message-source "Current Choice" slider-value
-      set activity activity + 1
-    ]
+    if my-current-question = current-question [set color voted?-color]
+    set my-choices replace-item my-current-question my-choices slider-value
+    set my-choice slider-value
+    set activity activity + 1
   ]
   if plot-showing?
   [ set plot-dirty? true ]
 end
 
 to execute-type
-  ask poll-clients with [user-id = hubnet-message-source]
+  if typed-response != last-typed-response
   [
-    if (allow-change? or color = not-voted?-color)
+    if (__hnw_supervisor_allow-change? or color = not-voted?-color)
     [
       if my-current-question = current-question [set color voted?-color]
-      set my-choices replace-item my-current-question my-choices safer-read-from-string hubnet-message
+      set my-choices replace-item my-current-question my-choices safer-read-from-string typed-response
       set activity activity + 1
+      set last-typed-response typed-response
     ]
+    if plot-showing?
+    [ set plot-dirty? true ]
   ]
-  if plot-showing?
-  [ set plot-dirty? true ]
-end
-
-;;  Everytime you change the slider "Choice"
-;;  it changes the value of slider-value for the associated turtle.
-to change-choice
-  ask poll-clients with [user-id = hubnet-message-source]
-  [ set slider-value hubnet-message ]
 end
 
 to execute-prev
-  ask poll-clients with [user-id = hubnet-message-source]
-  [  if my-current-question > 0
-    [ set-my-current-question my-current-question - 1]
+  if not steps-locked?
+  [
+    if my-current-question > 0
+      [ set-my-current-question my-current-question - 1]
   ]
 end
 
 to execute-next
-  ask poll-clients with [user-id = hubnet-message-source]
-  [  if my-current-question + 1 < length question-list
-    [ set-my-current-question my-current-question + 1]
+  if not steps-locked?
+  [
+    if my-current-question + 1 < length question-list
+      [ set-my-current-question my-current-question + 1]
   ]
 end
 
@@ -633,20 +619,20 @@ to set-my-current-question [n]
     set my-current-question n               ;;if it is, adjust the number the turtle has
 
     if breed = poll-clients
-    [ hubnet-send user-id "Question Number" my-current-question
+    [
       send-question (item 0 item my-current-question question-list)
 
       ifelse (item my-current-question my-choices) = false    ;;display the current choice on the client
-      [  hubnet-send user-id "Current Choice" ""
-         hubnet-send user-id "Typed-Response" "Click on the CHANGE button\n(in the top right corner of this widget)\nto type a response."
+      [  set my-choice ""
+         set typed-response ""
       ]
       [  if is-number? item my-current-question my-choices
-         [ hubnet-send user-id "Current Choice" (item my-current-question my-choices)
-           hubnet-send user-id "Typed-Response" "Click on the CHANGE button\n(in the top right corner of this widget)\nto type a response."
+         [ set my-choice (item my-current-question my-choices)
+           set typed-response ""
          ]
          if is-string? item my-current-question my-choices
-         [ hubnet-send user-id "Current Choice" ""
-           hubnet-send user-id "Typed-Response" (item my-current-question my-choices)
+         [ set my-choice ""
+           set typed-response (item my-current-question my-choices)
          ]
       ]
     ]
@@ -655,18 +641,18 @@ end
 
 to send-question [question]
     ifelse length question <= 80
-    [  hubnet-send user-id "Question" question
-       hubnet-send user-id "Question Two" ""
-       hubnet-send user-id "Question Three" ""
+    [  set question-one   question
+       set question-two   ""
+       set question-three ""
     ]
     [  ifelse length question > 80 and length question <= 160
-       [  hubnet-send user-id "Question" substring question 0 80
-          hubnet-send user-id "Question Two" substring question 80 (length question)
-          hubnet-send user-id "Question Three" ""
+       [  set question-one   substring question 0 80
+          set question-two   substring question 80 (length question)
+          set question-three ""
        ]
-       [  hubnet-send user-id "Question" substring question 0 80
-          hubnet-send user-id "Question Two" substring question 80 160
-          hubnet-send user-id "Question Three" substring question 160 (length question)
+       [  set question-one   substring question 0 80
+          set question-two   substring question 80 160
+          set question-three substring question 160 (length question)
        ]
     ]
 end
@@ -735,26 +721,32 @@ to next-question
 end
 
 to edit-question
-    let option user-one-of (word "REPLACE - replace this question with a new one.  This will clear the poll results for the question\n"
+  dialog:user-one-of (word "REPLACE - replace this question with a new one.  This will clear the poll results for the question\n"
       "INSERT  - insert a new question and move the current question one position later in the list\n"
       "DELETE  - delete this question and it's poll results\n")
       ["REPLACE" "INSERT" "DELETE" "CANCEL"]
-      if option = "REPLACE" [replace-question]
-      if option = "INSERT" [insert-question]
-      if option = "DELETE" [delete-question]
+      [
+        option ->
+          if option = "REPLACE" [replace-question]
+          if option = "INSERT" [insert-question]
+          if option = "DELETE" [delete-question]
+      ]
 end
 
 to-report choose-type
-  let option user-one-of (word "What type of question?\n"
+  dialog:user-one-of (word "What type of question?\n"
     "POLLER \n"
     "web TEXT \n"
     "LIKERT scale \n"
     "web NUMBER \n")
     ["POLLER" "TEXT" "LIKERT" "NUMBER"]
-  if option = "POLLER" [report "Poller"]
-  if option = "TEXT" [report "Web Text"]
-  if option = "LIKERT" [report "Likert"]
-  if option = "NUMBER" [report "Web Number"]
+    [
+      option ->
+        if option = "POLLER" [report "Poller"]
+        if option = "TEXT" [report "Web Text"]
+        if option = "LIKERT" [report "Likert"]
+        if option = "NUMBER" [report "Web Number"]
+    ]
 end
 
 to replace-question
@@ -885,10 +877,10 @@ to plot-average-prompt
     if startitem >= 0 and enditem >= startitem and enditem < length question-list
     [ set plot-first startitem
       set plot-last enditem
-      set show-data? true
+      set __hnw_supervisor_show-data? true
     ]
     if startitem > enditem or enditem >= length question-list
-    [ set plot-mode plot-mode-is?]
+    [ set __hnw_supervisor_plot-mode plot-mode-is?]
 end
 
 to do-multi-item-average
@@ -922,11 +914,9 @@ end
 ;Saving questions
 ;ALWAYS makes a web page.  Poller data is hidden in comments at the bottom.
 to save-questions-prompt
-  user-message (word
-    "Select the directory and filename for your questions. "
-    "You should add an extension - either .htm or .html\n"
-    "If you don't add an extension, NetLogo will automatically add .html")
-  let option user-new-file
+
+  let option user-input "What would you like to name your saved questions?"
+
   ifelse is-string? option
   [ if not (substring option (length option - 5) (length option) = ".html")
     [ if not (substring option (length option - 4) (length option) = ".htm")
@@ -939,60 +929,56 @@ to save-questions-prompt
   ]
 end
 
-to save-questions-page [web-page]
+to save-questions-page [destination]
 
-   if file-exists? web-page
-   [ file-delete web-page
-   ]
+   let buffer ""
+   let append [x -> set buffer (word buffer x "\n")]
 
-   file-open web-page
-   file-print "<HTML>"
-   file-print "<head>"
-   file-print (word "<title>Poller Questions " (substring remove ":" date-and-time 0 6) "</title>")
-   file-print "</head>"
-   file-print "<body>"
-   file-print "<center>"
-   file-print "<P><FORM ACTION=\".FormSaver\" METHOD=POST>"
-   file-print "<P><INPUT TYPE=hidden NAME=command VALUE=save></P>"
-   file-print "<P><B>User name (identical to NetLogo username)</B>"
-   file-print "<p><INPUT TYPE=text NAME=Field1 VALUE=\"\">"        ;this will later be read as item 4 in the list, when responses are read in from the web
+   (run append "<HTML>")
+   (run append "<head>")
+   (run append (word "<title>Poller Questions " (substring remove ":" date-and-time 0 6) "</title>"))
+   (run append "</head>")
+   (run append "<body>")
+   (run append "<center>")
+   (run append "<P><FORM ACTION=\".FormSaver\" METHOD=POST>")
+   (run append "<P><INPUT TYPE=hidden NAME=command VALUE=save></P>")
+   (run append "<P><B>User name (identical to NetLogo username)</B>")
+   (run append "<p><INPUT TYPE=text NAME=Field1 VALUE=\"\">")       ;this will later be read as item 4 in the list, when responses are read in from the web
    let counter-q 0
    let counter-f 2
    repeat length question-list
    [
-     file-print (word "<h2> " item 0 item counter-q question-list " </h2>")
+     (run append (word "<h2> " item 0 item counter-q question-list " </h2>"))
      if item 1 item counter-q question-list = "Web Text"
-     [ file-print (word "<P><TEXTAREA NAME=Field" counter-f " ROWS=8 COLS=81 WRAP=virtual></TEXTAREA>")
+     [ (run append (word "<P><TEXTAREA NAME=Field" counter-f " ROWS=8 COLS=81 WRAP=virtual></TEXTAREA>"))
        set counter-f counter-f + 1
      ]
      if item 1 item counter-q question-list = "Likert"
      [ let counter-l 0
-       file-print "<p>"
+       (run append "<p>")
        repeat item 2 item counter-q question-list
-       [ file-print (word "<INPUT TYPE=radio NAME=Field" counter-f " VALUE=\"" counter-l "\">" counter-l)
+       [ (run append (word "<INPUT TYPE=radio NAME=Field" counter-f " VALUE=\"" counter-l "\">" counter-l))
          set counter-l counter-l + 1
        ]
        set counter-f counter-f + 1
      ]
      if item 1 item counter-q question-list = "Web Number"
-     [ file-print (word "<P><input type=TEXT NAME=Field" counter-f " VALUE=\"\">")
+     [ (run append (word "<P><input type=TEXT NAME=Field" counter-f " VALUE=\"\">"))
        set counter-f counter-f + 1
      ]
-     file-print "<p>"
+     (run append "<p>")
      set counter-q counter-q + 1
    ]
 
-   file-print (word "<INPUT TYPE=submit NAME=Field" counter-f " VALUE=\"Submit\">&lt;---------&gt;<INPUT TYPE=reset VALUE=\"Reset\">")
-   file-print "</center>"
-   file-print "</body>"
-   file-print "</html>"
+   (run append (word "<INPUT TYPE=submit NAME=Field" counter-f " VALUE=\"Submit\">&lt;---------&gt;<INPUT TYPE=reset VALUE=\"Reset\">"))
+   (run append "</center>")
+   (run append "</body>")
+   (run append "</html>")
 
-   file-print "<!-- NETLOGO POLLER QUESTION LIST"
-   file-write question-list
-   file-print ""
-   file-print " POLLER QUESTION LIST END -->"
+   (run append "<!-- NETLOGO POLLER QUESTION LIST")
+   (run append question-list)
+   (run append " POLLER QUESTION LIST END -->")
 
-   file-close
  end
 
 
@@ -1014,50 +1000,54 @@ to save-questions-page [web-page]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 to load-questions-prompt
-  let chosen user-one-of (word "Load questions from a local FILE\n"
+  dialog:user-one-of (word "Load questions from a local FILE\n"
               "Load questions from a WEB page\n"
               "Load the BUILT-IN questions\n"
               "Load NO questions") ["FILE" "BUILT-IN" "NO"]
-  if chosen = "FILE"
-  [  user-message "Select the saved questions file."
-     let load-file user-file
-     ifelse is-string? load-file
-     [  load-local load-file
-     ]
-     [  set chosen "NO"
-     ]
-  ]
-  if chosen = "BUILT-IN"
-  [ load-sample-questions
-  ]
-  if chosen = "NO"
-  [  ;do nothing, just end
-  ]
+    [
+      chosen ->
+        if chosen = "FILE"
+        [  user-message "Select the saved questions file."
+           fetch:user-file-async [
+             load-file ->
+               ifelse is-string? load-file
+               [  load-local load-file
+               ]
+               [  set chosen "NO"
+               ]
+           ]
+        ]
+        if chosen = "BUILT-IN"
+        [ load-sample-questions
+        ]
+        if chosen = "NO"
+        [  ;do nothing, just end
+        ]
+    ]
 end
 
 ;load the data file locally, and extract the question information from it
-to load-local [from-where?]
-  ifelse file-exists? from-where?
-  [  file-open from-where?
-     let z-data ""
-     output-show word "load-local ---- " z-data
-     while [not file-at-end?]
-     [ set z-data word z-data file-read-characters 100
-          output-show word "load-local ---- " z-data
+to load-local [file-text]
+  ; TODO
+  ;ifelse file-exists? from-where?
+  ;[  file-open from-where?
+  ;   let z-data ""
+  ;   output-show word "load-local ---- " z-data
+  ;   while [not file-at-end?]
+  ;   [ set z-data word z-data file-read-characters 100
+  ;        output-show word "load-local ---- " z-data
 
-     ]
-     file-close
-     clear-all-data-and-questions
-     output-show read-setup z-data
-     set web-questions which-questions-are-web? question-list
-     set-current-question 0
-     ask turtles
-     [ clear-my-data
-       set-my-current-question 0
-     ]
-  ]
-  [  user-message "NetLogo can't load a non-existent file.  Load canceled."
-  ]
+  ;   ]
+  ;   file-close
+  ;   clear-all-data-and-questions
+  ;   output-show read-setup z-data
+  ;   set web-questions which-questions-are-web? question-list
+  ;   set-current-question 0
+  ;   ask turtles
+  ;   [ clear-my-data
+  ;     set-my-current-question 0
+  ;   ]
+  ;]
 end
 
 ;to-report is-url? [str]
@@ -1130,9 +1120,11 @@ end
 
 
 to-report safer-read-from-string [str]
-   ifelse ("" = __check-syntax (word "output-show read-from-string \"\" + " str))
-     [ report (read-from-string str) ]
-     [ report str ]
+   ; TODO: Wat?
+   ;ifelse ("" = __check-syntax (word "output-show read-from-string \"\" + " str))
+   ;  [ report (read-from-string str) ]
+   ;  [ report str ]
+   report str
 end
 
 
@@ -1160,11 +1152,10 @@ end
 
 
 to save-world-prompt
-   user-message "Select the directory and filename for your saved world.  The extension .csv will be automatically added."
-   let save-file word user-new-file ".csv"
+   let filename (word (user-input "What would you like to name your saved world?") ".csv")
 
-   ifelse is-string? save-file
-   [  export-world save-file
+   ifelse is-string? filename
+   [  send-to:file filename export-the:world
    ]
    [  user-message "Save has been cancelled."
    ]
@@ -1174,39 +1165,28 @@ to load-world-prompt
   if user-yes-or-no? (word "LOAD WORLD will clear all current data and remove all students.\n\n"
               "Do you want to continue?")
   [  user-message "Select the saved world file."
-     let load-file user-file
-     ifelse is-string? load-file
-     [  import-world load-file
-     ]
-     [  user-message "Load world has been cancelled."
+     fetch:user-file-async [
+       load-file ->
+         ifelse is-string? load-file
+         [  import-world load-file
+         ]
+         [  user-message "Load world has been cancelled."
+         ]
      ]
   ]
 end
 
 to auto-save-prompt
-   if ((auto-save-directory = "") or (not is-string? auto-save-directory))
-   [ auto-save-directory-change
+   if ((auto-save-file = "") or (not is-string? auto-save-file))
+   [ auto-save-file-change
    ]
-   if is-string? auto-save-directory
-   [  if ((auto-save-file = "") or (not is-string? auto-save-file))
-      [ auto-save-file-change
-      ]
-      ifelse ((auto-save-file = "") or (not is-string? auto-save-file))
-      [ user-message "Auto-save setup has been cancelled.  Use the AUTO-SAVE? switch to turn on the autosave feature."
-        set auto-save? false
-      ]
-      [ set auto-saving? true
-      ]
-   ]
-end
 
-to auto-save-directory-change
-   let option false
-   user-message "Select a directory for the auto-save files.  "
-   set option user-directory
-   ifelse is-string? option
-   [ set auto-save-directory option]
-   [ user-message "World auto save directory has been left UNCHANGED"]
+   ifelse ((auto-save-file = "") or (not is-string? auto-save-file))
+   [ user-message "Auto-save setup has been cancelled.  Use the AUTO-SAVE? switch to turn on the autosave feature."
+     set __hnw_supervisor_auto-save? false
+   ]
+   [ set auto-saving? true
+   ]
 end
 
 to auto-save-file-change
@@ -1220,20 +1200,19 @@ end
 
 to auto-save
    if auto-saving?
-   [ export-world (word auto-save-directory "/" auto-save-file (substring remove ":" date-and-time 0 6) ".csv")]
+   [ send-to:file (word auto-save-file (substring remove ":" date-and-time 0 6) ".csv") export-the:world ]
    set activity 0
 end
 
 to auto-save-now
    if not auto-saving?
-   [ set auto-save? user-yes-or-no? "Auto-save all data to file?"
-     if auto-save?
+   [ set __hnw_supervisor_auto-save? user-yes-or-no? "Auto-save all data to file?"
+     if __hnw_supervisor_auto-save?
      [ auto-save-prompt
      ]
    ]
    if auto-saving?
-   [ export-world (word auto-save-directory "/" auto-save-file (substring remove ":" date-and-time 0 6) "NOW.csv")
-   ]
+   [ send-to:file (word auto-save-file (substring remove ":" date-and-time 0 6) "NOW.csv") export-the:world ]
 end
 
 
@@ -1246,38 +1225,39 @@ end
 
 
 
-to save-responses [to-where?]
-  let my-file (word to-where? "/" user-id (substring remove ":" date-and-time 0 6) ".html")
-
-  if file-exists? my-file
-  [ file-delete my-file
-  ]
-
-  file-open my-file
-  file-print "<HTML>"
-  file-print "<head>"
-  file-print (word "<title>Poller Responses " user-id " " (substring remove ":" date-and-time 0 6) "</title>")
-  file-print "</head>"
-  file-print "<body>"
-  file-print "<table border=\"2\" align=\"center\" >"
-  let counter-q 0
-  repeat length question-list
-  [
-    file-print "<tr>"
-    file-print "<td width=\"200\">"
-    file-print (word "<b>" item 0 item counter-q question-list "</b>")
-    file-print "</td>"
-    file-print "<td>"
-    file-print item counter-q my-choices
-    file-print "</td>"
-    file-print "</tr>"
-    set counter-q counter-q + 1
-  ]
-  file-print "</table>"
-  file-print "</body>"
-  file-print "</html>"
-  file-close
-end
+;TODO
+;to save-responses [to-where?]
+;  let my-file (word to-where? "/" user-id (substring remove ":" date-and-time 0 6) ".html")
+;
+;  if file-exists? my-file
+;  [ file-delete my-file
+;  ]
+;
+;  file-open my-file
+;  file-print "<HTML>"
+;  file-print "<head>"
+;  file-print (word "<title>Poller Responses " user-id " " (substring remove ":" date-and-time 0 6) "</title>")
+;  file-print "</head>"
+;  file-print "<body>"
+;  file-print "<table border=\"2\" align=\"center\" >"
+;  let counter-q 0
+;  repeat length question-list
+;  [
+;    file-print "<tr>"
+;    file-print "<td width=\"200\">"
+;    file-print (word "<b>" item 0 item counter-q question-list "</b>")
+;    file-print "</td>"
+;    file-print "<td>"
+;    file-print item counter-q my-choices
+;    file-print "</td>"
+;    file-print "</tr>"
+;    set counter-q counter-q + 1
+;  ]
+;  file-print "</table>"
+;  file-print "</body>"
+;  file-print "</html>"
+;  file-close
+;end
 
 
 
@@ -1296,8 +1276,7 @@ end
 
 
 to save-polls-prompt
-   user-message "Select the directory and filename for your saved poll results.  You may want to add an extension (like .txt or .poll)"
-   let save-file user-new-file
+   let save-file user-input "What would you like to name your saved poll results?  (Don't forget to add a file extension, like '.txt' or '.poll')"
 
    ifelse is-string? save-file
    [  save-polls save-file
@@ -1306,32 +1285,38 @@ to save-polls-prompt
    ]
 end
 
-to save-polls [ towhere? ]
+to save-polls [ destination ]
+
+    let buffer ""
+    let append [x -> set buffer (word buffer x)]
+
     if count turtles > 0
-    [   file-open towhere?
-       file-type "User-ID\t"
+    [
+       (run append "User-ID\t")
        let counter-t 0
        repeat count turtles
-       [  file-type [ user-id ] of turtle counter-t
-          file-type "\t"
+       [  (run append [ user-id ] of turtle counter-t)
+          (run append "\t")
           set counter-t counter-t + 1
        ]
-       file-print ""
+       (run append "\n")
        let counter-q 0
        repeat length question-list
-       [  file-type item 0 item counter-q question-list
-          file-type "\t"
+       [  (run append (item 0 item counter-q question-list))
+          (run append "\t")
           set counter-t 0
           repeat count turtles
-          [  file-type [item counter-q my-choices] of turtle counter-t
-             file-type "\t"
+          [  (run append [item counter-q my-choices] of turtle counter-t)
+             (run append "\t")
              set counter-t counter-t + 1
           ]
-          file-print ""
+          (run append "\n")
           set counter-q counter-q + 1
        ]
-       file-close
     ]
+
+    send-to:file destination buffer
+
 end
 
 
@@ -1422,6 +1407,17 @@ to help-prepare
     "NetLogo where to find your file.  It will automatically load the questions, and you'll be ready to go.")
 end
 
+to-report current-question-string
+  report item 0 item current-question question-list
+end
+
+to-report who-it-is
+  report [user-id] of one-of turtles-on patch mouse-xcor mouse-ycor
+end
+
+to-report the-type
+  report item 1 item current-question question-list + ifelse-value (item 1 item current-question question-list = "Likert") [word "  " item 2 item current-question question-list] [""]
+end
 
 ; Copyright 2002 Uri Wilensky and Walter Stroup.
 ; See Info tab for full copyright and license.
@@ -1807,7 +1803,7 @@ BUTTON
 720
 368
 ^ CHANGE ^
-set sort-up user-input \"Sort up / down word -\"\nset turtle-display \"Word-Sort\"
+set sort-up user-input \"Sort up / down word -\"\nset __hnw_supervisor_turtle-display \"Word-Sort\"
 NIL
 1
 T
@@ -1824,7 +1820,7 @@ BUTTON
 720
 454
 ^ CHANGE ^
-set sort-right user-input \"Sort right / left word -\"\nset turtle-display \"Word-Sort\"
+set sort-right user-input \"Sort right / left word -\"\nset __hnw_supervisor_turtle-display \"Word-Sort\"
 NIL
 1
 T
@@ -1920,34 +1916,6 @@ BUTTON
 396
 >>>
 next-question
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-MONITOR
-1070
-55
-1529
-100
-Auto-save directory
-auto-save-directory
-3
-1
-11
-
-BUTTON
-987
-55
-1068
-104
-CHANGE ->
-auto-save-directory-change
 NIL
 1
 T
@@ -2088,7 +2056,7 @@ BUTTON
 1353
 233
 Save INDIVIDUAL responses
-let where user-directory\nask turtles [ save-responses where ]
+;TODO let where user-directory\nask turtles [ save-responses where ]
 NIL
 1
 T
@@ -2561,17 +2529,6 @@ T
 OBSERVER
 NIL
 C
-
-INPUTBOX
-13
-386
-484
-557
-Typed-Response
-Click on the CHANGE button \n(in the top right corner of this widget)\nto type a response.
-1
-1
-String
 
 MONITOR
 204
