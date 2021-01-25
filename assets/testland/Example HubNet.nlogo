@@ -1,54 +1,49 @@
-turtles-own [ user-id ]
+breed [students student]
+turtles-own [ coords perspective user-id ]
 
 to setup
-  clear-all
-  hubnet-reset
+  clear-patches
 end
 
-to listen-clients
-  ;; This is the core logic of our message handling code:
-  while [ hubnet-message-waiting? ] [
-    hubnet-fetch-message ;; make the next message the current message.
-    ifelse hubnet-enter-message? [
-      ;; A new client has entered! We need to create a turtle for it.
-      print (word "Client with id: " hubnet-message-source " entered")
-      create-turtles 1 [
-        set user-id hubnet-message-source ;; associate the turtle with its client
-        hubnet-send-follow user-id self 4 ;; set the client perspective to follow the turtle
-      ]
-    ]
-    [
-      ifelse hubnet-exit-message? [
-        ;; A client has dropped out! We need to get rid of its turtle.
-        print (word "Client with id: " hubnet-message-source " exited")
-        ask turtles with [ user-id = hubnet-message-source ] [ die ]
-      ]
-      [
-        ;; A client has done something! We need to handle
-        ;; the message we received from it.
-        ask turtles with [ user-id = hubnet-message-source ] [
-          if hubnet-message-tag = "forward" [
-            ;; The forward button has been clicked.
-            ;; We need to move the turtle:
-            forward 1
-            ;; and show its new coordinates on the client monitor
-            let coords (word "(" pxcor ", " pycor ")")
-            hubnet-send user-id "location" coords
-          ]
-          if hubnet-message-tag = "View" [
-            ;; The client has clicked somewhere on the view.
-            ;; The turtle needs to face the click location:
-            facexy (item 0 hubnet-message) (item 1 hubnet-message)
-          ]
-        ]
-        print (word "Message from: " hubnet-message-source)
-        print (word "  message tag: " hubnet-message-tag)
-        print (word "  message body: " hubnet-message)
-      ]
-    ]
+to color-me
+  ask patches [
+    set pcolor one-of base-colors
   ]
 end
 
+to on-join [username]
+  print (word "Client with id: " username " entered")
+  create-students 1 [
+    set user-id username
+    set perspective (list "follow" self 4)
+  ]
+end
+
+to on-exit
+  print (word "Client with id: " user-id " exited")
+end
+
+to on-click [x y]
+  ;; The client has clicked somewhere on the view.
+  ;; The turtle needs to face the click location:
+  facexy x y
+  print (word "Message from: " self)
+  print (word "  A click message!")
+  print (word "  Coordinates: " x ", " y)
+end
+
+to on-forward
+
+  ;; The forward button has been clicked.
+  ;; We need to move the turtle:
+  forward 1
+
+  ;; and show its new coordinates on the client monitor
+  set coords (word "(" pxcor ", " pycor ")")
+  print (word "Message from: " self)
+  print (word "  The 'forward' button was clicked!")
+
+end
 
 ; Copyright 2012 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -120,11 +115,11 @@ BUTTON
 140
 218
 color patches
-set pcolor one-of base-colors
+color-me
 NIL
 1
 T
-PATCH
+OBSERVER
 NIL
 NIL
 NIL

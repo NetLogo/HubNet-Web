@@ -3,8 +3,9 @@
         {
             "canJoinMidRun": true,
             "onCursorMove": null,
-            "onCursorClick": null,
-            "onDisconnect": "???DC",
+            "onCursorClick": "on-click",
+            "onDisconnect": "on-leave",
+            "perspectiveVar": "perspective",
             "widgets": [
                 {
                     "height": 429,
@@ -19,11 +20,11 @@
                     "forever": false,
                     "bottom": 145,
                     "display": "forward",
-                    "disableUntilTicksStart": true,
+                    "disableUntilTicksStart": false,
                     "left": 70,
-                    "buttonKind": "???3",
-                    "source": "???1",
-                    "hnwProcName": "???2",
+                    "buttonKind": "procedure",
+                    "source": "on-forward",
+                    "hnwProcName": "on-forward",
                     "right": 150,
                     "type": "hnwButton",
                     "top": 112
@@ -33,16 +34,16 @@
                     "display": "location",
                     "left": 76,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "coords",
                     "right": 139,
                     "type": "hnwMonitor",
                     "top": 199
                 }
             ],
             "name": "student",
-            "onConnect": "???Connect",
+            "onConnect": "on-join",
             "limit": -1,
             "isSpectator": false
         },
@@ -50,7 +51,7 @@
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
-            "onDisconnect": "???DC",
+            "onDisconnect": null,
             "widgets": [
                 {
                     "height": 437,
@@ -63,36 +64,12 @@
                 },
                 {
                     "forever": false,
-                    "bottom": 73,
-                    "left": 45,
-                    "buttonKind": "observer",
-                    "source": "setup",
-                    "hnwProcName": "setup",
-                    "right": 115,
-                    "type": "hnwButton",
-                    "top": 40,
-                    "disableUntilTicksStarts": true
-                },
-                {
-                    "forever": true,
-                    "bottom": 133,
-                    "left": 20,
-                    "buttonKind": "observer",
-                    "source": "listen-clients",
-                    "hnwProcName": "listen-clients",
-                    "right": 140,
-                    "type": "hnwButton",
-                    "top": 100,
-                    "disableUntilTicksStarts": true
-                },
-                {
-                    "forever": false,
                     "bottom": 218,
                     "display": "color patches",
                     "left": 20,
-                    "buttonKind": "patch",
-                    "source": "set pcolor one-of base-colors",
-                    "hnwProcName": "set pcolor one-of base-colors",
+                    "buttonKind": "observer",
+                    "source": "color-me",
+                    "hnwProcName": "color-me",
                     "right": 140,
                     "type": "hnwButton",
                     "top": 185,
@@ -100,12 +77,12 @@
                 }
             ],
             "name": "supervisor",
-            "onConnect": "???Connect",
+            "onConnect": null,
             "limit": 1,
             "isSpectator": true
         }
     ],
-    "onIterate": "go",
+    "onIterate": null,
     "onStart": "setup",
     "version": "hnw-alpha-1",
     "type": "hubnet-web"
