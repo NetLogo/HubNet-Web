@@ -31,6 +31,7 @@
     , "onDisconnect": "remove-student"
     , "onCursorClick": "command-click"
     , "onCursorMove": null
+    , "perspectiveVar": "perspective"
     }
     , {
       "name": "supervisor"
@@ -42,6 +43,55 @@
       , { "type": "hnwMonitor",  "left":  12, "right":  195, "top": 265, "bottom": 310, "display": "Best site discovered?", "source": "best-site-discovered", "reporterStyle": "procedure", "precision": 17, "fontSize": 11 }
       , { "type": "hnwPlot",     "left": 707, "right": 1014, "top":  10, "bottom": 263, "display": "Current Sites Support", "xAxis": "Sites", "yAxis": "Bee Count", "xmin": 0.0, "xmax": 10.0, "ymin": 0.0, "ymax": 10.0, "autoPlotOn": true, "legendOn": false, "setupCode": "", "update": "", "pens": {} }
       , { "type": "hnwPlot",     "left": 708, "right": 1015, "top": 268, "bottom": 521, "display": "Sites Support Over Time", "xAxis": "Ticks", "yAxis": "Bee Count", "xmin": 0.0, "xmax": 10.0, "ymin": 0.0, "ymax": 10.0, "autoPlotOn": true, "legendOn": false, "setupCode": "ask sites [\n  create-temporary-plot-pen (word self)\n  set-plot-pen-color true-color\n]", "update": "ask sites [\n  set-current-plot-pen (word self)\n  plot count (turtle-set students robots) with [ supported-site = myself ]\n]", "pens": {} }
+      , {
+            "bottom": 263,
+            "display": "Current Sites Support",
+            "yAxis": "Bee Count",
+            "xmin": 0,
+            "ymax": 10,
+            "legendOn": false,
+            "left": 707,
+            "xAxis": "Sites",
+            "autoPlotOn": true,
+            "xmax": 10,
+            "setupCode": "",
+            "pens": [
+                {
+                    "updateCode": "let sites-by-quality sort-on [ quality ] sites ; assemble a sorted list of sites by quality\nlet supporting-bees (turtle-set students robots) with [ is-site? supported-site ]\nhistogram [ position supported-site sites-by-quality ] of supporting-bees",
+                    "display": "pen-0",
+                    "color": -16777216,
+                    "mode": 1,
+                    "interval": 1,
+                    "setupCode": "set-plot-x-range 0 count sites\nset-plot-y-range 0 10\nset-histogram-num-bars count sites",
+                    "type": "pen",
+                    "inLegend": true
+                }
+            ],
+            "right": 1014,
+            "type": "hnwPlot",
+            "ymin": 0,
+            "top": 10,
+            "update": ""
+        },
+        {
+            "bottom": 521,
+            "display": "Sites Support Over Time",
+            "yAxis": "Bee Count",
+            "xmin": 0,
+            "ymax": 10,
+            "legendOn": false,
+            "left": 708,
+            "xAxis": "Ticks",
+            "autoPlotOn": true,
+            "xmax": 10,
+            "setupCode": "ask sites [\n  create-temporary-plot-pen (word self)\n  set-plot-pen-color true-color\n]",
+            "pens": [],
+            "right": 1015,
+            "type": "hnwPlot",
+            "ymin": 0,
+            "top": 268,
+            "update": "ask sites [\n  set-current-plot-pen (word self)\n  plot count (turtle-set students robots) with [ supported-site = myself ]\n]"
+        }
       , { "type": "hnwInputBox", "left":  14, "right":  193, "top": 407, "bottom": 467, "variable": "filename", "boxedValue": { "type": "String", "multiline": true, "value": "history.csv" } }
       , { "type": "hnwButton",   "left":  14, "right":  193, "top": 473, "bottom": 519, "display": "save history", "source": "save-history", "hnwProcName": "save-history", "forever": false, "disableUntilTicksStart": false, "buttonKind": "observer" }
       , { "type": "hnwSlider",   "left":  10, "right":  195, "top": 136, "bottom": 169, "display": "number-of-robots", "variable": "number-of-robots", "min": 0, "max": 100, "default": 100.0, "units": "", "direction": "horizontal", "step": 10 }

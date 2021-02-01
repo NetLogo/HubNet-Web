@@ -15,8 +15,8 @@ sites-own [
 
 students-own [
 
-  __hnw_username
-  __hnw_follow-radius
+  user-id
+  perspective
 
   dance-length            ; the number of ticks a student-controlled bee will dance
   dances-made             ; the rounds of dances a student have finished
@@ -107,7 +107,7 @@ to-report dance-floor? ; patch and turtle reporter
 end
 
 to reset-students
-  set __hnw_follow-radius student-vision-radius    ; apply field of vision constrains
+  set perspective (list "follow" self student-vision-radius)    ; apply field of vision constrains
   setxy random-float 5 random-float 5
   set state "exploring"
   set supported-site nobody
@@ -298,7 +298,7 @@ to dance ; bee procedure
     set dances-made dances-made + 1
     let summary-list (list ticks [ quality ] of supported-site recruited)
     set summary summary-list
-    set summary-list fput __hnw_username summary-list  ; adding user id to the list
+    set summary-list fput user-id summary-list  ; adding user id to the list
     set history lput summary-list history              ; adding personal history to the global history
     set recruited 0
     set color grey
@@ -324,8 +324,8 @@ end
 
 to create-new-student [username]
   create-students 1 [
-    set __hnw_username username
-    set __hnw_follow-radius student-vision-radius
+    set user-id username
+    set perspective (list "follow" self student-vision-radius)
     set state "exploring"
     set color gray
   ]
