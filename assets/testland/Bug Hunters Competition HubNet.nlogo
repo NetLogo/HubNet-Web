@@ -30,13 +30,24 @@ globals
   x-interval-histogram
 
   old-player-vision
+
+  __hnw_supervisor_initial-#-automated-bugs
+  __hnw_supervisor_amount-grassland
+  __hnw_supervisor_length-competition
+  __hnw_supervisor_automated-bugs-lose-energy?
+  __hnw_supervisor_automated-bugs-reproduce?
+  __hnw_supervisor_show-labels-as
+  __hnw_supervisor_player-vision
+  __hnw_supervisor_automated-bugs-wander?
+  __hnw_supervisor_sprout-delay-time
+
 ]
 
 breed [ bugs bug ]
 breed [ players player ]
 
 bugs-own    [destination-patch controlled-by-player? owned-by energy]
-players-own [destination-patch user-id dead?]
+players-own [destination-patch perspective place-msg user-id dead?]
 
 patches-own [
   fertile?              ;; whether or not a grass patch is fertile is determined by the amount-grassland slider
@@ -46,8 +57,19 @@ patches-own [
 
 
 to startup ;; setting up hubnet
-  hubnet-reset
+
+  set __hnw_supervisor_initial-#-automated-bugs 0
+  set __hnw_supervisor_amount-grassland 100
+  set __hnw_supervisor_length-competition 500
+  set __hnw_supervisor_automated-bugs-lose-energy? false
+  set __hnw_supervisor_automated-bugs-reproduce? false
+  set __hnw_supervisor_show-labels-as "player energy:name"
+  set __hnw_supervisor_player-vision 4
+  set __hnw_supervisor_automated-bugs-wander? true
+  set __hnw_supervisor_sprout-delay-time 50
+
   setup
+
 end
 
 
@@ -89,11 +111,10 @@ to setup
 
   set competition-status "Get Ready"
   add-starting-grass
-  if include-clients-as-bugs? [ask players [assign-bug-to-player]]
+  ask players [assign-bug-to-player]
   add-bugs
 
 
-  listen-clients
   check-reset-perspective
   display-labels
 
@@ -120,7 +141,6 @@ to go
   if ticks < length-competition  [
     set competition-status "Running"
     update-statistics
-    listen-clients
     send-all-info
     ask patches [ grow-grass ]
     ask bugs [
@@ -241,75 +261,48 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; player enter / exit procedures  ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-to create-new-player
+to create-new-player [username]
   create-players 1
   [
     set dead? true
-    set user-id hubnet-message-source
+    set user-id username
     set hidden? true
     assign-bug-to-player
   ]
 end
 
-
 to assign-bug-to-player
-  if include-clients-as-bugs? [
-    let p-user-id user-id
-    let parent-player self
-    let child-bug nobody
-    setxy random-xcor random-ycor
-    ask bugs with [p-user-id = owned-by] [die]
-    hatch 1 [
-      set breed bugs
-      set child-bug self
-      setup-a-new-bugs-for-a-new-player p-user-id
-      ask parent-player [ create-link-from child-bug [ tie ] set dead? false]
-    ]
+  let p-user-id user-id
+  let parent-player self
+  let child-bug nobody
+  setxy random-xcor random-ycor
+  ask bugs with [p-user-id = owned-by] [die]
+  hatch 1 [
+    set breed bugs
+    set child-bug self
+    setup-a-new-bugs-for-a-new-player p-user-id
+    ask parent-player [ create-link-from child-bug [ tie ] set dead? false]
   ]
 end
 
 
 to remove-player
-  ask bugs with [owned-by = hubnet-message-source  and controlled-by-player?] [die]
-  ask players with [user-id = hubnet-message-source] [ die ]
+  ask bugs with [owned-by = user-id and controlled-by-player?] [die]
 end
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Handle client interactions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-to listen-clients
-  while [ hubnet-message-waiting? ]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-new-player ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-player ]
-      [ ask players with [user-id = hubnet-message-source] [execute-command hubnet-message-tag hubnet-message ]]
-    ]
-  ]
-end
-
-
 to check-reset-perspective
    if player-vision != old-player-vision [
      ask players [
-       hubnet-reset-perspective user-id
-       hubnet-send-follow user-id self player-vision
+       set perspective (list "follow" self player-vision)
      ]
      set old-player-vision player-vision
    ]
 end
-
-
-to execute-command [command msg]
-  if command = "View" [ orient-my-turtle command msg ]
-end
-
 
 to execute-turn [new-heading]
   set heading new-heading
@@ -335,8 +328,8 @@ to display-labels
 end
 
 
-to orient-my-turtle [name coords]
-  let next-destination-patch patch first coords last coords
+to orient-my-turtle [x y]
+  let next-destination-patch patch x y
   if patch-here != destination-patch [
     ask my-agent [ set destination-patch next-destination-patch face destination-patch ]
   ]
@@ -363,7 +356,6 @@ end
 
 to send-this-players-info ;; player procedure
   ;; update the monitors on the client
-  let message-to-send ""
   let my-energy energy-of-your-bug
   let place 1 + (count bugs with [energy > my-energy])
   let num-ties count bugs with [energy = my-energy]
@@ -371,17 +363,12 @@ to send-this-players-info ;; player procedure
   let any-ties ""
   let out-of (word " out of " total-number-bugs "  ")
   if num-ties > 1 [set any-ties (word " [" num-ties "-way tie]") ]
-  ifelse include-clients-as-bugs?
-    [set message-to-send (word  place  out-of any-ties)]
-    [set message-to-send "not currently in this competition"]
-  hubnet-send user-id "Your Place in the Competition" message-to-send
-
+  set place-msg (word  place  out-of any-ties)
 end
 
 
 to send-all-info     ;;send common info to this client
   ask players [send-this-players-info]
-  hubnet-broadcast "time remaining" time-remaining
 end
 
 
@@ -392,6 +379,9 @@ to update-statistics
   ]
 end
 
+to-report count-bugs
+  report count bugs
+end
 
 ; Copyright 2011 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -481,7 +471,7 @@ MONITOR
 75
 420
 # bugs
-count bugs
+count-bugs
 3
 1
 11
@@ -629,17 +619,6 @@ time-remaining
 1
 11
 
-SWITCH
-0
-10
-220
-43
-include-clients-as-bugs?
-include-clients-as-bugs?
-0
-1
--1000
-
 MONITOR
 320
 360
@@ -712,15 +691,13 @@ SPROUT-DELAY-TIME:  Controls how long before "eaten" grass starts sprouting and 
 
 LENGTH-COMPETITION:  Determines how long the competition will last. The unit of length is ticks.
 
-INCLUDE-CLIENTS-AS-BUGS?:  When "On", all HubNet connected clients will be given an individual bug to control that is assigned to their client when SETUP is pressed. When this is "Off", the model will run only on your local machine.
-
 AUTOMATED-BUGS-WANDER?:  When "On", automated bugs will turn a random amount left or right (between 30 and -30 degrees from its current heading) each tick.  When "off" the automated bugs will move in a straight line.
 
 AUTOMATED-BUGS-LOSE-ENERGY?: When "On", bugs lose one unit of energy for each tick.
 
 AUTOMATED-BUGS-REPRODUCE?:  When "On", automated bugs will reproduce one offspring when they reach a set threshold of energy. The parent bug's energy will be split between the parent and the offspring. The count of offspring is kept track of in the monitor "# OFFSPRING".
 
-PLAYER-VISION:  Used to set the radius shown when hubnet-send-follow is applied for sending a client view update for each player showing a radius sized Moore neighborhood around the bug the player is controlling.
+PLAYER-VISION:  Used to set the radius shown when `set perspective` is applied for sending a client view update for each player showing a radius sized Moore neighborhood around the bug the player is controlling.
 
 SHOW-LABELS-AS:  when set to "player name" will show a player name label next to each bug controlled by a client.  When set to "energy levels" will show the amount of energy on the label next to each bug (controlled by clients and automated bugs).  When set to   "energy ranges" will show the range of energy values and the energy value of all bugs in this format "[min, max]: this bug".  When set to "player energy:name" will show the player energy for their bug followed by a colon and then their user name, for only the bugs controlled by clients.
 
@@ -756,7 +733,7 @@ The model could be extended for some player to control predators and others to c
 
 ## NETLOGO FEATURES
 
-Each player gets a different view, attached to their own player turtle, which is in turn attached to a bug they are steering.  These customized views for following a turtle are sent to each client using the hubnet-send-follow command.
+Each player gets a different view, attached to their own player turtle, which is in turn attached to a bug they are steering.  These customized views for following a turtle are sent to each client using the `set perspective` command.
 
 ## RELATED MODELS
 

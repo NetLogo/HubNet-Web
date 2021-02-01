@@ -3,8 +3,9 @@
         {
             "canJoinMidRun": true,
             "onCursorMove": null,
-            "onCursorClick": null,
-            "onDisconnect": "???DC",
+            "onCursorClick": "orient-my-turtle",
+            "onDisconnect": "remove-player",
+            "perspectiveVar": "perspective",
             "widgets": [
                 {
                     "height": 500,
@@ -20,9 +21,9 @@
                     "display": "Your Place in the Competition",
                     "left": 115,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "place-msg",
                     "right": 345,
                     "type": "hnwMonitor",
                     "top": 10
@@ -62,9 +63,9 @@
                     "display": "time remaining",
                     "left": 10,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "time-remaining",
                     "right": 112,
                     "type": "hnwMonitor",
                     "top": 10
@@ -100,8 +101,8 @@
                     "update": ""
                 }
             ],
-            "name": "student",
-            "onConnect": "???Connect",
+            "name": "player",
+            "onConnect": "create-new-player",
             "limit": -1,
             "isSpectator": false
         },
@@ -109,7 +110,7 @@
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
-            "onDisconnect": "???DC",
+            "onDisconnect": null,
             "widgets": [
                 {
                     "height": 508,
@@ -119,32 +120,6 @@
                     "right": 913,
                     "type": "hnwView",
                     "top": 10
-                },
-                {
-                    "forever": false,
-                    "bottom": 113,
-                    "display": "setup",
-                    "left": 0,
-                    "buttonKind": "observer",
-                    "source": "setup",
-                    "hnwProcName": "setup",
-                    "right": 60,
-                    "type": "hnwButton",
-                    "top": 80,
-                    "disableUntilTicksStarts": true
-                },
-                {
-                    "forever": true,
-                    "bottom": 113,
-                    "display": "go/stop",
-                    "left": 62,
-                    "buttonKind": "observer",
-                    "source": "go",
-                    "hnwProcName": "go",
-                    "right": 135,
-                    "type": "hnwButton",
-                    "top": 80,
-                    "disableUntilTicksStarts": false
                 },
                 {
                     "bottom": 540,
@@ -181,9 +156,9 @@
                     "display": "# bugs",
                     "left": 0,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "procedure",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "count-bugs",
                     "right": 75,
                     "type": "hnwMonitor",
                     "top": 375
@@ -289,7 +264,7 @@
                     "currentChoice": 4,
                     "right": 400,
                     "choices": [
-                        "one\" \"player name\" \"player energy\" \"energy ranges\" \"player energy:nam"
+                        "none", "player name", "player energy", "energy ranges", "player energy:name"
                     ],
                     "type": "hnwChooser",
                     "top": 80
@@ -313,9 +288,9 @@
                     "display": "bugs that died",
                     "left": 77,
                     "precision": 17,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "dead-bugs",
                     "right": 174,
                     "type": "hnwMonitor",
                     "top": 375
@@ -325,9 +300,9 @@
                     "display": "# offspring",
                     "left": 176,
                     "precision": 17,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "offspring-bugs",
                     "right": 273,
                     "type": "hnwMonitor",
                     "top": 375
@@ -337,31 +312,21 @@
                     "display": "time remaining",
                     "left": 153,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "time-remaining",
                     "right": 246,
                     "type": "hnwMonitor",
                     "top": 80
-                },
-                {
-                    "bottom": 43,
-                    "display": "include-clients-as-bugs?",
-                    "left": 0,
-                    "variable": "include-clients-as-bugs?",
-                    "right": 220,
-                    "type": "hnwSwitch",
-                    "top": 10,
-                    "on": true
                 },
                 {
                     "bottom": 405,
                     "display": "x-interval",
                     "left": 320,
                     "precision": 17,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "x-interval-histogram",
                     "right": 400,
                     "type": "hnwMonitor",
                     "top": 360
@@ -392,7 +357,7 @@
                 }
             ],
             "name": "supervisor",
-            "onConnect": "???Connect",
+            "onConnect": null,
             "limit": 1,
             "isSpectator": true
         }
