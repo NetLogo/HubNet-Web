@@ -16,6 +16,11 @@ globals [
   shape-1?                 ;; used to toggle between shapes for display of sellers
   age-of-news              ;; age of news item sent to sellers.   used to clear old news
   time-period              ;; tracks current time period
+  latest-news
+
+  __hnw_supervisor_num-buyers
+  __hnw_supervisor_ideal-quantity
+
 ]
 
 breed [ sellers seller ]         ;; every hubnet client is a seller
@@ -38,6 +43,8 @@ sellers-own [
   strategy                        ;; set by client.  explained in "Make Offer" procedure
   extra-output                    ;; set by client.  part of "Quota-Plus" strategy. explained in "Make Offer" procedure
   reduced-output                  ;; set by client.  part of "Quota-Minus" strategy. explained in "Make Offer" procedure
+  color-name
+  shape-name
 ]
 
 buyers-own [
@@ -53,19 +60,17 @@ buyers-own [
 ;; ---------------------------------------------------------
 to startup
 
-  hubnet-reset
+  set __hnw_supervisor_num-buyers 200
+  set __hnw_supervisor_ideal-quantity 30
 
   ;; Create buyers
-  create-buyers num-buyers [
+  create-buyers __hnw_supervisor_num-buyers [
     setxy random-pxcor random-pycor
     set color green
   ]
 
   ;; set up colors and shape options for sellers
   initialize-shapes
-
-  ;; make Current Profit a plot that can vary by client
-  __hubnet-make-plot-narrowcast "Current Profit Plot"
 
 end
 
@@ -78,7 +83,7 @@ to reset
   ask buyers [die]
 
   ;; Create new buyers
-  create-buyers num-buyers [
+  create-buyers __hnw_supervisor_num-buyers [
     setxy random-pxcor random-pycor
     set color green
   ]
@@ -91,7 +96,7 @@ to reset
 
   ;; Reset plots
   set-current-plot "Current Profit Plot"
-  ask sellers [ __hubnet-clear-plot user-id ]
+  ;;ask sellers [ __hubnet-clear-plot user-id ]
 
   set-current-plot "Oil Sold on Market"
   clear-plot
@@ -137,25 +142,28 @@ to initial-login
   init-seller-vars
   init-buyer-vars
 
-  ;; Listen for logins, etc.
-  listen-to-clients
-
   ;; set cartel agreement
   update-cartel-agreement
 
   ;; Calculate market conditions
   compute-market-data
 
-  ;;initialize seller information
-  update-client-monitors
-  if num-sellers != 0 [ hubnet-broadcast "Current Profit" precision (monopoly-profit / num-sellers) 0]
+  ;; Clear old news items
+  if age-of-news > 15 [ send-news-item " " ]
+  set age-of-news age-of-news + 1
 
   ;; initialize seller strategies
-  hubnet-broadcast "Strategy" "Agreement"
-  hubnet-broadcast "extra-output" 0
-  hubnet-broadcast "reduced-output" 0
+  ask sellers [
+    set strategy "Agreement"
+    set extra-output 0
+    set reduced-output 0
+  ]
+
 end
 
+to-report current-profit
+  report ifelse-value (num-sellers = 0) [last-sale-profit] [monopoly-profit / num-sellers]
+end
 
 ;; ---------------------------------------------------------
 ;; RUN-MARKET - run the market simulation
@@ -164,12 +172,9 @@ to run-market
 
   ;; Make sure there are sellers before running the market
   if num-sellers = 0 [
-   user-message "Can't run market with no sellers.  Please start a hubnet client."
-   stop
+    user-message "Can't run market with no sellers.  Please start a hubnet client."
+    stop
   ]
-
-  ;; get current strategies from sellers
-  listen-to-clients
 
   ;; ask sellers to make offers based on their strategies
   make-offers
@@ -189,11 +194,11 @@ to run-market
   ;; ask buyers to update individual buyers demand satisfaction information
   update-buyers
 
-  ;; send updated information to client monitors
-  update-client-monitors
+  ;; Clear old news items
+  if age-of-news > 15 [ send-news-item " " ]
+  set age-of-news age-of-news + 1
 
   ;; do plots
-  plot-current-profit
   plot-oil-amounts
   plot-oil-price
 
@@ -313,7 +318,7 @@ to compute-market-data
   ;; Calculate hypothetical quantity and price under perfect competition
   ;; Economic theory predicts that point is where price equals marginal cost
   set perfect-market-price marginal-cost
-  set perfect-market-quantity filter-zero-or-greater (num-buyers * ideal-quantity - perfect-market-price)
+  set perfect-market-quantity filter-zero-or-greater (__hnw_supervisor_num-buyers * __hnw_supervisor_ideal-quantity - perfect-market-price)
 
 end
 
@@ -348,57 +353,12 @@ to update-buyers
   ]
 end
 
-
-;; ---------------------------------------------------------
-;; LISTEN-TO-CLIENTS - handle connecting clients
-;; ---------------------------------------------------------
-to listen-to-clients
-  while [ hubnet-message-waiting? ]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-new-seller hubnet-message-source ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-seller hubnet-message-source ]
-      [ execute-command hubnet-message-tag ]
-    ]
-  ]
-end
-
-
-;; ---------------------------------------------------------
-;; EXECUTE-COMMAND - execute the command received
-;; ---------------------------------------------------------
-to execute-command [command]
-    ifelse command = "Strategy"
-    [ ask sellers with [user-id = hubnet-message-source]
-        [ set strategy hubnet-message ]
-          ;set p1-quantity-offered hubnet-message
-          ;set p1-quantity-available p1-quantity-offered]
-    ]
-    [ ifelse command = "extra-output"
-      [ ask sellers with [user-id = hubnet-message-source]
-          [ set extra-output hubnet-message ]
-            ;set p2-quantity-offered hubnet-message
-            ;set p2-quantity-available p2-quantity-offered]
-      ]
-      [ if command = "reduced-output"
-        [ ask sellers with [user-id = hubnet-message-source]
-            [ set reduced-output hubnet-message ]
-        ]
-      ]
-    ]
-end
-
 ;; ---------------------------------------------------------
 ;; CREATE-NEW-SELLER - create a new seller when a client
 ;;                     joins
 ;; ---------------------------------------------------------
 to create-new-seller [ id ]
   let max-jumps 10000
-  let color-name ""
-  let shape-name ""
 
   create-sellers 1
   [
@@ -430,13 +390,14 @@ to create-new-seller [ id ]
     init-seller-vars
     set heading 0
 
-    ;; send color to client
-    hubnet-send user-id "You Are:" (word "The " color-name " " shape-name)
-
     ;; Announce the arrival of a new seller
     send-news-item (word "A new seller '" user-id "' has arrived.")
 
   ]
+end
+
+to-report user-id-str
+  report (word "The " color-name " " shape-name)
 end
 
 ;; ---------------------------------------------------------
@@ -474,18 +435,11 @@ to init-seller-vars    ;; seller procedure
 end
 
 ;; ---------------------------------------------------------
-;; REMOVE-SELLER - remove a seller from the simulation
-;; ---------------------------------------------------------
-to remove-seller [ id ]
-  ask sellers with [ user-id = id ] [ die ]
-end
-
-;; ---------------------------------------------------------
 ;; INIT-BUYER-VARS - initialize the buyer's variables
 ;; ---------------------------------------------------------
 to init-buyer-vars
   ask buyers [
-    set quantity-demanded ideal-quantity
+    set quantity-demanded __hnw_supervisor_ideal-quantity
     set quantity-bought 0
     set already-chosen? false
   ]
@@ -500,7 +454,7 @@ to init-buyer-vars
   let buyers-remaining buyers with [ not already-chosen? ]
   while [ any? buyers-remaining ] [
     ask one-of buyers-remaining [
-      set max-price (ideal-quantity * i)
+      set max-price (__hnw_supervisor_ideal-quantity * i)
       set already-chosen? true
     ]
     set i (i + 1)
@@ -542,7 +496,7 @@ to execute-transactions
     set quantity-bought 0  ;; initialize quantity-bought this time period
 
     ifelse min-price <= max-price
-      [ set quantity-demanded ideal-quantity ]
+      [ set quantity-demanded __hnw_supervisor_ideal-quantity ]
       [ set quantity-demanded 0 ]
 
     ;; try to buy amount you demand from sellers
@@ -608,33 +562,12 @@ to buy-from-sellers
 
 end
 
-;; ---------------------------------------------------------
-;; UPDATE-CLIENT-MONITORS - update the info in the clients' displays
-;; ---------------------------------------------------------
-to update-client-monitors
+to-report price-of-extra
+  report ifelse-value (p2-quantity-offered != 0) [ price-2 ] [ 0 ]
+end
 
-  ;; Send current cartel agreement and market data to all clients
-  hubnet-broadcast "Official Price" monopoly-price
-  hubnet-broadcast "My Quota" precision individual-quota 0
-  hubnet-broadcast "# Suppliers" num-sellers
-
-  ;; Send individual seller data
-  ask sellers [
-    hubnet-send user-id "Current Profit" precision last-sale-profit 0
-    hubnet-send user-id "Marginal Cost" marginal-cost
-    hubnet-send user-id "Profit Needed" precision profit-needed 0
-    hubnet-send user-id "Qty Sold at Official Price" precision p1-quantity-sold 0
-    hubnet-send user-id "Extra Qty Sold" precision p2-quantity-sold 0
-    hubnet-send user-id "Actual Qty" precision (p1-quantity-sold + p2-quantity-sold) 0
-    ifelse p2-quantity-offered != 0
-      [ hubnet-send user-id "Price of Extra Qty" precision price-2 0 ]
-      [ hubnet-send user-id "Price of Extra Qty" 0 ]
-
- ]
-
-  ;; Clear old news items
-  if age-of-news > 15 [ send-news-item " " ]
-  set age-of-news age-of-news + 1
+to-report combined-quantity-sold
+  report p1-quantity-sold + p2-quantity-sold
 end
 
 ;; ---------------------------------------------------------
@@ -646,8 +579,8 @@ to update-cartel-agreement
   ;; Economic theory prescribes that to maximize profits a firm should produce up to the point where
   ;; Marginal Revenue (1st derivative of demand a firm faces) equals Marginal Cost (1st derivative of total cost).
   ;; The eqn below comes from setting MR = MC and solving for monopoly-quantity.
-  set monopoly-quantity filter-zero-or-greater (num-buyers * ideal-quantity - marginal-cost) / 2
-  set monopoly-price filter-zero-or-greater (num-buyers * ideal-quantity - monopoly-quantity)
+  set monopoly-quantity filter-zero-or-greater (__hnw_supervisor_num-buyers * __hnw_supervisor_ideal-quantity - marginal-cost) / 2
+  set monopoly-price filter-zero-or-greater (__hnw_supervisor_num-buyers * __hnw_supervisor_ideal-quantity - monopoly-quantity)
 
   if num-sellers != 0 [ set individual-quota int (monopoly-quantity / num-sellers) ]
 end
@@ -665,7 +598,7 @@ to-report filter-zero-or-greater [ value ]
 end
 
 to send-news-item [ msg-text ]
-  hubnet-broadcast "Market News" msg-text
+  set latest-news msg-text
   set age-of-news 0
 end
 
@@ -699,15 +632,6 @@ to plot-oil-price
   plot monopoly-price
 
 end
-
-to plot-current-profit
-  set-current-plot "Current Profit Plot"
-
-  ask sellers [
-    __hubnet-plot user-id last-sale-profit
-  ]
-end
-
 
 ; Copyright 2004 Uri Wilensky.
 ; See Info tab for full copyright and license.
