@@ -12,7 +12,8 @@ usePlaceholderPreview();
 // type Session = { modelName :: String, name :: String, oracleID :: String }
 let sessionData = []; // Array[Session]
 
-let channels = {}; // Object[WebSocket]
+let channels         = {};   // Object[Protocol.Channel]
+let joinerConnection = new RTCPeerConnection(joinerConfig);
 
 let pageState   = "uninitialized";
 let pageStateTS = -1;
@@ -25,7 +26,9 @@ let mainEventLoopID = null; // Number
 
 let recentPings = []; // Array[Number]
 
-let lastMsgID   = '00000000-0000-0000-0000-000000000000'; // UUID
+const dummyUUID = '00000000-0000-0000-0000-000000000000' // UUID
+
+let lastMsgID   = dummyUUID; // UUID
 let predIDToMsg = {};                                     // Object[UUID, Any]
 
 const multiparts       = {}; // Object[UUID, String]
@@ -185,14 +188,62 @@ const connectAndLogin = (hostID) => {
   fetch(`/rtc/join/${hostID}`).then((response) => response.text()).then(
     (joinerID) => {
       const rtcID   = uuidToRTCID(joinerID);
-      const channel = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/join`);
-      channel.onopen    = () => { setStatus("Connected!  Attempting to log in...."); login(channel); }
-      channel.onmessage = handleChannelMessages(channel);
-      channel.onclose   = (e) => { cleanupSession(e.code === 1000, e.reason); }
-      channels[hostID] = channel;
-      mainEventLoopID  = setInterval(processQueue, 1000 / 30);
-  });
+      const channel = joinerConnection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
+      return joinerConnection.createOffer().then((offer) => [joinerID, channel, offer]);
+    }
+  ).then(
+    ([joinerID, channel, offer]) => {
 
+      let knownCandies = new Set([]);
+
+      const narrowSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/join`);
+
+      joinerConnection.onicecandidate =
+        ({ candidate }) => {
+          if (candidate !== undefined && candidate !== null) {
+            const candy = JSON.stringify(candidate.toJSON());
+            if (!knownCandies.has(candy)) {
+              knownCandies = knownCandies.add(candy);
+              sendWS(narrowSocket)("joiner-ice-candidate", { candidate: candidate.toJSON() });
+            }
+          }
+        }
+
+      joinerConnection.setLocalDescription(offer);
+
+      channel.onopen    = () => { setStatus("Connected!  Attempting to log in...."); login(channel); }
+      channel.onmessage = handleChannelMessages(channel, narrowSocket);
+      channel.onclose   = (e) => { cleanupSession(e.code === 1000, e.reason); }
+      channels[hostID]  = channel;
+
+      mainEventLoopID   = setInterval(processQueue, 1000 / 30);
+
+      narrowSocket.addEventListener('open', () => sendWS(narrowSocket)("joiner-offer", { offer }));
+
+      narrowSocket.addEventListener('message', ({ data }) => {
+        const datum = JSON.parse(data);
+        switch (datum.type) {
+          case "host-answer":
+            if (joinerConnection.remoteDescription === null) {
+              joinerConnection.setRemoteDescription(datum.answer);
+            }
+            break;
+          case "host-ice-candidate":
+            joinerConnection.addIceCandidate(datum.candidate);
+            break;
+          default:
+            console.warn(`Unknown message type: ${datum.type}`);
+        };
+      });
+
+      joinerConnection.oniceconnectionstatechange = () => {
+        if (joinerConnection.iceConnectionState == "disconnected") {
+          cleanupSession();
+        }
+      };
+
+    }
+  );
 };
 
 // () => WebSocket
@@ -207,21 +258,21 @@ const openListSocket = () => {
 
 let serverListSocket = openListSocket();
 
-// (RTCDataChannel) => Unit
+// (Protocol.Channel) => Unit
 const login = (channel) => {
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
-  sendGreeting(channel);
-  sendObj(channel)("login", { username, password });
+  sendGreeting(channel, HNWRTC.status);
+  sendRTC(channel)("login", { username, password });
 };
 
-// (RTCDataChannel) => (Any) => Unit
-const handleChannelMessages = (channel) => ({ data }) => {
+// (Protocol.Channel) => (Any) => Unit
+const handleChannelMessages = (channel, socket) => ({ data }) => {
 
   const datum = JSON.parse(data);
 
   if (datum.isOutOfBand === true) {
-    processChannelMessage(channel, datum);
+    processChannelMessage(channel, socket, datum);
   } else {
 
     const processMsgQueue = () => {
@@ -229,17 +280,27 @@ const handleChannelMessages = (channel) => ({ data }) => {
       if (successor !== undefined) {
         delete predIDToMsg[lastMsgID];
         lastMsgID = successor.id
-        processChannelMessage(channel, successor);
+        processChannelMessage(channel, socket, successor);
         processMsgQueue();
       }
     };
+
+    const processIt = (msg) => {
+      if (msg.predecessorID !== dummyUUID) {
+        predIDToMsg[msg.predecessorID] = msg;
+        processMsgQueue();
+      } else {
+        lastMsgID = msg.id;
+        processChannelMessage(channel, socket, msg);
+      }
+    }
 
     if ((datum.fullLength || 1) !== 1) {
 
       const { id, index, fullLength, parcel } = datum
 
       if (fullLength > 1) {
-        console.log("Got " + id + " (" + (index + 1) + "/" + fullLength + ")")
+        console.log(`Got ${id} (${(index + 1)}/${fullLength})`);
       }
 
       if (multiparts[id] === undefined) {
@@ -263,29 +324,27 @@ const handleChannelMessages = (channel) => ({ data }) => {
 
       if (bucket.every((x) => x !== null)) {
 
-        const fullText   = multiparts[id].join("");
-        const header     = multipartHeaders[id]
-        const fullMsg    = Object.assign({}, header, { parcel: fullText });
+        const fullText = multiparts[id].join("");
+        const header   = multipartHeaders[id];
+        const fullMsg  = Object.assign({}, header, { parcel: fullText });
 
         delete multiparts[id];
         delete multipartHeaders[id];
 
-        predIDToMsg[fullMsg.predecessorID] = fullMsg;
-        processMsgQueue();
+        processIt(fullMsg);
 
       }
 
     } else {
-      predIDToMsg[datum.predecessorID] = datum;
-      processMsgQueue();
+      processIt(datum);
     }
 
   }
 
 };
 
-// (RTCDataChannel, datum) => Unit
-const processChannelMessage = (channel, datum) => {
+// (Protocol.Channel, WebSocket, Object[Any]) => Unit
+const processChannelMessage = (channel, socket, datum) => {
 
   switch (datum.type) {
 
@@ -293,6 +352,7 @@ const processChannelMessage = (channel, datum) => {
       break;
 
     case "login-successful":
+      socket.close();
       setStatus("Logged in!  Loading NetLogo and then asking for model....")
       serverListSocket.close(1000, "Server list is not currently needed");
       switchToNLW();
@@ -317,7 +377,7 @@ const processChannelMessage = (channel, datum) => {
       break;
 
     case "ping":
-      sendObj(channel)("pong", { id: datum.id }, true);
+      sendRTC(channel)("pong", { id: datum.id }, true);
       break;
 
     case "ping-result":
@@ -332,7 +392,7 @@ const processChannelMessage = (channel, datum) => {
 
       break;
 
-    case "rtc-burst":
+    case "hnw-burst":
       enqueueMessage(JSON.parse(decompress(datum.parcel)));
       break;
 
@@ -519,9 +579,10 @@ const cleanupSession = (wasExpected, statusText) => {
 
   clearInterval(mainEventLoopID);
 
-  recentPings = [];
-  lastMsgID   = '00000000-0000-0000-0000-000000000000';
-  predIDToMsg = {};
+  joinerConnection = new RTCPeerConnection(joinerConfig);
+  recentPings      = [];
+  lastMsgID        = dummyUUID;
+  predIDToMsg      = {};
 
   setPageState("uninitialized");
   const formFrame = document.getElementById("server-browser-frame");
@@ -572,7 +633,7 @@ const setPageState = (state) => {
 // (String) => Unit
 const disconnectChannels = (reason) => {
   Object.entries(channels).forEach(([hostID, channel]) => {
-    sendObj(channel)("bye-bye");
+    sendRTC(channel)("bye-bye");
     channel.close(1000, reason);
     delete channels[hostID];
   });
@@ -592,7 +653,7 @@ window.addEventListener('message', (event) => {
         setPageState("booted up");
       } else {
         const hostID = document.querySelector('.active').dataset.uuid;
-        sendObj(channels[hostID])("relay", event.data);
+        sendRTC(channels[hostID])("relay", event.data);
       }
       break;
 
@@ -635,6 +696,7 @@ window.addEventListener('popstate', (event) => {
   if (event.state !== null && event.state !== undefined) {
     switch (event.state.name) {
       case "joined":
+        window.joinerConnection = new RTCPeerConnection(joinerConfig);
         cleanupSession(true, undefined);
       default:
         console.warn(`Unknown state: ${event.state.name}`);

@@ -1,4 +1,11 @@
-// type Session = { channel :: WebSocket, hasInitialized :: Boolean, username :: String }
+// type Session = {
+//   networking :: { socket     :: WebSocket
+//                 , connection :: RTCPeerConnection
+//                 , channel    :: RTCDataChannel
+//                 }
+// , hasInitialized :: Boolean
+// , username       :: String
+// }
 
 let sessions = {}; // Object[Session]
 
@@ -108,12 +115,11 @@ window.submitLaunchForm = (elem) => {
           const datum = JSON.parse(data);
           switch (datum.type) {
             case "hello":
-              const joinerID     = datum.joinerID
-              const channel      = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/host`);
-              channel.onopen     = () => { sendGreeting(channel); };
-              channel.onmessage  = handleChannelMessages(channel, nlogo, sessionName, joinerID);
-              channel.onclose    = handleChannelClose(joinerID);
-              sessions[joinerID] = { channel, hasInitialized: false, pingData: {} };
+              const joinerID     = datum.joinerID;
+              const connection   = new RTCPeerConnection(hostConfig);
+              const socket       = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/host`);
+              socket.onmessage   = handleConnectionMessage(connection, nlogo, sessionName, joinerID);
+              sessions[joinerID] = { networking: { socket }, hasInitialized: false, pingData: {} };
               break;
             default:
               console.warn(`Unknown broad event type: ${datum.type}`);
@@ -123,9 +129,11 @@ window.submitLaunchForm = (elem) => {
         statusSocket = new WebSocket(`ws://localhost:8080/hnw/my-status/${hostID}`);
 
         setInterval(() => {
-          const seshSockets = Object.values(sessions).map((session) => session.channel);
-          const allSockets  = seshSockets.concat([broadSocket, statusSocket]);
-          allSockets.forEach((socket) => sendObj(socket)("keep-alive", {}, true));
+
+          const channels = Object.values(sessions).map((session) => session.networking.channel);
+          channels                   .forEach((channel) => sendRTC(channel)("keep-alive", {}, true));
+          [broadSocket, statusSocket].forEach((socket)  => sendWS (socket )("keep-alive", {}, true));
+
         }, 30000);
 
         let lastMemberCount = undefined;
@@ -133,15 +141,17 @@ window.submitLaunchForm = (elem) => {
           const numPeers = Object.values(sessions).filter((s) => s.username !== undefined).length;
           if (lastMemberCount !== numPeers) {
             lastMemberCount = numPeers;
-            sendObj(statusSocket)("members-update", { numPeers });
+            sendWS(statusSocket)("members-update", { numPeers });
           }
         }, 1000);
 
         setInterval(() => {
           Object.values(sessions).forEach((session) => {
-            const uuid = genUUID();
-            session.pingData[uuid] = { startTime: performance.now() };
-            sendObj(session.channel)("ping", { id: uuid }, true);
+            if (session.networking.channel !== undefined) {
+              const uuid = genUUID();
+              session.pingData[uuid] = { startTime: performance.now() };
+              sendRTC(session.networking.channel)("ping", { id: uuid }, true);
+            }
           });
         }, 1000);
 
@@ -161,7 +171,63 @@ window.submitLaunchForm = (elem) => {
 
 };
 
-// (RTCDataChannel, String, String, String) => (Any) => Unit
+
+// (RTCPeerConnection, String, String, String) => (RTCSessionDescription) => Unit
+const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
+
+  const rtcID       = uuidToRTCID(joinerID);
+  const channel     = connection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
+  channel.onopen    = () => { sendGreeting(channel, HNWRTC.status); };
+  channel.onmessage = handleChannelMessages(channel, nlogo, sessionName, joinerID);
+  channel.onclose   = handleChannelClose(joinerID);
+
+  const session = sessions[joinerID];
+
+  session.networking.connection = connection;
+  session.networking.channel    = channel;
+
+  let knownCandies = new Set([]);
+
+  connection.onicecandidate =
+    ({ candidate }) => {
+      if (candidate !== undefined && candidate !== null) {
+        const candy = JSON.stringify(candidate.toJSON());
+        if (!knownCandies.has(candy)) {
+          knownCandies = knownCandies.add(candy);
+          sendWS(session.networking.socket)("host-ice-candidate", { candidate: candidate.toJSON() });
+        }
+      }
+    };
+
+  connection.oniceconnectionstatechange = () => {
+    if (connection.iceConnectionState == "disconnected") {
+      cleanupSession(joinerID);
+    }
+  };
+
+  connection.setRemoteDescription(offer)
+    .then(()     => connection.createAnswer())
+    .then(answer => connection.setLocalDescription(answer))
+    .then(()     => sendWS(session.networking.socket)("host-answer", { answer: connection.localDescription }));
+
+};
+
+// (RTCPeerConnection, String, String, String) => (Any) => Unit
+const handleConnectionMessage = (connection, nlogo, sessionName, joinerID) => ({ data }) => {
+  const datum = JSON.parse(data);
+  switch (datum.type) {
+    case "joiner-offer":
+      processOffer(connection, nlogo, sessionName, joinerID)(datum.offer);
+      break;
+    case "joiner-ice-candidate":
+      connection.addIceCandidate(datum.candidate);
+      break;
+    default:
+      console.warn(`Unknown narrow event type: ${datum.type}`);
+  }
+};
+
+// (Protocol.Channel, String, String, String) => (Any) => Unit
 const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data }) => {
   const datum = JSON.parse(data);
   switch (datum.type) {
@@ -180,7 +246,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
       pingBucket.endTime = performance.now();
       const pingTime     = pingBucket.endTime - pingBucket.startTime;
 
-      sendObj(channel)("ping-result", { time: Math.floor(pingTime) }, true);
+      sendRTC(channel)("ping-result", { time: Math.floor(pingTime) }, true);
 
       if (sesh.recentPings === undefined) {
         sesh.recentPings = [pingTime];
@@ -207,7 +273,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
       break;
 
     case "bye-bye":
-      sessions[joinerID].channel.close();
+      sessions[joinerID].networking.channel.close();
       delete sessions[joinerID];
       break;
 
@@ -236,9 +302,10 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
     if (!usernameIsTaken) {
       if (password === null || password === datum.password) {
 
+        sessions[joinerID].networking.socket.close();
         sessions[joinerID].username      = datum.username;
         sessions[joinerID].isInitialized = false;
-        sendObj(channel)("login-successful", {});
+        sendRTC(channel)("login-successful", {});
 
         const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
         babyDearest.postMessage({
@@ -249,15 +316,15 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
         }, "*");
 
       } else {
-        sendObj(channel)("incorrect-password", {});
-        // We also need to close the channel in all of these cases
+        sendRTC(channel)("incorrect-password", {});
+        // TODO: We also need to close the channel in all of these cases
       }
     } else {
-      sendObj(channel)("username-already-taken", {});
+      sendRTC(channel)("username-already-taken", {});
     }
 
   } else {
-    sendObj(channel)("no-username-given", {});
+    sendRTC(channel)("no-username-given", {});
   }
 
 };
@@ -276,15 +343,18 @@ window.addEventListener("message", ({ data }) => {
 
   const narrowcast = (type, message, recipientUUID) => {
     const sesh   = sessions[recipientUUID];
-    const isOpen = (channel) => channel.readyState === "open" || channel.readyState === WebSocket.OPEN;
-    if (sesh !== undefined && sesh.channel !== undefined && isOpen(sesh.channel))
-      sendRTCBurst(sesh.channel)(type, message);
+    const isOpen = (channel) => channel.readyState === "open" || channel.readyState === networking.status.open;
+    if (sesh !== undefined && sesh.networking.channel !== undefined && isOpen(sesh.networking.channel))
+      sendBurst(sesh.networking.channel)(type, message);
   }
 
   const broadcast = (type, message) => {
-    const checkIsEligible = (s) => s.channel !== undefined && s.channel.readyState === WebSocket.OPEN && s.hasInitialized;
-    const channels = Object.values(sessions).filter(checkIsEligible).map((s) => s.channel);
-    sendRTCBurst(...channels)(type, message);
+    const checkIsEligible = (s) => {
+      let nw = s.networking;
+      return nw.channel !== undefined && nw.channel.readyState === HNWRTC.status.open && s.hasInitialized;
+    };
+    const channels = Object.values(sessions).filter(checkIsEligible).map((s) => s.networking.channel);
+    sendBurst(...channels)(type, message);
   }
 
   switch (data.type) {
@@ -297,7 +367,7 @@ window.addEventListener("message", ({ data }) => {
     case "nlw-view":
       if (lastImageUpdate !== data.base64) {
         lastImageUpdate = data.base64;
-        sendObj(statusSocket)("image-update", { base64: data.base64 });
+        sendWS(statusSocket)("image-update", { base64: data.base64 });
       }
       break;
     case "hnw-initial-state":
@@ -329,8 +399,8 @@ window.addEventListener("message", ({ data }) => {
 
 window.addEventListener("beforeunload", (event) => {
   // Honestly, this will probably not run before the tab closes.  Not much I can do about that.  --JAB (8/21/20)
-  Object.entries(sessions).forEach(([joinerID, { channel }]) => {
-    sendObj(channel)("bye-bye");
+  Object.entries(sessions).forEach(([joinerID, { networking: { channel } }]) => {
+    sendRTC(channel)("bye-bye");
     channel.close(1000, "Terminating unneeded sockets...");
   });
 });

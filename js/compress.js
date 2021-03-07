@@ -1,5 +1,8 @@
 let lastSentIDMap = {}; // Object[String, UUID]
 
+// (Protocol.Channel) => String
+const toBaseID = (channel) => channel.url || channel.id;
+
 // (String) => UUID
 const extractLastSentID = (channelID) => {
   const lsid = lastSentIDMap[channelID];
@@ -35,7 +38,7 @@ const decompress = (deflated) => {
 };
 
 // (String) => Array[String]
-const chunkForRTC = (message) => {
+const chunkForSending = (message) => {
 
   const chunkSize  = 1200;
   const compressed = compress(message);
@@ -44,12 +47,12 @@ const chunkForRTC = (message) => {
   if (messages.length * chunkSize <= 1e7)
     return messages;
   else
-    throw new Error('This model is generating too much data for HubNet Web to reliably transfer.  Aborting....');
+    throw new Error('This activity is generating too much data for HubNet Web to reliably transfer.  Aborting....');
 
 };
 
-// (WebSocket) => (String, Any, Boolean, UUID, UUID) => Unit
-const _send = (channel) => (type, obj, needsPred = true, predecessorID = extractLastSentID(channel.url), id = genUUID()) => {
+// (Protocol.Channel) => (String, Any, Boolean, UUID, UUID) => Unit
+const _send = (channel) => (type, obj, needsPred = true, predecessorID = extractLastSentID(channel), id = genUUID()) => {
 
   const clone = Object.assign({}, obj);
   delete clone[id];
@@ -62,22 +65,21 @@ const _send = (channel) => (type, obj, needsPred = true, predecessorID = extract
 
 };
 
-// (WebSocket) => (String, Any) => Unit
+// (Protocol.Channel) => (String, Any) => Unit
 const send = (channel) => (type, obj) => {
   _send(channel)(type, obj);
 };
 
-// (WebSocket) => (String, Any, Boolean) => Unit
+// (Protocol.Channel) => (String, Any, Boolean) => Unit
 const sendOOB = (channel) => (type, obj) => {
   const fullerObj = Object.assign({}, obj, { isOutOfBand: true });
   channel.send(makeMessage(type, fullerObj));
 }
 
-// (RTCDataChannel*) => (String, Any) => Unit
-// (WebSocket*) => (String, Any) => Unit
-const sendRTCBurst = (...channels) => (type, obj) => {
+// (Protocol.Channel*) => (String, Any) => Unit
+const sendBurst = (...channels) => (type, obj) => {
 
-  const messages = chunkForRTC(makeMessage(type, obj));
+  const messages = chunkForSending(makeMessage(type, obj));
 
   const id = genUUID();
 
@@ -85,7 +87,7 @@ const sendRTCBurst = (...channels) => (type, obj) => {
     messages.forEach(
       (m, index) => {
         const obj = { index, fullLength: messages.length, parcel: m };
-        _send(channel)("rtc-burst", obj, index === 0, undefined, id);
+        _send(channel)("hnw-burst", obj, index === 0, undefined, id);
       }
     );
   });

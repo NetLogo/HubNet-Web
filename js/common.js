@@ -10,52 +10,23 @@ const uuidToRTCID = (uuid) => {
   return Math.abs(stringToHash(uuid)) % 1024;
 };
 
-const commonConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-
-const   hostConfig = { ...commonConfig };
-const joinerConfig = { ...commonConfig };
-
 // (String, Object[Any]) => Unit
 const makeMessage = (type, obj) => {
   return JSON.stringify({ type, ...obj });
 }
 
-// (WebSocket, String, Any, Boolean) => Unit
-const sendObj = (...sockets) => (type, obj, isOOB) => {
-  sockets.forEach((socket) => {
-    switch (socket.readyState) {
-      case WebSocket.CONNECTING:
-        setTimeout(() => { sendObj(socket)(type, obj, isOOB); }, 50);
-        break;
-      case WebSocket.CLOSING:
-      case WebSocket.CLOSED:
-        console.warn(`Cannot send '${type}' message to WebSocket, because it is already closed`, type);
-        break;
-      case WebSocket.OPEN:
-        if (isOOB) {
-          sendOOB(socket)(type, obj);
-        } else {
-          send(socket)(type, obj);
-        }
-        break;
-      default:
-        console.warn(`Unknown WebSocket ready state: ${socket.readyState}`);
-    }
-  });
-};
-
-// (RTCDataChannel*) => (String, Object[Any], Boolean) => Unit
-const sendRTC = (...channels) => (type, obj, isOOB) => {
+// (Protocol.StatusBundle) => (Protocol.Channel*) => (String, Object[Any], Boolean) => Unit
+const sendObj = (statusBundle) => (...channels) => (type, obj, isOOB) => {
   channels.forEach((channel) => {
     switch (channel.readyState) {
-      case "connecting":
-        setTimeout(() => { sendRTC(channel)(type, obj, isOOB); }, 50);
+      case statusBundle.connecting:
+        setTimeout(() => { sendObj(statusBundle)(channel)(type, obj, isOOB); }, 50);
         break;
-      case "closing":
-      case "closed":
-        console.warn(`Cannot send '${type}' message over RTC, because the connection is already closed`, channel, obj);
+      case statusBundle.closing:
+      case statusBundle.closed:
+        console.warn(`Cannot send '${type}' message over connection, because it is already closed`, channel, obj);
         break;
-      case "open":
+      case statusBundle.open:
         if (isOOB) {
           sendOOB(channel)(type, obj);
         } else {
@@ -63,28 +34,34 @@ const sendRTC = (...channels) => (type, obj, isOOB) => {
         }
         break;
       default:
-        console.warn(`Unknown RTC ready state: ${channel.readyState}`);
+        console.warn(`Unknown connection ready state: ${channel.readyState}`);
     }
   });
 };
 
-// (WebSocket) => (WebSocket) => Unit
-const sendGreeting = (channel) => {
+// (Protocol.Channel, Protocol.StatusBundle) => Unit
+const sendGreeting = (channel, statusBundle) => {
   switch (channel.readyState) {
-    case WebSocket.CONNECTING:
+    case statusBundle.connecting:
       setTimeout(() => { sendFirst(channel); }, 50);
       break;
-    case WebSocket.CLOSING:
-    case WebSocket.CLOSED:
-      console.warn(`Cannot send 'connect-established' message to WebSocket, because it is already closed`);
+    case statusBundle.closing:
+    case statusBundle.closed:
+      console.warn(`Cannot send 'connect-established' message, because connection is already closed`);
       break;
-    case WebSocket.OPEN:
+    case statusBundle.open:
       _send(channel)("connection-established", {}, true, '00000000-0000-0000-0000-000000000000');
       break;
     default:
-      console.warn(`Unknown WebSocket ready state: ${channel.readyState}`);
+      console.warn(`Unknown connection ready state: ${channel.readyState}`);
   }
 };
+
+// (WebSocket*) => (String, Object[Any], Boolean) => Unit
+const sendWS = sendObj(window.HNWWS.status);
+
+// (RTCDataChannel*) => (String, Object[Any], Boolean) => Unit
+const sendRTC = sendObj(window.HNWRTC.status);
 
 // () => UUID
 const genUUID = () => {
