@@ -43,7 +43,7 @@ const sendObj = (statusBundle) => (...channels) => (type, obj, isOOB) => {
 const sendGreeting = (channel, statusBundle) => {
   switch (channel.readyState) {
     case statusBundle.connecting:
-      setTimeout(() => { sendFirst(channel); }, 50);
+      setTimeout(() => { sendGreeting(channel, statusBundle); }, 50);
       break;
     case statusBundle.closing:
     case statusBundle.closed:
