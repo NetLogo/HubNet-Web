@@ -271,7 +271,7 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
 
   const datum = JSON.parse(data);
 
-  if (datum.isOutOfBand === true) {
+  if (typeIsOOB(datum.type)) {
     processChannelMessage(channel, socket, datum);
   } else {
 
@@ -377,7 +377,7 @@ const processChannelMessage = (channel, socket, datum) => {
       break;
 
     case "ping":
-      sendRTC(channel)("pong", { id: datum.id }, true);
+      sendRTC(channel)("pong", { id: datum.id });
       break;
 
     case "ping-result":

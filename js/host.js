@@ -131,8 +131,8 @@ window.submitLaunchForm = (elem) => {
         setInterval(() => {
 
           const channels = Object.values(sessions).map((session) => session.networking.channel);
-          channels                   .forEach((channel) => sendRTC(channel)("keep-alive", {}, true));
-          [broadSocket, statusSocket].forEach((socket)  => sendWS (socket )("keep-alive", {}, true));
+          channels                   .forEach((channel) => sendRTC(channel)("keep-alive", {}));
+          [broadSocket, statusSocket].forEach((socket)  => sendWS (socket )("keep-alive", {}));
 
         }, 30000);
 
@@ -251,7 +251,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
       pingBucket.endTime = performance.now();
       const pingTime     = pingBucket.endTime - pingBucket.startTime;
 
-      sendRTC(channel)("ping-result", { time: Math.floor(pingTime) }, true);
+      sendRTC(channel)("ping-result", { time: Math.floor(pingTime) });
 
       if (sesh.recentPings === undefined) {
         sesh.recentPings = [pingTime];

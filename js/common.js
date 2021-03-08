@@ -15,19 +15,19 @@ const makeMessage = (type, obj) => {
   return JSON.stringify({ type, ...obj });
 }
 
-// (Protocol.StatusBundle) => (Protocol.Channel*) => (String, Object[Any], Boolean) => Unit
-const sendObj = (statusBundle) => (...channels) => (type, obj, isOOB) => {
+// (Protocol.StatusBundle) => (Protocol.Channel*) => (String, Object[Any]) => Unit
+const sendObj = (statusBundle) => (...channels) => (type, obj) => {
   channels.forEach((channel) => {
     switch (channel.readyState) {
       case statusBundle.connecting:
-        setTimeout(() => { sendObj(statusBundle)(channel)(type, obj, isOOB); }, 50);
+        setTimeout(() => { sendObj(statusBundle)(channel)(type, obj); }, 50);
         break;
       case statusBundle.closing:
       case statusBundle.closed:
         console.warn(`Cannot send '${type}' message over connection, because it is already closed`, channel, obj);
         break;
       case statusBundle.open:
-        if (isOOB) {
+        if (typeIsOOB(type)) {
           sendOOB(channel)(type, obj);
         } else {
           send(channel)(type, obj);
@@ -38,6 +38,9 @@ const sendObj = (statusBundle) => (...channels) => (type, obj, isOOB) => {
     }
   });
 };
+
+// (String) => Boolean
+const typeIsOOB = (type) => ["keep-alive", "ping", "ping-result", "pong"].includes(type);
 
 // (Protocol.Channel, Protocol.StatusBundle) => Unit
 const sendGreeting = (channel, statusBundle) => {
@@ -57,10 +60,10 @@ const sendGreeting = (channel, statusBundle) => {
   }
 };
 
-// (WebSocket*) => (String, Object[Any], Boolean) => Unit
+// (WebSocket*) => (String, Object[Any]) => Unit
 const sendWS = sendObj(window.HNWWS.status);
 
-// (RTCDataChannel*) => (String, Object[Any], Boolean) => Unit
+// (RTCDataChannel*) => (String, Object[Any]) => Unit
 const sendRTC = sendObj(window.HNWRTC.status);
 
 // () => UUID
