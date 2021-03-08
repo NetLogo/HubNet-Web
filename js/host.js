@@ -153,7 +153,7 @@ window.submitLaunchForm = (elem) => {
               sendRTC(session.networking.channel)("ping", { id: uuid }, true);
             }
           });
-        }, 1000);
+        }, 2000);
 
         setInterval(() => {
           babyDearest.postMessage({ type: "nlw-request-view" }, "*");
