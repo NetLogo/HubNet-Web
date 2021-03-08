@@ -148,9 +148,9 @@ window.submitLaunchForm = (elem) => {
         setInterval(() => {
           Object.values(sessions).forEach((session) => {
             if (session.networking.channel !== undefined) {
-              const uuid = genUUID();
-              session.pingData[uuid] = { startTime: performance.now() };
-              sendRTC(session.networking.channel)("ping", { id: uuid }, true);
+              const id = slimUUID();
+              session.pingData[id] = { startTime: performance.now() };
+              sendRTC(session.networking.channel)("ping", { id });
             }
           });
         }, 2000);
@@ -171,6 +171,11 @@ window.submitLaunchForm = (elem) => {
 
 };
 
+// (UUID) => String
+const slimUUID = () => {
+  const uuid = genUUID();
+  return uuid.substr(0, uuid.indexOf('-'));
+};
 
 // (RTCPeerConnection, String, String, String) => (RTCSessionDescription) => Unit
 const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
