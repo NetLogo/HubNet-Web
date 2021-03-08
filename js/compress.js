@@ -59,7 +59,9 @@ const _send = (channel) => (type, obj, needsPred = true, predecessorID = extract
   delete clone[predecessorID];
 
   const finalObj = Object.assign({}, { id }, needsPred ? { predecessorID } : {}, clone);
-  channel.send(makeMessage(type, finalObj));
+  const finalStr = makeMessage(type, finalObj);
+  console.log("_send", finalStr);
+  channel.send(finalStr);
 
   lastSentIDMap[channel.url] = id;
 
@@ -72,8 +74,9 @@ const send = (channel) => (type, obj) => {
 
 // (Protocol.Channel) => (String, Any, Boolean) => Unit
 const sendOOB = (channel) => (type, obj) => {
-  const fullerObj = Object.assign({}, obj, { isOutOfBand: true });
-  channel.send(makeMessage(type, fullerObj));
+  const str = makeMessage(type, obj);
+  console.log("OOB", str);
+  channel.send(str);
 }
 
 // (Protocol.Channel*) => (String, Any) => Unit
