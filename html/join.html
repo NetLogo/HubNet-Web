@@ -52,7 +52,11 @@
 
     <div id="nlw-frame" class="frame hidden">
       <input id="disconnect-button" type="button" value="Disconnect">
-      <div>Latency: <span id="latency-span">(N/A)</span>ms</div>
+      <div style="display: flex; flex-direction: row;">
+        <div>Latency: <span id="latency-span">(N/A)</span>ms</div>
+        <span style="margin: 0 15px;">|</span>
+        <div>Connection Type: <span id="connection-type-span">(N/A)</span></div>
+      </div>
       <iframe class="nlw-iframe" src="http://localhost:9000/hnw-join"></iframe>
     </div>
 

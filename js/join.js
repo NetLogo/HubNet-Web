@@ -349,6 +349,26 @@ const processChannelMessage = (channel, socket, datum) => {
   switch (datum.type) {
 
     case "connection-established":
+
+      joinerConnection.getStats().then(
+        (stats) => {
+
+          let usesTURN =
+            Array.from(stats.values()).some(
+              (v) =>
+                v.type === "candidate-pair" &&
+                  v.state === "succeeded" &&
+                  v.localCandidateId &&
+                  stats.get(v.localCandidateId).candidateType === "relay"
+            );
+
+          let desc = usesTURN ? "Server-based" : "Peer-to-Peer";
+
+          document.getElementById("connection-type-span").innerText = desc;
+
+        }
+      );
+
       break;
 
     case "login-successful":
