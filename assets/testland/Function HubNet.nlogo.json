@@ -6,7 +6,7 @@
             "onCursorClick": null,
             "onDisconnect": "remove-student",
             "widgets": [
-                { "type": "hnwView",    "left": 4000, "right": 4001, "top":   0, "bottom":   1, "height": 1, "width": 1 },
+                { "type": "hnwView",    "left": 2000, "right": 2001, "top":   0, "bottom":   1, "height": 1, "width": 1 },
                 {
                     "forever": false,
                     "bottom": 151,
@@ -64,7 +64,7 @@
                     "left": 245,
                     "variable": "my-equation",
                     "boxedValue": {
-                        "value": "0",
+                        "value": "\"0\"",
                         "multiline": true,
                         "type": "String (reporter)"
                     },
@@ -135,13 +135,15 @@
                 }
             ],
             "name": "student",
+            "namePlural": "students",
             "onConnect": "create-new-student",
             "limit": -1,
             "isSpectator": false
         },
         {
             "canJoinMidRun": true,
-            "onCursorMove": null,
+            "cursorXVar": "mouse_x",
+            "cursorYVar": "mouse_y",
             "onCursorClick": null,
             "onDisconnect": null,
             "widgets": [
@@ -366,7 +368,7 @@
                 },
                 {
                     "bottom": 577,
-                    "display": "Send students\\na rule to follow.",
+                    "display": "Send students\na rule to follow.",
                     "color": 0,
                     "left": 35,
                     "fontSize": 11,
@@ -423,6 +425,7 @@
                 }
             ],
             "name": "supervisor",
+            "namePlural": "supervisors",
             "onConnect": null,
             "limit": 1,
             "isSpectator": true

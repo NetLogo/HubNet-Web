@@ -40,6 +40,8 @@ globals
   __hnw_supervisor_reveal-legend?
   __hnw_supervisor_linear-regression?
   __hnw_supervisor_grid?
+  __hnw_supervisor_mouse_x
+  __hnw_supervisor_mouse_y
 
 ]
 
@@ -73,6 +75,8 @@ to startup
   set __hnw_supervisor_reveal-legend? true
   set __hnw_supervisor_linear-regression? false
   set __hnw_supervisor_grid? true
+  set __hnw_supervisor_mouse_x 0
+  set __hnw_supervisor_mouse_y 0
 
   set margin 10
   set rule ""
@@ -591,8 +595,8 @@ end
 ;; report the coordinates of the mouse, with respect to the range and scale of the graph
 ;; rather than the patch coordinate system
 to-report mouse-coords
-  report (word "(" ( precision ((mouse-xcor - y-axis) * grids-per-patch-x) 1)
-         "," ( precision ((mouse-ycor - x-axis) * grids-per-patch-y ) 1 ) ")")
+  report (word "(" ( precision ((__hnw_supervisor_mouse_x - y-axis) * grids-per-patch-x) 1)
+         "," ( precision ((__hnw_supervisor_mouse_y - x-axis) * grids-per-patch-y ) 1 ) ")")
 end
 
 to draw-legend
