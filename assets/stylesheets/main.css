@@ -12,6 +12,12 @@
   display: none;
 }
 
+.invis {
+  height:     1px !important;
+  visibility: hidden;
+  width:      1px !important;
+}
+
 .nlw-iframe {
   height: 100%;
   width:  100%;
