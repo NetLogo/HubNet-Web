@@ -19,39 +19,25 @@ let lastImageUpdate = undefined; // Base64String
 window.submitLaunchForm = (elem) => {
 
   const formData = new FormData(elem);
+  const lm       = formData.get('libraryModel').slice(4);
 
-  const formDataPlus =
-    { 'modelType':   "library"
-    , 'sessionName': formData.get('sessionName')
-    , 'password':    formData.get('password')
-    };
+  launchModel({ 'modelType':   'library'
+              , 'sessionName': formData.get('sessionName')
+              , 'password':    formData.get('password')
+              , 'model':       lm
+              });
+
+  return true;
+
+};
+
+// (Object[String]) => Unit
+const launchModel = (formDataPlus) => {
 
   if (formDataPlus.password === "")
     delete formDataPlus.password;
   else
     password = formDataPlus.password;
-
-  switch (formDataPlus.modelType) {
-    case "library":
-      const lm               = formData.get('libraryModel').slice(4);
-      formDataPlus.model     = lm;
-      formDataPlus.modelName = lm;
-      break;
-    case "upload":
-
-      if (!elem.querySelector('#upload-model').value.endsWith('.nlogo')) {
-        alert("Please upload a valid '.nlogo' file, or choose a file from the library.");
-        return false;
-      }
-
-      formDataPlus.model     = formData.get('uploadModel');
-      formDataPlus.modelName = extractModelName(elem.querySelector('#upload-model').value);
-
-      break;
-
-    default:
-      console.warn(`Unknown model source: ${formDataPlus.modelType}`);
-  }
 
   new Promise(
     (resolve, reject) => {
@@ -88,8 +74,9 @@ window.submitLaunchForm = (elem) => {
 
         document.getElementById('id-display').innerText = hostID;
 
-        const nlogo       = type === "from-library" ? nlogoMaybe : formDataLike.model;
-        const json        = type === "from-library" ? JSON.parse(jsonMaybe) : "get wrecked";
+        const canDealWith = type === "from-library" || type === "from-upload";
+        const nlogo       = canDealWith ? nlogoMaybe            : "what is this model type?!";
+        const json        = canDealWith ? JSON.parse(jsonMaybe) : "get wrecked";
         const sessionName = formDataLike.sessionName;
 
         const formFrame = document.getElementById("form-frame");
@@ -166,8 +153,6 @@ window.submitLaunchForm = (elem) => {
     }
 
   });
-
-  return true;
 
 };
 
@@ -374,6 +359,15 @@ window.addEventListener("message", ({ data }) => {
         lastImageUpdate = data.base64;
         sendWS(statusSocket)("image-update", { base64: data.base64 });
       }
+      break;
+    case "galapagos-direct-launch":
+      const { nlogo, config, sessionName, password } = data;
+      launchModel({ 'modelType': 'upload'
+                  , model:       nlogo
+                  , sessionName
+                  , password
+                  , config
+                  });
       break;
     case "hnw-initial-state":
       const { token, role, state, viewState } = data;

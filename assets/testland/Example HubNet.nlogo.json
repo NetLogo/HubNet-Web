@@ -4,7 +4,7 @@
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": "on-click",
-            "onDisconnect": "on-leave",
+            "onDisconnect": "on-exit",
             "perspectiveVar": "perspective",
             "widgets": [
                 {
@@ -43,6 +43,7 @@
                 }
             ],
             "name": "student",
+            "namePlural": "students",
             "onConnect": "on-join",
             "limit": -1,
             "isSpectator": false
@@ -77,6 +78,7 @@
                 }
             ],
             "name": "supervisor",
+            "namePlural": "supervisors",
             "onConnect": null,
             "limit": 1,
             "isSpectator": true

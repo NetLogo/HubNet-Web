@@ -35,7 +35,7 @@ object Controller {
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import spray.json.DefaultJsonProtocol._
 
-  private case class LaunchReq(modelType: String, model: String, modelName: String, sessionName: String, password: Option[String])
+  private case class LaunchReq(modelType: String, model: String, config: Option[String], sessionName: String, password: Option[String])
   implicit private val launchReqFormat = jsonFormat5(LaunchReq)
 
   private case class LaunchResp(id: String, `type`: String, nlogoMaybe: Option[String])
@@ -65,7 +65,6 @@ object Controller {
 
       path("")                 { getFromFile("html/index.html") } ~
       path("host")             { getFromFile("html/host.html")  } ~
-      path("launch-session")   { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
       path("x-launch-session") { post { entity(as[LaunchReq])(handleXLaunchReq) } } ~
       path("join")             { getFromFile("html/join.html")  } ~
       path("available-models") { get { complete(availableModels) } } ~
@@ -97,14 +96,14 @@ object Controller {
     val modelSourceJsonEither =
       req.modelType match {
         case "library" => slurpXModelSource(req.model)
-        case "upload"  => Right((req.model, ""))
+        case "upload"  => Right((req.model, req.config.getOrElse("no config supplied"), "User Upload"))
         case x         => Left(s"Unknown model type: $x")
       }
 
     modelSourceJsonEither.fold(
       (msg) => reject(ValidationRejection(msg))
     , {
-      case (modelSource, json) =>
+      case (modelSource, json, modelName) =>
 
         val uuid = UUID.randomUUID
 
@@ -116,59 +115,11 @@ object Controller {
 
         val makeParcel =
           replyTo =>
-            CreateXSession(req.modelName, modelSource, json, req.sessionName, req.password, uuid, scheduleIn, replyTo)
+            CreateXSession(modelName, modelSource, json, req.sessionName, req.password, uuid, scheduleIn, replyTo)
 
         val result = askSeshFor(makeParcel)
 
-        val (modelType, nlogoOption, jsonOption) =
-          req.modelType match {
-            case "library" => ("from-library", Some(modelSource), Some(json))
-            case "upload"  => ("from-upload" , None, None)
-            case _         => ("from-unknown", None, None)
-          }
-
-        complete(XLaunchResp(uuid.toString, modelType, nlogoOption, jsonOption))
-
-    })
-
-  }
-
-  private def handleLaunchReq(req: LaunchReq)(implicit ec: ExecutionContext): RequestContext => Future[RouteResult] = {
-
-    val modelSourceEither =
-      req.modelType match {
-        case "library" => slurpModelSource(req.model)
-        case "upload"  => Right(req.model)
-        case x         => Left(s"Unknown model type: $x")
-      }
-
-    modelSourceEither.fold(
-      (msg) => reject(ValidationRejection(msg))
-    , {
-      modelSource =>
-
-        val uuid = UUID.randomUUID
-
-        val scheduleIn = {
-          (d: FiniteDuration, thunk: () => Unit) =>
-            system.scheduler.scheduleOnce(delay = d)(thunk())
-            ()
-        }
-
-        val makeParcel =
-          replyTo =>
-            CreateSession(req.modelName, modelSource, req.sessionName, req.password, uuid, scheduleIn, replyTo)
-
-        val result = askSeshFor(makeParcel)
-
-        val (modelType, nlogoOption) =
-          req.modelType match {
-            case "library" => ("from-library", Some(modelSource))
-            case "upload"  => ("from-upload" , None)
-            case _         => ("from-unknown", None)
-          }
-
-        complete(LaunchResp(uuid.toString, modelType, nlogoOption))
+        complete(XLaunchResp(uuid.toString, s"from-${req.modelType}", Some(modelSource), Some(json)))
 
     })
 
@@ -382,14 +333,14 @@ object Controller {
 
   }
 
-  private def slurpXModelSource(modelName: String): Either[String, (String, String)] = {
+  private def slurpXModelSource(modelName: String): Either[String, (String, String, String)] = {
     import scala.collection.JavaConverters.asScalaIteratorConverter
     val pathStr     = s"./assets/testland/$modelName HubNet.nlogo"
     val modelPath   = Paths.get(pathStr)
     val jsonPath    = Paths.get(s"$pathStr.json")
     val modelSource = { val src = SISource.fromURI(modelPath.toUri); val text = src.mkString; src.close(); text }
     val jsonSource  = { val src = SISource.fromURI( jsonPath.toUri); val text = src.mkString; src.close(); text }
-    Right((modelSource, jsonSource))
+    Right((modelSource, jsonSource, modelName))
   }
 
   private def slurpModelSource(modelName: String): Either[String, String] =

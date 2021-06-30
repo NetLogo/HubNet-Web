@@ -1,5 +1,8 @@
+body {
+  background-color: white;
+}
+
 .frame {
   height: 100%;
   width:  100%;
 }
-
