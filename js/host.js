@@ -219,10 +219,20 @@ const handleConnectionMessage = (connection, nlogo, sessionName, joinerID) => ({
 
 // (Protocol.Channel, String, String, String) => (Any) => Unit
 const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data }) => {
+
   const datum = JSON.parse(data);
+
   switch (datum.type) {
 
     case "connection-established":
+
+      if (datum.protocolVersion !== window.HNWProtocolVersionNumber) {
+        const id = sessions[joinerID] && sessions[joinerID].username || joinerID;
+        alert(`HubNet protocol version mismatch!  You are using protocol version '${window.HNWProtocolVersionNumber}', while client '${id}' is using version '${datum.v}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  The offending client has been disconnected.`);
+        sessions[joinerID].networking.channel.close();
+        delete sessions[joinerID];
+      }
+
       break;
 
     case "login":

@@ -1,3 +1,5 @@
+window.HNWProtocolVersionNumber = 0;
+
 // (String) => String
 const stringToHash = (str) => {
   return Array.from(str).map((x) => x.codePointAt(0)).reduce(((acc, x) => (((acc << 5) - acc) + x) | 0), 0);
@@ -54,7 +56,7 @@ const sendGreeting = (channel, statusBundle) => {
       console.warn(`Cannot send 'connect-established' message, because connection is already closed`);
       break;
     case statusBundle.open:
-      _send(channel)("connection-established", {}, true, '00000000-0000-0000-0000-000000000000');
+      _send(channel)("connection-established", { protocolVersion: HNWProtocolVersionNumber }, true, '00000000-0000-0000-0000-000000000000');
       break;
     default:
       console.warn(`Unknown connection ready state: ${channel.readyState}`);

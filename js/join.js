@@ -350,6 +350,11 @@ const processChannelMessage = (channel, socket, datum) => {
 
     case "connection-established":
 
+      if (datum.protocolVersion !== window.HNWProtocolVersionNumber) {
+        alert(`HubNet protocol version mismatch!  You are using protocol version '${window.HNWProtocolVersionNumber}', while the host is using version '${datum.protocolVersion}'.  To ensure that you and the host are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  Your connection will now close.`);
+        disconnectChannels("Protocol version number mismatch");
+      }
+
       joinerConnection.getStats().then(
         (stats) => {
 
