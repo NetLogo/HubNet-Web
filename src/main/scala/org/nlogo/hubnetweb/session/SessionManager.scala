@@ -40,20 +40,20 @@ object SessionManagerActor {
   final case class GetPreview( uuid: UUID, override val replyTo: ActorRef[Either[String, String]]
                              ) extends SeshMessageAsk[Either[String, String]]
 
-  final case class GetSessions( override val replyTo: ActorRef[Seq[SessionInfo]]
-                              ) extends SeshMessageAsk[Seq[SessionInfo]]
+  final case class GetSessions( override val replyTo: ActorRef[Vector[SessionInfo]]
+                              ) extends SeshMessageAsk[Vector[SessionInfo]]
 
   final case class PullFromHost( hostID: UUID, joinerID: UUID
-                               , override val replyTo: ActorRef[Either[String, Seq[String]]]
-                               ) extends SeshMessageAsk[Either[String, Seq[String]]]
+                               , override val replyTo: ActorRef[Either[String, Vector[String]]]
+                               ) extends SeshMessageAsk[Either[String, Vector[String]]]
 
   final case class PullFromJoiner( hostID: UUID, joinerID: UUID
-                                 , override val replyTo: ActorRef[Either[String, Seq[String]]]
-                                 ) extends SeshMessageAsk[Either[String, Seq[String]]]
+                                 , override val replyTo: ActorRef[Either[String, Vector[String]]]
+                                 ) extends SeshMessageAsk[Either[String, Vector[String]]]
 
   final case class PullJoinerIDs(hostID: UUID
-                                , override val replyTo: ActorRef[Either[String, Seq[UUID]]]
-                                ) extends SeshMessageAsk[Either[String, Seq[UUID]]]
+                                , override val replyTo: ActorRef[Either[String, Vector[UUID]]]
+                                ) extends SeshMessageAsk[Either[String, Vector[UUID]]]
 
   final case class PushFromHost  (hostID: UUID, joinerID: UUID, message: String) extends SeshMessage
   final case class PushFromJoiner(hostID: UUID, joinerID: UUID, message: String) extends SeshMessage
@@ -131,7 +131,7 @@ private object SessionManager {
   private val sessionMap: MMap[UUID, SessionInfo] = MMap()
 
   private val exampleImages =
-    Seq(
+    Vector(
       "bizzle"
     , "bryan"
     , "uri"
@@ -147,7 +147,7 @@ private object SessionManager {
     val image       = { val temp = imageSource.mkString; imageSource.close(); temp }
 
     sessionMap += uuid -> SessionInfo( uuid, name, password, Map("any" -> anyRoleInfo)
-                                     , new ConnectionInfo(Seq(), Map(), Map())
+                                     , new ConnectionInfo(Vector(), Map(), Map())
                                      , new Model(modelName, modelSource, ""), image, time
                                      )
 
@@ -179,7 +179,7 @@ private object SessionManager {
     val image       = { val temp = imageSource.mkString; imageSource.close(); temp }
 
     sessionMap += uuid -> SessionInfo( uuid, name, password, Map("any" -> anyRoleInfo)
-                                     , new ConnectionInfo(Seq(), Map(), Map())
+                                     , new ConnectionInfo(Vector(), Map(), Map())
                                      , new Model(modelName, modelSource, json), image, time
                                      )
 
@@ -244,21 +244,21 @@ private object SessionManager {
   def getPreview(uuid: UUID): Either[String, String] =
     get(uuid)(_.previewBase64)
 
-  def getSessions: Seq[SessionInfo] =
-    sessionMap.values.toSeq
+  def getSessions: Vector[SessionInfo] =
+    sessionMap.values.toVector
 
   def pushJoinerID(hostID: UUID, joinerID: UUID): Unit =
     push(hostID)(_.connInfo.joinerIDs)(joinerID)((si, news) => si.copy(connInfo = si.connInfo.copy(joinerIDs = news)))
 
-  def pullJoinerIDs(hostID: UUID): Either[String, Seq[UUID]] =
-    pull(hostID)(_.connInfo.joinerIDs)((si) => si.copy(connInfo = si.connInfo.copy(joinerIDs = Seq())))
+  def pullJoinerIDs(hostID: UUID): Either[String, Vector[UUID]] =
+    pull(hostID)(_.connInfo.joinerIDs)((si) => si.copy(connInfo = si.connInfo.copy(joinerIDs = Vector())))
 
   def pushFromHost(hostID: UUID, joinerID: UUID, message: String): Unit = {
     pulseHost(hostID)
     mush(hostID)(_.connInfo.fromHostMap)(joinerID -> message)((si, news) => si.copy(connInfo = si.connInfo.copy(fromHostMap = news)))
   }
 
-  def pullFromHost(hostID: UUID, joinerID: UUID): Either[String, Seq[String]] = {
+  def pullFromHost(hostID: UUID, joinerID: UUID): Either[String, Vector[String]] = {
     pulseHost(hostID)
     pullEither(hostID)(_.connInfo.fromHostMap.get(joinerID).toRight(s"No entry for $joinerID"))(
       (si) => si.copy(connInfo = si.connInfo.copy(fromHostMap = si.connInfo.fromHostMap - joinerID))
@@ -268,7 +268,7 @@ private object SessionManager {
   def pushFromJoiner(hostID: UUID, joinerID: UUID, message: String): Unit =
     mush(hostID)(_.connInfo.fromJoinerMap)(joinerID -> message)((si, news) => si.copy(connInfo = si.connInfo.copy(fromJoinerMap = news)))
 
-  def pullFromJoiner(hostID: UUID, joinerID: UUID): Either[String, Seq[String]] =
+  def pullFromJoiner(hostID: UUID, joinerID: UUID): Either[String, Vector[String]] =
     pullEither(hostID)(_.connInfo.fromJoinerMap.get(joinerID).toRight(s"No entry for $joinerID"))(
       (si) => si.copy(connInfo = si.connInfo.copy(fromJoinerMap = si.connInfo.fromJoinerMap - joinerID))
     )
@@ -303,29 +303,29 @@ private object SessionManager {
   }
 
   private def push[T](uuid: UUID)
-                     (getter: (SessionInfo) => Seq[T])
+                     (getter: (SessionInfo) => Vector[T])
                      (item: T)
-                     (setter: (SessionInfo, Seq[T]) => SessionInfo): Unit = {
-    val olds = get(uuid)(getter).fold(_ => Seq(), identity _)
+                     (setter: (SessionInfo, Vector[T]) => SessionInfo): Unit = {
+    val olds = get(uuid)(getter).fold(_ => Vector(), identity _)
     get(uuid)(identity)
       .map((si) => setter(si, olds :+ item))
       .foreach((si) => sessionMap.update(uuid, si))
   }
 
   private def mush[T](uuid: UUID)
-                     (getter: (SessionInfo) => Map[UUID, Seq[T]])
+                     (getter: (SessionInfo) => Map[UUID, Vector[T]])
                      (item: (UUID, T))
-                     (setter: (SessionInfo, Map[UUID, Seq[T]]) => SessionInfo): Unit = {
-    val olds = get(uuid)(getter).fold(_ => Map[UUID, Seq[T]](), identity _)
+                     (setter: (SessionInfo, Map[UUID, Vector[T]]) => SessionInfo): Unit = {
+    val olds = get(uuid)(getter).fold(_ => Map[UUID, Vector[T]](), identity _)
     get(uuid)(identity)
-      .map((si) => setter(si, olds + (item._1 -> (olds.getOrElse(item._1, Seq()) ++ Seq(item._2)))))
+      .map((si) => setter(si, olds + (item._1 -> (olds.getOrElse(item._1, Vector()) ++ Vector(item._2)))))
       .foreach((si) => sessionMap.update(uuid, si))
   }
 
 }
 
 case class Model(name: String, source: String, json: String)
-case class ConnectionInfo(joinerIDs: Seq[UUID], fromHostMap: Map[UUID, Seq[String]], fromJoinerMap: Map[UUID, Seq[String]])
+case class ConnectionInfo(joinerIDs: Vector[UUID], fromHostMap: Map[UUID, Vector[String]], fromJoinerMap: Map[UUID, Vector[String]])
 case class RoleInfo(name: String, var numInRole: Int, limit: Option[Int])
 
 case class SessionInfo( uuid: UUID, name: String, password: Option[String], roleInfo: Map[String, RoleInfo]

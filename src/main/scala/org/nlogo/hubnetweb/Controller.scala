@@ -44,7 +44,7 @@ object Controller {
   private case class XLaunchResp(id: String, `type`: String, nlogoMaybe: Option[String], jsonMaybe: Option[String])
   implicit private val xlaunchRespFormat = jsonFormat4(XLaunchResp)
 
-  private case class SessionInfoUpdate(name: String, modelName: String, roleInfo: Seq[(String, Int, Int)], oracleID: String, hasPassword: Boolean)
+  private case class SessionInfoUpdate(name: String, modelName: String, roleInfo: Vector[(String, Int, Int)], oracleID: String, hasPassword: Boolean)
   implicit private val siuFormat = jsonFormat5(SessionInfoUpdate)
 
   implicit private val system           = ActorSystem("hnw-system")
@@ -157,7 +157,7 @@ object Controller {
   }
 
   private def sessionToJsonable(session: SessionInfo): SessionInfoUpdate = {
-    val roleInfo = session.roleInfo.values.map(ri => (ri.name, ri.numInRole, ri.limit.getOrElse(0))).toSeq
+    val roleInfo = session.roleInfo.values.map(ri => (ri.name, ri.numInRole, ri.limit.getOrElse(0))).toVector
     SessionInfoUpdate(session.name, session.model.name, roleInfo, session.uuid.toString, session.password.nonEmpty)
   }
 
@@ -200,7 +200,7 @@ object Controller {
         .mapConcat(
           _ =>
             askSeshFor(PullFromJoiner(hostID, joinerID, _))
-              .fold(_ => Seq(), identity)
+              .fold(_ => Vector(), identity)
               .map(m => TextMessage(m)).toList
         )
 
@@ -243,7 +243,7 @@ object Controller {
         .mapConcat(
           _ =>
             askSeshFor(PullFromHost(hostID, joinerID, _))
-              .fold(_ => Seq(), identity)
+              .fold(_ => Vector(), identity)
               .map(m => TextMessage(m)).toList
         )
 
@@ -357,12 +357,12 @@ object Controller {
   private def makeModelMappings(): Map[String, Path] = {
     import scala.collection.JavaConverters.asScalaIteratorConverter
     val path  = Paths.get("./models/")
-    val paths = Files.walk(path).filter(_.getFileName.toString.endsWith(".nlogo")).iterator.asScala.toSeq
+    val paths = Files.walk(path).filter(_.getFileName.toString.endsWith(".nlogo")).iterator.asScala.toVector
     paths.map(x => (x.getFileName.toString.stripSuffix(" HubNet.nlogo"), x)).toMap
   }
 
   private lazy val availableModels = {
-    val modelNames = namesToPaths.keys.map(JsString.apply).toSeq
+    val modelNames = namesToPaths.keys.map(JsString.apply).toVector
     JsArray(modelNames: _*)
   }
 
