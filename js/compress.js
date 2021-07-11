@@ -60,7 +60,6 @@ const _send = (channel) => (type, obj, needsPred = true, predecessorID = extract
 
   const finalObj = Object.assign({}, { id }, needsPred ? { predecessorID } : {}, clone);
   const finalStr = makeMessage(type, finalObj);
-  console.log("_send", finalStr);
   channel.send(finalStr);
 
   lastSentIDMap[channel.url] = id;
@@ -75,7 +74,6 @@ const send = (channel) => (type, obj) => {
 // (Protocol.Channel) => (String, Any, Boolean) => Unit
 const sendOOB = (channel) => (type, obj) => {
   const str = makeMessage(type, obj);
-  console.log("OOB", str);
   channel.send(str);
 }
 
