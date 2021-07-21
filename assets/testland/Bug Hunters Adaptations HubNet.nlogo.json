@@ -15,9 +15,11 @@
       ]
     , "canJoinMidRun": false
     , "isSpectator": false
+    , "perspectiveVar": null
     , "onConnect": "initialize-student"
     , "onDisconnect": "remove-student"
     , "onCursorClick": "check-found-bugs-student"
+    , "onCursorRelease": null
     , "onCursorMove": null
     }
     , {
@@ -47,9 +49,11 @@
       ]
     , "canJoinMidRun": true
     , "isSpectator": true
+    , "perspectiveVar": null
     , "onConnect": null
     , "onDisconnect": null
     , "onCursorClick": "check-found-bugs-host"
+    , "onCursorRelease": null
     , "onCursorMove": null
     }
   ]

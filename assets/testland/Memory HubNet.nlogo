@@ -8,7 +8,7 @@ breed [cards card]
 ;; the participants in the game.
 breed [players player]
 players-own [
-  __hnw_username
+  user-id
   matches     ;; a number, how many successful matches so far
   attempts    ;; a number, how may total tries so far
 ]
@@ -84,7 +84,7 @@ to-report winner-message
   let winners players with-max [matches]
   ifelse count winners > 1
   [ report (word "It's a " count winners "-way tie." ) ]
-  [ report (word [__hnw_username] of one-of winners " wins!") ]
+  [ report (word [user-id] of one-of winners " wins!") ]
 end
 
 ;;
@@ -94,7 +94,7 @@ end
 to add-player [username]
   create-players 1
   [
-    set __hnw_username
+    set user-id username
     hide-turtle
     set matches 0
     set attempts 0
@@ -146,7 +146,7 @@ to-report leader
   ifelse any? leaders
   [
     ifelse count leaders = 1
-    [ report [__hnw_username] of one-of leaders ]
+    [ report [user-id] of one-of leaders ]
     [ report (word count leaders "-way tie") ]
   ]
   [ report "nobody" ]
@@ -165,7 +165,7 @@ to-report success-percentage
 end
 
 to-report whose-turn
-  report ifelse-value current-player = 0 [ [__hnw_username] of item current-player sort players ] [ "" ]
+  report ifelse-value current-player = 0 [ [user-id] of item current-player sort players ] [ "" ]
 end
 
 to-report player-count
@@ -173,7 +173,7 @@ to-report player-count
 end
 
 to-report current-player-name
-  report [__hnw_username] of item current-player sort players
+  report [user-id] of item current-player sort players
 end
 
 to show-all

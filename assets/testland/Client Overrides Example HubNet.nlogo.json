@@ -4,6 +4,7 @@
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
+            "onCursorRelease": null,
             "onDisconnect": "???DC",
             "widgets": [
                 {
@@ -19,12 +20,14 @@
             "name": "student",
             "onConnect": "???Connect",
             "limit": -1,
-            "isSpectator": false
+            "isSpectator": false,
+            "perspectiveVar": null
         },
         {
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
+            "onCursorRelease": null,
             "onDisconnect": "???DC",
             "widgets": [
                 {
@@ -75,7 +78,8 @@
             "name": "supervisor",
             "onConnect": "???Connect",
             "limit": 1,
-            "isSpectator": true
+            "isSpectator": true,
+            "perspectiveVar": null
         }
     ],
     "onIterate": "go",

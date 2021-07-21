@@ -8,10 +8,10 @@
     , "limit": -1
     , "widgets": [
         { "type": "hnwView",     "left": 252, "right": 672, "top":  10, "bottom": 430, "height": 420, "width": 420 }
-      , { "type": "hnwButton",   "left":  91, "right": 153, "top": 133, "bottom": 166, "display": "Up", "source": "move-up", "hnwProcName": "move-up", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle" }
-      , { "type": "hnwButton",   "left":  91, "right": 153, "top": 199, "bottom": 232, "display": "Down", "source": "move-down", "hnwProcName": "move-down", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle" }
-      , { "type": "hnwButton",   "left": 153, "right": 215, "top": 166, "bottom": 199, "display": "Right", "source": "move-right", "hnwProcName": "move-right", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle" }
-      , { "type": "hnwButton",   "left":  29, "right":  91, "top": 166, "bottom": 199, "display": "Left", "source": "move-left", "hnwProcName": "move-left", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle" }
+      , { "type": "hnwButton",   "left":  91, "right": 153, "top": 133, "bottom": 166, "display": "Up", "source": "move-up", "hnwProcName": "move-up", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle", "actionKey": "I" }
+      , { "type": "hnwButton",   "left":  91, "right": 153, "top": 199, "bottom": 232, "display": "Down", "source": "move-down", "hnwProcName": "move-down", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle", "actionKey": "K" }
+      , { "type": "hnwButton",   "left": 153, "right": 215, "top": 166, "bottom": 199, "display": "Right", "source": "move-right", "hnwProcName": "move-right", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle", "actionKey": "L" }
+      , { "type": "hnwButton",   "left":  29, "right":  91, "top": 166, "bottom": 199, "display": "Left", "source": "move-left", "hnwProcName": "move-left", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle", "actionKey": "J" }
       , { "type": "hnwSlider",   "left":   3, "right": 153, "top":  95, "bottom": 128, "display": "step-size", "variable": "step-size", "min": 1.0, "max": 5.0, "default": 1.0, "units": "", "direction": "horizontal", "step": 1.0 }
       , { "type": "hnwMonitor",  "left": 156, "right": 243, "top":  10, "bottom":  59, "display": "Located at:", "source": "my-location", "reporterStyle": "turtle-procedure", "precision": 3, "fontSize": 10 }
       , { "type": "hnwMonitor",  "left":   3, "right": 153, "top":  10, "bottom":  59, "display": "You are a:", "source": "my-description", "reporterStyle": "turtle-procedure", "precision": 3, "fontSize": 10 }
@@ -21,9 +21,11 @@
       ]
     , "canJoinMidRun": false
     , "isSpectator": false
+    , "perspectiveVar": null
     , "onConnect": "create-new-student"
     , "onDisconnect": "remove-student"
     , "onCursorClick": null
+    , "onCursorRelease": null
     , "onCursorMove": null
     }
     , {
@@ -54,9 +56,11 @@
       ]
     , "canJoinMidRun": true
     , "isSpectator": true
+    , "perspectiveVar": null
     , "onConnect": null
     , "onDisconnect": null
     , "onCursorClick": null
+    , "onCursorRelease": null
     , "onCursorMove": null
     }
   ]

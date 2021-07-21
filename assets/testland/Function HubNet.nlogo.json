@@ -4,6 +4,7 @@
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
+            "onCursorRelease": null,
             "onDisconnect": "remove-student",
             "widgets": [
                 { "type": "hnwView",    "left": 2000, "right": 2001, "top":   0, "bottom":   1, "height": 1, "width": 1 },
@@ -138,13 +139,15 @@
             "namePlural": "students",
             "onConnect": "create-new-student",
             "limit": -1,
-            "isSpectator": false
+            "isSpectator": false,
+            "perspectiveVar": null
         },
         {
             "canJoinMidRun": true,
             "cursorXVar": "mouse_x",
             "cursorYVar": "mouse_y",
             "onCursorClick": null,
+            "onCursorRelease": null,
             "onDisconnect": null,
             "widgets": [
                 {
@@ -428,7 +431,8 @@
             "namePlural": "supervisors",
             "onConnect": null,
             "limit": 1,
-            "isSpectator": true
+            "isSpectator": true,
+            "perspectiveVar": null
         }
     ],
     "onIterate": "go",

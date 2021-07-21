@@ -4,6 +4,7 @@
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
+            "onCursorRelease": null,
             "onDisconnect": "removeFarmer",
             "widgets": [
                 {
@@ -174,12 +175,14 @@
             "name": "student",
             "onConnect": "create-new-farmer",
             "limit": -1,
-            "isSpectator": false
+            "isSpectator": false,
+            "perspectiveVar": null
         },
         {
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
+            "onCursorRelease": null,
             "onDisconnect": null,
             "widgets": [
                 {
@@ -485,7 +488,8 @@
             "name": "supervisor",
             "onConnect": null,
             "limit": 1,
-            "isSpectator": true
+            "isSpectator": true,
+            "perspectiveVar": null
         }
     ],
     "onIterate": "go",

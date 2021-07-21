@@ -19,9 +19,11 @@
       ]
     , "canJoinMidRun": false
     , "isSpectator": false
+    , "perspectiveVar": null
     , "onConnect": "add-player"
     , "onDisconnect": "remove-player"
     , "onCursorClick": "select-card"
+    , "onCursorRelease": null
     , "onCursorMove": null
     }
     , {
@@ -40,9 +42,11 @@
       ]
     , "canJoinMidRun": true
     , "isSpectator": true
+    , "perspectiveVar": null
     , "onConnect": null
     , "onDisconnect": null
     , "onCursorClick": null
+    , "onCursorRelease": null
     , "onCursorMove": null
     }
   ]

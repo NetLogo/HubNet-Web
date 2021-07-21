@@ -4,6 +4,7 @@
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": "orient-my-turtle",
+            "onCursorRelease": null,
             "onDisconnect": "remove-player",
             "perspectiveVar": "perspective",
             "widgets": [
@@ -39,7 +40,7 @@
                     "xAxis": "energy level",
                     "autoPlotOn": true,
                     "xmax": 500,
-                    "setupCode": "",
+                    "setupCode": "let num-bars 20\n let y-axis-max-histogram  (5 + ((floor (count bugs with [floor (energy / 20) = (item 0 modes [floor (energy / 20)] of bugs)] / 5)) * 5))\n set-current-plot \"Energy Levels of Bugs\"\n plot-pen-reset       \n  ;; autoscale x axis by 500s\n set-plot-x-range (500 * floor (min-energy-of-any-bug / 500)) (500 + 500 *  (floor (max-energy-of-any-bug / 500)))\n  if y-axis-max-histogram < 10 [set y-axis-max-histogram 10]\n  ;; autoscale y axis by 5s, when above 10\n  set-plot-y-range 0 y-axis-max-histogram   \n  set-histogram-num-bars num-bars\n  set  x-min-histogram plot-x-min\n  set  x-max-histogram plot-x-max\n  set   x-interval-histogram (x-max-histogram - x-min-histogram) / num-bars\n  \n  histogram [ energy ] of bugs",
                     "pens": [
                         {
                             "updateCode": "",
@@ -56,7 +57,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 210,
-                    "update": ""
+                    "update": "let num-bars 20\n let y-axis-max-histogram  (5 + ((floor (count bugs with [floor (energy / 20) = (item 0 modes [floor (energy / 20)] of bugs)] / 5)) * 5))\n set-current-plot \"Energy Levels of Bugs\"\n plot-pen-reset       \n  ;; autoscale x axis by 500s\n set-plot-x-range (500 * floor (min-energy-of-any-bug / 500)) (500 + 500 *  (floor (max-energy-of-any-bug / 500)))\n  if y-axis-max-histogram < 10 [set y-axis-max-histogram 10]\n  ;; autoscale y axis by 5s, when above 10\n  set-plot-y-range 0 y-axis-max-histogram   \n  set-histogram-num-bars num-bars\n  set  x-min-histogram plot-x-min\n  set  x-max-histogram plot-x-max\n  set   x-interval-histogram (x-max-histogram - x-min-histogram) / num-bars\n  \n  histogram [ energy ] of bugs"
                 },
                 {
                     "bottom": 59,
@@ -84,7 +85,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "plotxy ticks count bugs",
                             "display": "bugs",
                             "color": -16777216,
                             "mode": 0,
@@ -104,12 +105,14 @@
             "name": "player",
             "onConnect": "create-new-player",
             "limit": -1,
-            "isSpectator": false
+            "isSpectator": false,
+            "perspectiveVar": null
         },
         {
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
+            "onCursorRelease": null,
             "onDisconnect": null,
             "widgets": [
                 {
@@ -359,7 +362,8 @@
             "name": "supervisor",
             "onConnect": null,
             "limit": 1,
-            "isSpectator": true
+            "isSpectator": true,
+            "perspectiveVar": null
         }
     ],
     "onIterate": "go",

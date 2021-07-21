@@ -20,9 +20,11 @@
       ]
     , "canJoinMidRun": false
     , "isSpectator": false
+    , "perspectiveVar": null
     , "onConnect": "execute-create"
     , "onDisconnect": "handle-quit"
     , "onCursorClick": null
+    , "onCursorRelease": null
     , "onCursorMove": null
     }
     , {
@@ -48,9 +50,11 @@
       ]
     , "canJoinMidRun": true
     , "isSpectator": true
+    , "perspectiveVar": null
     , "onConnect": null
     , "onDisconnect": null
     , "onCursorClick": null
+    , "onCursorRelease": null
     , "onCursorMove": null
     }
   ]

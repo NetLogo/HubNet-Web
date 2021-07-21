@@ -4,6 +4,7 @@
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
+            "onCursorRelease": null,
             "onDisconnect": "???DC",
             "widgets": [
                 {
@@ -68,12 +69,14 @@
             "name": "student",
             "onConnect": "???Connect",
             "limit": -1,
-            "isSpectator": false
+            "isSpectator": false,
+            "perspectiveVar": null
         },
         {
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
+            "onCursorRelease": null,
             "onDisconnect": "???DC",
             "widgets": [
                 {
@@ -117,7 +120,7 @@
                     "default": 0.1,
                     "left": 5,
                     "variable": "voltage",
-                    "step": 1.0e-2,
+                    "step": 0.01,
                     "min": "0.01",
                     "right": 205,
                     "type": "hnwSlider",
@@ -208,10 +211,10 @@
                     "bottom": 287,
                     "display": "diffusion-factor",
                     "direction": "horizontal",
-                    "default": 5.0e-2,
+                    "default": 0.05,
                     "left": 5,
                     "variable": "diffusion-factor",
-                    "step": 1.0e-2,
+                    "step": 0.01,
                     "min": "0",
                     "right": 205,
                     "type": "hnwSlider",
@@ -506,7 +509,8 @@
             "name": "supervisor",
             "onConnect": "???Connect",
             "limit": 1,
-            "isSpectator": true
+            "isSpectator": true,
+            "perspectiveVar": null
         }
     ],
     "onIterate": "go",

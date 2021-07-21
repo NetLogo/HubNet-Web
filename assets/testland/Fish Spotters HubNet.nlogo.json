@@ -4,6 +4,7 @@
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": "check-caught-fish",
+            "onCursorRelease": null,
             "onDisconnect": "remove-player",
             "widgets": [
                 {
@@ -139,12 +140,14 @@
             "name": "player",
             "onConnect": "add-player",
             "limit": -1,
-            "isSpectator": false
+            "isSpectator": false,
+            "perspectiveVar": null
         },
         {
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
+            "onCursorRelease": null,
             "onDisconnect": null,
             "widgets": [
                 {
@@ -516,7 +519,8 @@
             "name": "supervisor",
             "onConnect": null,
             "limit": 1,
-            "isSpectator": true
+            "isSpectator": true,
+            "perspectiveVar": null
         }
     ],
     "onIterate": "go",
