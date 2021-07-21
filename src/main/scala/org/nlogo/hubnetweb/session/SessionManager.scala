@@ -130,21 +130,13 @@ private object SessionManager {
 
   private val sessionMap: MMap[UUID, SessionInfo] = MMap()
 
-  private val exampleImages =
-    Vector(
-      "bizzle"
-    , "bryan"
-    , "uri"
-    )
-
   def createSession( modelName: String, modelSource: String, name: String, password: Option[String]
                    , uuid: UUID, scheduleIn: Scheduler
                    ): Either[String, String] = {
 
     val time        = System.currentTimeMillis()
     val anyRoleInfo = RoleInfo("any", 0, None)
-    val imageSource = Source.fromFile(s"assets/base64s/${exampleImages(Math.abs(time.toInt) % exampleImages.length)}.b64")
-    val image       = { val temp = imageSource.mkString; imageSource.close(); temp }
+    val image       = GrayB64
 
     sessionMap += uuid -> SessionInfo( uuid, name, password, Map("any" -> anyRoleInfo)
                                      , new ConnectionInfo(Vector(), Map(), Map())
@@ -175,8 +167,7 @@ private object SessionManager {
 
     val time        = System.currentTimeMillis()
     val anyRoleInfo = RoleInfo("any", 0, None)
-    val imageSource = Source.fromFile(s"assets/base64s/${exampleImages(Math.abs(time.toInt) % exampleImages.length)}.b64")
-    val image       = { val temp = imageSource.mkString; imageSource.close(); temp }
+    val image       = GrayB64
 
     sessionMap += uuid -> SessionInfo( uuid, name, password, Map("any" -> anyRoleInfo)
                                      , new ConnectionInfo(Vector(), Map(), Map())
@@ -321,6 +312,8 @@ private object SessionManager {
       .map((si) => setter(si, olds + (item._1 -> (olds.getOrElse(item._1, Vector()) ++ Vector(item._2)))))
       .foreach((si) => sessionMap.update(uuid, si))
   }
+
+  private val GrayB64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wYGEwkDoISeKgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAADElEQVQI12NobmwEAAMQAYa2CjzCAAAAAElFTkSuQmCC"
 
 }
 
