@@ -26,8 +26,8 @@ import spray.json.{ JsArray, JsNumber, JsObject, JsonParser, JsString }
 import session.{ SessionInfo, SessionManagerActor }
 import session.SessionManagerActor.{ CreateSession, CreateXSession, DelistSession, GetPreview
                                    , GetSessions, PullFromHost, PullFromJoiner, PullJoinerIDs
-                                   , PushFromHost, PushFromJoiner, PushJoinerID, SeshMessageAsk
-                                   , UpdateNumPeers, UpdatePreview
+                                   , PulseHost, PushFromHost, PushFromJoiner, PushJoinerID
+                                   , SeshMessageAsk, UpdateNumPeers, UpdatePreview
                                    }
 
 object Controller {
@@ -312,6 +312,7 @@ object Controller {
                   val JsString(str) = parsed.fields("base64")
                   seshManager ! UpdatePreview(hostID, str)
                 case JsString("keep-alive") =>
+                  seshManager ! PulseHost(hostID)
                 case x =>
                   println(s"I don't know what this is: $x")
               }

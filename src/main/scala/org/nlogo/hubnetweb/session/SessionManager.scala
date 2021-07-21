@@ -55,6 +55,7 @@ object SessionManagerActor {
                                 , override val replyTo: ActorRef[Either[String, Vector[UUID]]]
                                 ) extends SeshMessageAsk[Either[String, Vector[UUID]]]
 
+  final case class PulseHost     (hostID: UUID)                                  extends SeshMessage
   final case class PushFromHost  (hostID: UUID, joinerID: UUID, message: String) extends SeshMessage
   final case class PushFromJoiner(hostID: UUID, joinerID: UUID, message: String) extends SeshMessage
   final case class PushJoinerID  (hostID: UUID, joinerID: UUID)                  extends SeshMessage
@@ -96,6 +97,10 @@ object SessionManagerActor {
 
           case PullJoinerIDs(hostID, replyTo) =>
             replyTo ! SessionManager.pullJoinerIDs(hostID)
+            Behaviors.same
+
+          case PulseHost(hostID) =>
+            SessionManager.pulseHost(hostID)
             Behaviors.same
 
           case PushFromHost(hostID, joinerID, msg) =>
@@ -203,6 +208,7 @@ private object SessionManager {
           scheduleIn(1 minute, () => checkIn(scheduleIn)(hostID))
         else
           delistSession(hostID)
+
     }
 
     ()
@@ -213,7 +219,7 @@ private object SessionManager {
     sessionMap -= hostID
   }
 
-  private def pulseHost(hostID: UUID): Unit =
+  def pulseHost(hostID: UUID): Unit =
     sessionMap.get(hostID).foreach {
       session => sessionMap(hostID) = session.copy(lastCheckInTimestamp = System.currentTimeMillis())
     }
