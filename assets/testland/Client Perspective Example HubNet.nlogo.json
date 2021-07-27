@@ -5,7 +5,7 @@
             "onCursorMove": null,
             "onCursorClick": null,
             "onCursorRelease": null,
-            "onDisconnect": "remove-student",
+            "onDisconnect": null,
             "widgets": [
                 {
                     "height": 420,
