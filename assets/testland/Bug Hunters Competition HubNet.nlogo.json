@@ -6,7 +6,6 @@
             "onCursorClick": "orient-my-turtle",
             "onCursorRelease": null,
             "onDisconnect": "remove-player",
-            "perspectiveVar": "perspective",
             "widgets": [
                 {
                     "height": 500,
@@ -106,7 +105,7 @@
             "onConnect": "create-new-player",
             "limit": -1,
             "isSpectator": false,
-            "perspectiveVar": null
+            "perspectiveVar": "perspective"
         },
         {
             "canJoinMidRun": true,

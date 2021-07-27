@@ -6,7 +6,6 @@
             "onCursorClick": "on-click",
             "onCursorRelease": null,
             "onDisconnect": "on-exit",
-            "perspectiveVar": "perspective",
             "widgets": [
                 {
                     "height": 429,
@@ -48,7 +47,7 @@
             "onConnect": "on-join",
             "limit": -1,
             "isSpectator": false,
-            "perspectiveVar": null
+            "perspectiveVar": "perspective"
         },
         {
             "canJoinMidRun": true,

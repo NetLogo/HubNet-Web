@@ -6,7 +6,6 @@
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": "remove-student",
-            "perspectiveVar": "perspective",
             "widgets": [
                 {
                     "height": 420,
@@ -104,7 +103,7 @@
             "onConnect": "create-new-student",
             "limit": -1,
             "isSpectator": false,
-            "perspectiveVar": null
+            "perspectiveVar": "perspective"
         },
         {
             "canJoinMidRun": true,
