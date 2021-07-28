@@ -13,7 +13,7 @@
       , { "type": "hnwMonitor",  "left":  25, "right": 132, "top":  15, "bottom":  64, "display": "Whose turn?", "source": "whose-turn", "reporterStyle": "turtle-procedure", "precision": 3, "fontSize": 10 }
       , { "type": "hnwMonitor",  "left":  15, "right": 140, "top": 241, "bottom": 290, "display": "Leader", "source": "leader", "reporterStyle": "procedure", "precision": 3, "fontSize": 10 }
       , { "type": "hnwMonitor",  "left": 141, "right": 266, "top": 241, "bottom": 290, "display": "Leader's matches", "source": "leaders-matches", "reporterStyle": "procedure", "precision": 0, "fontSize": 10 }
-      , { "type": "hnwMonitor",  "left":  82, "right": 189, "top":  74, "bottom": 123, "display": "Your name", "source": "__hnw-username", "reporterStyle": "turtle-var", "precision": 0, "fontSize": 10 }
+      , { "type": "hnwMonitor",  "left":  82, "right": 189, "top":  74, "bottom": 123, "display": "Your name", "source": "user-id", "reporterStyle": "turtle-var", "precision": 0, "fontSize": 10 }
       , { "type": "hnwMonitor",  "left":  35, "right": 142, "top": 174, "bottom": 223, "display": "Your turns", "source": "attempts", "reporterStyle": "turtle-var", "precision": 0, "fontSize": 10 }
       , { "type": "hnwView",     "left": 269, "right": 867, "top":  13, "bottom": 381, "height": 368, "width": 598 }
       ]

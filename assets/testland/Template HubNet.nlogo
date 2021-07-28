@@ -4,7 +4,7 @@ breed [ students student ]
 
 students-own
 [
-  __hnw_username   ;; students choose a user name when they log in whenever you receive a
+  user-id   ;; students choose a user name when they log in whenever you receive a
             ;; message from the student associated with this turtle hubnet-message-source
             ;; will contain the user-id
   step-size ;; you should have a turtle variable for every widget in the client interface that
@@ -54,8 +54,8 @@ to-report create-new-student [username]
     ;; store the message-source in user-id now
     ;; so when you get messages from this client
     ;; later you will know which turtle it affects
-    set __hnw_username username
-    set label __hnw_username
+    set user-id username
+    set label user-id
     ;; initialize turtle variables to the default
     ;; value of the corresponding widget in the client interface
     set step-size 1

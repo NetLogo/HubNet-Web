@@ -14,7 +14,7 @@ breed [ students student ]
 students-own
 [
 
-  __hnw_username
+  user-id
 
   inventory
   back-orders       ;; at the end of each week back-orders will be calculated if
@@ -299,7 +299,7 @@ to-report add-student-to [this-team username]
   [
     set out who
 
-    set __hnw_username username
+    set user-id username
     set label username
     set inventory 12
     set back-orders 0

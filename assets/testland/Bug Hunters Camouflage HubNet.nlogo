@@ -25,10 +25,10 @@ breed [students student]
 
 students-own
 [
-  __hnw_username    ;; the unique name users enter on their clients
   caught       ;; the number of bugs this user as caught
   attempts     ;; times the user has clicked in the view trying to catch a bug
   percent      ;; percent of catches relative to the leader
+  user-id      ;; the unique name users enter on their clients
 ]
 
 breed [bugs bug]
@@ -237,7 +237,7 @@ end
 to-report add-player [username]
   let out -1
   create-students 1 [
-    set __hnw_username username
+    set user-id username
     initialize-player
     set out who
   ]
@@ -309,7 +309,7 @@ to update-leader-stats
     ;; a tie otherwise report the name
     ifelse number-leaders > 1
     [ set leader word number-leaders "-way tie" ]
-    [ ask one-of leaders [ set leader __hnw_username ] ]
+    [ ask one-of leaders [ set leader user-id ] ]
     set leader-caught [caught] of one-of leaders
   ]
 end

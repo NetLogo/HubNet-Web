@@ -29,7 +29,7 @@ breed [ students student ]
 students-own
 [
 
-  __hnw_username    ;; the unique name users enter on their clients
+  user-id           ;; the unique name users enter on their clients
   my-xcor           ;; the unwrapped horizontal position of a turtle
   xcor-initial      ;; the initial horizontal position of a turtle
   interval          ;; the current interval a turtle is moving through
@@ -212,7 +212,7 @@ end
 
 to show-or-hide-id-labels  ;; turtle procedure
   ifelse __hnw_supervisor_show-user-id?
-  [ set label word __hnw_username "     " ]
+  [ set label word user-id "     " ]
   [ set label "" ]
 end
 
@@ -328,7 +328,7 @@ to-report setup-walker [username]
     create-students 1
     [
 
-      set __hnw_username username
+      set user-id username
 
       set interval-0 0
       set interval-1 0
@@ -378,16 +378,16 @@ to do-plotting
   ;; we're plotting, right now it can only be one but the code
   ;; is simpler this way.
   if walker-to-plot != "everybody"
-  [ set guys-to-plot students with [ __hnw_username = walker-to-plot ] ]
+  [ set guys-to-plot students with [ user-id = walker-to-plot ] ]
 
   ask guys-to-plot
   [
     set-current-plot "Position vs. Intervals"
-    set-current-plot-pen __hnw_username
+    set-current-plot-pen user-id
     plot my-xcor
 
     set-current-plot "Velocity vs. Intervals"
-    set-current-plot-pen __hnw_username
+    set-current-plot-pen user-id
     plot velocity
   ]
 
@@ -406,7 +406,7 @@ end
 to pick-walker-to-plot
   set walker-to-plot "everybody" ;user-one-of
                      ;"Please select the walker to plot"
-                     ;(fput "everybody" sort [__hnw_username] of students )
+                     ;(fput "everybody" sort [user-id] of students )
 end
 
 ;; setup the position and velocity plot
@@ -423,7 +423,7 @@ to my-setup-plots
 
     ;; make sure to plot the initial position
     set-current-plot "Position vs. Intervals"
-    set-current-plot-pen __hnw_username
+    set-current-plot-pen user-id
     plot my-xcor
   ]
 
@@ -434,7 +434,7 @@ end
 ;; create pens for each of the existing walkers and color the pens to be the same color as
 ;; their corresponding walker.  if bars? is true, set the pen mode to be 1 for bar mode.
 to setup-pens [ bars? ]
-  create-temporary-plot-pen __hnw_username
+  create-temporary-plot-pen user-id
   if bars?
   [ set-plot-pen-mode 1 ]
   set-plot-pen-color color

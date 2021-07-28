@@ -7,7 +7,7 @@
       "name": "student"
     , "limit": -1
     , "widgets": [
-        { "type": "hnwMonitor",  "left":   5, "right": 130, "top":  10, "bottom":  59, "display": "Your name", "source": "__hnw-username", "reporterStyle": "turtle-var", "precision": 0, "fontSize": 10 }
+        { "type": "hnwMonitor",  "left":   5, "right": 130, "top":  10, "bottom":  59, "display": "Your name", "source": "user-id", "reporterStyle": "turtle-var", "precision": 0, "fontSize": 10 }
       , { "type": "hnwMonitor",  "left":   5, "right": 130, "top": 120, "bottom": 169, "display": "You have found", "source": "student-found", "reporterStyle": "turtle-procedure", "precision": 3, "fontSize": 10 }
       , { "type": "hnwMonitor",  "left":   5, "right": 130, "top": 175, "bottom": 224, "display": "# Attempts", "source": "student-attempts", "reporterStyle": "turtle-procedure", "precision": 0, "fontSize": 10 }
       , { "type": "hnwMonitor",  "left":   5, "right": 130, "top":  65, "bottom": 114, "display": "Your role", "source": "student-role", "reporterStyle": "turtle-procedure", "precision": 3, "fontSize": 10 }

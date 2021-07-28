@@ -33,8 +33,8 @@ breed [bugs bug]
 found-spots-own [countdown]
 
 students-own [
-  __hnw_username
   my-player
+  user-id
 ]
 
 players-own
@@ -330,7 +330,7 @@ end
 to-report initialize-student [username]
   let me nobody
   create-students 1 [
-    set __hnw_username username
+    set user-id username
     set me self
   ]
   create-players 1 [ ; Create a player and stuff it into the student's variables

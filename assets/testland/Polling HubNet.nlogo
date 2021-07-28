@@ -17,7 +17,7 @@ globals
 
 turtles-own
 [
-  __hnw_username
+  user-id
   ui-slider-value
   slider-value  ;; the value of the client's choice slider
   my-choices    ;; list of my choices for each question
@@ -151,12 +151,12 @@ to-report execute-create [username]
   let out -1
   create-turtles 1
   [
-    set __hnw_username username
+    set user-id username
     let pos one-of patches with [not any? turtles-here]
     ifelse pos != nobody
     [ move-to pos ]
     [ user-message "Too many students. Make a bigger view." ]
-    set label word __hnw_username "   "
+    set label word user-id "   "
     set slider-value 0
     clear-my-data
     set out who
