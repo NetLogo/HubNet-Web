@@ -16,6 +16,7 @@ to-report on-join [username]
   print (word "Client with id: " username " entered")
   create-students 1 [
     set user-id username
+    set coords (word "(" pxcor ", " pycor ")")
     set perspective (list "follow" self 4)
     set out who
   ]
