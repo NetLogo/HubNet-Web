@@ -233,7 +233,7 @@
                 },
                 {
                     "bottom": 526,
-                    "display": "A strategy returns COOPERATE or DEFECT\\n\\nThe following variables are available:\\n\\n* play-history - a list of your moves, as \\\"D\\\" and \\\"C\\\"\\n* play-partner-history - a list of your partner's moves as \\\"D\\\" and \\\"C\\\"\\n\\n\\nThe following NetLogo primitives may be useful:\\n\\n* length\\n* item \\n* empty\\n* filter \\n",
+                    "display": "A strategy returns COOPERATE or DEFECT\n\nThe following variables are available:\n\n* play-history - a list of your moves, as \"D\" and \"C\"\n* play-partner-history - a list of your partner's moves as \"D\" and \"C\"\n\n\nThe following NetLogo primitives may be useful:\n\n* length\n* item \n* empty\n* filter \n",
                     "color": 0,
                     "left": 519,
                     "fontSize": 11,
@@ -316,7 +316,7 @@
                 },
                 {
                     "bottom": 102,
-                    "display": "Payoffs \\n(prisoner-opponent)",
+                    "display": "Payoffs \n(prisoner-opponent)",
                     "color": 0,
                     "left": 330,
                     "fontSize": 11,

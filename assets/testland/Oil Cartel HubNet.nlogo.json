@@ -176,7 +176,7 @@
                 },
                 {
                     "bottom": 323,
-                    "display": "Extra Ouput for \\\"Quota-Plus\\\" Strategy:",
+                    "display": "Extra Ouput for \"Quota-Plus\" Strategy:",
                     "color": 0,
                     "left": 316,
                     "fontSize": 11,
@@ -187,7 +187,7 @@
                 },
                 {
                     "bottom": 389,
-                    "display": "Reduced Output for \\\"Quota-Minus\\\" Strategy:",
+                    "display": "Reduced Output for \"Quota-Minus\" Strategy:",
                     "color": 0,
                     "left": 315,
                     "fontSize": 11,
