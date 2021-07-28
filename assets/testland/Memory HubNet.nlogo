@@ -3,6 +3,7 @@
 ;; them up.  To reveal a card-front, we hide the card-back turtle on top of it.
 breed [card-backs card-back]
 breed [cards card]
+cards-own [ tick-shown ]
 
 ;; Players are invisible turtles that we use to store information about
 ;; the participants in the game.
@@ -15,6 +16,8 @@ players-own [
 
 globals [
   current-player  ;; holds a player turtle
+  __hnw_supervisor_pair-up-delay
+  __hnw_supervisor_pairs-in-deck
 ]
 
 ;;
@@ -28,6 +31,9 @@ end
 
 to setup
   ask patches [ set pcolor gray + 3 ]  ;; light gray
+  set __hnw_supervisor_pair-up-delay 20
+  set __hnw_supervisor_pairs-in-deck 26
+  reset-ticks
   deal
 end
 
@@ -53,6 +59,7 @@ to deal
       set shape one-of card-shapes
       set card-shapes remove shape card-shapes
       set size 0.5
+      set tick-shown -1
     ]
   ]
   ask cards
@@ -73,11 +80,24 @@ end
 ;;
 
 to go
+
   if not any? cards [
-    ; __hubnet-broadcast-user-message winner-message
     user-message winner-message
     stop
   ]
+
+  ask cards with [not hidden? and
+                  tick-shown != -1 and
+                  (ticks - tick-shown) > __hnw_supervisor_pair-up-delay ] [
+    hide-turtle
+    set tick-shown -1
+  ]
+
+  tick
+
+end
+
+to handle-cards-up
 end
 
 to-report winner-message
@@ -117,22 +137,19 @@ to select-card [x y]
     if my-card != nobody
     [
       ask my-card [ show-turtle ]
-      display
       let selected-cards cards with [not hidden?]
       if count selected-cards = 2
       [
         set attempts attempts + 1
-        wait pair-up-delay
         ifelse 1 = length (remove-duplicates [shape] of selected-cards)
         [
           ask selected-cards [ ask card-backs-here [ die ] die ]
           set matches matches + 1
         ]
         [
-          ask selected-cards [ hide-turtle ]
+          ask selected-cards [ set tick-shown ticks ]
           increment-current-player
         ]
-        display
       ]
     ]
   ]

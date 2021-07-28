@@ -36,7 +36,7 @@
       , { "type": "hnwMonitor",  "left":  28, "right": 144, "top": 215, "bottom": 260, "display": "Cards remaining", "source": "card-count", "reporterStyle": "procedure", "precision": 0, "fontSize": 11 }
       , { "type": "hnwButton",   "left": 155, "right": 282, "top": 203, "bottom": 236, "display": "show all cards", "source": "show-all", "hnwProcName": "show-all", "forever": false, "disableUntilTicksStart": true, "buttonKind": "observer" }
       , { "type": "hnwButton",   "left": 155, "right": 282, "top": 240, "bottom": 273, "display": "hide all cards", "source": "hide-all", "hnwProcName": "hide-all", "forever": false, "disableUntilTicksStart": true, "buttonKind": "observer" }
-      , { "type": "hnwSlider",   "left":  73, "right": 230, "top": 156, "bottom": 189, "display": "pair-up-delay", "variable": "pair-up-delay", "min": 0.0, "max": 5, "default": 2.0, "units": "", "direction": "horizontal", "step": 0.1 }
+      , { "type": "hnwSlider",   "left":  73, "right": 230, "top": 156, "bottom": 189, "display": "pair-up-delay", "variable": "pair-up-delay", "min": 0.0, "max": 60, "default": 20.0, "units": "frames", "direction": "horizontal", "step": 5.0 }
       , { "type": "hnwMonitor",  "left": 163, "right": 281, "top": 279, "bottom": 324, "display": "number of players", "source": "player-count", "reporterStyle": "procedure", "precision": 0, "fontSize": 11 }
       , { "type": "hnwMonitor",  "left":  26, "right": 160, "top": 279, "bottom": 324, "display": "current-player", "source": "current-player-name", "reporterStyle": "procedure", "precision": 0, "fontSize": 11 }
       ]
