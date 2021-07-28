@@ -169,7 +169,7 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
   const channel     = connection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
   channel.onopen    = () => { sendGreeting(channel, HNWRTC.status); };
   channel.onmessage = handleChannelMessages(channel, nlogo, sessionName, joinerID);
-  channel.onclose   = handleChannelClose(joinerID);
+  channel.onclose   = () => { cleanUpJoiner(joinerID); };
 
   const session = sessions[joinerID];
 
@@ -191,7 +191,7 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
 
   connection.oniceconnectionstatechange = () => {
     if (connection.iceConnectionState == "disconnected") {
-      cleanupSession(joinerID);
+      cleanUpJoiner(joinerID);
     }
   };
 
@@ -273,8 +273,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
       break;
 
     case "bye-bye":
-      sessions[joinerID].networking.channel.close();
-      delete sessions[joinerID];
+      cleanUpJoiner(joinerID);
       break;
 
     default:
@@ -284,10 +283,10 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 };
 
 // (String) => () => Unit
-const handleChannelClose = (joinerID) => () => {
+const cleanUpJoiner = (joinerID) => {
   const babyDearest = document.getElementById( "nlw-frame").querySelector('iframe').contentWindow;
   babyDearest.postMessage({ joinerID, type: "hnw-notify-disconnect" }, "*");
-  cleanupSession(joinerID);
+  delete sessions[joinerID];
 };
 
 // (RTCDataChannel, String, String, { username :: String, password :: String }, String) => Unit
@@ -327,11 +326,6 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
     sendRTC(channel)("no-username-given", {});
   }
 
-};
-
-// (String) => Unit
-const cleanupSession = (joinerID) => {
-  delete sessions[joinerID];
 };
 
 // () => Unit
