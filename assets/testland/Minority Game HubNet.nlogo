@@ -360,19 +360,19 @@ to-report execute-create
 end
 
 to handle-quit
-         ;; when players log out we don't kill off the turtles
-         ;; instead we just turn them into androids since it's
-         ;; important to have an odd number of players. This keeps
-         ;; the total population constant
-           set breed androids
-           set color gray
-           assign-strategies
-           set current-strategy random strategies-per-android
-           set choice item android-history (item current-strategy strategies)
-           set strategies-scores n-values strategies-per-android [0]
-           set score 0
-           set size 1
-           display
+  ;; when players log out turn them into androids since it's
+  ;; important to have an odd number of players. This keeps
+  ;; the total population constant
+  hatch-androids 1 [
+    set color gray
+    assign-strategies
+    set current-strategy random strategies-per-android
+    set choice item android-history (item current-strategy strategies)
+    set strategies-scores n-values strategies-per-android [0]
+    set score 0
+    set size 1
+  ]
+  display
 end
 
 ;; assigns a shape that is not currently in use to
