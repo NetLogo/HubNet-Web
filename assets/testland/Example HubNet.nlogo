@@ -11,12 +11,15 @@ to color-me
   ]
 end
 
-to on-join [username]
+to-report on-join [username]
+  let out -1
   print (word "Client with id: " username " entered")
   create-students 1 [
     set user-id username
     set perspective (list "follow" self 4)
+    set out who
   ]
+  report out
 end
 
 to on-exit

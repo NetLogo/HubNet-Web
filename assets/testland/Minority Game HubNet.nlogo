@@ -331,14 +331,13 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;
 
 ;; create a client player upon login
-to execute-create
+to-report execute-create
   ;; to make sure that we always have an odd number of
   ;; participants so there is always a true minority
   ;; so just change one of the androids into a player
   ;; (you can only create an odd number of androids)
   ;; if there aren't enough androids make two and update
   ;; the slider.
-  let biggest-who (max [who] of turtles)
   if not any? androids
   [
     create-androids 2
@@ -348,7 +347,8 @@ to execute-create
     ]
     set number-of-participants number-of-participants + 2
   ]
-  ask (android (biggest-who + 1))
+  let biggest-who (max [who] of androids)
+  ask android biggest-who
   [
     set breed players
     set size 2
@@ -356,6 +356,7 @@ to execute-create
     clear-my-data
   ]
   display
+  report biggest-who
 end
 
 to handle-quit

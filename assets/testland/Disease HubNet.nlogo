@@ -226,7 +226,8 @@ end
 
 ;; Create a turtle, set its shape, color, and position
 ;; and tell the node what its turtle looks like and where it is
-to create-new-student
+to-report create-new-student
+  let out -1
   create-students 1
   [
     setup-student-vars
@@ -236,7 +237,9 @@ to create-new-student
     ;; everybody will have the same size plots.
     set-plot-y-range plot-y-min plot-y-max
     set-plot-x-range plot-x-min plot-x-max
+    set out who
   ]
+  report out
 end
 
 ;; sets the turtle variables to appropriate initial values

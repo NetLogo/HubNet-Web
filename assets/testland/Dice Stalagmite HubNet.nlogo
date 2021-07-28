@@ -258,7 +258,8 @@ to kill-client
   die
 end
 
-to create-client
+to-report create-client
+  let out -1
   ;; makes a turtle to store the data specific to this particular
   ;; client , sets the values of dice to a default and sets
   create-clients 1
@@ -267,7 +268,9 @@ to create-client
     set user-color item (count clients mod length base-colors) base-colors
     set die1 "--"
     set die2 "--"
+    set out who
   ]
+  report out
 end
 
 to client-submit

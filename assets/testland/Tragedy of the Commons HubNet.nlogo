@@ -397,13 +397,16 @@ end
 ;; Code for interacting with the clients ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-to create-new-farmer
+to-report create-new-farmer
+  let out -1
   create-students 1
   [
     setup-farm
     set-unique-color
     reset-farmers-vars
+    set out who
   ]
+  report out
 end
 
 ;; situates the farmer in particular location

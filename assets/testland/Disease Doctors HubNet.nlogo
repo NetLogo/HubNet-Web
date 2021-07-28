@@ -279,8 +279,13 @@ end
 
 ;; Create a turtle, set its shape, color, and position
 ;; and tell the node what its turtle looks like and where it is
-to create-new-student
-  create-students 1 [ setup-student-vars ]
+to-report create-new-student
+  let out -1
+  create-students 1 [
+    setup-student-vars
+    set out who
+  ]
+  report out
 end
 
 ;; sets the turtle variables to appropriate initial values

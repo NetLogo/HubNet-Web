@@ -261,14 +261,17 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; player enter / exit procedures  ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-to create-new-player [username]
+to-report create-new-player [username]
+  let out -1
   create-players 1
   [
     set dead? true
     set user-id username
     set hidden? true
     assign-bug-to-player
+    set out who
   ]
+  report out
 end
 
 to assign-bug-to-player

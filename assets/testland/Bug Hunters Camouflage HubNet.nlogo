@@ -234,11 +234,14 @@ end
 
 ;; when a client logs in make a new player
 ;; and give it the default attributes
-to add-player [username]
+to-report add-player [username]
+  let out -1
   create-students 1 [
     set __hnw_username username
     initialize-player
+    set out who
   ]
+  report out
 end
 
 to initialize-player ;; player procedure

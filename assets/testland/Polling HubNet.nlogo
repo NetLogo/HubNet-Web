@@ -147,7 +147,8 @@ end
 ;; HubNet Procedures
 ;;
 
-to execute-create [username]
+to-report execute-create [username]
+  let out -1
   create-turtles 1
   [
     set __hnw_username username
@@ -158,7 +159,9 @@ to execute-create [username]
     set label word __hnw_username "   "
     set slider-value 0
     clear-my-data
+    set out who
   ]
+  report out
 end
 
 to handle-quit

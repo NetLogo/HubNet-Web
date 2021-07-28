@@ -357,7 +357,9 @@ end
 ;; CREATE-NEW-SELLER - create a new seller when a client
 ;;                     joins
 ;; ---------------------------------------------------------
-to create-new-seller [ id ]
+to-report create-new-seller [ id ]
+
+  let out -1
   let max-jumps 10000
 
   create-sellers 1
@@ -393,7 +395,10 @@ to create-new-seller [ id ]
     ;; Announce the arrival of a new seller
     send-news-item (word "A new seller '" user-id "' has arrived.")
 
+    set out who
+
   ]
+  report out
 end
 
 to-report user-id-str

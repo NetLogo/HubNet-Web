@@ -623,7 +623,8 @@ to-report location
   report (word "(" precision (my-x) 2 "," precision (my-y) 2 ")")
 end
 
-to create-new-student [username]
+to-report create-new-student [username]
+  let out -1
   create-students 1
   [
     set user-id username
@@ -641,7 +642,9 @@ to create-new-student [username]
     set step-size 1
     set size 9
     set my-equation ""
+    set out who
   ]
+  report out
 end
 
 to remove-student

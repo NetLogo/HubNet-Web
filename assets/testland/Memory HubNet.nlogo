@@ -91,14 +91,17 @@ end
 ;; HubNet Procedures
 ;;
 
-to add-player [username]
+to-report add-player [username]
+  let out -1
   create-players 1
   [
     set user-id username
     hide-turtle
     set matches 0
     set attempts 0
+    set out who
   ]
+  report out
 end
 
 to remove-player

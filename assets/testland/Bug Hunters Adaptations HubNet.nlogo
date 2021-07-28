@@ -327,7 +327,7 @@ to initialize-host
   set host-role role
 end
 
-to initialize-student [username]
+to-report initialize-student [username]
   let me nobody
   create-students 1 [
     set __hnw_username username
@@ -337,6 +337,7 @@ to initialize-student [username]
     ask me [ set my-player myself ]
     initialize-player
   ]
+  report [who] of me
 end
 
 to-report student-found

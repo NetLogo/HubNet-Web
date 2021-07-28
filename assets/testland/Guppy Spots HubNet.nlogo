@@ -469,11 +469,14 @@ to-report success-percentage ;; player procedure
   [ precision ((found / my-leaders-score) * 100)  2 ]
 end
 
-to add-player [username]
+to-report add-player [username]
+  let out -1
   create-players 1 [
     set user-name username
     init-player-variables
+    set out who
   ]
+  report out
 end
 
 ;; initialize one player

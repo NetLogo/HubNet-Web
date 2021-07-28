@@ -317,7 +317,8 @@ end
 ;; HubNet Procedures ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
-to setup-walker [username]
+to-report setup-walker [username]
+  let out -1
   let p one-of patches with [ pxcor = 0 and pycor > (min-pycor + 1) and not any? students-on patches with [ pycor = [pycor] of myself ] ]
   ifelse p = nobody
   [
@@ -350,10 +351,12 @@ to setup-walker [username]
       show-or-hide-id-labels
       set shape-counter 1
       set base-shape "person-forward-"
+      set out who
     ]
     my-setup-plots
   ]
   display
+  report out
 end
 
 to remove-walker

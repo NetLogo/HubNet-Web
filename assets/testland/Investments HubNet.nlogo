@@ -105,7 +105,8 @@ to-report rounded [x]
 end
 
 ;; manage the turtles as clients enter and exit
-to create-new-student [username]
+to-report create-new-student [username]
+  let out -1
   let p one-of patches with [ count neighbors = 8 and not any? turtles-here and
                                      not any? neighbors4 with [ any? turtles-here ] ]
   ifelse p = nobody
@@ -114,13 +115,14 @@ to create-new-student [username]
     [
       setup-student-vars username p
       reset-client
+      set out who
     ]
   ]
   display
+  report out
 end
 
 to remove-student
-  die
   display
 end
 

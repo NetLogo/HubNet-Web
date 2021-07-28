@@ -35,14 +35,17 @@ end
 ;; HubNet Procedures
 ;;
 
-to create-new-student [username]
+to-report create-new-student [username]
+  let out -1
   create-students 1
   [
     set user-id username
     set label user-id
     set step-size 1
     pen-down
+    set out who
   ]
+  report out
 end
 
 to move-up

@@ -309,14 +309,17 @@ to student-die
 end
 
 ;; create a new student agent
-to create-new-student [username]
+to-report create-new-student [username]
+  let out -1
   create-students 1
   [
     set user-id username
     move-to one-of patches
     create-icon
     setup-student-vars random 2 = 0
+    set out who
   ]
+  report out
 end
 
 ;; to create the variables for a student agent

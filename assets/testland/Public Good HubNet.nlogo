@@ -170,7 +170,8 @@ to punish-the-rich
 end
 
 ;; sets the turtle variables to appropriate initial values
-to create-new-student [username]
+to-report create-new-student [username]
+  let out -1
   create-students 1
   [
     set user-id username
@@ -184,8 +185,10 @@ to create-new-student [username]
       [ move-to my-patch ]
       [ setxy random-xcor random-ycor ]
     reset-student-money
+    set out who
   ]
   display
+  report out
 end
 
 ;; Kill the turtle, set its shape, color, and position

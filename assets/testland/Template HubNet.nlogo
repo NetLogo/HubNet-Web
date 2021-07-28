@@ -47,7 +47,8 @@ end
 ;; when a new user logs in create a student turtle
 ;; this turtle will store any state on the client
 ;; values of sliders, etc.
-to create-new-student [username]
+to-report create-new-student [username]
+  let out -1
   create-students 1
   [
     ;; store the message-source in user-id now
@@ -59,7 +60,9 @@ to create-new-student [username]
     ;; value of the corresponding widget in the client interface
     set step-size 1
     ;; update the clients with any information you have set
+    set out who
   ]
+  report out
 end
 
 ;; when a user logs out make sure to clean up the turtle

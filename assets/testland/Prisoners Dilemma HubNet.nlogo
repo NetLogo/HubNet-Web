@@ -488,7 +488,8 @@ end
 
 ;; Create a turtle, set its shape, color, and position
 ;; and tell the node what its turtle looks like and where it is
-to create-new-student [username]
+to-report create-new-student [username]
+  let out -1
   create-students 1
   [
     set user-id username
@@ -499,7 +500,9 @@ to create-new-student [username]
     set error-msg ""
     set-code
     set-unique-shape-and-color
+    set out who
   ]
+  report out
 end
 
 

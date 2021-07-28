@@ -322,13 +322,16 @@ to-report the-ticks
   report ticks
 end
 
-to create-new-student [username]
+to-report create-new-student [username]
+  let out -1
   create-students 1 [
     set user-id username
     set perspective (list "follow" self student-vision-radius)
     set state "exploring"
     set color gray
+    set out who
   ]
+  report out
 end
 
 to remove-student

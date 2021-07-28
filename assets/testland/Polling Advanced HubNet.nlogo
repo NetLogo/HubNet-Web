@@ -531,7 +531,8 @@ end
 ;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-to execute-create [username]
+to-report execute-create [username]
+  let out -1
   create-poll-clients 1
   [
     let pos one-of patches with [not any? turtles-here]
@@ -555,8 +556,10 @@ to execute-create [username]
     set question-three ""
     set typed-response ""
     set last-typed-response ""
+    set out who
 
   ]
+  report out
 end
 
 to execute-disconnect

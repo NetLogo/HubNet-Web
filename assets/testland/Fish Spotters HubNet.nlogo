@@ -524,11 +524,14 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; when a client logs in make a new player and give it the default attributes
-to add-player [username]
+to-report add-player [username]
+  let out -1
  create-players 1 [
     set user-name username
     initialize-player
+    set out who
   ]
+  report out
 end
 
 to initialize-player ;; player procedure
