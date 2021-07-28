@@ -45,7 +45,7 @@
       , { "type": "hnwButton",   "left":   1, "right": 149, "top":  81, "bottom": 114, "display": "Clear Clients", "source": "clear-clients", "hnwProcName": "clear-clients", "forever": false, "disableUntilTicksStart": true, "buttonKind": "observer" }
       ]
     , "canJoinMidRun": true
-    , "isSpectator": true,
+    , "isSpectator": true
     , "perspectiveVar": null
     , "onConnect": null
     , "onDisconnect": null
