@@ -355,7 +355,6 @@ to-report execute-create
     set-unique-shape-and-color
     clear-my-data
   ]
-  display
   report biggest-who
 end
 
@@ -372,7 +371,6 @@ to handle-quit
     set score 0
     set size 1
   ]
-  display
 end
 
 ;; assigns a shape that is not currently in use to
