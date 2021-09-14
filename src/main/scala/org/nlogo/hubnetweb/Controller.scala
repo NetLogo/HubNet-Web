@@ -67,6 +67,7 @@ object Controller {
       path("host")             { getFromFile("html/host.html")  } ~
       path("x-launch-session") { post { entity(as[LaunchReq])(handleXLaunchReq) } } ~
       path("join")             { getFromFile("html/join.html")  } ~
+      path("megajoin")         { getFromFile("html/megajoin.html") } ~
       path("available-models") { get { complete(availableModels) } } ~
       path("rtc" / "join" / Segment)           { (hostID)           => get { startJoin(toID(hostID)) } } ~
       path("rtc" / Segment / Segment / "host") { (hostID, joinerID) => handleWebSocketMessages(rtcHost(toID(hostID), toID(joinerID))) } ~
@@ -81,10 +82,7 @@ object Controller {
     }
 
     val bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
-    println("""
-              |Check me out!  I'm servin'!  I'm SERVIN'!  (at http://localhost:8080/)
-              |
-              |Press ENTER to stop servin'.""".stripMargin)
+    println("Now running at http://localhost:8080/.  Press Ctrl+C to stop.".stripMargin)
     StdIn.readLine()
 
     bindingFuture.flatMap(_.unbind()).onComplete(_ => system.terminate())

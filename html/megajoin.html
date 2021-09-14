@@ -1,0 +1,62 @@
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link href="/assets/stylesheets/main.css" rel="stylesheet">
+    <link href="/assets/stylesheets/join.css" rel="stylesheet">
+    <script src="/js/websocket.js"></script>
+    <script src="/js/webrtc.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/compress.js"></script>
+  </head>
+  <body>
+
+    <div>
+      <span style="font-weight: bold">Status: </span><span id="status-value">Floating through the ether</span>
+    </div>
+
+    <div id="server-browser-frame" class="flex-row">
+
+      <div class="flex-column">
+        <img id="session-preview-image" class="session-preview-image" src="" />
+        <form id="megajoin-form" action="javascript:void(0);" onsubmit="megajoin(this)" method="POST">
+          <div class="flex-column">
+            <label>
+              # of Clients:
+              <input id="client-count" name="client-count" type="number" min="1" max="60" value="2" required>
+            </label>
+            <label class="username-label">
+              Username:
+              <input id="username" name="username" type="text" required>
+            </label>
+            <label class="password-label">
+              Password:
+              <input id="password" name="password" type="password" disabled>
+            </label>
+            <label class="role-label">
+              Role:
+              <select id="role-select" class="role-select" disabled></select>
+            </label>
+            <input id="join-button" type="submit" value="Join">
+          </div>
+        </form>
+      </div>
+
+      <div id="session-list-container" class="flex-column session-list-container">
+        <input id="session-filter-box" type="search" placeholder="Filter..." oninput="filterSessionList()">
+        <div id="session-option-container" class="flex-column"></div>
+        <template id="session-option-template">
+          <label class="session-label">
+            <span class="session-name"></span> | <span class="session-model-name"></span> | <span class="session-info"></span> connected
+            <input class="session-option" name="sessionOption" type="radio" onclick="selectSession()">
+          </label>
+        </template>
+      </div>
+
+    </div>
+
+    <div id="joiner-frames" class="flex-row">
+    </div>
+
+  </body>
+  <script src="/js/megajoin.js"></script>
+</html>
