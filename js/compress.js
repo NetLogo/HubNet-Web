@@ -84,13 +84,12 @@ const sendBurst = (...channels) => (type, obj) => {
 
   const id = genUUID();
 
+  objs = messages.map((m, index) => ({ index, fullLength: messages.length, parcel: m }));
+
   channels.forEach((channel) => {
-    messages.forEach(
-      (m, index) => {
-        const obj = { index, fullLength: messages.length, parcel: m };
-        _send(channel)("hnw-burst", obj, index === 0, undefined, id);
-      }
-    );
+    objs.forEach((obj, index) => {
+      channels.forEach((channel) => _send(channel)("hnw-burst", obj, index === 0, undefined, id));
+    });
   });
 
 };
