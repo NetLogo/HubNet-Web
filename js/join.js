@@ -138,11 +138,12 @@ const populateSessionList = (sessions) => {
 
   if (!window.hasCheckedHash) {
     if (window.location.hash !== "") {
-      const oracleID = window.location.hash.slice(1);
-      const match    = document.querySelector(`.session-label[data-uuid='${oracleID}'] > .session-option`);
+      const trueHash             = window.location.hash.slice(1);
+      const [oracleID, username] = trueHash.split(',', 2);
+      const match                = document.querySelector(`.session-label[data-uuid='${oracleID}'] > .session-option`);
       if (match !== null) {
         match.click();
-        document.getElementById('username').value = prompt("Please enter your login name");
+        document.getElementById('username').value = username !== undefined ? username : prompt("Please enter your login name");
         if (sessionData.find((x) => x.oracleID === oracleID).hasPassword) {
           document.getElementById('password').value = prompt("Please enter the room's password");
         }
