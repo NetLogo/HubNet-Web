@@ -1,4 +1,4 @@
-window.HNWProtocolVersionNumber = 0;
+window.HNWProtocolVersionNumber = "0";
 
 // (String) => String
 const stringToHash = (str) => {

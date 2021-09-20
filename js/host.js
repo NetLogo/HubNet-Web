@@ -220,7 +220,12 @@ const handleConnectionMessage = (connection, nlogo, sessionName, joinerID) => ({
 // (Protocol.Channel, String, String, String) => (Any) => Unit
 const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data }) => {
 
-  const datum = JSON.parse(data);
+  const dataArr = new Uint8Array(data);
+  const datum   = window.decodeInput(dataArr);
+
+  if (datum.type !== "keep-alive" && datum.type !== "ping" && datum.type !== "pong" && datum.type !== "ping-result") {
+    console.log("Decoded: ", datum);
+  }
 
   switch (datum.type) {
 
@@ -354,9 +359,9 @@ window.addEventListener("message", ({ data }) => {
   switch (data.type) {
     case "nlw-state-update":
       if (data.isNarrowcast)
-        narrowcast("here-have-an-update", { update: data.update }, data.recipient);
+        narrowcast("state-update", { update: data.update }, data.recipient);
       else
-        broadcast("here-have-an-update", { update: data.update });
+        broadcast("state-update", { update: data.update });
       break;
     case "nlw-view":
       if (lastImageUpdate !== data.base64) {
@@ -375,7 +380,7 @@ window.addEventListener("message", ({ data }) => {
       break;
     case "hnw-initial-state":
       const { token, role, state, viewState } = data;
-      narrowcast("here-have-a-model", { role, token, state, view: viewState }, token);
+      narrowcast("initial-model", { role, token, state, view: viewState }, token);
       sessions[token].hasInitialized = true;
       break;
     case "relay":

@@ -270,7 +270,12 @@ const login = (channel) => {
 // (Protocol.Channel) => (Any) => Unit
 const handleChannelMessages = (channel, socket) => ({ data }) => {
 
-  const datum = JSON.parse(data);
+  const dataArr = new Uint8Array(data);
+  const datum   = window.decodeInput(dataArr);
+
+  if (datum.type !== "keep-alive" && datum.type !== "ping" && datum.type !== "pong" && datum.type !== "ping-result") {
+    console.log("Decoded: ", datum);
+  }
 
   if (typeIsOOB(datum.type)) {
     processChannelMessage(channel, socket, datum);
@@ -294,9 +299,25 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
         lastMsgID = msg.id;
         processChannelMessage(channel, socket, msg);
       }
-    }
+    };
 
-    if ((datum.fullLength || 1) !== 1) {
+    const assembleBucket = (bucket) => {
+
+      let totalLength = bucket.reduce((acc, x) => acc + x.length, 0);
+      let arr         = new Uint8Array(totalLength);
+
+      bucket.reduce((acc, x) => { arr.set(x, acc); return acc + x.length }, 0);
+
+      return arr;
+
+    };
+
+    if (datum.fullLength === 1) {
+      const parcel  = window.decodeInput(datum.parcel);
+      const header  = { type: datum.type, id: datum.id, predecessorID: datum.predecessorID };
+      const fullMsg = Object.assign({}, header, { parcel });
+      processIt(fullMsg);
+    } else if ((datum.fullLength || 1) !== 1) {
 
       const { id, index, fullLength, parcel } = datum
 
@@ -315,19 +336,11 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
       const bucket = multiparts[id];
       bucket[index] = parcel;
 
-      if (fullLength > 100) {
-        const firsty = multiparts[id][0];
-        if (firsty !== null && firsty.startsWith("\"{\\\"type\\\":\\\"here-have-a-model\\\"")) {
-          const valids = multiparts[id].filter((x) => x !== null);
-          setStatus(`Downloading model from host... (${valids.length}/${fullLength})`);
-        }
-      }
-
       if (bucket.every((x) => x !== null)) {
 
-        const fullText = multiparts[id].join("");
-        const header   = multipartHeaders[id];
-        const fullMsg  = Object.assign({}, header, { parcel: fullText });
+        const parcel  = window.decodeInput(assembleBucket(bucket));
+        const header  = multipartHeaders[id];
+        const fullMsg = Object.assign({}, header, { parcel });
 
         delete multiparts[id];
         delete multipartHeaders[id];
@@ -419,7 +432,7 @@ const processChannelMessage = (channel, socket, datum) => {
       break;
 
     case "hnw-burst":
-      enqueueMessage(JSON.parse(decompress(datum.parcel)));
+      enqueueMessage(decompress(datum.parcel));
       break;
 
     case "bye-bye":
@@ -450,7 +463,7 @@ const processQueue = () => {
       let deferred   = [];
       while (stillGoing && messageQueue.length > 0) {
         const message = messageQueue.shift();
-        if (message.type ===  "here-have-a-model") {
+        if (message.type ===  "initial-model") {
           setStatus("Downloading model from host...");
           handleBurstMessage(message);
           stillGoing = false;
@@ -479,7 +492,7 @@ const handleBurstMessage = (datum) => {
 
   switch (datum.type) {
 
-    case "here-have-a-model":
+    case "initial-model":
 
       setStatus("Model and world acquired!  Waiting for NetLogo Web to be ready...");
 
@@ -514,7 +527,7 @@ const handleBurstMessage = (datum) => {
 
       break;
 
-    case "here-have-an-update":
+    case "state-update":
       document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
         update: datum.update,
         type:   "nlw-apply-update"

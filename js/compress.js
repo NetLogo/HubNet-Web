@@ -23,28 +23,28 @@ const pako = {
 
 // (Any) => String
 const compress = (data) => {
-  return pako.deflate(JSON.stringify(data), { to: 'string' });
+  return pako.deflate(data, { to: '???' });
 };
 
 // (String, Number) => Array[String]
-const chunk = (string, length) => {
-  const baseArray = Array.from(Array(Math.ceil(string.length / length)));
-  return baseArray.map((x, i) => string.substring(length * i, length * (i + 1)));
+const chunk = (arr, length) => {
+  const baseArray = Array.from(Array(Math.ceil(arr.length / length)));
+  return baseArray.map((x, i) => arr.slice(length * i, length * (i + 1)));
 };
 
 // (String) => Any
 const decompress = (deflated) => {
-  return JSON.parse(pako.inflate(deflated, { to: 'string' }));
+  return pako.inflate(deflated, { to: '???' });
 };
 
-// (String) => Array[String]
+// (Array[_]) => Array[Array[U]]
 const chunkForSending = (message) => {
 
-  const chunkSize  = 1200;
+  const chunkSize  = 2400;
   const compressed = compress(message);
   const messages   = chunk(compressed, chunkSize);
 
-  if (messages.length * chunkSize <= 1e7)
+  if (messages.length * chunkSize <= 2e7)
     return messages;
   else
     throw new Error('This activity is generating too much data for HubNet Web to reliably transfer.  Aborting....');
@@ -59,8 +59,17 @@ const _send = (channel) => (type, obj, needsPred = true, predecessorID = extract
   delete clone[predecessorID];
 
   const finalObj = Object.assign({}, { id }, needsPred ? { predecessorID } : {}, clone);
-  const finalStr = makeMessage(type, finalObj);
-  channel.send(finalStr);
+
+  if (channel instanceof WebSocket) {
+    const finalStr = makeMessage(type, finalObj);
+    channel.send(finalStr);
+  } else {
+    const parcel = { type, ...finalObj };
+    console.log(`Sending: ${(new Date()).getTime() - 1629910000000} | ${channel.id} | ${type} | ${new TextEncoder().encode(JSON.stringify(parcel)).length / 1024}`);
+    console.log(parcel);
+    const encoded = window.encodeOutput(parcel);
+    channel.send(encoded);
+  }
 
   lastSentIDMap[channel.url] = id;
 
@@ -73,18 +82,26 @@ const send = (channel) => (type, obj) => {
 
 // (Protocol.Channel) => (String, Any, Boolean) => Unit
 const sendOOB = (channel) => (type, obj) => {
-  const str = makeMessage(type, obj);
-  channel.send(str);
+  if (channel instanceof WebSocket) {
+    const finalStr = makeMessage(type, obj);
+    channel.send(finalStr);
+  } else {
+    const parcel  = { type, ...obj };
+    const encoded = window.encodeOutput(parcel);
+    channel.send(encoded);
+  }
 }
 
 // (Protocol.Channel*) => (String, Any) => Unit
 const sendBurst = (...channels) => (type, obj) => {
 
-  const messages = chunkForSending(makeMessage(type, obj));
+  const encoded = window.encodeOutput({ type, ...obj });
+
+  const chunks = chunkForSending(encoded);
 
   const id = genUUID();
 
-  objs = messages.map((m, index) => ({ index, fullLength: messages.length, parcel: m }));
+  let objs = chunks.map((m, index) => ({ index, fullLength: chunks.length, parcel: m }));
 
   channels.forEach((channel) => {
     objs.forEach((obj, index) => {
