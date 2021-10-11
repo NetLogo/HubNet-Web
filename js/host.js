@@ -251,7 +251,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
       pingBucket.endTime = performance.now();
       const pingTime     = pingBucket.endTime - pingBucket.startTime;
 
-      sendRTC(channel)("ping-result", { time: Math.floor(pingTime) });
+      sendRTC(channel)("ping-result", { time: Math.round(pingTime) });
 
       if (sesh.recentPings === undefined) {
         sesh.recentPings = [pingTime];
