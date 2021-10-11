@@ -67,8 +67,29 @@ const _send = (channel) => (type, obj, needsPred = true, predecessorID = extract
     const parcel = { type, ...finalObj };
     console.log(`Sending: ${(new Date()).getTime() - 1629910000000} | ${channel.id} | ${type} | ${new TextEncoder().encode(JSON.stringify(parcel)).length / 1024}`);
     console.log(parcel);
-    const encoded = self.encodeOutput(parcel);
-    channel.send(encoded);
+    if (self.location.href.includes("/host")) {
+
+      new Promise(
+        (resolve, reject) => {
+
+          const channel = new MessageChannel();
+
+          channel.port1.onmessage = ({ data }) => {
+            channel.port1.close();
+            resolve(data);
+          };
+
+          encoderPool.postMessage({ type: "encode", parcel }, [channel.port2]);
+
+        }
+      ).then((encoded) => {
+        channel.send(encoded)
+      });
+
+    } else {
+      const encoded = self.encodeOutput(parcel);
+      channel.send(encoded);
+    }
   }
 
   lastSentIDMap[channel.url] = id;

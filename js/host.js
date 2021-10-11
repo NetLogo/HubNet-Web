@@ -15,6 +15,28 @@ let statusSocket = null; // WebSocket
 
 let lastImageUpdate = undefined; // Base64String
 
+let encoderPool = new Worker('js/protobuf/encoder-pool.js');
+
+encoderPool.onmessage = (msg) => {
+  switch (msg.type) {
+    case "shutdown-complete":
+      break;
+    default:
+      console.warn("Unknown encoder pool response type:", e.type, e)
+  }
+};
+
+let decoderPool = new Worker('js/protobuf/decoder-pool.js');
+
+decoderPool.onmessage = (msg) => {
+  switch (msg.type) {
+    case "shutdown-complete":
+      break;
+    default:
+      console.warn("Unknown decoder pool response type:", e.type, e)
+  }
+};
+
 // (DOMElement) => Boolean
 self.submitLaunchForm = (elem) => {
 
@@ -102,11 +124,16 @@ const launchModel = (formDataPlus) => {
           const datum = JSON.parse(data);
           switch (datum.type) {
             case "hello":
+
               const joinerID     = datum.joinerID;
               const connection   = new RTCPeerConnection(hostConfig);
               const socket       = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/host`);
               socket.onmessage   = handleConnectionMessage(connection, nlogo, sessionName, joinerID);
               sessions[joinerID] = { networking: { socket }, hasInitialized: false, pingData: {} };
+
+              encoderPool.postMessage({ type: "client-connect" });
+              decoderPool.postMessage({ type: "client-connect" });
+
               break;
             default:
               console.warn(`Unknown broad event type: ${datum.type}`);
@@ -221,76 +248,95 @@ const handleConnectionMessage = (connection, nlogo, sessionName, joinerID) => ({
 const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data }) => {
 
   const dataArr = new Uint8Array(data);
-  const datum   = self.decodeInput(dataArr);
 
-  if (datum.type !== "keep-alive" && datum.type !== "ping" && datum.type !== "pong" && datum.type !== "ping-result") {
-    console.log("Decoded: ", datum);
-  }
+  new Promise(
+    (resolve, reject) => {
 
-  switch (datum.type) {
+      const channel = new MessageChannel();
 
-    case "connection-established":
+      channel.port1.onmessage = ({ data }) => {
+        channel.port1.close();
+        resolve(data);
+      };
 
-      if (datum.protocolVersion !== self.HNWProtocolVersionNumber) {
-        const id = sessions[joinerID] && sessions[joinerID].username || joinerID;
-        alert(`HubNet protocol version mismatch!  You are using protocol version '${self.HNWProtocolVersionNumber}', while client '${id}' is using version '${datum.v}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  The offending client has been disconnected.`);
-        sessions[joinerID].networking.channel.close();
-        delete sessions[joinerID];
-      }
+      decoderPool.postMessage({ type: "decode", parcel: dataArr }, [channel.port2]);
 
-      break;
+    }
+  ).then((datum) => {
 
-    case "login":
-      handleLogin(channel, nlogo, sessionName, datum, joinerID);
-      break;
+    if (datum.type !== "keep-alive" && datum.type !== "ping" && datum.type !== "pong" && datum.type !== "ping-result") {
+      console.log("Decoded: ", datum);
+    }
 
-    case "pong":
+    switch (datum.type) {
 
-      const sesh         = sessions[joinerID];
-      const pingBucket   = sesh.pingData[datum.id];
-      pingBucket.endTime = performance.now();
-      const pingTime     = pingBucket.endTime - pingBucket.startTime;
+      case "connection-established":
 
-      sendRTC(channel)("ping-result", { time: Math.round(pingTime) });
+        if (datum.protocolVersion !== self.HNWProtocolVersionNumber) {
+          const id = sessions[joinerID] && sessions[joinerID].username || joinerID;
+          alert(`HubNet protocol version mismatch!  You are using protocol version '${self.HNWProtocolVersionNumber}', while client '${id}' is using version '${datum.v}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  The offending client has been disconnected.`);
+          sessions[joinerID].networking.channel.close();
+          delete sessions[joinerID];
+        }
 
-      if (sesh.recentPings === undefined) {
-        sesh.recentPings = [pingTime];
-      } else {
-        sesh.recentPings.push(pingTime);
-        if (sesh.recentPings.length > 5) {
-          sesh.recentPings.shift();
-        };
-      }
+        break;
 
-      const averagePing = Math.round(sesh.recentPings.reduce((x, y) => x + y) / sesh.recentPings.length);
+      case "login":
+        handleLogin(channel, nlogo, sessionName, datum, joinerID);
+        break;
 
-      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
-        type:    "hnw-latest-ping"
-      , ping:    pingTime
-      , joinerID
-      }, "*");
+      case "pong":
 
-      break;
+        const sesh         = sessions[joinerID];
+        const pingBucket   = sesh.pingData[datum.id];
+        pingBucket.endTime = performance.now();
+        const pingTime     = pingBucket.endTime - pingBucket.startTime;
 
-    case "relay":
-      const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
-      babyDearest.postMessage(datum.payload, "*");
-      break;
+        sendRTC(channel)("ping-result", { time: Math.round(pingTime) });
 
-    case "bye-bye":
-      cleanUpJoiner(joinerID);
-      break;
+        if (sesh.recentPings === undefined) {
+          sesh.recentPings = [pingTime];
+        } else {
+          sesh.recentPings.push(pingTime);
+          if (sesh.recentPings.length > 5) {
+            sesh.recentPings.shift();
+          };
+        }
 
-    default:
-      console.warn(`Unknown WebSocket event type: ${datum.type}`);
+        const averagePing = Math.round(sesh.recentPings.reduce((x, y) => x + y) / sesh.recentPings.length);
 
-  }
+        document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
+          type:    "hnw-latest-ping"
+        , ping:    pingTime
+        , joinerID
+        }, "*");
+
+        break;
+
+      case "relay":
+        const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
+        babyDearest.postMessage(datum.payload, "*");
+        break;
+
+      case "bye-bye":
+        cleanUpJoiner(joinerID);
+        break;
+
+      default:
+        console.warn(`Unknown WebSocket event type: ${datum.type}`);
+
+    }
+
+  });
+
 };
 
 // (String) => () => Unit
 const cleanUpJoiner = (joinerID) => {
   const babyDearest = document.getElementById( "nlw-frame").querySelector('iframe').contentWindow;
   babyDearest.postMessage({ joinerID, type: "hnw-notify-disconnect" }, "*");
+  encoderPool.postMessage({ type: "client-disconnect" });
+  decoderPool.postMessage({ type: "client-disconnect" });
   delete sessions[joinerID];
 };
 
