@@ -1,4 +1,4 @@
-window.FromHostRoot = {
+self.FromHostRoot = {
 
   nested: {
 
@@ -63,8 +63,8 @@ window.FromHostRoot = {
       }
     , nested: {
 
-        Role:        window.RolePB
-      , StateUpdate: window.StateUpdatePB
+        Role:        self.RolePB
+      , StateUpdate: self.StateUpdatePB
 
       , ViewDims: {
           fields: {
@@ -154,7 +154,7 @@ window.FromHostRoot = {
         update: { type: "SUPB", id: 1 }
       }
     , nested: {
-        SUPB: window.StateUpdatePB2
+        SUPB: self.StateUpdatePB2
       }
     }
 
@@ -162,7 +162,7 @@ window.FromHostRoot = {
 
 };
 
-window.hnwPBTransformers =
+self.hnwPBTransformers =
   hnwPBTransformers.concat([
     ["t::relay", "payload", "ticks-started", "hnwTicksStarted"]
   , ["t::initial-model", "role", "widgets**", "hnwButton"  , "button"  ]

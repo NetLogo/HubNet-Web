@@ -1,4 +1,4 @@
-window.JoinerRelayPayloadPB = {
+self.JoinerRelayPayloadPB = {
 
   oneofs: {
     dataOneOf: {
@@ -109,7 +109,7 @@ window.JoinerRelayPayloadPB = {
   }
 };
 
-window.hnwPBTransformers =
+self.hnwPBTransformers =
   hnwPBTransformers.concat([
     ["t::relay", "payload", "event", "hnw-cash-raincheck", "hnwCashRaincheckPayload"]
   , ["t::relay", "payload", "data", "button" , "hnwButtonPayload"]

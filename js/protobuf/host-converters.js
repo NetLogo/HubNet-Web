@@ -1,2 +1,2 @@
-window.encodeOutput = encodePBuf(fromHostTypeMap);
-window.decodeInput  = decodePBuf(fromJoinerTypeMap);
+self.encodeOutput = encodePBuf(fromHostTypeMap);
+self.decodeInput  = decodePBuf(fromJoinerTypeMap);

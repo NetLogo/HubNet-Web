@@ -1,4 +1,4 @@
-window.HNWProtocolVersionNumber = "0";
+self.HNWProtocolVersionNumber = "0";
 
 // (String) => String
 const stringToHash = (str) => {
@@ -64,10 +64,10 @@ const sendGreeting = (channel, statusBundle) => {
 };
 
 // (WebSocket*) => (String, Object[Any]) => Unit
-const sendWS = sendObj(window.HNWWS.status);
+const sendWS = sendObj(self.HNWWS.status);
 
 // (RTCDataChannel*) => (String, Object[Any]) => Unit
-const sendRTC = sendObj(window.HNWRTC.status);
+const sendRTC = sendObj(self.HNWRTC.status);
 
 // () => UUID
 const genUUID = () => {

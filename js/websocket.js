@@ -1,6 +1,6 @@
 // type Protocol = { channel :: WebSocket }
 // type Channel  = WebSocket
-window.HNWWS =
+self.HNWWS =
   {
     status: {
       closed    : WebSocket.CLOSED

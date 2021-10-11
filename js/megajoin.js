@@ -25,14 +25,14 @@ const setStatus = (statusText) => {
 };
 
 // () => Unit
-window.selectSession = () => {
+self.selectSession = () => {
   const activeElem = document.querySelector('.active');
   refreshSelection(activeElem !== null ? activeElem.dataset.uuid : null);
   setStatus("Session selected.  Please enter a username, enter a password (if needed), and click 'Join'.");
 };
 
 // () => Unit
-window.filterSessionList = () => {
+self.filterSessionList = () => {
   const term     = document.getElementById('session-filter-box').value.trim().toLowerCase();
   const checkIt  = ({ name, modelName }) => name.toLowerCase().includes(term) || modelName.toLowerCase().includes(term);
   const filtered = term === '' ? sessionData : sessionData.filter(checkIt);
@@ -157,7 +157,7 @@ const populateSessionList = (sessions) => {
 };
 
 // () => Unit
-window.megajoin = () => {
+self.megajoin = () => {
 
   document.getElementById('join-button').disabled = true;
 

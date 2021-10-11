@@ -16,7 +16,7 @@ let statusSocket = null; // WebSocket
 let lastImageUpdate = undefined; // Base64String
 
 // (DOMElement) => Boolean
-window.submitLaunchForm = (elem) => {
+self.submitLaunchForm = (elem) => {
 
   const formData = new FormData(elem);
   const lm       = formData.get('libraryModel').slice(4);
@@ -221,7 +221,7 @@ const handleConnectionMessage = (connection, nlogo, sessionName, joinerID) => ({
 const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data }) => {
 
   const dataArr = new Uint8Array(data);
-  const datum   = window.decodeInput(dataArr);
+  const datum   = self.decodeInput(dataArr);
 
   if (datum.type !== "keep-alive" && datum.type !== "ping" && datum.type !== "pong" && datum.type !== "ping-result") {
     console.log("Decoded: ", datum);
@@ -231,9 +231,9 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
     case "connection-established":
 
-      if (datum.protocolVersion !== window.HNWProtocolVersionNumber) {
+      if (datum.protocolVersion !== self.HNWProtocolVersionNumber) {
         const id = sessions[joinerID] && sessions[joinerID].username || joinerID;
-        alert(`HubNet protocol version mismatch!  You are using protocol version '${window.HNWProtocolVersionNumber}', while client '${id}' is using version '${datum.v}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  The offending client has been disconnected.`);
+        alert(`HubNet protocol version mismatch!  You are using protocol version '${self.HNWProtocolVersionNumber}', while client '${id}' is using version '${datum.v}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  The offending client has been disconnected.`);
         sessions[joinerID].networking.channel.close();
         delete sessions[joinerID];
       }
@@ -338,7 +338,7 @@ const cleanupHostingSession = () => {
   location.reload();
 };
 
-window.addEventListener("message", ({ data }) => {
+self.addEventListener("message", ({ data }) => {
 
   const narrowcast = (type, message, recipientUUID) => {
     const sesh   = sessions[recipientUUID];
@@ -395,7 +395,7 @@ window.addEventListener("message", ({ data }) => {
       break;
     case "hnw-fatal-error":
       alert(`Fatal error received from client: ${data.subtype}`);
-      window.location.reload()
+      self.location.reload()
       break;
     case "nlw-resize":
       break;
@@ -405,7 +405,7 @@ window.addEventListener("message", ({ data }) => {
 
 });
 
-window.addEventListener("beforeunload", (event) => {
+self.addEventListener("beforeunload", (event) => {
   // Honestly, this will probably not run before the tab closes.  Not much I can do about that.  --JAB (8/21/20)
   Object.entries(sessions).forEach(([joinerID, { networking: { channel } }]) => {
     sendRTC(channel)("bye-bye");
@@ -413,7 +413,7 @@ window.addEventListener("beforeunload", (event) => {
   });
 });
 
-window.addEventListener('popstate', (event) => {
+self.addEventListener('popstate', (event) => {
   switch (event.state.name) {
     case "hosting":
       cleanupHostingSession();

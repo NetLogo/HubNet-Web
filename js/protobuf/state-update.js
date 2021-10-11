@@ -245,7 +245,7 @@ const WidgetUpdateStuff = {
   }
 };
 
-window.StateUpdatePB = {
+self.StateUpdatePB = {
   fields: {
     viewUpdate:     { type: "ViewUpdate"  , id: 1 }
   , plotUpdates:    { type: "PlotUpdates" , id: 2, keyType: "string" }
@@ -439,7 +439,7 @@ const WidgetUpdateStuff2 = {
   }
 };
 
-window.StateUpdatePB2 = {
+self.StateUpdatePB2 = {
   fields: {
     viewUpdate:     { type: "ViewUpdate"  , id: 1 }
   , plotUpdates:    { type: "PlotUpdates" , id: 2, keyType: "string" }

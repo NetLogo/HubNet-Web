@@ -1,1 +1,1 @@
-window.hnwPBTransformers = [];
+self.hnwPBTransformers = [];

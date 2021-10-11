@@ -78,14 +78,14 @@ const detransform = (transformer, msg) => {
 };
 
 const swapFunkyPathsIn = (msg) => {
-  window.hnwPBTransformers.forEach((x) => transform(x.slice(0), msg));
+  self.hnwPBTransformers.forEach((x) => transform(x.slice(0), msg));
 };
 
 const swapFunkyPathsOut = (msg) => {
-  window.hnwPBTransformers.forEach((x) => detransform(x.slice(0), msg));
+  self.hnwPBTransformers.forEach((x) => detransform(x.slice(0), msg));
 };
 
-window.encodePBuf = (typeMap) => (msg) => {
+self.encodePBuf = (typeMap) => (msg) => {
 
   let protoType = typeMap[msg.type];
   let typeCode  = Object.keys(typeMap).findIndex((x) => x === msg.type);
@@ -110,7 +110,7 @@ window.encodePBuf = (typeMap) => (msg) => {
 
 };
 
-window.decodePBuf = (typeMap) => (msgBuf) => {
+self.decodePBuf = (typeMap) => (msgBuf) => {
   let [type, protoType] = Object.entries(typeMap)[msgBuf[0]];
   let decoded           = protoType.decode(msgBuf.slice(1));
   let decodedObj        = protoType.toObject(decoded, { enums: String });
@@ -120,11 +120,11 @@ window.decodePBuf = (typeMap) => (msgBuf) => {
 };
 
 // Section: Host
-const fromHostRoot = protobuf.Root.fromJSON(window.FromHostRoot);
+const fromHostRoot = protobuf.Root.fromJSON(self.FromHostRoot);
 
 const lufhr = hubNetWebLookup(fromHostRoot);
 
-window.fromHostTypeMap =
+self.fromHostTypeMap =
   { "connection-established": lufhr("ConnEstablished")
   , "hnw-burst":              lufhr("HNWBurst")
   , "host-answer":            lufhr("HostAnswer")
@@ -139,11 +139,11 @@ window.fromHostTypeMap =
   };
 
 // Section: Joiner
-const fromJoinerRoot = protobuf.Root.fromJSON(window.FromJoinerRoot);
+const fromJoinerRoot = protobuf.Root.fromJSON(self.FromJoinerRoot);
 
 const lufjr = hubNetWebLookup(fromJoinerRoot);
 
-window.fromJoinerTypeMap =
+self.fromJoinerTypeMap =
   { "bye-bye":                lufjr("ByeBye"         )
   , "connection-established": lufjr("ConnEstablished")
   , "joiner-ice-candidate":   lufjr("ICECandy"       )

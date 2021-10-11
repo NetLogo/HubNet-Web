@@ -67,7 +67,7 @@ const _send = (channel) => (type, obj, needsPred = true, predecessorID = extract
     const parcel = { type, ...finalObj };
     console.log(`Sending: ${(new Date()).getTime() - 1629910000000} | ${channel.id} | ${type} | ${new TextEncoder().encode(JSON.stringify(parcel)).length / 1024}`);
     console.log(parcel);
-    const encoded = window.encodeOutput(parcel);
+    const encoded = self.encodeOutput(parcel);
     channel.send(encoded);
   }
 
@@ -87,7 +87,7 @@ const sendOOB = (channel) => (type, obj) => {
     channel.send(finalStr);
   } else {
     const parcel  = { type, ...obj };
-    const encoded = window.encodeOutput(parcel);
+    const encoded = self.encodeOutput(parcel);
     channel.send(encoded);
   }
 }
@@ -95,7 +95,7 @@ const sendOOB = (channel) => (type, obj) => {
 // (Protocol.Channel*) => (String, Any) => Unit
 const sendBurst = (...channels) => (type, obj) => {
 
-  const encoded = window.encodeOutput({ type, ...obj });
+  const encoded = self.encodeOutput({ type, ...obj });
 
   const chunks = chunkForSending(encoded);
 

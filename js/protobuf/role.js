@@ -1,4 +1,4 @@
-window.RolePB = {
+self.RolePB = {
   fields: {
     name:            { type: "string", id:  1 }
   , limit:           { type: "sint32", id:  2 }

@@ -1,4 +1,4 @@
-window.FromJoinerRoot = {
+self.FromJoinerRoot = {
 
   nested: {
 
@@ -72,7 +72,7 @@ window.FromJoinerRoot = {
       , payload:       { type: "Payload", id: 3 }
       }
     , nested: {
-        Payload: window.JoinerRelayPayloadPB
+        Payload: self.JoinerRelayPayloadPB
       }
     }
   }

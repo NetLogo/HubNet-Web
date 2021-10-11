@@ -1,4 +1,4 @@
-window.hasCheckedHash = false;
+self.hasCheckedHash = false;
 
 const placeholderBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wYGEwkDoISeKgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAADElEQVQI12NobmwEAAMQAYa2CjzCAAAAAElFTkSuQmCC";
 
@@ -136,9 +136,9 @@ const populateSessionList = (sessions) => {
 
   refreshSelection(oldActiveUUID);
 
-  if (!window.hasCheckedHash) {
-    if (window.location.hash !== "") {
-      const trueHash             = window.location.hash.slice(1);
+  if (!self.hasCheckedHash) {
+    if (self.location.hash !== "") {
+      const trueHash             = self.location.hash.slice(1);
       const [oracleID, username] = trueHash.split(',', 2);
       const match                = document.querySelector(`.session-label[data-uuid='${oracleID}'] > .session-option`);
       if (match !== null) {
@@ -150,13 +150,13 @@ const populateSessionList = (sessions) => {
         document.getElementById('join-button').click();
       }
     }
-    window.hasCheckedHash = true;
+    self.hasCheckedHash = true;
   }
 
 };
 
 // () => Unit
-window.filterSessionList = () => {
+self.filterSessionList = () => {
   const term     = document.getElementById('session-filter-box').value.trim().toLowerCase();
   const checkIt  = ({ name, modelName }) => name.toLowerCase().includes(term) || modelName.toLowerCase().includes(term);
   const filtered = term === '' ? sessionData : sessionData.filter(checkIt);
@@ -164,14 +164,14 @@ window.filterSessionList = () => {
 };
 
 // () => Unit
-window.selectSession = () => {
+self.selectSession = () => {
   const activeElem = document.querySelector('.active');
   refreshSelection(activeElem !== null ? activeElem.dataset.uuid : null);
   setStatus("Session selected.  Please enter a username, enter a password (if needed), and click 'Join'.");
 };
 
 // () => Unit
-window.join = () => {
+self.join = () => {
   setStatus("Attempting to connect...");
   document.getElementById('join-button').disabled = true;
   const hostID = document.querySelector('.active').dataset.uuid;
@@ -271,7 +271,7 @@ const login = (channel) => {
 const handleChannelMessages = (channel, socket) => ({ data }) => {
 
   const dataArr = new Uint8Array(data);
-  const datum   = window.decodeInput(dataArr);
+  const datum   = self.decodeInput(dataArr);
 
   if (datum.type !== "keep-alive" && datum.type !== "ping" && datum.type !== "pong" && datum.type !== "ping-result") {
     console.log("Decoded: ", datum);
@@ -313,7 +313,7 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
     };
 
     if (datum.fullLength === 1) {
-      const parcel  = window.decodeInput(datum.parcel);
+      const parcel  = self.decodeInput(datum.parcel);
       const header  = { type: datum.type, id: datum.id, predecessorID: datum.predecessorID };
       const fullMsg = Object.assign({}, header, { parcel });
       processIt(fullMsg);
@@ -338,7 +338,7 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
 
       if (bucket.every((x) => x !== null)) {
 
-        const parcel  = window.decodeInput(assembleBucket(bucket));
+        const parcel  = self.decodeInput(assembleBucket(bucket));
         const header  = multipartHeaders[id];
         const fullMsg = Object.assign({}, header, { parcel });
 
@@ -364,8 +364,8 @@ const processChannelMessage = (channel, socket, datum) => {
 
     case "connection-established":
 
-      if (datum.protocolVersion !== window.HNWProtocolVersionNumber) {
-        alert(`HubNet protocol version mismatch!  You are using protocol version '${window.HNWProtocolVersionNumber}', while the host is using version '${datum.protocolVersion}'.  To ensure that you and the host are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  Your connection will now close.`);
+      if (datum.protocolVersion !== self.HNWProtocolVersionNumber) {
+        alert(`HubNet protocol version mismatch!  You are using protocol version '${self.HNWProtocolVersionNumber}', while the host is using version '${datum.protocolVersion}'.  To ensure that you and the host are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  Your connection will now close.`);
         disconnectChannels("Protocol version number mismatch");
       }
 
@@ -678,7 +678,7 @@ const disconnectChannels = (reason) => {
   });
 };
 
-window.addEventListener('message', (event) => {
+self.addEventListener('message', (event) => {
   switch (event.data.type) {
 
     case "relay":
@@ -726,16 +726,16 @@ window.addEventListener('message', (event) => {
   }
 });
 
-window.addEventListener("beforeunload", (event) => {
+self.addEventListener("beforeunload", (event) => {
   // Honestly, this will probably not run before the tab closes.  Not much I can do about that.  --JAB (8/21/20)
   disconnectChannels("");
 });
 
-window.addEventListener('popstate', (event) => {
+self.addEventListener('popstate', (event) => {
   if (event.state !== null && event.state !== undefined) {
     switch (event.state.name) {
       case "joined":
-        window.joinerConnection = new RTCPeerConnection(joinerConfig);
+        self.joinerConnection = new RTCPeerConnection(joinerConfig);
         cleanupSession(true, undefined);
       default:
         console.warn(`Unknown state: ${event.state.name}`);
