@@ -4,7 +4,7 @@ import { awaitWorker, byteSizeLabel, genUUID, HNWProtocolVersionNumber
 import { reportBandwidth                     } from "./bandwidth-monitor.js"
 import { decoderPool, encoderPool, sendBurst } from "./compress.js"
 import { genNextID                           } from "./id-manager.js"
-import { HNWRTC, hostConfig                  } from "./webrtc.js"
+import { hostConfig                          } from "./webrtc.js"
 
 import * as CompressJS from "./compress.js"
 
@@ -190,7 +190,7 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
 
   const rtcID       = uuidToRTCID(joinerID);
   const channel     = connection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
-  channel.onopen    = () => { sendGreeting(channel, HNWRTC.status); };
+  channel.onopen    = () => { sendGreeting(channel); };
   channel.onmessage = handleChannelMessages(channel, nlogo, sessionName, joinerID);
   channel.onclose   = () => { cleanUpJoiner(joinerID); };
 
@@ -398,15 +398,17 @@ self.addEventListener("message", ({ data }) => {
 
   const narrowcast = (type, message, recipientUUID) => {
     const sesh   = sessions[recipientUUID];
-    const isOpen = (channel) => channel.readyState === "open" || channel.readyState === networking.status.open;
-    if (sesh !== undefined && sesh.networking.channel !== undefined && isOpen(sesh.networking.channel))
+    if (sesh !== undefined &&
+        sesh.networking.channel !== undefined &&
+        sesh.networking.channel.readyState === "open") {
       sendBurst(true, sesh.networking.channel)(type, message);
+    }
   }
 
   const broadcast = (type, message) => {
     const checkIsEligible = (s) => {
       let nw = s.networking;
-      return nw.channel !== undefined && nw.channel.readyState === HNWRTC.status.open && s.hasInitialized;
+      return nw.channel !== undefined && nw.channel.readyState === "open" && s.hasInitialized;
     };
     const channels = Object.values(sessions).filter(checkIsEligible).map((s) => s.networking.channel);
     sendBurst(true, ...channels)(type, message);

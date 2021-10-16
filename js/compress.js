@@ -1,12 +1,9 @@
 import { encodePBuf } from "./protobuf/converters-common.js"
 
-import { awaitWorker, genUUID, HNWProtocolVersionNumber
-       , typeIsOOB } from "./common.js"
+import { awaitWorker, HNWProtocolVersionNumber, typeIsOOB } from "./common.js"
 
 import { logEntry  } from "./bandwidth-monitor.js"
 import { genNextID } from "./id-manager.js"
-import { HNWRTC    } from "./webrtc.js"
-import { HNWWS     } from "./websocket.js"
 
 // A dummy... for now.  I'll bring in the proper library later. --JAB (7/29/19)
 const pako = {
@@ -68,50 +65,31 @@ decoderPool.onmessage = (msg) => {
 
 // (Object[Any], Boolean) => Promise[Any]
 const asyncEncode = (parcel, isHost) => {
-  if (isHost) {
-    return awaitWorker(encoderPool, { type: "encode", parcel });
-  } else {
-    return new Promise((res, rej) => res(encodePBuf(false)(parcel)));
-  }
+  return isHost ? awaitWorker(encoderPool, { type: "encode", parcel }) :
+                  new Promise((res, rej) => res(encodePBuf(false)(parcel)));
 };
 
-// (Boolean, Protocol.Channel) => (String, Any, UUID) => Unit
-const _send = (isHost, channel) => (type, obj, id = genNextID(`${channel.label}-${channel.id}`)) => {
+// (Boolean, RTCDataChannel) => (String, Any, UUID) => Unit
+const send = (isHost, channel) => (type, obj, id = genNextID(`${channel.label}-${channel.id}`)) => {
 
   const parcel = { ...obj };
   parcel.id    = id;
 
-  if (channel instanceof WebSocket) {
-    const finalStr = makeMessage(type, parcel);
-    logAndSend(finalStr, channel);
-  } else {
-    parcel.type = type;
-    console.log(parcel);
-    asyncEncode(parcel, isHost).then((encoded) => logAndSend(encoded, channel));
-  }
+  parcel.type = type;
+  asyncEncode(parcel, isHost).then((encoded) => logAndSend(encoded, channel));
 
 };
 
-// (Boolean) => (Protocol.Channel) => (String, Any) => Unit
-const send = (isHost) => (channel) => (type, obj) => {
-  _send(isHost, channel)(type, obj);
-};
-
-// (Boolean, Protocol.Channel) => (String, Any, Boolean) => Unit
+// (Boolean, RTCDataChannel) => (String, Any) => Unit
 const sendOOB = (isHost, channel) => (type, obj) => {
-  if (channel instanceof WebSocket) {
-    const finalStr = makeMessage(type, obj);
-    logAndSend(finalStr, channel);
-  } else {
-    asyncEncode({ type, ...obj }, isHost).then(
-      (encoded) => {
-        logAndSend(encoded, channel);
-      }
-    );
-  }
-}
+  asyncEncode({ type, ...obj }, isHost).then(
+    (encoded) => {
+      logAndSend(encoded, channel);
+    }
+  );
+};
 
-// (Boolean, Protocol.Channel*) => (String, Any) => Unit
+// (Boolean, RTCDataChannel*) => (String, Any) => Unit
 const sendBurst = (isHost, ...channels) => (type, obj) => {
 
   const genID = (channel) => genNextID(`${channel.label}-${channel.id}`);
@@ -130,7 +108,7 @@ const sendBurst = (isHost, ...channels) => (type, obj) => {
       channels.forEach((channel) => {
         const id = idMap.get(channel);
         objs.forEach((obj, index) => {
-          channels.forEach((channel) => _send(isHost, channel)("hnw-burst", obj, id));
+          channels.forEach((channel) => send(isHost, channel)("hnw-burst", obj, id));
         });
       });
 
@@ -139,22 +117,22 @@ const sendBurst = (isHost, ...channels) => (type, obj) => {
 
 };
 
-// (Protocol.StatusBundle) => (Boolean) => (Protocol.Channel*) => (String, Object[Any]) => Unit
-const sendObj = (statusBundle) => (isHost) => (...channels) => (type, obj) => {
+// (Boolean) => (RTCDataChannel*) => (String, Object[Any]) => Unit
+const sendRTC = (isHost) => (...channels) => (type, obj) => {
   channels.forEach((channel) => {
     switch (channel.readyState) {
-      case statusBundle.connecting:
-        setTimeout(() => { sendObj(statusBundle)(isHost)(channel)(type, obj); }, 50);
+      case "connecting":
+        setTimeout(() => { sendRTC(isHost)(channel)(type, obj); }, 50);
         break;
-      case statusBundle.closing:
-      case statusBundle.closed:
+      case "closing":
+      case "closed":
         console.warn(`Cannot send '${type}' message over connection, because it is already closed`, channel, obj);
         break;
-      case statusBundle.open:
+      case "open":
         if (typeIsOOB(type)) {
           sendOOB(isHost, channel)(type, obj);
         } else {
-          send(isHost)(channel)(type, obj);
+          send(isHost, channel)(type, obj);
         }
         break;
       default:
@@ -163,39 +141,28 @@ const sendObj = (statusBundle) => (isHost) => (...channels) => (type, obj) => {
   });
 };
 
-// (Boolean) => (Protocol.Channel, Protocol.StatusBundle) => Unit
-const sendGreeting = (isHost) => (channel, statusBundle) => {
+// (Boolean) => (RTCDataChannel) => Unit
+const sendGreeting = (isHost) => (channel) => {
   switch (channel.readyState) {
-    case statusBundle.connecting:
-      setTimeout(() => { sendGreeting(isHost)(channel, statusBundle); }, 50);
+    case "connecting":
+      setTimeout(() => { sendGreeting(isHost)(channel); }, 50);
       break;
-    case statusBundle.closing:
-    case statusBundle.closed:
+    case "closing":
+    case "closed":
       console.warn(`Cannot send 'connect-established' message, because connection is already closed`);
       break;
-    case statusBundle.open:
-      _send(isHost, channel)("connection-established", { protocolVersion: HNWProtocolVersionNumber });
+    case "open":
+      send(isHost, channel)("connection-established", { protocolVersion: HNWProtocolVersionNumber });
       break;
     default:
       console.warn(`Unknown connection ready state: ${channel.readyState}`);
   }
 };
 
-// (WebSocket*) => (Boolean) => (String, Object[Any]) => Unit
-const sendWS = sendObj(HNWWS.status);
-
-// (RTCDataChannel*) => (Boolean) => (String, Object[Any]) => Unit
-const sendRTC = sendObj(HNWRTC.status);
-
-// (String, Object[Any]) => Unit
-const makeMessage = (type, obj) => {
-  return JSON.stringify({ type, ...obj });
-}
-
-// (Sendable, Protocol.Channel) => Unit
+// (Sendable, RTCDataChannel) => Unit
 const logAndSend = (data, channel) => {
   logEntry(data, channel);
   channel.send(data);
 };
 
-export { decoderPool, decompress, encoderPool, sendBurst, sendGreeting, sendObj, sendOOB, sendRTC, sendWS }
+export { decoderPool, decompress, encoderPool, sendBurst, sendGreeting, sendOOB, sendRTC }

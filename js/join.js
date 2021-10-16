@@ -5,7 +5,7 @@ const decodeInput = ConvertersCommonJS.decodePBuf(false);
 import { HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID } from "./common.js"
 import { decompress                } from "./compress.js"
 import { MinID, prevID, SentinelID } from "./id-manager.js"
-import { HNWRTC, joinerConfig      } from "./webrtc.js"
+import { joinerConfig              } from "./webrtc.js"
 
 import * as CompressJS from "./compress.js"
 
@@ -280,7 +280,7 @@ serverListSocketW.onmessage = ({ data }) => {
 const login = (channel) => {
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
-  sendGreeting(channel, HNWRTC.status);
+  sendGreeting(channel);
   sendRTC(channel)("login", { username, password });
 };
 
