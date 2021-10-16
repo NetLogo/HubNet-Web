@@ -79,8 +79,8 @@ decoderPool.onmessage = (msg) => {
   }
 };
 
-// (Protocol.Channel) => (String, Any, Boolean, UUID, UUID) => Unit
-const _send = (channel) => (type, obj, needsPred = true, predecessorID = extractLastSentID(channel), id = genUUID()) => {
+// (Boolean, Protocol.Channel) => (String, Any, Boolean, UUID, UUID) => Unit
+const _send = (isHost, channel) => (type, obj, needsPred = true, predecessorID = extractLastSentID(channel), id = genUUID()) => {
 
   const clone = Object.assign({}, obj);
   delete clone[id];
@@ -94,7 +94,7 @@ const _send = (channel) => (type, obj, needsPred = true, predecessorID = extract
   } else {
     const parcel = { type, ...finalObj };
     console.log(parcel);
-    if (self.location.href.includes("/host")) {
+    if (isHost) {
 
       new Promise(
         (resolve, reject) => {
@@ -123,9 +123,9 @@ const _send = (channel) => (type, obj, needsPred = true, predecessorID = extract
 
 };
 
-// (Protocol.Channel) => (String, Any) => Unit
-const send = (channel) => (type, obj) => {
-  _send(channel)(type, obj);
+// (Boolean) => (Protocol.Channel) => (String, Any) => Unit
+const send = (isHost) => (channel) => (type, obj) => {
+  _send(isHost, channel)(type, obj);
 };
 
 // (Boolean, Protocol.Channel) => (String, Any, Boolean) => Unit
@@ -153,7 +153,7 @@ const sendBurst = (isHost, ...channels) => (type, obj) => {
 
   channels.forEach((channel) => {
     objs.forEach((obj, index) => {
-      channels.forEach((channel) => _send(channel)("hnw-burst", obj, index === 0, undefined, id));
+      channels.forEach((channel) => _send(isHost, channel)("hnw-burst", obj, index === 0, undefined, id));
     });
   });
 
@@ -174,7 +174,7 @@ const sendObj = (statusBundle) => (isHost) => (...channels) => (type, obj) => {
         if (typeIsOOB(type)) {
           sendOOB(isHost, channel)(type, obj);
         } else {
-          send(channel)(type, obj);
+          send(isHost)(channel)(type, obj);
         }
         break;
       default:
@@ -183,18 +183,18 @@ const sendObj = (statusBundle) => (isHost) => (...channels) => (type, obj) => {
   });
 };
 
-// (Protocol.Channel, Protocol.StatusBundle) => Unit
-const sendGreeting = (channel, statusBundle) => {
+// (Boolean) => (Protocol.Channel, Protocol.StatusBundle) => Unit
+const sendGreeting = (isHost) => (channel, statusBundle) => {
   switch (channel.readyState) {
     case statusBundle.connecting:
-      setTimeout(() => { sendGreeting(channel, statusBundle); }, 50);
+      setTimeout(() => { sendGreeting(isHost)(channel, statusBundle); }, 50);
       break;
     case statusBundle.closing:
     case statusBundle.closed:
       console.warn(`Cannot send 'connect-established' message, because connection is already closed`);
       break;
     case statusBundle.open:
-      _send(channel)("connection-established", { protocolVersion: HNWProtocolVersionNumber }, true, '00000000-0000-0000-0000-000000000000');
+      _send(isHost, channel)("connection-established", { protocolVersion: HNWProtocolVersionNumber }, true, '00000000-0000-0000-0000-000000000000');
       break;
     default:
       console.warn(`Unknown connection ready state: ${channel.readyState}`);
@@ -212,4 +212,4 @@ const makeMessage = (type, obj) => {
   return JSON.stringify({ type, ...obj });
 }
 
-export { decoderPool, decompress, encoderPool, _send, send, sendBurst, sendGreeting, sendObj, sendOOB, sendRTC, sendWS }
+export { decoderPool, decompress, encoderPool, sendBurst, sendGreeting, sendObj, sendOOB, sendRTC, sendWS }

@@ -1,11 +1,12 @@
-import { genUUID, HNWProtocolVersionNumber, uuidToRTCID    } from "./common.js"
-import { decoderPool, encoderPool, sendBurst, sendGreeting } from "./compress.js"
-import { HNWRTC, hostConfig                                } from "./webrtc.js"
+import { genUUID, HNWProtocolVersionNumber, uuidToRTCID } from "./common.js"
+import { decoderPool, encoderPool, sendBurst            } from "./compress.js"
+import { HNWRTC, hostConfig                             } from "./webrtc.js"
 
 import * as CompressJS from "./compress.js"
 
-const sendRTC = CompressJS.sendRTC(true);
-const sendWS  = CompressJS.sendWS (true);
+const sendGreeting = CompressJS.sendGreeting(true);
+const sendRTC      = CompressJS.sendRTC     (true);
+const sendWS       = CompressJS.sendWS      (true);
 
 // type Session = {
 //   networking :: { socket     :: WebSocket

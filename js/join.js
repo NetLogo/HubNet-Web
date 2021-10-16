@@ -3,13 +3,14 @@ import * as ConvertersCommonJS from "./protobuf/converters-common.js"
 const decodeInput = ConvertersCommonJS.decodePBuf(false);
 
 import { HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID } from "./common.js"
-import { decompress, sendGreeting } from "./compress.js"
-import { HNWRTC, joinerConfig     } from "./webrtc.js"
+import { decompress           } from "./compress.js"
+import { HNWRTC, joinerConfig } from "./webrtc.js"
 
 import * as CompressJS from "./compress.js"
 
-const sendRTC = CompressJS.sendRTC(false);
-const sendWS  = CompressJS.sendWS (false);
+const sendGreeting = CompressJS.sendGreeting(false);
+const sendRTC      = CompressJS.sendRTC     (false);
+const sendWS       = CompressJS.sendWS      (false);
 
 self.hasCheckedHash = false;
 
