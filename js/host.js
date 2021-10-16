@@ -1,4 +1,5 @@
-import { byteSizeLabel, genUUID, HNWProtocolVersionNumber, uuidToRTCID } from "./common.js"
+import { awaitWorker, byteSizeLabel, genUUID, HNWProtocolVersionNumber
+       , uuidToRTCID } from "./common.js"
 
 import { reportBandwidth                     } from "./bandwidth-monitor.js"
 import { decoderPool, encoderPool, sendBurst } from "./compress.js"
@@ -27,6 +28,8 @@ let password = null; // String
 let statusSocket = null; // WebSocket
 
 let lastImageUpdate = undefined; // Base64String
+
+const broadSocketW = new Worker('js/broadsocket.js', { type: "module" });
 
 // (DOMElement) => Boolean
 self.submitLaunchForm = (elem) => {
@@ -109,14 +112,12 @@ const launchModel = (formDataPlus) => {
 
         babyDearest.postMessage({ type: "nlw-subscribe-to-updates", uuid: hostID }, "*");
 
-        const broadSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}`);
+        broadSocketW.onmessage = ({ data }) => {
+          switch (data.type) {
 
-        broadSocket.onmessage = ({ data }) => {
-          const datum = JSON.parse(data);
-          switch (datum.type) {
             case "hello":
 
-              const joinerID     = datum.joinerID;
+              const joinerID     = data.joinerID;
               const connection   = new RTCPeerConnection(hostConfig);
               const socket       = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/host`);
               socket.onmessage   = handleConnectionMessage(connection, nlogo, sessionName, joinerID);
@@ -126,10 +127,15 @@ const launchModel = (formDataPlus) => {
               decoderPool.postMessage({ type: "client-connect" });
 
               break;
+
             default:
-              console.warn(`Unknown broad event type: ${datum.type}`);
+              console.warn(`Unknown broad event type: ${data.type}`);
+
           }
         };
+
+        const broadSocketURL = `ws://localhost:8080/rtc/${hostID}`;
+        broadSocketW.postMessage({ type: "connect", url: broadSocketURL });
 
         statusSocket = new WebSocket(`ws://localhost:8080/hnw/my-status/${hostID}`);
 
@@ -137,7 +143,8 @@ const launchModel = (formDataPlus) => {
 
           const channels = Object.values(sessions).map((session) => session.networking.channel);
           channels                   .forEach((channel) => sendRTC(channel)("keep-alive", {}));
-          [broadSocket, statusSocket].forEach((socket)  => sendWS (socket )("keep-alive", {}));
+
+          sendWS(statusSocket)("keep-alive", {});
 
         }, 30000);
 
@@ -456,9 +463,15 @@ self.addEventListener('popstate', (event) => {
   }
 });
 
+// () => Unit
 const updateBandwidthLabel = () => {
-  const newText = byteSizeLabel(reportBandwidth(), 2);
-  document.getElementById("bandwidth-span").innerText = newText;
+  const syncBandwidth = reportBandwidth()
+  awaitWorker(broadSocketW, { type: "request-bandwidth-report" }).then(
+    (asyncBandwidth) => {
+      const newText = byteSizeLabel(syncBandwidth + asyncBandwidth, 2);
+      document.getElementById("bandwidth-span").innerText = newText;
+    }
+  )
 };
 
 // (String) => String
