@@ -1,5 +1,14 @@
 const HNWProtocolVersionNumber = "0";
 
+// (Number, Number) => String
+const byteSizeLabel = (n, precision = 2) => {
+  const trunc = (x) => parseFloat(x.toFixed(precision));
+  return (n >= 1e8) ? `${trunc(n / 1e9)} GB` :
+         (n >= 1e5) ? `${trunc(n / 1e6)} MB` :
+         (n >= 1e2) ? `${trunc(n / 1e3)} KB` :
+                      `${trunc(n)} B`;
+};
+
 // (String) => String
 const stringToHash = (str) => {
   return Array.from(str).map((x) => x.codePointAt(0)).reduce(((acc, x) => (((acc << 5) - acc) + x) | 0), 0);
@@ -32,4 +41,4 @@ const genUUID = () => {
 
 };
 
-export { genUUID, HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID }
+export { byteSizeLabel, genUUID, HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID }

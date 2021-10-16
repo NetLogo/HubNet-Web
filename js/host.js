@@ -1,7 +1,9 @@
-import { genUUID, HNWProtocolVersionNumber, uuidToRTCID } from "./common.js"
-import { decoderPool, encoderPool, sendBurst            } from "./compress.js"
-import { genNextID                                      } from "./id-manager.js"
-import { HNWRTC, hostConfig                             } from "./webrtc.js"
+import { byteSizeLabel, genUUID, HNWProtocolVersionNumber, uuidToRTCID } from "./common.js"
+
+import { reportBandwidth                     } from "./bandwidth-monitor.js"
+import { decoderPool, encoderPool, sendBurst } from "./compress.js"
+import { genNextID                           } from "./id-manager.js"
+import { HNWRTC, hostConfig                  } from "./webrtc.js"
 
 import * as CompressJS from "./compress.js"
 
@@ -147,6 +149,8 @@ const launchModel = (formDataPlus) => {
             sendWS(statusSocket)("members-update", { numPeers });
           }
         }, 1000);
+
+        setInterval(() => { updateBandwidthLabel(); }, 500);
 
         setInterval(() => {
           Object.values(sessions).forEach((session) => {
@@ -451,6 +455,11 @@ self.addEventListener('popstate', (event) => {
       console.warn(`Unknown state: ${event.state.name}`);
   }
 });
+
+const updateBandwidthLabel = () => {
+  const newText = byteSizeLabel(reportBandwidth(), 2);
+  document.getElementById("bandwidth-span").innerText = newText;
+};
 
 // (String) => String
 const extractModelName = (path) => (/(?:.*[/\\])?(.*)/).exec(path)[1].replace(/\.nlogo$/, "");

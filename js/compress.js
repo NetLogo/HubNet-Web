@@ -1,5 +1,6 @@
 import { encodePBuf } from "./protobuf/converters-common.js"
 
+import { logEntry  } from "./bandwidth-monitor.js"
 import { genUUID, HNWProtocolVersionNumber, typeIsOOB } from "./common.js"
 import { genNextID } from "./id-manager.js"
 import { HNWRTC    } from "./webrtc.js"
@@ -101,11 +102,11 @@ const _send = (isHost, channel) => (type, obj, id = genNextID(`${channel.label}-
 
   if (channel instanceof WebSocket) {
     const finalStr = makeMessage(type, parcel);
-    channel.send(finalStr);
+    logAndSend(finalStr, channel);
   } else {
     parcel.type = type;
     console.log(parcel);
-    asyncEncode(parcel, isHost).then((encoded) => channel.send(encoded));
+    asyncEncode(parcel, isHost).then((encoded) => logAndSend(encoded, channel));
   }
 
 };
@@ -119,11 +120,11 @@ const send = (isHost) => (channel) => (type, obj) => {
 const sendOOB = (isHost, channel) => (type, obj) => {
   if (channel instanceof WebSocket) {
     const finalStr = makeMessage(type, obj);
-    channel.send(finalStr);
+    logAndSend(finalStr, channel);
   } else {
     asyncEncode({ type, ...obj }, isHost).then(
       (encoded) => {
-        channel.send(encoded);
+        logAndSend(encoded, channel);
       }
     );
   }
@@ -203,5 +204,11 @@ const sendRTC = sendObj(HNWRTC.status);
 const makeMessage = (type, obj) => {
   return JSON.stringify({ type, ...obj });
 }
+
+// (Sendable, Protocol.Channel) => Unit
+const logAndSend = (data, channel) => {
+  logEntry(data, channel);
+  channel.send(data);
+};
 
 export { decoderPool, decompress, encoderPool, sendBurst, sendGreeting, sendObj, sendOOB, sendRTC, sendWS }
