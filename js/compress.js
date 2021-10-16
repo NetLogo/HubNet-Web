@@ -31,7 +31,7 @@ const decompress = (deflated) => {
 // (Array[_]) => Array[Array[U]]
 const chunkForSending = (message) => {
 
-  const chunkSize  = 2400;
+  const chunkSize  = 15500;
   const compressed = compress(message);
   const messages   = chunk(compressed, chunkSize);
 
