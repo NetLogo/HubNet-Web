@@ -1,6 +1,6 @@
 let clientCount = 0;
 
-let maxNumWorkers = Math.max(1, navigator.hardwareConcurrency - 4);
+let maxNumWorkers = Math.max(1, navigator.hardwareConcurrency);
 
 // Array[{ isIdle: Boolean, worker: WebWorker }]
 let workerPool = [];
@@ -43,7 +43,7 @@ onmessage = (e) => {
   switch (e.data.type) {
     case "client-connect":
       clientCount++;
-      if ((workerPool.length < maxNumWorkers) && (clientCount % 4 === 1)) {
+      if (workerPool.length < maxNumWorkers) {
         initWorker();
       }
       break;
