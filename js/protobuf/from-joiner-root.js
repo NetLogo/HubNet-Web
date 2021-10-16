@@ -6,24 +6,21 @@ const FromJoinerRoot = {
 
     ByeBye: { // bye-bye
       fields: {
-        id:            { type: "string", id: 1 }
-      , predecessorID: { type: "string", id: 2 }
+        id: { type: "uint32", id: 1 }
       }
     }
 
   , ConnEstablished: { // connection-established
       fields: {
-        id:              { type: "string", id: 1 }
-      , predecessorID:   { type: "string", id: 2 }
-      , protocolVersion: { type: "string", id: 3 }
+        id:              { type: "uint32", id: 1 }
+      , protocolVersion: { type: "string", id: 2 }
       }
     }
 
   , ICECandy: { // joiner-ice-candidate
       fields: {
-        id:              { type: "string"   , id: 1 }
-      , predecessorID:   { type: "string"   , id: 2 }
-      , candidate:       { type: "Candidate", id: 3 }
+        id:              { type: "uint32"   , id: 1 }
+      , candidate:       { type: "Candidate", id: 2 }
       }
     , nested: {
         Candidate: {
@@ -38,9 +35,8 @@ const FromJoinerRoot = {
 
   , JoinerOffer: { // joiner-offer
       fields: {
-        id:              { type: "string", id: 1 }
-      , predecessorID:   { type: "string", id: 2 }
-      , offer:           { type: "Offer" , id: 3 }
+        id:              { type: "uint32", id: 1 }
+      , offer:           { type: "Offer" , id: 2 }
       }
     , nested: {
         Offer: {
@@ -54,24 +50,22 @@ const FromJoinerRoot = {
 
   , Login: { // login
       fields: {
-        id:            { type: "string", id: 1 }
-      , predecessorID: { type: "string", id: 2 }
-      , username:      { type: "string", id: 3 }
-      , password:      { type: "string", id: 4 }
+        id:       { type: "uint32", id: 1 }
+      , username: { type: "string", id: 2 }
+      , password: { type: "string", id: 3 }
       }
     }
 
   , Pong: { // pong
       fields: {
-        id: { type: "string", id: 1 }
+        id: { type: "uint32", id: 1 }
       }
     }
 
   , Relay: { // relay
       fields: {
-        id:            { type: "string" , id: 1 }
-      , predecessorID: { type: "string" , id: 2 }
-      , payload:       { type: "Payload", id: 3 }
+        id:      { type: "uint32" , id: 1 }
+      , payload: { type: "Payload", id: 2 }
       }
     , nested: {
         Payload: JoinerRelayPayloadPB

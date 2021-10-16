@@ -61,3 +61,5 @@ onmessage = (e) => {
       console.warn("Unknown decoder pool message type:", e.data.type, e)
   }
 };
+
+initWorker();

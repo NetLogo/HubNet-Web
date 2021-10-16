@@ -3,8 +3,9 @@ import * as ConvertersCommonJS from "./protobuf/converters-common.js"
 const decodeInput = ConvertersCommonJS.decodePBuf(false);
 
 import { HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID } from "./common.js"
-import { decompress           } from "./compress.js"
-import { HNWRTC, joinerConfig } from "./webrtc.js"
+import { decompress                } from "./compress.js"
+import { MinID, prevID, SentinelID } from "./id-manager.js"
+import { HNWRTC, joinerConfig      } from "./webrtc.js"
 
 import * as CompressJS from "./compress.js"
 
@@ -40,10 +41,10 @@ let loopIsTerminated = false; // Boolean
 
 let recentPings = []; // Array[Number]
 
-const dummyUUID = '00000000-0000-0000-0000-000000000000' // UUID
+const dummyID = 0; // Number
 
-let lastMsgID   = dummyUUID; // UUID
-let predIDToMsg = {};                                     // Object[UUID, Any]
+let lastMsgID   = dummyID; // Number
+let predIDToMsg = {};      // Object[UUID, Any]
 
 const multiparts       = {}; // Object[UUID, String]
 const multipartHeaders = {}; // Object[UUID, String]
@@ -307,12 +308,15 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
     };
 
     const processIt = (msg) => {
-      if (msg.predecessorID !== dummyUUID) {
-        predIDToMsg[msg.predecessorID] = msg;
-        processMsgQueue();
-      } else {
+      if (msg.id === SentinelID) {
+        processChannelMessage(channel, socket, msg);
+      } else if (msg.id === MinID) {
         lastMsgID = msg.id;
         processChannelMessage(channel, socket, msg);
+      } else {
+        const pred = prevID(msg.id);
+        predIDToMsg[pred] = msg;
+        processMsgQueue();
       }
     };
 
@@ -329,7 +333,7 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
 
     if (datum.fullLength === 1) {
       const parcel  = decodeInput(datum.parcel);
-      const header  = { type: datum.type, id: datum.id, predecessorID: datum.predecessorID };
+      const header  = { type: datum.type, id: datum.id };
       const fullMsg = Object.assign({}, header, { parcel });
       processIt(fullMsg);
     } else if ((datum.fullLength || 1) !== 1) {
@@ -345,7 +349,7 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
       }
 
       if (index === 0) {
-        multipartHeaders[id] = { type: datum.type, id, predecessorID: datum.predecessorID }
+        multipartHeaders[id] = { type: datum.type, id }
       }
 
       const bucket = multiparts[id];
@@ -639,7 +643,7 @@ const cleanupSession = (wasExpected, statusText) => {
 
   joinerConnection = new RTCPeerConnection(joinerConfig);
   recentPings      = [];
-  lastMsgID        = dummyUUID;
+  lastMsgID        = dummyID;
   predIDToMsg      = {};
 
   setPageState("uninitialized");

@@ -1,25 +1,9 @@
 import { encodePBuf } from "./protobuf/converters-common.js"
 
 import { genUUID, HNWProtocolVersionNumber, typeIsOOB } from "./common.js"
-import { HNWRTC } from "./webrtc.js"
-import { HNWWS  } from "./websocket.js"
-
-let lastSentIDMap = {}; // Object[String, UUID]
-
-// (Protocol.Channel) => String
-const toBaseID = (channel) => channel.url || channel.id;
-
-// (String) => UUID
-const extractLastSentID = (channelID) => {
-  const lsid = lastSentIDMap[channelID];
-  if (lsid !== undefined) {
-    return lsid;
-  } else {
-    const nullary = '00000000-0000-0000-0000-000000000000';
-    lastSentIDMap[channelID] = nullary;
-    return nullary;
-  }
-}
+import { genNextID } from "./id-manager.js"
+import { HNWRTC    } from "./webrtc.js"
+import { HNWWS     } from "./websocket.js"
 
 // A dummy... for now.  I'll bring in the proper library later. --JAB (7/29/19)
 const pako = {
@@ -109,25 +93,20 @@ const asyncEncode = (parcel, isHost) => {
   }
 };
 
-// (Boolean, Protocol.Channel) => (String, Any, Boolean, UUID, UUID) => Unit
-const _send = (isHost, channel) => (type, obj, needsPred = true, predecessorID = extractLastSentID(channel), id = genUUID()) => {
+// (Boolean, Protocol.Channel) => (String, Any, UUID) => Unit
+const _send = (isHost, channel) => (type, obj, id = genNextID(`${channel.label}-${channel.id}`)) => {
 
-  const clone = Object.assign({}, obj);
-  delete clone[id];
-  delete clone[predecessorID];
-
-  const finalObj = Object.assign({}, { id }, needsPred ? { predecessorID } : {}, clone);
+  const parcel = { ...obj };
+  parcel.id    = id;
 
   if (channel instanceof WebSocket) {
-    const finalStr = makeMessage(type, finalObj);
+    const finalStr = makeMessage(type, parcel);
     channel.send(finalStr);
   } else {
-    const parcel = { type, ...finalObj };
+    parcel.type = type;
     console.log(parcel);
     asyncEncode(parcel, isHost).then((encoded) => channel.send(encoded));
   }
-
-  lastSentIDMap[channel.url] = id;
 
 };
 
@@ -158,13 +137,12 @@ const sendBurst = (isHost, ...channels) => (type, obj) => {
 
       const chunks = chunkForSending(encoded);
 
-      const id = genUUID();
-
-      let objs = chunks.map((m, index) => ({ index, fullLength: chunks.length, parcel: m }));
+      const objs = chunks.map((m, index) => ({ index, fullLength: chunks.length, parcel: m }));
 
       channels.forEach((channel) => {
+        const id = genNextID(`${channel.label}-${channel.id}`);
         objs.forEach((obj, index) => {
-          channels.forEach((channel) => _send(isHost, channel)("hnw-burst", obj, index === 0, undefined, id));
+          channels.forEach((channel) => _send(isHost, channel)("hnw-burst", obj, id));
         });
       });
 
@@ -208,7 +186,7 @@ const sendGreeting = (isHost) => (channel, statusBundle) => {
       console.warn(`Cannot send 'connect-established' message, because connection is already closed`);
       break;
     case statusBundle.open:
-      _send(isHost, channel)("connection-established", { protocolVersion: HNWProtocolVersionNumber }, true, '00000000-0000-0000-0000-000000000000');
+      _send(isHost, channel)("connection-established", { protocolVersion: HNWProtocolVersionNumber });
       break;
     default:
       console.warn(`Unknown connection ready state: ${channel.readyState}`);

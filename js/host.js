@@ -1,5 +1,6 @@
 import { genUUID, HNWProtocolVersionNumber, uuidToRTCID } from "./common.js"
 import { decoderPool, encoderPool, sendBurst            } from "./compress.js"
+import { genNextID                                      } from "./id-manager.js"
 import { HNWRTC, hostConfig                             } from "./webrtc.js"
 
 import * as CompressJS from "./compress.js"
@@ -149,10 +150,11 @@ const launchModel = (formDataPlus) => {
 
         setInterval(() => {
           Object.values(sessions).forEach((session) => {
-            if (session.networking.channel !== undefined) {
-              const id = slimUUID();
+            const channel = session.networking.channel;
+            if (channel !== undefined) {
+              const id = genNextID(`${channel.label}-${channel.id}-ping`);
               session.pingData[id] = { startTime: performance.now() };
-              sendRTC(session.networking.channel)("ping", { id });
+              sendRTC(channel)("ping", { id });
             }
           });
         }, 2000);
@@ -169,12 +171,6 @@ const launchModel = (formDataPlus) => {
 
   });
 
-};
-
-// (UUID) => String
-const slimUUID = () => {
-  const uuid = genUUID();
-  return uuid.substr(0, uuid.indexOf('-'));
 };
 
 // (RTCPeerConnection, String, String, String) => (RTCSessionDescription) => Unit

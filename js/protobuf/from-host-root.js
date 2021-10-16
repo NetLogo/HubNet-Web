@@ -7,28 +7,25 @@ const FromHostRoot = {
 
     ConnEstablished: { // connection-established
       fields: {
-        id:              { type: "string", id: 1 }
-      , predecessorID:   { type: "string", id: 2 }
-      , protocolVersion: { type: "string", id: 3 }
+        id:              { type: "uint32", id: 1 }
+      , protocolVersion: { type: "string", id: 2 }
       }
     }
 
   , HNWBurst: { // hnw-burst
       fields: {
-        id:              { type: "string", id: 1 }
-      , predecessorID:   { type: "string", id: 2 }
-      , protocolVersion: { type: "string", id: 3 }
-      , index:           { type: "uint32", id: 4 }
-      , fullLength:      { type: "uint32", id: 5 }
-      , parcel:          { type: "bytes" , id: 6 }
+        id:              { type: "uint32", id: 1 }
+      , protocolVersion: { type: "string", id: 2 }
+      , index:           { type: "uint32", id: 3 }
+      , fullLength:      { type: "uint32", id: 4 }
+      , parcel:          { type: "bytes" , id: 5 }
       }
     }
 
   , HostAnswer: { // host-answer
       fields: {
-        id:              { type: "string", id: 1 }
-      , predecessorID:   { type: "string", id: 2 }
-      , answer:          { type: "Answer", id: 3 }
+        id:     { type: "uint32", id: 1 }
+      , answer: { type: "Answer", id: 2 }
       }
     , nested: {
         Answer: {
@@ -42,9 +39,8 @@ const FromHostRoot = {
 
   , ICECandy: { // host-ice-candidate
       fields: {
-        id:              { type: "string"   , id: 1 }
-      , predecessorID:   { type: "string"   , id: 2 }
-      , candidate:       { type: "Candidate", id: 3 }
+        id:        { type: "uint32"   , id: 1 }
+      , candidate: { type: "Candidate", id: 2 }
       }
     , nested: {
         Candidate: {
@@ -113,14 +109,13 @@ const FromHostRoot = {
 
   , LoginSuccessful: { // login-successful
       fields: {
-        id:            { type: "string", id: 1 }
-      , predecessorID: { type: "string", id: 2 }
+        id: { type: "uint32", id: 1 }
       }
     }
 
   , Ping: { // ping
       fields: {
-        id: { type: "string", id: 1 }
+        id: { type: "uint32", id: 1 }
       }
     }
 
@@ -132,9 +127,8 @@ const FromHostRoot = {
 
   , Relay: { // relay
       fields: {
-        id:            { type: "string" , id: 1 }
-      , predecessorID: { type: "string" , id: 2 }
-      , payload:       { type: "Payload", id: 3 }
+        id:      { type: "uint32" , id: 1 }
+      , payload: { type: "Payload", id: 2 }
       }
     , nested: {
         Payload: {
