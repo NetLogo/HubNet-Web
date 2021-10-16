@@ -11,7 +11,6 @@ import * as CompressJS from "./compress.js"
 
 const sendGreeting = CompressJS.sendGreeting(false);
 const sendRTC      = CompressJS.sendRTC     (false);
-const sendWS       = CompressJS.sendWS      (false);
 
 const SigTerm = "signaling-terminated";
 
@@ -270,17 +269,12 @@ const connectAndLogin = (hostID) => {
   );
 };
 
-// () => WebSocket
-const openListSocket = () => {
-  const socket = new WebSocket(`ws://localhost:8080/hnw/session-stream`);
-  socket.addEventListener('message', ({ data }) => {
-    sessionData = JSON.parse(data);
-    filterSessionList();
-  });
-  return socket;
+const serverListSocketW = new Worker('js/server-list-socket.js', { type: "module" });
+serverListSocketW.postMessage({ type: "connect" });
+serverListSocketW.onmessage = ({ data }) => {
+  sessionData = JSON.parse(data);
+  filterSessionList();
 };
-
-let serverListSocket = openListSocket();
 
 // (Protocol.Channel) => Unit
 const login = (channel) => {
@@ -419,7 +413,7 @@ const processChannelMessage = (channel, closeSignaling, datum) => {
     case "login-successful":
       closeSignaling();
       setStatus("Logged in!  Loading NetLogo and then asking for model....")
-      serverListSocket.close(1000, "Server list is not currently needed");
+      serverListSocketW.postMessage({ type: "hibernate" });
       switchToNLW();
       break;
 
@@ -658,7 +652,7 @@ const cleanupSession = (wasExpected, statusText) => {
   const  nlwFrame = document.getElementById(           "nlw-frame");
   nlwFrame .classList.add(   "hidden");
   formFrame.classList.remove("hidden");
-  serverListSocket = openListSocket();
+  serverListSocketW.postMessage({ type: "connect" });
   loadFakeModel();
   document.getElementById('join-button').disabled = false;
 
