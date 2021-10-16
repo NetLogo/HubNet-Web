@@ -93,7 +93,6 @@ const _send = (channel) => (type, obj, needsPred = true, predecessorID = extract
     channel.send(finalStr);
   } else {
     const parcel = { type, ...finalObj };
-    console.log(`Sending: ${(new Date()).getTime() - 1629910000000} | ${channel.id} | ${type} | ${new TextEncoder().encode(JSON.stringify(parcel)).length / 1024}`);
     console.log(parcel);
     if (self.location.href.includes("/host")) {
 
