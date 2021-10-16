@@ -10,7 +10,6 @@ import * as CompressJS from "./compress.js"
 
 const sendGreeting = CompressJS.sendGreeting(true);
 const sendRTC      = CompressJS.sendRTC     (true);
-const sendWS       = CompressJS.sendWS      (true);
 
 // type Session = {
 //   networking :: { socket     :: WebSocket
@@ -24,6 +23,8 @@ const sendWS       = CompressJS.sendWS      (true);
 let sessions = {}; // Object[Session]
 
 let password = null; // String
+
+const SigTerm = "signaling-terminated";
 
 const broadSocketW = new Worker('js/broadsocket.js', { type: "module" });
 
@@ -117,9 +118,17 @@ const launchModel = (formDataPlus) => {
 
               const joinerID     = data.joinerID;
               const connection   = new RTCPeerConnection(hostConfig);
-              const socket       = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/host`);
-              socket.onmessage   = handleConnectionMessage(connection, nlogo, sessionName, joinerID);
-              sessions[joinerID] = { networking: { socket }, hasInitialized: false, pingData: {} };
+
+              const signaling     = new Worker('js/host-signaling-socket.js', { type: "module" });
+              signaling.onmessage = handleConnectionMessage(connection, nlogo, sessionName, joinerID);
+
+              const signalingURL = `ws://localhost:8080/rtc/${hostID}/${joinerID}/host`;
+              signaling.postMessage({ type: "connect", url: signalingURL });
+
+              sessions[joinerID] = { networking: { signaling }
+                                   , hasInitialized: false
+                                   , pingData: {}
+                                   };
 
               encoderPool.postMessage({ type: "client-connect" });
               decoderPool.postMessage({ type: "client-connect" });
@@ -190,15 +199,25 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
   session.networking.connection = connection;
   session.networking.channel    = channel;
 
+  // (String, Object[Any]) => Unit
+  const signal =
+    (type, parcel) => {
+      const signaling = session.networking.signaling;
+      if (signaling !== SigTerm) {
+        signaling.postMessage({ type, ...parcel });
+      }
+    };
+
   let knownCandies = new Set([]);
 
   connection.onicecandidate =
     ({ candidate }) => {
       if (candidate !== undefined && candidate !== null) {
-        const candy = JSON.stringify(candidate.toJSON());
-        if (!knownCandies.has(candy)) {
-          knownCandies = knownCandies.add(candy);
-          sendWS(session.networking.socket)("host-ice-candidate", { candidate: candidate.toJSON() });
+        const candy    = candidate.toJSON();
+        const candyStr = JSON.stringify(candy);
+        if (!knownCandies.has(candyStr)) {
+          knownCandies = knownCandies.add(candyStr);
+          signal("ice-candidate", { candidate: candy });
         }
       }
     };
@@ -212,11 +231,11 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
   connection.setRemoteDescription(offer)
     .then(()     => connection.createAnswer())
     .then(answer => connection.setLocalDescription(answer))
-    .then(()     => sendWS(session.networking.socket)("host-answer", { answer: connection.localDescription }));
+    .then(()     => signal("answer", { answer: connection.localDescription.toJSON() }));
 
 };
 
-// (RTCPeerConnection, String, String, String) => (Any) => Unit
+// (RTCPeerConnection, String, String, String) => (Object[Any]) => Unit
 const handleConnectionMessage = (connection, nlogo, sessionName, joinerID) => ({ data }) => {
   const datum = JSON.parse(data);
   switch (datum.type) {
@@ -339,9 +358,13 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
     if (!usernameIsTaken) {
       if (password === null || password === datum.password) {
 
-        sessions[joinerID].networking.socket.close();
-        sessions[joinerID].username      = datum.username;
-        sessions[joinerID].isInitialized = false;
+        const session = sessions[joinerID];
+
+        session.networking.signaling.terminate();
+        session.networking.signaling = SigTerm;
+
+        session.username      = datum.username;
+        session.isInitialized = false;
         sendRTC(channel)("login-successful", {});
 
         const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
@@ -457,8 +480,11 @@ const updateBandwidthLabel = () => {
 
   const syncBandwidth = reportBandwidth();
 
+  const signalers     = Object.values(sessions).map((s) => s.networking.signaling);
+  const trueSignalers = signalers.filter((x) => x !== SigTerm);
+
   const parcel        = { type: "request-bandwidth-report" };
-  const workers       = [broadSocketW, statusSocketW];
+  const workers       = [broadSocketW, statusSocketW].concat(trueSignalers);
   const promises      = workers.map((w) => awaitWorker(w, parcel));
 
   Promise.all(promises).then(
