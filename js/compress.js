@@ -142,28 +142,34 @@ const sendOOB = (isHost, channel) => (type, obj) => {
     const finalStr = makeMessage(type, obj);
     channel.send(finalStr);
   } else {
-    const parcel  = { type, ...obj };
-    const encoded = encodePBuf(isHost)(parcel);
-    channel.send(encoded);
+    asyncEncode({ type, ...obj }, isHost).then(
+      (encoded) => {
+        channel.send(encoded);
+      }
+    );
   }
 }
 
 // (Boolean, Protocol.Channel*) => (String, Any) => Unit
 const sendBurst = (isHost, ...channels) => (type, obj) => {
 
-  const encoded = encodePBuf(isHost)({ type, ...obj });
+  asyncEncode({ type, ...obj }, isHost).then(
+    (encoded) => {
 
-  const chunks = chunkForSending(encoded);
+      const chunks = chunkForSending(encoded);
 
-  const id = genUUID();
+      const id = genUUID();
 
-  let objs = chunks.map((m, index) => ({ index, fullLength: chunks.length, parcel: m }));
+      let objs = chunks.map((m, index) => ({ index, fullLength: chunks.length, parcel: m }));
 
-  channels.forEach((channel) => {
-    objs.forEach((obj, index) => {
-      channels.forEach((channel) => _send(isHost, channel)("hnw-burst", obj, index === 0, undefined, id));
-    });
-  });
+      channels.forEach((channel) => {
+        objs.forEach((obj, index) => {
+          channels.forEach((channel) => _send(isHost, channel)("hnw-burst", obj, index === 0, undefined, id));
+        });
+      });
+
+    }
+  );
 
 };
 
