@@ -1,5 +1,26 @@
 const HNWProtocolVersionNumber = "0";
 
+// (WebWorker, Object[Any]) => Promise[Any]
+const awaitWorker = (worker, msg) => {
+
+  const f =
+    (resolve, reject) => {
+
+      const channel = new MessageChannel();
+
+      channel.port1.onmessage = ({ data }) => {
+        channel.port1.close();
+        resolve(data);
+      };
+
+      worker.postMessage(msg, [channel.port2]);
+
+    };
+
+  return new Promise(f);
+
+};
+
 // (Number, Number) => String
 const byteSizeLabel = (n, precision = 2) => {
   const trunc = (x) => parseFloat(x.toFixed(precision));
@@ -41,4 +62,4 @@ const genUUID = () => {
 
 };
 
-export { byteSizeLabel, genUUID, HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID }
+export { awaitWorker, byteSizeLabel, genUUID, HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID }

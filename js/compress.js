@@ -1,7 +1,9 @@
 import { encodePBuf } from "./protobuf/converters-common.js"
 
+import { awaitWorker, genUUID, HNWProtocolVersionNumber
+       , typeIsOOB } from "./common.js"
+
 import { logEntry  } from "./bandwidth-monitor.js"
-import { genUUID, HNWProtocolVersionNumber, typeIsOOB } from "./common.js"
 import { genNextID } from "./id-manager.js"
 import { HNWRTC    } from "./webrtc.js"
 import { HNWWS     } from "./websocket.js"
@@ -63,27 +65,6 @@ decoderPool.onmessage = (msg) => {
       console.warn("Unknown decoder pool response type:", e.type, e)
   }
 };
-
-// (WebWorker, Object[Any]) => Promise[Any]
-const awaitWorker = (worker, msg) => {
-
-  const f =
-    (resolve, reject) => {
-
-      const channel = new MessageChannel();
-
-      channel.port1.onmessage = ({ data }) => {
-        channel.port1.close();
-        resolve(data);
-      };
-
-      worker.postMessage(msg, [channel.port2]);
-
-    };
-
-  return new Promise(f);
-
-}
 
 // (Object[Any], Boolean) => Promise[Any]
 const asyncEncode = (parcel, isHost) => {
