@@ -462,4 +462,5 @@ const updateBandwidthLabel = () => {
 };
 
 // (String) => String
-const extractModelName = (path) => (/(?:.*[/\\])?(.*)/).exec(path)[1].replace(/\.nlogo$/, "");
+const extractModelName = (path) =>
+  (/(?:.*[/\\])?(.*)/).exec(path)[1].replace(/\.nlogo$/, "");
