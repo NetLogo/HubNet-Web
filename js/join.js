@@ -36,7 +36,7 @@ let messageQueue = []; // Array[Object[Any]]
 
 let waitingForBabby = {}; // Object[Any]
 
-let mainEventLoopID = null; // Number
+let loopIsTerminated = false; // Boolean
 
 let recentPings = []; // Array[Number]
 
@@ -231,7 +231,8 @@ const connectAndLogin = (hostID) => {
       channel.onclose   = (e) => { cleanupSession(e.code === 1000, e.reason); }
       channels[hostID]  = channel;
 
-      mainEventLoopID   = setInterval(processQueue, 1000 / 30);
+      loopIsTerminated = false; // Boolean
+      requestAnimationFrame(processQueue)
 
       narrowSocket.addEventListener('open', () => sendWS(narrowSocket)("joiner-offer", { offer }));
 
@@ -499,6 +500,10 @@ const processQueue = () => {
     console.log("Skipping while in state:", pageState);
   }
 
+  if (!loopIsTerminated) {
+    requestAnimationFrame(processQueue);
+  }
+
 };
 
 // (Object[Any]) => Unit
@@ -630,7 +635,7 @@ const loadFakeModel = () => {
 // (Boolean, String) => Unit
 const cleanupSession = (wasExpected, statusText) => {
 
-  clearInterval(mainEventLoopID);
+  loopIsTerminated = true;
 
   joinerConnection = new RTCPeerConnection(joinerConfig);
   recentPings      = [];
