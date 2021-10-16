@@ -133,6 +133,12 @@ const sendOOB = (isHost, channel) => (type, obj) => {
 // (Boolean, Protocol.Channel*) => (String, Any) => Unit
 const sendBurst = (isHost, ...channels) => (type, obj) => {
 
+  const genID = (channel) => genNextID(`${channel.label}-${channel.id}`);
+
+  // Log the IDs right away, before we do anything async, lest message IDs get
+  // out of order. --Jason B. (10/16/21)
+  const idMap = new Map(channels.map((channel) => [channel, genID(channel)]));
+
   asyncEncode({ type, ...obj }, isHost).then(
     (encoded) => {
 
@@ -141,7 +147,7 @@ const sendBurst = (isHost, ...channels) => (type, obj) => {
       const objs = chunks.map((m, index) => ({ index, fullLength: chunks.length, parcel: m }));
 
       channels.forEach((channel) => {
-        const id = genNextID(`${channel.label}-${channel.id}`);
+        const id = idMap.get(channel);
         objs.forEach((obj, index) => {
           channels.forEach((channel) => _send(isHost, channel)("hnw-burst", obj, id));
         });
