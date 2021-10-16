@@ -79,6 +79,36 @@ decoderPool.onmessage = (msg) => {
   }
 };
 
+// (WebWorker, Object[Any]) => Promise[Any]
+const awaitWorker = (worker, msg) => {
+
+  const f =
+    (resolve, reject) => {
+
+      const channel = new MessageChannel();
+
+      channel.port1.onmessage = ({ data }) => {
+        channel.port1.close();
+        resolve(data);
+      };
+
+      worker.postMessage(msg, [channel.port2]);
+
+    };
+
+  return new Promise(f);
+
+}
+
+// (Object[Any], Boolean) => Promise[Any]
+const asyncEncode = (parcel, isHost) => {
+  if (isHost) {
+    return awaitWorker(encoderPool, { type: "encode", parcel });
+  } else {
+    return new Promise((res, rej) => res(encodePBuf(false)(parcel)));
+  }
+};
+
 // (Boolean, Protocol.Channel) => (String, Any, Boolean, UUID, UUID) => Unit
 const _send = (isHost, channel) => (type, obj, needsPred = true, predecessorID = extractLastSentID(channel), id = genUUID()) => {
 
@@ -94,29 +124,7 @@ const _send = (isHost, channel) => (type, obj, needsPred = true, predecessorID =
   } else {
     const parcel = { type, ...finalObj };
     console.log(parcel);
-    if (isHost) {
-
-      new Promise(
-        (resolve, reject) => {
-
-          const channel = new MessageChannel();
-
-          channel.port1.onmessage = ({ data }) => {
-            channel.port1.close();
-            resolve(data);
-          };
-
-          encoderPool.postMessage({ type: "encode", parcel }, [channel.port2]);
-
-        }
-      ).then((encoded) => {
-        channel.send(encoded)
-      });
-
-    } else {
-      const encoded = encodePBuf(false)(parcel);
-      channel.send(encoded);
-    }
+    asyncEncode(parcel, isHost).then((encoded) => channel.send(encoded));
   }
 
   lastSentIDMap[channel.url] = id;
