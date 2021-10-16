@@ -13,6 +13,8 @@ const sendGreeting = CompressJS.sendGreeting(false);
 const sendRTC      = CompressJS.sendRTC     (false);
 const sendWS       = CompressJS.sendWS      (false);
 
+const SigTerm = "signaling-terminated";
+
 self.hasCheckedHash = false;
 
 const placeholderBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wYGEwkDoISeKgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAADElEQVQI12NobmwEAAMQAYa2CjzCAAAAAElFTkSuQmCC";
@@ -210,34 +212,13 @@ const connectAndLogin = (hostID) => {
   ).then(
     ([joinerID, channel, offer]) => {
 
-      let knownCandies = new Set([]);
+      const signalingW   = new Worker('js/joiner-signaling-socket.js', { type: "module" });
+      const signalingURL = `ws://localhost:8080/rtc/${hostID}/${joinerID}/join`;
+      signalingW.postMessage({ type: "connect", url: signalingURL, offer: offer.toJSON() });
 
-      const narrowSocket = new WebSocket(`ws://localhost:8080/rtc/${hostID}/${joinerID}/join`);
+      const closeSignaling = () => signalingW.terminate();
 
-      joinerConnection.onicecandidate =
-        ({ candidate }) => {
-          if (candidate !== undefined && candidate !== null) {
-            const candy = JSON.stringify(candidate.toJSON());
-            if (!knownCandies.has(candy)) {
-              knownCandies = knownCandies.add(candy);
-              sendWS(narrowSocket)("joiner-ice-candidate", { candidate: candidate.toJSON() });
-            }
-          }
-        }
-
-      joinerConnection.setLocalDescription(offer);
-
-      channel.onopen    = () => { setStatus("Connected!  Attempting to log in...."); login(channel); }
-      channel.onmessage = handleChannelMessages(channel, narrowSocket);
-      channel.onclose   = (e) => { cleanupSession(e.code === 1000, e.reason); }
-      channels[hostID]  = channel;
-
-      loopIsTerminated = false; // Boolean
-      requestAnimationFrame(processQueue)
-
-      narrowSocket.addEventListener('open', () => sendWS(narrowSocket)("joiner-offer", { offer }));
-
-      narrowSocket.addEventListener('message', ({ data }) => {
+      signalingW.onmessage = ({ data }) => {
         const datum = JSON.parse(data);
         switch (datum.type) {
           case "host-answer":
@@ -249,9 +230,35 @@ const connectAndLogin = (hostID) => {
             joinerConnection.addIceCandidate(datum.candidate);
             break;
           default:
-            console.warn(`Unknown message type: ${datum.type}`);
+            console.warn(`Unknown signaling message type: ${datum.type}`);
         };
-      });
+      };
+
+      let knownCandies = new Set([]);
+
+      joinerConnection.onicecandidate =
+        ({ candidate }) => {
+          if (candidate !== undefined && candidate !== null) {
+            const candy    = candidate.toJSON();
+            const candyStr = JSON.stringify(candy);
+            if (!knownCandies.has(candyStr)) {
+              knownCandies = knownCandies.add(candyStr);
+              if (signalingW !== SigTerm) {
+                signalingW.postMessage({ type: "ice-candidate", candidate: candy });
+              }
+            }
+          }
+        }
+
+      joinerConnection.setLocalDescription(offer);
+
+      channel.onopen    = () => { setStatus("Connected!  Attempting to log in...."); login(channel); }
+      channel.onmessage = handleChannelMessages(channel, closeSignaling);
+      channel.onclose   = (e) => { cleanupSession(e.code === 1000, e.reason); }
+      channels[hostID]  = channel;
+
+      loopIsTerminated = false; // Boolean
+      requestAnimationFrame(processQueue)
 
       joinerConnection.oniceconnectionstatechange = () => {
         if (joinerConnection.iceConnectionState == "disconnected") {
@@ -283,8 +290,8 @@ const login = (channel) => {
   sendRTC(channel)("login", { username, password });
 };
 
-// (Protocol.Channel) => (Any) => Unit
-const handleChannelMessages = (channel, socket) => ({ data }) => {
+// (Protocol.Channel, () => Unit) => (Any) => Unit
+const handleChannelMessages = (channel, closeSignaling) => ({ data }) => {
 
   const dataArr = new Uint8Array(data);
   const datum   = decodeInput(dataArr);
@@ -294,7 +301,7 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
   }
 
   if (typeIsOOB(datum.type)) {
-    processChannelMessage(channel, socket, datum);
+    processChannelMessage(channel, closeSignaling, datum);
   } else {
 
     const processMsgQueue = () => {
@@ -302,17 +309,17 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
       if (successor !== undefined) {
         delete predIDToMsg[lastMsgID];
         lastMsgID = successor.id
-        processChannelMessage(channel, socket, successor);
+        processChannelMessage(channel, closeSignaling, successor);
         processMsgQueue();
       }
     };
 
     const processIt = (msg) => {
       if (msg.id === SentinelID) {
-        processChannelMessage(channel, socket, msg);
+        processChannelMessage(channel, closeSignaling, msg);
       } else if (msg.id === MinID) {
         lastMsgID = msg.id;
-        processChannelMessage(channel, socket, msg);
+        processChannelMessage(channel, closeSignaling, msg);
       } else {
         const pred = prevID(msg.id);
         predIDToMsg[pred] = msg;
@@ -376,8 +383,8 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
 
 };
 
-// (Protocol.Channel, WebSocket, Object[Any]) => Unit
-const processChannelMessage = (channel, socket, datum) => {
+// (Protocol.Channel, () => Unit, Object[Any]) => Unit
+const processChannelMessage = (channel, closeSignaling, datum) => {
 
   switch (datum.type) {
 
@@ -410,7 +417,7 @@ const processChannelMessage = (channel, socket, datum) => {
       break;
 
     case "login-successful":
-      socket.close();
+      closeSignaling();
       setStatus("Logged in!  Loading NetLogo and then asking for model....")
       serverListSocket.close(1000, "Server list is not currently needed");
       switchToNLW();
