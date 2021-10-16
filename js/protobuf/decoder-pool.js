@@ -34,7 +34,6 @@ decode = (msg, port) => {
     });
 
   } else {
-    console.log("All workers are currently busy.  Retrying momentarily....", msg);
     setTimeout((() => decode(msg, port)), 50);
   }
 };
