@@ -1,6 +1,6 @@
 // type Protocol = { channel :: WebSocket }
 // type Channel  = WebSocket
-self.HNWWS =
+const HNWWS =
   {
     status: {
       closed    : WebSocket.CLOSED
@@ -9,3 +9,5 @@ self.HNWWS =
     , open      : WebSocket.OPEN
     }
   };
+
+export { HNWWS }

@@ -1,4 +1,7 @@
-self.FromHostRoot = {
+import { RolePB                        } from "./role.js"
+import { StateUpdatePB, StateUpdatePB2 } from "./state-update.js"
+
+const FromHostRoot = {
 
   nested: {
 
@@ -63,8 +66,8 @@ self.FromHostRoot = {
       }
     , nested: {
 
-        Role:        self.RolePB
-      , StateUpdate: self.StateUpdatePB
+        Role:        RolePB
+      , StateUpdate: StateUpdatePB
 
       , ViewDims: {
           fields: {
@@ -154,7 +157,7 @@ self.FromHostRoot = {
         update: { type: "SUPB", id: 1 }
       }
     , nested: {
-        SUPB: self.StateUpdatePB2
+        SUPB: StateUpdatePB2
       }
     }
 
@@ -162,9 +165,8 @@ self.FromHostRoot = {
 
 };
 
-self.hnwPBTransformers =
-  hnwPBTransformers.concat([
-    ["t::relay", "payload", "ticks-started", "hnwTicksStarted"]
+const hnwPBTransformers =
+  [ ["t::relay", "payload", "ticks-started", "hnwTicksStarted"]
   , ["t::initial-model", "role", "widgets**", "hnwButton"  , "button"  ]
   , ["t::initial-model", "role", "widgets**", "hnwChooser" , "chooser" ]
   , ["t::initial-model", "role", "widgets**", "hnwInputBox", "inputBox"]
@@ -187,4 +189,6 @@ self.hnwPBTransformers =
   , ["t::state-update"          , "plotUpdates", "$$**", "register-pen"    , "registerPen"   ]
   , ["t::state-update"          , "plotUpdates", "$$**", "update-pen-color", "updatePenColor"]
   , ["t::state-update"          , "plotUpdates", "$$**", "update-pen-mode" , "updatePenMode" ]
-  ]);
+  ];
+
+export { FromHostRoot, hnwPBTransformers }

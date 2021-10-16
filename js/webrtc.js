@@ -5,7 +5,7 @@ const joinerConfig = { ...commonConfig };
 
 // type Protocol = { connection :: RTCPeerConnection, channel :: RTCDataChannel, socket :: WebSocket }
 // type Channel  = RTCDataChannel
-self.HNWRTC =
+const HNWRTC =
   {
     status: {
       closed    : "closed"
@@ -14,3 +14,5 @@ self.HNWRTC =
     , open      : "open"
     }
   };
+
+export { HNWRTC, hostConfig, joinerConfig }

@@ -1,3 +1,16 @@
+import * as ConvertersCommonJS from "./protobuf/converters-common.js"
+
+const decodeInput = ConvertersCommonJS.decodePBuf(false);
+
+import { HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID } from "./common.js"
+import { decompress, sendGreeting } from "./compress.js"
+import { HNWRTC, joinerConfig     } from "./webrtc.js"
+
+import * as CompressJS from "./compress.js"
+
+const sendRTC = CompressJS.sendRTC(false);
+const sendWS  = CompressJS.sendWS (false);
+
 self.hasCheckedHash = false;
 
 const placeholderBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wYGEwkDoISeKgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAADElEQVQI12NobmwEAAMQAYa2CjzCAAAAAElFTkSuQmCC";
@@ -271,7 +284,7 @@ const login = (channel) => {
 const handleChannelMessages = (channel, socket) => ({ data }) => {
 
   const dataArr = new Uint8Array(data);
-  const datum   = self.decodeInput(dataArr);
+  const datum   = decodeInput(dataArr);
 
   if (datum.type !== "keep-alive" && datum.type !== "ping" && datum.type !== "pong" && datum.type !== "ping-result") {
     console.log("Decoded: ", datum);
@@ -313,7 +326,7 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
     };
 
     if (datum.fullLength === 1) {
-      const parcel  = self.decodeInput(datum.parcel);
+      const parcel  = decodeInput(datum.parcel);
       const header  = { type: datum.type, id: datum.id, predecessorID: datum.predecessorID };
       const fullMsg = Object.assign({}, header, { parcel });
       processIt(fullMsg);
@@ -338,7 +351,7 @@ const handleChannelMessages = (channel, socket) => ({ data }) => {
 
       if (bucket.every((x) => x !== null)) {
 
-        const parcel  = self.decodeInput(assembleBucket(bucket));
+        const parcel  = decodeInput(assembleBucket(bucket));
         const header  = multipartHeaders[id];
         const fullMsg = Object.assign({}, header, { parcel });
 
@@ -364,8 +377,8 @@ const processChannelMessage = (channel, socket, datum) => {
 
     case "connection-established":
 
-      if (datum.protocolVersion !== self.HNWProtocolVersionNumber) {
-        alert(`HubNet protocol version mismatch!  You are using protocol version '${self.HNWProtocolVersionNumber}', while the host is using version '${datum.protocolVersion}'.  To ensure that you and the host are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  Your connection will now close.`);
+      if (datum.protocolVersion !== HNWProtocolVersionNumber) {
+        alert(`HubNet protocol version mismatch!  You are using protocol version '${HNWProtocolVersionNumber}', while the host is using version '${datum.protocolVersion}'.  To ensure that you and the host are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  Your connection will now close.`);
         disconnectChannels("Protocol version number mismatch");
       }
 
@@ -735,7 +748,7 @@ self.addEventListener('popstate', (event) => {
   if (event.state !== null && event.state !== undefined) {
     switch (event.state.name) {
       case "joined":
-        self.joinerConnection = new RTCPeerConnection(joinerConfig);
+        joinerConnection = new RTCPeerConnection(joinerConfig);
         cleanupSession(true, undefined);
       default:
         console.warn(`Unknown state: ${event.state.name}`);

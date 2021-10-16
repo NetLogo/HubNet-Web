@@ -1,4 +1,6 @@
-self.FromJoinerRoot = {
+import { hnwPBTransformers, JoinerRelayPayloadPB } from "./joiner-relay-payload.js"
+
+const FromJoinerRoot = {
 
   nested: {
 
@@ -72,9 +74,11 @@ self.FromJoinerRoot = {
       , payload:       { type: "Payload", id: 3 }
       }
     , nested: {
-        Payload: self.JoinerRelayPayloadPB
+        Payload: JoinerRelayPayloadPB
       }
     }
   }
 
 };
+
+export { FromJoinerRoot, hnwPBTransformers }

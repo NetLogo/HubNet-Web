@@ -1,3 +1,11 @@
+import { protobuf } from "/assets/js/protobuf.min.js"
+
+import { FromHostRoot   } from "./from-host-root.js"
+import { FromJoinerRoot } from "./from-joiner-root.js"
+
+import * as Host   from "./from-host-root.js";
+import * as Joiner from "./from-joiner-root.js";
+
 // Section: Common
 const hubNetWebLookup = (root) => (x) => root.lookupType(x);
 
@@ -77,22 +85,25 @@ const detransform = (transformer, msg) => {
 
 };
 
-const swapFunkyPathsIn = (msg) => {
-  self.hnwPBTransformers.forEach((x) => transform(x.slice(0), msg));
+const swapFunkyPathsIn = (msg, isHost) => {
+  let formers = isHost ? Host.hnwPBTransformers : Joiner.hnwPBTransformers;
+  formers.forEach((x) => transform(x.slice(0), msg));
 };
 
-const swapFunkyPathsOut = (msg) => {
-  self.hnwPBTransformers.forEach((x) => detransform(x.slice(0), msg));
+const swapFunkyPathsOut = (msg, isHost) => {
+  let formers = isHost ? Joiner.hnwPBTransformers : Host.hnwPBTransformers;
+  formers.forEach((x) => detransform(x.slice(0), msg));
 };
 
-self.encodePBuf = (typeMap) => (msg) => {
+let encodePBuf = (isHost) => (msg) => {
 
+  let typeMap   = isHost ? fromHostTypeMap : fromJoinerTypeMap;
   let protoType = typeMap[msg.type];
   let typeCode  = Object.keys(typeMap).findIndex((x) => x === msg.type);
 
   if (protoType !== null && typeCode !== null) {
 
-    swapFunkyPathsIn(msg);
+    swapFunkyPathsIn(msg, isHost);
     let protoMsg = protoType.fromObject(msg, { enums: String });
     let errorMsg = protoType.verify(protoMsg);
 
@@ -110,21 +121,22 @@ self.encodePBuf = (typeMap) => (msg) => {
 
 };
 
-self.decodePBuf = (typeMap) => (msgBuf) => {
+let decodePBuf = (isHost) => (msgBuf) => {
+  let typeMap           = isHost ? fromJoinerTypeMap : fromHostTypeMap;
   let [type, protoType] = Object.entries(typeMap)[msgBuf[0]];
   let decoded           = protoType.decode(msgBuf.slice(1));
   let decodedObj        = protoType.toObject(decoded, { enums: String });
   let reconstructed     = { type, ...decodedObj };
-  swapFunkyPathsOut(reconstructed);
+  swapFunkyPathsOut(reconstructed, isHost);
   return reconstructed;
 };
 
 // Section: Host
-const fromHostRoot = protobuf.Root.fromJSON(self.FromHostRoot);
+const fromHostRoot = protobuf.Root.fromJSON(FromHostRoot);
 
 const lufhr = hubNetWebLookup(fromHostRoot);
 
-self.fromHostTypeMap =
+let fromHostTypeMap =
   { "connection-established": lufhr("ConnEstablished")
   , "hnw-burst":              lufhr("HNWBurst")
   , "host-answer":            lufhr("HostAnswer")
@@ -139,11 +151,11 @@ self.fromHostTypeMap =
   };
 
 // Section: Joiner
-const fromJoinerRoot = protobuf.Root.fromJSON(self.FromJoinerRoot);
+const fromJoinerRoot = protobuf.Root.fromJSON(FromJoinerRoot);
 
 const lufjr = hubNetWebLookup(fromJoinerRoot);
 
-self.fromJoinerTypeMap =
+let fromJoinerTypeMap =
   { "bye-bye":                lufjr("ByeBye"         )
   , "connection-established": lufjr("ConnEstablished")
   , "joiner-ice-candidate":   lufjr("ICECandy"       )
@@ -152,3 +164,5 @@ self.fromJoinerTypeMap =
   , "pong":                   lufjr("Pong"           )
   , "relay":                  lufjr("Relay"          )
   };
+
+export { decodePBuf, encodePBuf }

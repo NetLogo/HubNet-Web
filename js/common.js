@@ -1,4 +1,4 @@
-self.HNWProtocolVersionNumber = "0";
+const HNWProtocolVersionNumber = "0";
 
 // (String) => String
 const stringToHash = (str) => {
@@ -13,72 +13,23 @@ const uuidToRTCID = (uuid) => {
   return Math.abs(stringToHash(uuid)) % 256;
 };
 
-// (String, Object[Any]) => Unit
-const makeMessage = (type, obj) => {
-  return JSON.stringify({ type, ...obj });
-}
-
-// (Protocol.StatusBundle) => (Protocol.Channel*) => (String, Object[Any]) => Unit
-const sendObj = (statusBundle) => (...channels) => (type, obj) => {
-  channels.forEach((channel) => {
-    switch (channel.readyState) {
-      case statusBundle.connecting:
-        setTimeout(() => { sendObj(statusBundle)(channel)(type, obj); }, 50);
-        break;
-      case statusBundle.closing:
-      case statusBundle.closed:
-        console.warn(`Cannot send '${type}' message over connection, because it is already closed`, channel, obj);
-        break;
-      case statusBundle.open:
-        if (typeIsOOB(type)) {
-          sendOOB(channel)(type, obj);
-        } else {
-          send(channel)(type, obj);
-        }
-        break;
-      default:
-        console.warn(`Unknown connection ready state: ${channel.readyState}`);
-    }
-  });
-};
-
 // (String) => Boolean
-const typeIsOOB = (type) => ["keep-alive", "ping", "ping-result", "pong"].includes(type);
-
-// (Protocol.Channel, Protocol.StatusBundle) => Unit
-const sendGreeting = (channel, statusBundle) => {
-  switch (channel.readyState) {
-    case statusBundle.connecting:
-      setTimeout(() => { sendGreeting(channel, statusBundle); }, 50);
-      break;
-    case statusBundle.closing:
-    case statusBundle.closed:
-      console.warn(`Cannot send 'connect-established' message, because connection is already closed`);
-      break;
-    case statusBundle.open:
-      _send(channel)("connection-established", { protocolVersion: HNWProtocolVersionNumber }, true, '00000000-0000-0000-0000-000000000000');
-      break;
-    default:
-      console.warn(`Unknown connection ready state: ${channel.readyState}`);
-  }
+const typeIsOOB = (type) => {
+  return ["keep-alive", "ping", "ping-result", "pong"].includes(type)
 };
-
-// (WebSocket*) => (String, Object[Any]) => Unit
-const sendWS = sendObj(self.HNWWS.status);
-
-// (RTCDataChannel*) => (String, Object[Any]) => Unit
-const sendRTC = sendObj(self.HNWRTC.status);
 
 // () => UUID
 const genUUID = () => {
 
   const replacer =
     (c) => {
-      r = Math.random() * 16 | 0;
-      v = c === 'x' ? r : (r & 0x3 | 0x8);
+      let r = Math.random() * 16 | 0;
+      let v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     }
 
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, replacer);
 
 };
+
+export { genUUID, HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID }

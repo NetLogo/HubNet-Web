@@ -1,17 +1,9 @@
-importScripts("../../assets/js/protobuf.min.js");
-importScripts("init-transformers.js");
-importScripts("joiner-relay-payload.js");
-importScripts("role.js");
-importScripts("state-update.js");
-importScripts("from-host-root.js");
-importScripts("from-joiner-root.js");
-importScripts("converters-common.js");
-importScripts("host-converters.js");
+import { decodePBuf } from "./converters-common.js"
 
 onmessage = (e) => {
   switch (e.data.type) {
     case "decode":
-      let decoded = self.decodeInput(e.data.parcel);
+      let decoded = decodePBuf(true)(e.data.parcel);
       e.ports[0].postMessage(decoded);
       break;
     default:

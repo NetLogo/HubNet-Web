@@ -1,3 +1,12 @@
+import { genUUID, HNWProtocolVersionNumber, uuidToRTCID    } from "./common.js"
+import { decoderPool, encoderPool, sendBurst, sendGreeting } from "./compress.js"
+import { HNWRTC, hostConfig                                } from "./webrtc.js"
+
+import * as CompressJS from "./compress.js"
+
+const sendRTC = CompressJS.sendRTC(true);
+const sendWS  = CompressJS.sendWS (true);
+
 // type Session = {
 //   networking :: { socket     :: WebSocket
 //                 , connection :: RTCPeerConnection
@@ -14,28 +23,6 @@ let password = null; // String
 let statusSocket = null; // WebSocket
 
 let lastImageUpdate = undefined; // Base64String
-
-let encoderPool = new Worker('js/protobuf/encoder-pool.js');
-
-encoderPool.onmessage = (msg) => {
-  switch (msg.type) {
-    case "shutdown-complete":
-      break;
-    default:
-      console.warn("Unknown encoder pool response type:", e.type, e)
-  }
-};
-
-let decoderPool = new Worker('js/protobuf/decoder-pool.js');
-
-decoderPool.onmessage = (msg) => {
-  switch (msg.type) {
-    case "shutdown-complete":
-      break;
-    default:
-      console.warn("Unknown decoder pool response type:", e.type, e)
-  }
-};
 
 // (DOMElement) => Boolean
 self.submitLaunchForm = (elem) => {
@@ -272,9 +259,9 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
       case "connection-established":
 
-        if (datum.protocolVersion !== self.HNWProtocolVersionNumber) {
+        if (datum.protocolVersion !== HNWProtocolVersionNumber) {
           const id = sessions[joinerID] && sessions[joinerID].username || joinerID;
-          alert(`HubNet protocol version mismatch!  You are using protocol version '${self.HNWProtocolVersionNumber}', while client '${id}' is using version '${datum.v}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  The offending client has been disconnected.`);
+          alert(`HubNet protocol version mismatch!  You are using protocol version '${HNWProtocolVersionNumber}', while client '${id}' is using version '${datum.v}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  The offending client has been disconnected.`);
           sessions[joinerID].networking.channel.close();
           delete sessions[joinerID];
         }
@@ -390,7 +377,7 @@ self.addEventListener("message", ({ data }) => {
     const sesh   = sessions[recipientUUID];
     const isOpen = (channel) => channel.readyState === "open" || channel.readyState === networking.status.open;
     if (sesh !== undefined && sesh.networking.channel !== undefined && isOpen(sesh.networking.channel))
-      sendBurst(sesh.networking.channel)(type, message);
+      sendBurst(true, sesh.networking.channel)(type, message);
   }
 
   const broadcast = (type, message) => {
@@ -399,7 +386,7 @@ self.addEventListener("message", ({ data }) => {
       return nw.channel !== undefined && nw.channel.readyState === HNWRTC.status.open && s.hasInitialized;
     };
     const channels = Object.values(sessions).filter(checkIsEligible).map((s) => s.networking.channel);
-    sendBurst(...channels)(type, message);
+    sendBurst(true, ...channels)(type, message);
   }
 
   switch (data.type) {

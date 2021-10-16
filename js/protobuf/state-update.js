@@ -245,7 +245,7 @@ const WidgetUpdateStuff = {
   }
 };
 
-self.StateUpdatePB = {
+const StateUpdatePB = {
   fields: {
     viewUpdate:     { type: "ViewUpdate"  , id: 1 }
   , plotUpdates:    { type: "PlotUpdates" , id: 2, keyType: "string" }
@@ -439,7 +439,7 @@ const WidgetUpdateStuff2 = {
   }
 };
 
-self.StateUpdatePB2 = {
+const StateUpdatePB2 = {
   fields: {
     viewUpdate:     { type: "ViewUpdate"  , id: 1 }
   , plotUpdates:    { type: "PlotUpdates" , id: 2, keyType: "string" }
@@ -449,3 +449,5 @@ self.StateUpdatePB2 = {
   }
 , nested: Object.assign({}, PlotUpdateStuff2, ViewUpdateStuff2, WidgetUpdateStuff2)
 };
+
+export { StateUpdatePB, StateUpdatePB2 }
