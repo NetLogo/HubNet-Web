@@ -25,11 +25,9 @@ let sessions = {}; // Object[Session]
 
 let password = null; // String
 
-let statusSocket = null; // WebSocket
-
-let lastImageUpdate = undefined; // Base64String
-
 const broadSocketW = new Worker('js/broadsocket.js', { type: "module" });
+
+const statusSocketW = new Worker('js/status-socket.js', { type: "module" });
 
 // (DOMElement) => Boolean
 self.submitLaunchForm = (elem) => {
@@ -137,24 +135,18 @@ const launchModel = (formDataPlus) => {
         const broadSocketURL = `ws://localhost:8080/rtc/${hostID}`;
         broadSocketW.postMessage({ type: "connect", url: broadSocketURL });
 
-        statusSocket = new WebSocket(`ws://localhost:8080/hnw/my-status/${hostID}`);
+        const statusSocketURL = `ws://localhost:8080/hnw/my-status/${hostID}`;
+        statusSocketW.postMessage({ type: "connect", url: statusSocketURL });
 
         setInterval(() => {
-
           const channels = Object.values(sessions).map((session) => session.networking.channel);
-          channels                   .forEach((channel) => sendRTC(channel)("keep-alive", {}));
-
-          sendWS(statusSocket)("keep-alive", {});
-
+          channels.forEach((channel) => sendRTC(channel)("keep-alive", {}));
         }, 30000);
 
-        let lastMemberCount = undefined;
         setInterval(() => {
-          const numPeers = Object.values(sessions).filter((s) => s.username !== undefined).length;
-          if (lastMemberCount !== numPeers) {
-            lastMemberCount = numPeers;
-            sendWS(statusSocket)("members-update", { numPeers });
-          }
+          const nameIsDefined = (s) => s.username !== undefined;
+          const numPeers      = Object.values(sessions).filter(nameIsDefined).length;
+          statusSocketW.postMessage({ type: "members-update", numPeers });
         }, 1000);
 
         setInterval(() => { updateBandwidthLabel(); }, 500);
@@ -405,10 +397,7 @@ self.addEventListener("message", ({ data }) => {
         broadcast("state-update", { update: data.update });
       break;
     case "nlw-view":
-      if (lastImageUpdate !== data.base64) {
-        lastImageUpdate = data.base64;
-        sendWS(statusSocket)("image-update", { base64: data.base64 });
-      }
+      statusSocketW.postMessage({ type: "image-update", base64: data.base64 });
       break;
     case "galapagos-direct-launch":
       const { nlogo, config, sessionName, password } = data;
@@ -465,13 +454,21 @@ self.addEventListener('popstate', (event) => {
 
 // () => Unit
 const updateBandwidthLabel = () => {
-  const syncBandwidth = reportBandwidth()
-  awaitWorker(broadSocketW, { type: "request-bandwidth-report" }).then(
-    (asyncBandwidth) => {
-      const newText = byteSizeLabel(syncBandwidth + asyncBandwidth, 2);
+
+  const syncBandwidth = reportBandwidth();
+
+  const parcel        = { type: "request-bandwidth-report" };
+  const workers       = [broadSocketW, statusSocketW];
+  const promises      = workers.map((w) => awaitWorker(w, parcel));
+
+  Promise.all(promises).then(
+    (results) => {
+      const asyncBandwidth = results.reduce(((acc, x) => acc + x), 0);
+      const newText        = byteSizeLabel(syncBandwidth + asyncBandwidth, 2);
       document.getElementById("bandwidth-span").innerText = newText;
     }
-  )
+  );
+
 };
 
 // (String) => String
