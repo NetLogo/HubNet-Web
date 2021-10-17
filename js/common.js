@@ -1,4 +1,4 @@
-const HNWProtocolVersionNumber = "0";
+const HNWProtocolVersionNumber = "0.0.1";
 
 // (WebWorker, Object[Any]) => Promise[Any]
 const awaitWorker = (worker, msg) => {
