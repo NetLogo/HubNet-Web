@@ -7,10 +7,14 @@ const JoinerRelayPayloadPB = {
   }
 
 , fields: {
-    token:                   { type: "string"              , id:  1 }
-  , type:                    { type: "string"              , id:  2 }
-  , hnwCashRaincheckPayload: { type: "CashRaincheckPayload", id:  3 }
-  , data:                    { type: "PLData"              , id:  4 }
+    type:                    { type: "string"              , id:  1 }
+  , hnwCashRaincheckPayload: { type: "CashRaincheckPayload", id:  2 }
+  , data:                    { type: "PLData"              , id:  3 }
+  // Begin jiggery optimizations
+  , tokenChunk1: { type: "uint32", id: 4 }
+  , tokenChunk2: { type: "uint32", id: 5 }
+  , tokenChunk3: { type: "uint32", id: 6 }
+  , tokenChunk4: { type: "uint32", id: 7 }
   }
 
 , nested: {

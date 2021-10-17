@@ -1,4 +1,4 @@
-import { deepClone } from "./common-jiggery-pokery.js"
+import { deepClone, recombobulateToken, rejiggerToken } from "./common-jiggery-pokery.js"
 
 // (Object[Any]) => Object[Any]
 const rejiggerConnEst = (obj) => {
@@ -30,7 +30,9 @@ const rejiggerRelay = (obj) => {
       for (let k1 in v0) {
 
         const v1 = v0[k1];
-        if (k1 === "event") {
+        if (k1 === "token") {
+          rejiggerToken(v1, out[k0]);
+        } else if (k1 === "event") {
 
           out[k0][k1] = {};
 
@@ -171,6 +173,9 @@ const recombobulateRelay = (obj) => {
     if (k0 === "payload") {
 
       out[k0] = {};
+
+      recombobulateToken(v0, out[k0]);
+
       for (let k1 in v0) {
 
         const v1 = v0[k1];

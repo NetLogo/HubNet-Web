@@ -1,4 +1,4 @@
-import { deepClone } from "./common-jiggery-pokery.js"
+import { deepClone, recombobulateToken, rejiggerToken } from "./common-jiggery-pokery.js"
 
 // (Object[Any]) => Object[Any]
 const rejiggerConnEst = (obj) => {
@@ -123,7 +123,10 @@ const rejiggerInitialModel = (obj) => {
   for (let k0 in obj) {
 
     const v0 = obj[k0];
-    if (k0 === "role") {
+
+    if (k0 === "token") {
+      rejiggerToken(v0, out);
+    } else if (k0 === "role") {
 
       out[k0] = {};
       for (let k1 in v0) {
@@ -399,9 +402,13 @@ const recombobulatePlotUpdates = (target, parent) => {
 const recombobulateInitialModel = (obj) => {
 
   const out = {};
+
+  recombobulateToken(obj, out);
+
   for (let k0 in obj) {
 
     const v0 = obj[k0];
+
     if (k0 === "role") {
 
       out[k0] = {};

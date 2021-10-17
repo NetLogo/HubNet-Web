@@ -58,10 +58,14 @@ const FromHostRoot = {
 
   , InitialModel: { // initial-model
       fields: {
-        token: { type: "string"     , id: 1 }
-      , role:  { type: "Role"       , id: 2 }
-      , state: { type: "StateUpdate", id: 3 }
-      , view:  { type: "ViewConfig" , id: 4 }
+        role:  { type: "Role"       , id: 1 }
+      , state: { type: "StateUpdate", id: 2 }
+      , view:  { type: "ViewConfig" , id: 3 }
+      // Begin jiggery optimizations
+      , tokenChunk1: { type: "uint32", id: 4 }
+      , tokenChunk2: { type: "uint32", id: 5 }
+      , tokenChunk3: { type: "uint32", id: 6 }
+      , tokenChunk4: { type: "uint32", id: 7 }
       }
     , nested: {
 
