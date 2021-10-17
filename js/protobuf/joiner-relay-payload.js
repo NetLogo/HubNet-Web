@@ -7,11 +7,10 @@ const JoinerRelayPayloadPB = {
   }
 
 , fields: {
-    token:                   { type: "string"               , id:  1 }
-  , protocolVersion:         { type: "string"               , id:  2 }
-  , type:                    { type: "string"               , id:  3 }
-  , hnwCashRaincheckPayload: { type: "CashRaincheckPayload" , id:  4 }
-  , data:                    { type: "PLData"               , id:  5 }
+    token:                   { type: "string"              , id:  1 }
+  , type:                    { type: "string"              , id:  2 }
+  , hnwCashRaincheckPayload: { type: "CashRaincheckPayload", id:  3 }
+  , data:                    { type: "PLData"              , id:  4 }
   }
 
 , nested: {

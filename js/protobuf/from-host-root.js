@@ -15,12 +15,11 @@ const FromHostRoot = {
   , HNWBurst: { // hnw-burst
       fields: {
         id:              { type: "uint32", id: 1 }
-      , protocolVersion: { type: "string", id: 2 }
-      , index:           { type: "uint32", id: 3 }
-      , fullLength:      { type: "uint32", id: 4 }
-      , parcel:          { type: "bytes" , id: 5 }
+      , index:           { type: "uint32", id: 2 }
+      , fullLength:      { type: "uint32", id: 3 }
+      , parcel:          { type: "bytes" , id: 4 }
       // Begin jiggery optimizations
-      , isMicroBurst:    { type: "bool"  , id: 6 }
+      , isMicroBurst:    { type: "bool"  , id: 5 }
       }
     }
 
@@ -140,9 +139,7 @@ const FromHostRoot = {
             }
           }
         , fields: {
-            token:           { type: "string", id: 1 }
-          , protocolVersion: { type: "string", id: 2 }
-          , hnwTicksStarted: { type: "bool"  , id: 3 }
+            hnwTicksStarted: { type: "bool", id: 1 }
           }
         }
       }
