@@ -20,11 +20,7 @@ const rejiggerConnEst = (obj) => {
 // (Object[Any]) => Object[Any]
 const rejiggerBurst = (obj) => {
 
-  const out = {};
-
-  for (let k0 in obj) {
-    out[k0] = obj[k0];
-  }
+  const out = deepClone(obj);
 
   if (out.fullLength === 1) {
     out.isMicroBurst = true;
@@ -340,14 +336,11 @@ const recombobulateConnEst = (obj) => {
   out.protocolVersion = `${out.protocolMajor}.${out.protocolMinor}.${out.protocolPatch}`
   return out;
 };
+
 // (Object[Any]) => Object[Any]
 const recombobulateBurst = (obj) => {
 
-  const out = {};
-
-  for (let k0 in obj) {
-    out[k0] = obj[k0];
-  }
+  const out = deepClone(obj);
 
   if (out.isMicroBurst) {
     out.index      = 0;
