@@ -279,12 +279,11 @@ const ViewUpdateStuff2 = {
 
 , Patch: {
     fields: {
-      "WHO":          { type: "uint32", id: 1 }
-    , "PCOLOR":       { type: "double", id: 2 }
-    , "PLABEL":       { type: "string", id: 3 }
-    , "PLABEL-COLOR": { type: "double", id: 4 }
-    , "PXCOR":        { type: "double", id: 5 }
-    , "PYCOR":        { type: "double", id: 6 }
+      "PCOLOR":       { type: "double", id: 1 }
+    , "PLABEL":       { type: "string", id: 2 }
+    , "PLABEL-COLOR": { type: "double", id: 3 }
+    , "PXCOR":        { type: "double", id: 4 }
+    , "PYCOR":        { type: "double", id: 5 }
     }
   }
 
@@ -296,43 +295,40 @@ const ViewUpdateStuff2 = {
     , "END2":        { type: "uint32", id:  4 }
     , "HEADING":     { type: "double", id:  5 }
     , "HIDDEN?":     { type: "bool"  , id:  6 }
-    , "ID":          { type: "uint32", id:  7 }
-    , "DIRECTED?":   { type: "bool"  , id:  8 }
-    , "LABEL":       { type: "string", id:  9 }
-    , "LABEL-COLOR": { type: "double", id: 10 }
-    , "MIDPOINTX":   { type: "double", id: 11 }
-    , "MIDPOINTY":   { type: "double", id: 12 }
-    , "SHAPE":       { type: "string", id: 13 }
-    , "SIZE":        { type: "double", id: 14 }
-    , "THICKNESS":   { type: "double", id: 15 }
-    , "TIE-MODE":    { type: "string", id: 16 }
+    , "DIRECTED?":   { type: "bool"  , id:  7 }
+    , "LABEL":       { type: "string", id:  8 }
+    , "LABEL-COLOR": { type: "double", id:  9 }
+    , "MIDPOINTX":   { type: "double", id: 10 }
+    , "MIDPOINTY":   { type: "double", id: 11 }
+    , "SHAPE":       { type: "string", id: 12 }
+    , "SIZE":        { type: "double", id: 13 }
+    , "THICKNESS":   { type: "double", id: 14 }
+    , "TIE-MODE":    { type: "string", id: 15 }
     }
   }
 
 , World: {
     fields: {
-      "WHO":                       { type: "uint32", id:  1 }
-    , "patchesAllBlack":           { type: "bool"  , id:  2 }
-    , "patchesWithLabels":         { type: "bool"  , id:  3 }
-    , "MAXPXCOR":                  { type: "uint64", id:  4 }
-    , "MAXPYCOR":                  { type: "uint64", id:  5 }
-    , "MINPXCOR":                  { type: "sint64", id:  6 }
-    , "MINPYCOR":                  { type: "sint64", id:  7 }
-    , "patchSize":                 { type: "double", id:  8 }
-    , "ticks":                     { type: "double", id:  9 }
-    , "unbreededLinksAreDirected": { type: "bool"  , id: 10 }
-    , "worldHeight":               { type: "double", id: 11 }
-    , "worldWidth":                { type: "double", id: 12 }
-    , "wrappingAllowedInX":        { type: "bool"  , id: 13 }
-    , "wrappingAllowedInY":        { type: "bool"  , id: 14 }
+      "patchesAllBlack":           { type: "bool"  , id:  1 }
+    , "patchesWithLabels":         { type: "bool"  , id:  2 }
+    , "MAXPXCOR":                  { type: "uint64", id:  3 }
+    , "MAXPYCOR":                  { type: "uint64", id:  4 }
+    , "MINPXCOR":                  { type: "sint64", id:  5 }
+    , "MINPYCOR":                  { type: "sint64", id:  6 }
+    , "patchSize":                 { type: "double", id:  7 }
+    , "ticks":                     { type: "double", id:  8 }
+    , "unbreededLinksAreDirected": { type: "bool"  , id:  9 }
+    , "worldHeight":               { type: "double", id: 10 }
+    , "worldWidth":                { type: "double", id: 11 }
+    , "wrappingAllowedInX":        { type: "bool"  , id: 12 }
+    , "wrappingAllowedInY":        { type: "bool"  , id: 13 }
     }
   }
 
 , Observer: {
     fields: {
-      "WHO":         { type: "uint32", id: 1 }
-    , "perspective": { type: "uint32", id: 2 }
-    , "targetAgent": { type: "uint32", id: 3 }
+      "perspective": { type: "uint32", id: 1 }
+    , "targetAgent": { type: "uint32", id: 2 }
     }
   }
 
