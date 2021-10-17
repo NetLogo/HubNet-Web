@@ -183,9 +183,9 @@ const RolePB = {
           , bottom:    { type: "uint32"   , id:  4 }
           , display:   { type: "string"   , id:  5 }
           , variable:  { type: "string"   , id:  6 }
-          , min:       { type: "uint32"   , id:  7 }
-          , max:       { type: "uint32"   , id:  8 }
-          , "default": { type: "uint32"   , id:  9 }
+          , min:       { type: "double"   , id:  7 }
+          , max:       { type: "double"   , id:  8 }
+          , "default": { type: "double"   , id:  9 }
           , units:     { type: "string"   , id: 10 }
           , direction: { type: "Direction", id: 11 }
           , step:      { type: "double"   , id: 12 }

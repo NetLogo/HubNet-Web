@@ -311,17 +311,17 @@ const ViewUpdateStuff2 = {
 
 , World: {
     fields: {
-      "worldHeight":               { type: "double", id:  1 }
-    , "WHO":                       { type: "uint32", id:  2 }
-    , "patchesAllBlack":           { type: "bool"  , id:  3 }
-    , "patchesWithLabels":         { type: "bool"  , id:  4 }
-    , "MAXPXCOR":                  { type: "uint64", id:  5 }
-    , "MAXPYCOR":                  { type: "uint64", id:  6 }
-    , "MINPXCOR":                  { type: "sint64", id:  7 }
-    , "MINPYCOR":                  { type: "sint64", id:  8 }
-    , "patchSize":                 { type: "double", id:  9 }
-    , "ticks":                     { type: "double", id: 10 }
-    , "unbreededLinksAreDirected": { type: "bool"  , id: 11 }
+      "WHO":                       { type: "uint32", id:  1 }
+    , "patchesAllBlack":           { type: "bool"  , id:  2 }
+    , "patchesWithLabels":         { type: "bool"  , id:  3 }
+    , "MAXPXCOR":                  { type: "uint64", id:  4 }
+    , "MAXPYCOR":                  { type: "uint64", id:  5 }
+    , "MINPXCOR":                  { type: "sint64", id:  6 }
+    , "MINPYCOR":                  { type: "sint64", id:  7 }
+    , "patchSize":                 { type: "double", id:  8 }
+    , "ticks":                     { type: "double", id:  9 }
+    , "unbreededLinksAreDirected": { type: "bool"  , id: 10 }
+    , "worldHeight":               { type: "double", id: 11 }
     , "worldWidth":                { type: "double", id: 12 }
     , "wrappingAllowedInX":        { type: "bool"  , id: 13 }
     , "wrappingAllowedInY":        { type: "bool"  , id: 14 }

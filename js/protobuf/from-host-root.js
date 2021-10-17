@@ -70,9 +70,9 @@ const FromHostRoot = {
       , ViewDims: {
           fields: {
             minPxcor:           { type: "sint32", id: 1 }
-          , maxPxcor:           { type: "sint32", id: 2 }
+          , maxPxcor:           { type: "uint32", id: 2 }
           , minPycor:           { type: "sint32", id: 3 }
-          , maxPycor:           { type: "sint32", id: 4 }
+          , maxPycor:           { type: "uint32", id: 4 }
           , patchSize:          { type: "double", id: 5 }
           , wrappingAllowedInX: { type: "bool"  , id: 6 }
           , wrappingAllowedInY: { type: "bool"  , id: 7 }
