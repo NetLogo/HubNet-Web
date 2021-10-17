@@ -1,8 +1,13 @@
 import { reportBandwidth    } from "./bandwidth-monitor.js"
 import { sendObj, setSocket } from "./websocket-common.js"
 
-let lastImageUpdate = undefined; // Base64String
 let lastMemberCount = undefined; // Number
+
+const base64EncoderW = new Worker('b64-encoder.js', { type: "module" });
+
+base64EncoderW.onmessage = ({ data }) => {
+  sendObj("image-update", { base64: data });
+};
 
 onmessage = (e) => {
   switch (e.data.type) {
@@ -10,10 +15,7 @@ onmessage = (e) => {
       setSocket(new WebSocket(e.data.url));
       break;
     case "image-update":
-      if (lastImageUpdate !== e.data.base64) {
-        lastImageUpdate = e.data.base64;
-        sendObj("image-update", { base64: e.data.base64 });
-      }
+      base64EncoderW.postMessage({ type: "encode-blob", blob: e.data.blob });
       break;
     case "members-update":
       if (lastMemberCount !== e.data.numPeers) {

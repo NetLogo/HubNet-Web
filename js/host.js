@@ -422,7 +422,7 @@ self.addEventListener("message", ({ data }) => {
         broadcast("state-update", { update: data.update });
       break;
     case "nlw-view":
-      statusSocketW.postMessage({ type: "image-update", base64: data.base64 });
+      statusSocketW.postMessage({ type: "image-update", blob: data.blob });
       break;
     case "galapagos-direct-launch":
       const { nlogo, config, sessionName, password } = data;
