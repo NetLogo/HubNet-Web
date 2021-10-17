@@ -1,4 +1,4 @@
-import { hnwPBTransformers, JoinerRelayPayloadPB } from "./joiner-relay-payload.js"
+import { JoinerRelayPayloadPB } from "./joiner-relay-payload.js"
 
 const FromJoinerRoot = {
 
@@ -75,4 +75,4 @@ const FromJoinerRoot = {
 
 };
 
-export { FromJoinerRoot, hnwPBTransformers }
+export { FromJoinerRoot }

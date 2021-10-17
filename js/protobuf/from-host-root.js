@@ -159,30 +159,4 @@ const FromHostRoot = {
 
 };
 
-const hnwPBTransformers =
-  [ ["t::relay", "payload", "ticks-started", "hnwTicksStarted"]
-  , ["t::initial-model", "role", "widgets**", "hnwButton"  , "button"  ]
-  , ["t::initial-model", "role", "widgets**", "hnwChooser" , "chooser" ]
-  , ["t::initial-model", "role", "widgets**", "hnwInputBox", "inputBox"]
-  , ["t::initial-model", "role", "widgets**", "hnwMonitor" , "monitor" ]
-  , ["t::initial-model", "role", "widgets**", "hnwOutput"  , "output"  ]
-  , ["t::initial-model", "role", "widgets**", "hnwPlot"    , "plot"    ]
-  , ["t::initial-model", "role", "widgets**", "hnwSlider"  , "slider"  ]
-  , ["t::initial-model", "role", "widgets**", "hnwSwitch"  , "switch"  ]
-  , ["t::initial-model", "role", "widgets**", "hnwTextBox" , "textBox" ]
-  , ["t::initial-model", "role", "widgets**", "hnwView"    , "view"    ]
-  , ["t::initial-model", "state", "plotUpdates", "$$**", "add-point"       , "addPoint"      ]
-  , ["t::initial-model", "state", "plotUpdates", "$$**", "reset"           , "reset"         ]
-  , ["t::initial-model", "state", "plotUpdates", "$$**", "reset-pen"       , "resetPen"      ]
-  , ["t::initial-model", "state", "plotUpdates", "$$**", "register-pen"    , "registerPen"   ]
-  , ["t::initial-model", "state", "plotUpdates", "$$**", "update-pen-color", "updatePenColor"]
-  , ["t::initial-model", "state", "plotUpdates", "$$**", "update-pen-mode" , "updatePenMode" ]
-  , ["t::state-update"          , "plotUpdates", "$$**", "add-point"       , "addPoint"      ]
-  , ["t::state-update"          , "plotUpdates", "$$**", "reset"           , "reset"         ]
-  , ["t::state-update"          , "plotUpdates", "$$**", "reset-pen"       , "resetPen"      ]
-  , ["t::state-update"          , "plotUpdates", "$$**", "register-pen"    , "registerPen"   ]
-  , ["t::state-update"          , "plotUpdates", "$$**", "update-pen-color", "updatePenColor"]
-  , ["t::state-update"          , "plotUpdates", "$$**", "update-pen-mode" , "updatePenMode" ]
-  ];
-
-export { FromHostRoot, hnwPBTransformers }
+export { FromHostRoot }

@@ -109,17 +109,4 @@ const JoinerRelayPayloadPB = {
   }
 };
 
-const hnwPBTransformers =
-  [ ["t::relay", "payload", "event", "hnw-cash-raincheck", "hnwCashRaincheckPayload"]
-  , ["t::relay", "payload", "data", "button" , "hnwButtonPayload"]
-  , ["t::relay", "payload", "data", "chooser", "hnwChooserPayload"]
-  , ["t::relay", "payload", "data", "input78", "hnwInputNumberPayload"] // BAD input
-  , ["t::relay", "payload", "data", "input"  , "hnwInputStringPayload"]
-  , ["t::relay", "payload", "data", "mouse-up"  , "hnwMouseUpPayload"] // BAD mouse
-  , ["t::relay", "payload", "data", "mouse-down", "hnwMouseUpPayload"] // BAD mouse
-  , ["t::relay", "payload", "data", "mouse-move", "hnwMouseUpPayload"] // BAD mouse
-  , ["t::relay", "payload", "data", "slider" , "hnwSliderPayload"]
-  , ["t::relay", "payload", "data", "switch" , "hnwSwitchPayload"]
-  ];
-
-export { hnwPBTransformers, JoinerRelayPayloadPB }
+export { JoinerRelayPayloadPB }
