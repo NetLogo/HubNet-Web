@@ -1,5 +1,24 @@
 import { deepClone } from "./common-jiggery-pokery.js"
 
+// (Object[Any]) => Object[Any]
+const rejiggerBurst = (obj) => {
+
+  const out = {};
+
+  for (let k0 in obj) {
+    out[k0] = obj[k0];
+  }
+
+  if (out.fullLength === 1) {
+    out.isMicroBurst = true;
+    delete out.fullLength;
+    delete out.index;
+  }
+
+  return out;
+
+};
+
 // (Object[Any], Object[Any]) => Object[Any]
 const rejiggerPlotUpdates = (target, parent) => {
 
@@ -295,6 +314,25 @@ const rejiggerStateUpdate = (obj) => {
 
 };
 
+// (Object[Any]) => Object[Any]
+const recombobulateBurst = (obj) => {
+
+  const out = {};
+
+  for (let k0 in obj) {
+    out[k0] = obj[k0];
+  }
+
+  if (out.isMicroBurst) {
+    out.index      = 0;
+    out.fullLength = 1;
+    delete out.isMicroBurst;
+  }
+
+  return out;
+
+};
+
 // (Object[Any], Object[Any]) => Object[Any]
 const recombobulatePlotUpdates = (target, parent) => {
 
@@ -481,6 +519,9 @@ const recombobulateStateUpdate = (obj) => {
 // (Object[Any]) => Object[Any]
 const rejigger = (msg) => {
   switch (msg.type) {
+    case "hnw-burst":
+      return rejiggerBurst(msg);
+      break;
     case "initial-model":
       return rejiggerInitialModel(msg);
       break;
@@ -498,6 +539,9 @@ const rejigger = (msg) => {
 // (Object[Any]) => Object[Any]
 const recombobulate = (msg) => {
   switch (msg.type) {
+    case "hnw-burst":
+      return recombobulateBurst(msg);
+      break;
     case "initial-model":
       return recombobulateInitialModel(msg);
       break;

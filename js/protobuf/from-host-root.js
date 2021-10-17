@@ -19,6 +19,8 @@ const FromHostRoot = {
       , index:           { type: "uint32", id: 3 }
       , fullLength:      { type: "uint32", id: 4 }
       , parcel:          { type: "bytes" , id: 5 }
+      // Begin jiggery optimizations
+      , isMicroBurst:    { type: "bool"  , id: 6 }
       }
     }
 
