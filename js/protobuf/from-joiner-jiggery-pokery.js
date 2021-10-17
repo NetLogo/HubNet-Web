@@ -1,6 +1,23 @@
 import { deepClone } from "./common-jiggery-pokery.js"
 
 // (Object[Any]) => Object[Any]
+const rejiggerConnEst = (obj) => {
+
+  const out = deepClone(obj);
+
+  const regex                    = /(\d+)\.(\d+)\.(\d+)/;
+  const version                  = out.protocolVersion;
+  const [_, major, minor, patch] = version.match(regex);
+
+  out.protocolMajor = major;
+  out.protocolMinor = minor;
+  out.protocolPatch = patch;
+
+  return out;
+
+};
+
+// (Object[Any]) => Object[Any]
 const rejiggerRelay = (obj) => {
 
   const out = {};
@@ -138,6 +155,13 @@ const rejiggerRelay = (obj) => {
 };
 
 // (Object[Any]) => Object[Any]
+const recombobulateConnEst = (obj) => {
+  const out           = deepClone(obj);
+  out.protocolVersion = `${out.protocolMajor}.${out.protocolMinor}.${out.protocolPatch}`
+  return out;
+};
+
+// (Object[Any]) => Object[Any]
 const recombobulateRelay = (obj) => {
 
   const out = {};
@@ -253,6 +277,9 @@ const recombobulateRelay = (obj) => {
 // (Object[Any]) => Object[Any]
 const rejigger = (msg) => {
   switch (msg.type) {
+    case "connection-established":
+      return rejiggerConnEst(msg);
+      break;
     case "relay":
       return rejiggerRelay(msg);
       break;
@@ -264,6 +291,9 @@ const rejigger = (msg) => {
 // (Object[Any]) => Object[Any]
 const recombobulate = (msg) => {
   switch (msg.type) {
+    case "connection-established":
+      return recombobulateConnEst(msg);
+      break;
     case "relay":
       return recombobulateRelay(msg);
       break;

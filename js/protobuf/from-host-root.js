@@ -7,8 +7,10 @@ const FromHostRoot = {
 
     ConnEstablished: { // connection-established
       fields: {
-        id:              { type: "uint32", id: 1 }
-      , protocolVersion: { type: "string", id: 2 }
+        id:            { type: "uint32", id: 1 }
+      , protocolMajor: { type: "uint32", id: 2 }
+      , protocolMinor: { type: "uint32", id: 3 }
+      , protocolPatch: { type: "uint32", id: 4 }
       }
     }
 
