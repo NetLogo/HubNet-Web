@@ -1,5 +1,7 @@
 import { protobuf } from "/assets/js/protobuf.min.js"
 
+import { inflate, deflate } from "/assets/js/pako.esm.mjs"
+
 import { FromHostRoot   } from "./from-host-root.js"
 import { FromJoinerRoot } from "./from-joiner-root.js"
 
@@ -17,7 +19,9 @@ let encodePBuf = (isHost) => (msg) => {
 
   if (protoType !== null && typeCode !== null) {
 
+    console.log("About to rejigger", msg);
     const rejiggered = (isHost ? FromHost : FromJoiner).rejigger(msg);
+    console.log("Done to rejigger", rejiggered);
 
     let protoMsg = protoType.fromObject(rejiggered, { enums: String });
     let errorMsg = protoType.verify(protoMsg);
@@ -30,19 +34,25 @@ let encodePBuf = (isHost) => (msg) => {
     let writer = protobuf.Writer.create();
     writer.uint32(typeCode);
 
-    return protoType.encode(protoMsg, writer).finish();
+    let encoded    = protoType.encode(protoMsg, writer).finish();
+    let compressed = deflate(encoded);
+
+    return compressed;
 
   }
 
 };
 
-let decodePBuf = (isHost) => (msgBuf) => {
+let decodePBuf = (isHost) => (compressedMsg) => {
+  let msgBuf            = inflate(compressedMsg);
   let typeMap           = isHost ? fromJoinerTypeMap : fromHostTypeMap;
   let [type, protoType] = Object.entries(typeMap)[msgBuf[0]];
   let decoded           = protoType.decode(msgBuf.slice(1));
   let decodedObj        = protoType.toObject(decoded, { enums: String });
   let reconstructed     = { type, ...decodedObj };
+  console.log("About to recombobulate", reconstructed);
   let recombobulated    = (isHost ? FromJoiner : FromHost).recombobulate(reconstructed);
+  console.log("Done to recombobulate", recombobulated);
   return recombobulated;
 };
 

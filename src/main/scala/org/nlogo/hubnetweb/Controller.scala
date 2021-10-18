@@ -9,11 +9,13 @@ import scala.io.{ Source => SISource, StdIn }
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.ContentTypes
-import akka.http.scaladsl.server.Directives.{ complete, reject }
-import akka.http.scaladsl.server.{ RequestContext, RouteResult, ValidationRejection }
+import akka.http.scaladsl.model.{ ContentType, ContentTypes, HttpCharsets, MediaType }
+import akka.http.scaladsl.model.MediaType.Compressible
 import akka.http.scaladsl.model.StatusCodes.NotFound
 import akka.http.scaladsl.model.ws.{ BinaryMessage, Message, TextMessage }
+import akka.http.scaladsl.server.directives.ContentTypeResolver
+import akka.http.scaladsl.server.Directives.{ complete, reject }
+import akka.http.scaladsl.server.{ RequestContext, RouteResult, ValidationRejection }
 import akka.stream.scaladsl.{ Flow, Sink, Source }
 import akka.util.Timeout
 
@@ -62,6 +64,19 @@ object Controller {
 
       import akka.http.scaladsl.server.Directives._
       import akka.http.scaladsl.marshalling.sse.EventStreamMarshalling.toEventStream
+
+      // So... browsers are super-strict about MIME types of MJS
+      // files, so we need to do this, or else no ES6 modules for us!
+      // --Jason B. (10/15/21)
+      implicit val contentTypeResolver =
+        new ContentTypeResolver {
+           override def apply(filename: String): ContentType = {
+             if (filename.endsWith(".mjs"))
+               ContentType(MediaType.custom(s"text/javascript", binary = false, Compressible, List("mjs")), () => HttpCharsets.`UTF-8`)
+             else
+               ContentTypeResolver.Default(filename)
+           }
+         }
 
       path("")                 { getFromFile("html/index.html") } ~
       path("host")             { getFromFile("html/host.html")  } ~
