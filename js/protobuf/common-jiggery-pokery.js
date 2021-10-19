@@ -28,10 +28,16 @@ const rejiggerToken = (token, parent) => {
 // (String, Object[Any]) => Unit
 const recombobulateToken = (target, parent) => {
 
-  const chunk1 = target.tokenChunk1.toString(16);
-  const chunk2 = target.tokenChunk2.toString(16);
-  const chunk3 = target.tokenChunk3.toString(16);
-  const chunk4 = target.tokenChunk4.toString(16);
+  const toHex = (numDigits) => (x) => {
+    return x.toString(16).padStart(numDigits, '0');
+  };
+
+  const toHex8 = toHex(8);
+
+  const chunk1 = toHex8(target.tokenChunk1);
+  const chunk2 = toHex8(target.tokenChunk2);
+  const chunk3 = toHex8(target.tokenChunk3);
+  const chunk4 = toHex8(target.tokenChunk4);
 
   const uuid1Regex = /(........)/;
   const uuid2Regex = /(....)(4...)/;
