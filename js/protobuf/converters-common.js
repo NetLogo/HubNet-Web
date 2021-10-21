@@ -11,11 +11,11 @@ import * as FromJoiner from "./from-joiner-jiggery-pokery.js"
 // Section: Common
 const hubNetWebLookup = (root) => (x) => root.lookupType(x);
 
-let encodePBuf = (isHost) => (msg) => {
+const encodePBuf = (isHost) => (msg) => {
 
-  let typeMap   = isHost ? fromHostTypeMap : fromJoinerTypeMap;
-  let protoType = typeMap[msg.type];
-  let typeCode  = Object.keys(typeMap).findIndex((x) => x === msg.type);
+  const typeMap   = isHost ? fromHostTypeMap : fromJoinerTypeMap;
+  const protoType = typeMap[msg.type];
+  const typeCode  = Object.keys(typeMap).findIndex((x) => x === msg.type);
 
   if (protoType !== null && typeCode !== null) {
 
@@ -23,19 +23,19 @@ let encodePBuf = (isHost) => (msg) => {
     const rejiggered = (isHost ? FromHost : FromJoiner).rejigger(msg);
     console.log("Done to rejigger", rejiggered);
 
-    let protoMsg = protoType.fromObject(rejiggered, { enums: String });
-    let errorMsg = protoType.verify(protoMsg);
+    const protoMsg = protoType.fromObject(rejiggered, { enums: String });
+    const errorMsg = protoType.verify(protoMsg);
 
     if (errorMsg !== null) {
-      let fullError = `Protobuf Error: ${errorMsg}`;
+      const fullError = `Protobuf Error: ${errorMsg}`;
       alert(fullError);
     }
 
-    let writer = protobuf.Writer.create();
+    const writer = protobuf.Writer.create();
     writer.uint32(typeCode);
 
-    let encoded    = protoType.encode(protoMsg, writer).finish();
-    let compressed = deflate(encoded);
+    const encoded    = protoType.encode(protoMsg, writer).finish();
+    const compressed = deflate(encoded);
 
     return compressed;
 
@@ -43,15 +43,15 @@ let encodePBuf = (isHost) => (msg) => {
 
 };
 
-let decodePBuf = (isHost) => (compressedMsg) => {
-  let msgBuf            = inflate(compressedMsg);
-  let typeMap           = isHost ? fromJoinerTypeMap : fromHostTypeMap;
-  let [type, protoType] = Object.entries(typeMap)[msgBuf[0]];
-  let decoded           = protoType.decode(msgBuf.slice(1));
-  let decodedObj        = protoType.toObject(decoded, { enums: String });
-  let reconstructed     = { type, ...decodedObj };
+const decodePBuf = (isHost) => (compressedMsg) => {
+  const msgBuf            = inflate(compressedMsg);
+  const typeMap           = isHost ? fromJoinerTypeMap : fromHostTypeMap;
+  const [type, protoType] = Object.entries(typeMap)[msgBuf[0]];
+  const decoded           = protoType.decode(msgBuf.slice(1));
+  const decodedObj        = protoType.toObject(decoded, { enums: String });
+  const reconstructed     = { type, ...decodedObj };
   console.log("About to recombobulate", reconstructed);
-  let recombobulated    = (isHost ? FromJoiner : FromHost).recombobulate(reconstructed);
+  const recombobulated    = (isHost ? FromJoiner : FromHost).recombobulate(reconstructed);
   console.log("Done to recombobulate", recombobulated);
   return recombobulated;
 };
@@ -61,7 +61,7 @@ const fromHostRoot = protobuf.Root.fromJSON(FromHostRoot);
 
 const lufhr = hubNetWebLookup(fromHostRoot);
 
-let fromHostTypeMap =
+const fromHostTypeMap =
   { "connection-established": lufhr("ConnEstablished")
   , "hnw-burst":              lufhr("HNWBurst")
   , "host-answer":            lufhr("HostAnswer")
@@ -80,7 +80,7 @@ const fromJoinerRoot = protobuf.Root.fromJSON(FromJoinerRoot);
 
 const lufjr = hubNetWebLookup(fromJoinerRoot);
 
-let fromJoinerTypeMap =
+const fromJoinerTypeMap =
   { "bye-bye":                lufjr("ByeBye"         )
   , "connection-established": lufjr("ConnEstablished")
   , "joiner-ice-candidate":   lufjr("ICECandy"       )

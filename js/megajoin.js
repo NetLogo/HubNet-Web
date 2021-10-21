@@ -51,7 +51,7 @@ const openListSocket = () => {
   return socket;
 };
 
-let serverListSocket = openListSocket();
+const serverListSocket = openListSocket();
 
 
 // (String) => Unit
@@ -176,7 +176,7 @@ self.megajoin = () => {
 
   for (let i = 0; i < numClients; i++) {
     if (i >= frames.length) {
-      let iframe = document.createElement("iframe");
+      const iframe = document.createElement("iframe");
       iframe.classList.add("joiner-frame");
       document.getElementById("joiner-frames").appendChild(iframe);
     }

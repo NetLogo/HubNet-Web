@@ -1,4 +1,4 @@
-let lastSentIDMap = {}; // Object[String, Number]
+const lastSentIDMap = {}; // Object[String, Number]
 
 const SentinelID = 0;
 const MinID      = 1;

@@ -28,15 +28,16 @@ usePlaceholderPreview();
 // type Session = { modelName :: String, name :: String, oracleID :: String }
 let sessionData = []; // Array[Session]
 
-let channels         = {};   // Object[Protocol.Channel]
+const channels = {};   // Object[Protocol.Channel]
+
 let joinerConnection = new RTCPeerConnection(joinerConfig);
 
 let pageState   = "uninitialized";
 let pageStateTS = -1;
 
-let messageQueue = []; // Array[Object[Any]]
+const messageQueue = []; // Array[Object[Any]]
 
-let waitingForBabby = {}; // Object[Any]
+const waitingForBabby = {}; // Object[Any]
 
 let loopIsTerminated = false; // Boolean
 
@@ -323,8 +324,8 @@ const handleChannelMessages = (channel, closeSignaling) => ({ data }) => {
 
     const assembleBucket = (bucket) => {
 
-      let totalLength = bucket.reduce((acc, x) => acc + x.length, 0);
-      let arr         = new Uint8Array(totalLength);
+      const totalLength = bucket.reduce((acc, x) => acc + x.length, 0);
+      const arr         = new Uint8Array(totalLength);
 
       bucket.reduce((acc, x) => { arr.set(x, acc); return acc + x.length }, 0);
 
@@ -392,7 +393,7 @@ const processChannelMessage = (channel, closeSignaling, datum) => {
       joinerConnection.getStats().then(
         (stats) => {
 
-          let usesTURN =
+          const usesTURN =
             Array.from(stats.values()).some(
               (v) =>
                 v.type === "candidate-pair" &&
@@ -401,7 +402,7 @@ const processChannelMessage = (channel, closeSignaling, datum) => {
                   stats.get(v.localCandidateId).candidateType === "relay"
             );
 
-          let desc = usesTURN ? "Server-based" : "Peer-to-Peer";
+          const desc = usesTURN ? "Server-based" : "Peer-to-Peer";
 
           document.getElementById("connection-type-span").innerText = desc;
 
@@ -479,8 +480,8 @@ const processQueue = () => {
 
   if (pageState === "logged in") {
     if (pageStateTS + 60000 >= (new Date).getTime()) {
-      let stillGoing = true;
-      let deferred   = [];
+      let   stillGoing = true;
+      const deferred   = [];
       while (stillGoing && messageQueue.length > 0) {
         const message = messageQueue.shift();
         if (message.type ===  "initial-model") {
@@ -708,7 +709,7 @@ self.addEventListener('message', (event) => {
     case "relay":
       if (event.data.payload.type === "interface-loaded") {
         setStatus("Model loaded and ready for you to use!");
-        let stateEntry = waitingForBabby[event.data.payload.type];
+        const stateEntry = waitingForBabby[event.data.payload.type];
         if (stateEntry !== undefined) {
           delete waitingForBabby[event.data.payload.type];
           document.querySelector('#nlw-frame > iframe').contentWindow.postMessage(stateEntry.forPosting, "*");
@@ -734,7 +735,7 @@ self.addEventListener('message', (event) => {
 
     case "yes-i-am-ready-for-interface":
       setStatus("Loading up interface in NetLogo Web...");
-      let uiEntry = waitingForBabby[event.data.type];
+      const uiEntry = waitingForBabby[event.data.type];
       delete waitingForBabby[event.data.type];
       document.querySelector('#nlw-frame > iframe').contentWindow.postMessage(uiEntry.forPosting , "*");
       document.querySelector('#nlw-frame > iframe').contentWindow.postMessage(uiEntry.forFollowup, "*");

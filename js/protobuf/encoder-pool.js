@@ -1,17 +1,17 @@
 let clientCount = 0;
 
-let maxNumWorkers = Math.max(1, navigator.hardwareConcurrency);
+const maxNumWorkers = Math.max(1, navigator.hardwareConcurrency);
 
 // Array[{ isIdle: Boolean, worker: WebWorker }]
-let workerPool = [];
+const workerPool = [];
 
 initWorker = () => {
-  let worker = new Worker('encoder.js', { type: "module" });
+  const worker = new Worker('encoder.js', { type: "module" });
   workerPool.push({ worker, isIdle: true });
 };
 
 encode = (msg, port) => {
-  let workerBundle = workerPool.find((bundle) => bundle.isIdle);
+  const workerBundle = workerPool.find((bundle) => bundle.isIdle);
   if (workerBundle !== undefined) {
     workerBundle.isIdle = false;
 

@@ -20,7 +20,7 @@ const sendRTC      = CompressJS.sendRTC     (true);
 // , username       :: String
 // }
 
-let sessions = {}; // Object[Session]
+const sessions = {}; // Object[Session]
 
 let password = null; // String
 
@@ -58,7 +58,7 @@ const launchModel = (formDataPlus) => {
     (resolve, reject) => {
 
       if (formDataPlus.model instanceof File) {
-        let reader = new FileReader();
+        const reader = new FileReader();
         reader.onloadend = (event) => {
           resolve([formDataPlus, event.target]);
         };
@@ -407,7 +407,7 @@ self.addEventListener("message", ({ data }) => {
 
   const broadcast = (type, message) => {
     const checkIsEligible = (s) => {
-      let nw = s.networking;
+      const nw = s.networking;
       return nw.channel !== undefined && nw.channel.readyState === "open" && s.hasInitialized;
     };
     const channels = Object.values(sessions).filter(checkIsEligible).map((s) => s.networking.channel);
