@@ -211,7 +211,7 @@ const RolePB = {
           , top:         { type: "uint32", id:  3 }
           , bottom:      { type: "uint32", id:  4 }
           , display:     { type: "string", id:  5 }
-          , color:       { type: "double", id:  6 }
+          , color:       { type: "uint32", id:  6 }
           , fontSize:    { type: "uint32", id:  7 }
           , transparent: { type: "bool"  , id:  8 }
           }

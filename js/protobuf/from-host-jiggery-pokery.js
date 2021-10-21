@@ -33,6 +33,40 @@ const rejiggerBurst = (obj) => {
 };
 
 // (Object[Any], Object[Any]) => Object[Any]
+const rejiggerLinks = (links, parent) => {
+  Object.entries(links).forEach(
+    ([who, link]) => {
+
+      const l     = deepClone(link, true);
+      const xform = transform(l);
+
+      xform("color"      , (c) => Math.floor(c * 10));
+      xform("label-color", (c) => Math.floor(c * 10));
+
+      parent[who] = l;
+
+    }
+  );
+};
+
+// (Object[Any], Object[Any]) => Object[Any]
+const rejiggerPatches = (patches, parent) => {
+  Object.entries(patches).forEach(
+    ([who, patch]) => {
+
+      const p     = deepClone(patch, true);
+      const xform = transform(p);
+
+      xform("pcolor"      , (c) => Math.floor(c * 10));
+      xform("plabel-color", (c) => Math.floor(c * 10));
+
+      parent[who] = p;
+
+    }
+  );
+};
+
+// (Object[Any], Object[Any]) => Object[Any]
 const rejiggerTurtles = (turtles, parent) => {
   Object.entries(turtles).forEach(
     ([who, turtle]) => {
@@ -40,7 +74,9 @@ const rejiggerTurtles = (turtles, parent) => {
       const t     = deepClone(turtle, true);
       const xform = transform(t);
 
+      xform("color"      , (c) => Math.floor(c * 10));
       xform("heading"    , (h) => Math.round(h     ));
+      xform("label-color", (c) => Math.floor(c * 10));
       xform("xcor"       , (x) => Math.round(x * 10));
       xform("ycor"       , (y) => Math.round(y * 10));
 
@@ -54,13 +90,15 @@ const rejiggerTurtles = (turtles, parent) => {
 const rejiggerViewUpdates = (target, parent) => {
   for (let k0 in target) {
     const v0 = target[k0];
-    if (k0 === "turtles") {
+    if (k0 === "links") {
+      parent[k0] = {};
+      rejiggerLinks(v0, parent[k0]);
+    } else if (k0 === "patches") {
+      parent[k0] = {};
+      rejiggerPatches(v0, parent[k0]);
+    } else if (k0 === "turtles") {
       parent[k0] = {};
       rejiggerTurtles(v0, parent[k0]);
-    } else if (k0 === "patches") {
-      parent[k0] = deepClone(v0, true);
-    } else if (k0 === "links") {
-      parent[k0] = deepClone(v0, true);
     } else if (k0 === "world") {
       parent[k0] = deepClone(v0, true, { editableColorIndex: true });
     } else if (k0 === "observer") {
@@ -113,24 +151,14 @@ const rejiggerPlotUpdates = (target, parent) => {
         }
         newPupdates.push(outer);
       } else if (pupdate.type === "register-pen") {
-        const inner = {};
-        const outer = { registerPen: inner };
-        for (let k1 in pupdate) {
-          const v1 = pupdate[k1];
-          if (k1 !== "type") { // Ignore `type`
-            inner[k1] = v1;
-          }
-        }
+        const outer = { registerPen: deepClone(pupdate) };
+        transform(outer.registerPen)("color", (c) => Math.floor(c * 10));
+        delete outer.registerPen.type;
         newPupdates.push(outer);
       } else if (pupdate.type === "update-pen-color") {
-        const inner = {};
-        const outer = { updatePenColor: inner };
-        for (let k1 in pupdate) {
-          const v1 = pupdate[k1];
-          if (k1 !== "type") { // Ignore `type`
-            inner[k1] = v1;
-          }
-        }
+        const outer = { updatePenColor: deepClone(pupdate) };
+        transform(outer.updatePenColor)("color", (c) => Math.floor(c * 10));
+        delete outer.updatePenColor.type;
         newPupdates.push(outer);
       } else if (pupdate.type === "update-pen-mode") {
         const inner = {};
@@ -257,14 +285,9 @@ const rejiggerInitialModel = (obj) => {
               }
               out[k0][k1].push(outer);
             } else if (widget.type === "hnwTextBox") {
-              const inner = {};
-              const outer = { textBox: inner };
-              for (let k3 in widget) {
-                const v2 = widget[k3];
-                if (k3 !== "type") {
-                  inner[k3] = v2;
-                }
-              }
+              const outer = { textBox: deepClone(widget) };
+              transform(outer.textBox)("color", (c) => Math.floor(c * 10));
+              delete outer.textBox.type;
               out[k0][k1].push(outer);
             } else if (widget.type === "hnwView") {
               const inner = {};
@@ -374,6 +397,40 @@ const rejiggerStateUpdate = (obj) => {
 };
 
 // (Object[Any], Object[Any]) => Object[Any]
+const recombobulateLinks = (links, parent) => {
+  Object.entries(links).forEach(
+    ([who, link]) => {
+
+      const l     = deepClone(link);
+      const xform = transform(l);
+
+      xform("color"      , (c) => c / 10);
+      xform("label-color", (c) => c / 10);
+
+      parent[who] = l;
+
+    }
+  );
+};
+
+// (Object[Any], Object[Any]) => Object[Any]
+const recombobulatePatches = (patches, parent) => {
+  Object.entries(patches).forEach(
+    ([who, patch]) => {
+
+      const p     = deepClone(patch);
+      const xform = transform(p);
+
+      xform("pcolor"      , (c) => c / 10);
+      xform("plabel-color", (c) => c / 10);
+
+      parent[who] = p;
+
+    }
+  );
+};
+
+// (Object[Any], Object[Any]) => Object[Any]
 const recombobulateTurtles = (turtles, parent) => {
   Object.entries(turtles).forEach(
     ([who, turtle]) => {
@@ -381,6 +438,8 @@ const recombobulateTurtles = (turtles, parent) => {
       const t     = deepClone(turtle);
       const xform = transform(t);
 
+      xform("color"      , (c) => c / 10);
+      xform("label-color", (c) => c / 10);
       xform("xcor"       , (x) => x / 10);
       xform("ycor"       , (y) => y / 10);
 
@@ -394,7 +453,13 @@ const recombobulateTurtles = (turtles, parent) => {
 const recombobulateViewUpdates = (target, parent) => {
   for (let k0 in target) {
     const v0 = target[k0];
-    if (k0 === "turtles") {
+    if (k0 === "links") {
+      parent[k0] = {};
+      recombobulateLinks(v0, parent[k0]);
+    } else if (k0 === "patches") {
+      parent[k0] = {};
+      recombobulatePatches(v0, parent[k0]);
+    } else if (k0 === "turtles") {
       parent[k0] = {};
       recombobulateTurtles(v0, parent[k0]);
     } else {
@@ -446,11 +511,15 @@ const recombobulatePlotUpdates = (target, parent) => {
         const inner = pupdate.resetPen;
         newPupdates.push({ type: "reset-pen", ...inner });
       } else if (pupdate.registerPen !== undefined) {
-        const inner = pupdate.registerPen;
-        newPupdates.push({ type: "register-pen", ...inner });
+        const inner   = pupdate.registerPen;
+        const out     = { type: "register-pen", ...deepClone(inner) };
+        transform(out.pen)("color", (c) => c / 10);
+        newPupdates.push(out);
       } else if (pupdate.updatePenColor !== undefined) {
         const inner = pupdate.updatePenColor;
-        newPupdates.push({ type: "update-pen-color", ...inner });
+        const out   = { type: "update-pen-color", ...deepClone(inner) };
+        transform(out)("color", (c) => c / 10);
+        newPupdates.push(out);
       } else if (pupdate.updatePenMode !== undefined) {
         const inner = pupdate.updatePenMode;
         newPupdates.push({ type: "update-pen-mode", ...inner });
@@ -515,8 +584,10 @@ const recombobulateInitialModel = (obj) => {
               const inner = widget.switch;
               out[k0][k1].push({ type: "hnwSwitch", ...inner });
             } else if (widget.textBox !== undefined) {
-              const inner = widget.textBox;
-              out[k0][k1].push({ type: "hnwTextBox", ...inner });
+              const inner       = widget.textBox;
+              const replacement = { type: "hnwTextBox", ...deepClone(inner) };
+              transform(replacement)("color", (c) => c / 10);
+              out[k0][k1].push(replacement);
             } else if (widget.view !== undefined) {
               const inner = widget.view;
               out[k0][k1].push({ type: "hnwView", ...inner });
