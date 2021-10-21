@@ -16,12 +16,12 @@ const FromHostRoot = {
 
   , HNWBurst: { // hnw-burst
       fields: {
-        id:              { type: "uint32", id: 1 }
-      , index:           { type: "uint32", id: 2 }
-      , fullLength:      { type: "uint32", id: 3 }
-      , parcel:          { type: "bytes" , id: 4 }
+        id:         { type: "uint32", id: 1 }
+      , index:      { type: "uint32", id: 2 }
+      , fullLength: { type: "uint32", id: 3 }
+      , parcel:     { type: "bytes" , id: 4 }
       // Begin jiggery optimizations
-      , isMicroBurst:    { type: "bool"  , id: 5 }
+      , isMicroBurst: { type: "bool", id: 5 }
       }
     }
 

@@ -165,8 +165,8 @@ const PlotUpdateStuff = {
 
   Pen: {
     fields: {
-      name:            { type: "string", id: 1 }
-    , color:           { type: "uint32", id: 2 }
+      name:  { type: "string", id: 1 }
+    , color: { type: "uint32", id: 2 }
     }
   }
 

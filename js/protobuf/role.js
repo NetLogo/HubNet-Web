@@ -206,14 +206,14 @@ const RolePB = {
 
       , TextBox: {
           fields: {
-            left:        { type: "uint32", id:  1 }
-          , right:       { type: "uint32", id:  2 }
-          , top:         { type: "uint32", id:  3 }
-          , bottom:      { type: "uint32", id:  4 }
-          , display:     { type: "string", id:  5 }
-          , color:       { type: "uint32", id:  6 }
-          , fontSize:    { type: "uint32", id:  7 }
-          , transparent: { type: "bool"  , id:  8 }
+            left:        { type: "uint32", id: 1 }
+          , right:       { type: "uint32", id: 2 }
+          , top:         { type: "uint32", id: 3 }
+          , bottom:      { type: "uint32", id: 4 }
+          , display:     { type: "string", id: 5 }
+          , color:       { type: "uint32", id: 6 }
+          , fontSize:    { type: "uint32", id: 7 }
+          , transparent: { type: "bool"  , id: 8 }
           }
       }
 

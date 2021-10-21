@@ -21,8 +21,8 @@ const FromJoinerRoot = {
 
   , ICECandy: { // joiner-ice-candidate
       fields: {
-        id:              { type: "uint32"   , id: 1 }
-      , candidate:       { type: "Candidate", id: 2 }
+        id:        { type: "uint32"   , id: 1 }
+      , candidate: { type: "Candidate", id: 2 }
       }
     , nested: {
         Candidate: {
@@ -37,8 +37,8 @@ const FromJoinerRoot = {
 
   , JoinerOffer: { // joiner-offer
       fields: {
-        id:              { type: "uint32", id: 1 }
-      , offer:           { type: "Offer" , id: 2 }
+        id:    { type: "uint32", id: 1 }
+      , offer: { type: "Offer" , id: 2 }
       }
     , nested: {
         Offer: {
