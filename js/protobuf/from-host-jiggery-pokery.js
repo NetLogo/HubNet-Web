@@ -1,4 +1,5 @@
-import { deepClone, recombobulateToken, rejiggerToken } from "./common-jiggery-pokery.js"
+import { deepClone, recombobulateToken, rejiggerToken
+       , szPair, szUnpair, szPairSigned, szUnpairSigned } from "./common-jiggery-pokery.js"
 
 // (Object[Any]) => Object[Any]
 const rejiggerConnEst = (obj) => {
@@ -33,11 +34,60 @@ const rejiggerBurst = (obj) => {
 };
 
 // (Object[Any], Object[Any]) => Object[Any]
+const rejiggerTurtles = (turtles, parent) => {
+  Object.entries(turtles).forEach(
+    ([who, turtle]) => {
+
+      const t = deepClone(turtle, true);
+
+      const hasX = t.xcor    !== undefined;
+      const hasY = t.ycor    !== undefined;
+      const hasH = t.heading !== undefined;
+
+      if (hasX) {
+        t.xcor = Math.round(t.xcor * 10);
+      }
+
+      if (hasY) {
+        t.ycor = Math.round(t.ycor * 10);
+      }
+
+      if (hasH) {
+        t.heading = Math.round(t.heading);
+      }
+
+      if (hasX && hasY && hasH) {
+        t.xyh = szPairSigned(szPairSigned(t.xcor, t.ycor), t.heading);
+        delete t.xcor;
+        delete t.ycor;
+        delete t.heading;
+      } else if (hasX && hasH) {
+        t.xh = szPairSigned(t.xcor, t.heading);
+        delete t.xcor;
+        delete t.heading;
+      } else if (hasX && hasY) {
+        t.xy = szPairSigned(t.xcor, t.ycor);
+        delete t.xcor;
+        delete t.ycor;
+      } else if (hasY && hasH) {
+        t.yh = szPairSigned(t.ycor, t.heading);
+        delete t.ycor;
+        delete t.heading;
+      }
+
+      parent[who] = t;
+
+    }
+  );
+};
+
+// (Object[Any], Object[Any]) => Object[Any]
 const rejiggerViewUpdates = (target, parent) => {
   for (let k0 in target) {
     const v0 = target[k0];
     if (k0 === "turtles") {
-      parent[k0] = deepClone(v0, true);
+      parent[k0] = {};
+      rejiggerTurtles(v0, parent[k0]);
     } else if (k0 === "patches") {
       parent[k0] = deepClone(v0, true);
     } else if (k0 === "links") {
@@ -352,6 +402,59 @@ const rejiggerStateUpdate = (obj) => {
 
   return out;
 
+};
+
+// (Object[Any], Object[Any]) => Object[Any]
+const recombobulateTurtles = (turtles, parent) => {
+  Object.entries(turtles).forEach(
+    ([who, turtle]) => {
+
+      const t = deepClone(turtle);
+
+      if (t.xyh !== undefined) {
+
+        const [xy, h] = szUnpairSigned(t.xyh);
+        const [x,  y] = szUnpairSigned(xy);
+
+        t.xcor    = x;
+        t.ycor    = y;
+        t.heading = h;
+
+        delete t.xyh;
+
+      } else if (t.xh !== undefined) {
+        const [x, h] = szUnpairSigned(t.xh);
+        t.xcor    = x;
+        t.heading = h;
+        delete t.xh;
+      } else if (t.xy !== undefined) {
+        const [x, y] = szUnpairSigned(t.xy);
+        t.xcor = x;
+        t.ycor = y;
+        delete t.xy;
+      } else if (t.yh !== undefined) {
+        const [y, h] = szUnpairSigned(t.yh);
+        t.ycor    = y;
+        t.heading = h;
+        delete t.yh;
+      }
+
+      if (t.xcor !== undefined) {
+        t.xcor = Math.round(t.xcor / 10);
+      }
+
+      if (t.ycor !== undefined) {
+        t.ycor = Math.round(t.ycor / 10);
+      }
+
+      if (t.heading !== undefined) {
+        t.heading = Math.round(t.heading);
+      }
+
+      parent[who] = t;
+
+    }
+  );
 };
 
 // (Object[Any], Object[Any]) => Object[Any]

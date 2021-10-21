@@ -142,12 +142,12 @@ const szPairSigned = (x, y) => {
 // (Int) => (Int, Int)
 const szUnpairSigned = (z) => {
 
-  var rt = Math.floor(Math.sqrt(z));
-  var sq = rt * rt;
+  const rt = Math.floor(Math.sqrt(z));
+  const sq = rt * rt;
 
-  var [tempX, tempY] = ((z - sq) >= rt) ? [rt, z - sq - rt] : [z - sq, rt];
-  var finalX         = (tempX % 2 === 0) ? tempX / 2 : (tempX + 1) / -2;
-  var finalY         = (tempY % 2 === 0) ? tempY / 2 : (tempY + 1) / -2;
+  const [tempX, tempY] = ((z - sq) >= rt) ? [rt, z - sq - rt] : [z - sq, rt];
+  const finalX         = (tempX % 2 === 0) ? tempX / 2 : (tempX + 1) / -2;
+  const finalY         = (tempY % 2 === 0) ? tempY / 2 : (tempY + 1) / -2;
 
   return [finalX, finalY];
 

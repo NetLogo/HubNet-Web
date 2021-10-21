@@ -15,6 +15,11 @@ const ViewUpdateStuff = {
     , "who":         { type: "uint32", id: 11 }
     , "xcor":        { type: "double", id: 12 }
     , "ycor":        { type: "double", id: 13 }
+    // Begin jiggery optimizations
+    , "xh":          { type: "sint64", id: 14 }
+    , "xy":          { type: "sint64", id: 15 }
+    , "xyh":         { type: "sint64", id: 16 }
+    , "yh":          { type: "sint64", id: 17 }
     }
   }
 
