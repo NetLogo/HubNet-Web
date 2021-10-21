@@ -30,20 +30,44 @@ const logEntry = (x, channel) => {
 };
 
 // () => Number
-const reportBandwidth = () => {
+const reportNewSend = () => {
 
-  const calcBW =
-    (acc, x) => {
-      const bufferIncrease = getBufferedSize(x.channel) - x.bufferSnapshot;
-      const totalDelta     = x.bytesAdded - bufferIncrease;
-      return acc + Math.max(0, totalDelta);
-    };
-
-  const i = entries.findIndex((e) => e.timestamp >= performance.now() - 1000);
-  entries = (i > 0) ? entries.slice(i) : ((i < 0) ? [] : entries);
+  const i  = entries.findIndex((e) => e.timestamp >= performance.now() - 1000);
+  const es = (i > 0) ? entries.slice(i) : ((i < 0) ? [] : entries);
 
   const map =
-    entries.reduce((
+    es.reduce((
+      (acc, x) => {
+        if (acc.has(x.channel)) {
+          acc.get(x.channel).xs.push(x);
+          return acc;
+        } else {
+          const value = { xs: [x] };
+          return acc.set(x.channel, value);
+        }
+      }
+    ), new Map());
+
+  const sumBandwidth =
+    Array.from(map.values()).reduce((
+      (acc, x) => {
+        const sum = x.xs.reduce(((a, b) => a + b.bytesAdded), 0);
+        return acc + sum;
+      }
+    ), 0);
+
+  return sumBandwidth;
+
+};
+
+// () => Number
+const reportBandwidth = () => {
+
+  const i  = entries.findIndex((e) => e.timestamp >= performance.now() - 1000);
+  const es = (i > 0) ? entries.slice(i) : ((i < 0) ? [] : entries);
+
+  const map =
+    es.reduce((
       (acc, x) => {
         if (acc.has(x.channel)) {
           acc.get(x.channel).xs.push(x);
@@ -72,4 +96,9 @@ const reportBandwidth = () => {
 
 };
 
-export { logEntry, reportBandwidth }
+setInterval(() => {
+  const i = entries.findIndex((e) => e.timestamp >= performance.now() - 10000);
+  entries = (i > 0) ? entries.slice(i) : ((i < 0) ? [] : entries);
+}, 10000);
+
+export { logEntry, reportBandwidth, reportNewSend }

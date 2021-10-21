@@ -1,4 +1,4 @@
-import { reportBandwidth    } from "./bandwidth-monitor.js"
+import { reportBandwidth, reportNewSend } from "./bandwidth-monitor.js"
 import { sendObj, setSocket } from "./websocket-common.js"
 
 onmessage = (e) => {
@@ -15,6 +15,9 @@ onmessage = (e) => {
       break;
     case "ice-candidate":
       sendObj("host-ice-candidate", { candidate: e.data.candidate });
+      break;
+    case "request-new-send":
+      e.ports[0].postMessage(reportNewSend());
       break;
     case "request-bandwidth-report":
       e.ports[0].postMessage(reportBandwidth());

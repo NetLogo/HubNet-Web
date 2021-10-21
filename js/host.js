@@ -1,7 +1,7 @@
 import { awaitWorker, byteSizeLabel, genUUID, HNWProtocolVersionNumber
        , uuidToRTCID } from "./common.js"
 
-import { reportBandwidth                     } from "./bandwidth-monitor.js"
+import { reportBandwidth, reportNewSend      } from "./bandwidth-monitor.js"
 import { decoderPool, encoderPool, sendBurst } from "./compress.js"
 import { genNextID                           } from "./id-manager.js"
 import { hostConfig                          } from "./webrtc.js"
@@ -480,6 +480,8 @@ self.addEventListener('popstate', (event) => {
 // () => Unit
 const updateBandwidthLabel = () => {
 
+  const syncNewSend = reportNewSend();
+
   const syncBandwidth = reportBandwidth();
 
   const signalers     = Object.values(sessions).map((s) => s.networking.signaling);
@@ -494,6 +496,17 @@ const updateBandwidthLabel = () => {
       const asyncBandwidth = results.reduce(((acc, x) => acc + x), 0);
       const newText        = byteSizeLabel(syncBandwidth + asyncBandwidth, 2);
       document.getElementById("bandwidth-span").innerText = newText;
+    }
+  );
+
+  const newSendParcel   = { type: "request-new-send" };
+  const newSendPromises = workers.map((w) => awaitWorker(w, newSendParcel));
+
+  Promise.all(newSendPromises).then(
+    (results) => {
+      const asyncNewSend = results.reduce(((acc, x) => acc + x), 0);
+      const newText      = byteSizeLabel(syncNewSend + asyncNewSend, 2);
+      document.getElementById("new-send-span").innerText = newText;
     }
   );
 

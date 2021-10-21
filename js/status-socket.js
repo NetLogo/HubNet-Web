@@ -1,4 +1,4 @@
-import { reportBandwidth    } from "./bandwidth-monitor.js"
+import { reportBandwidth, reportNewSend } from "./bandwidth-monitor.js"
 import { sendObj, setSocket } from "./websocket-common.js"
 
 let lastMemberCount = undefined; // Number
@@ -22,6 +22,9 @@ onmessage = (e) => {
         lastMemberCount = e.data.numPeers;
         sendObj("members-update", { numPeers: e.data.numPeers });
       }
+      break;
+    case "request-new-send":
+      e.ports[0].postMessage(reportNewSend());
       break;
     case "request-bandwidth-report":
       e.ports[0].postMessage(reportBandwidth());
