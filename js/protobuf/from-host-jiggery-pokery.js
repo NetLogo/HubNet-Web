@@ -1,5 +1,4 @@
-import { deepClone, recombobulateToken, rejiggerToken
-       , szPair, szUnpair, szPairSigned, szUnpairSigned } from "./common-jiggery-pokery.js"
+import { deepClone, recombobulateToken, rejiggerToken } from "./common-jiggery-pokery.js"
 
 // (Object[Any]) => Object[Any]
 const rejiggerConnEst = (obj) => {
@@ -54,25 +53,6 @@ const rejiggerTurtles = (turtles, parent) => {
 
       if (hasH) {
         t.heading = Math.round(t.heading);
-      }
-
-      if (hasX && hasY && hasH) {
-        t.xyh = szPairSigned(szPairSigned(t.xcor, t.ycor), t.heading);
-        delete t.xcor;
-        delete t.ycor;
-        delete t.heading;
-      } else if (hasX && hasH) {
-        t.xh = szPairSigned(t.xcor, t.heading);
-        delete t.xcor;
-        delete t.heading;
-      } else if (hasX && hasY) {
-        t.xy = szPairSigned(t.xcor, t.ycor);
-        delete t.xcor;
-        delete t.ycor;
-      } else if (hasY && hasH) {
-        t.yh = szPairSigned(t.ycor, t.heading);
-        delete t.ycor;
-        delete t.heading;
       }
 
       parent[who] = t;
@@ -410,34 +390,6 @@ const recombobulateTurtles = (turtles, parent) => {
     ([who, turtle]) => {
 
       const t = deepClone(turtle);
-
-      if (t.xyh !== undefined) {
-
-        const [xy, h] = szUnpairSigned(t.xyh);
-        const [x,  y] = szUnpairSigned(xy);
-
-        t.xcor    = x;
-        t.ycor    = y;
-        t.heading = h;
-
-        delete t.xyh;
-
-      } else if (t.xh !== undefined) {
-        const [x, h] = szUnpairSigned(t.xh);
-        t.xcor    = x;
-        t.heading = h;
-        delete t.xh;
-      } else if (t.xy !== undefined) {
-        const [x, y] = szUnpairSigned(t.xy);
-        t.xcor = x;
-        t.ycor = y;
-        delete t.xy;
-      } else if (t.yh !== undefined) {
-        const [y, h] = szUnpairSigned(t.yh);
-        t.ycor    = y;
-        t.heading = h;
-        delete t.yh;
-      }
 
       if (t.xcor !== undefined) {
         t.xcor = Math.round(t.xcor / 10);
