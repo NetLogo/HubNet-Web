@@ -1,4 +1,4 @@
-import { deepClone, recombobulateToken, rejiggerToken } from "./common-jiggery-pokery.js"
+import { deepClone, recombobulateToken, rejiggerToken, transform } from "./common-jiggery-pokery.js"
 
 // (Object[Any]) => Object[Any]
 const rejiggerConnEst = (obj) => {
@@ -37,23 +37,12 @@ const rejiggerTurtles = (turtles, parent) => {
   Object.entries(turtles).forEach(
     ([who, turtle]) => {
 
-      const t = deepClone(turtle, true);
+      const t     = deepClone(turtle, true);
+      const xform = transform(t);
 
-      const hasX = t.xcor    !== undefined;
-      const hasY = t.ycor    !== undefined;
-      const hasH = t.heading !== undefined;
-
-      if (hasX) {
-        t.xcor = Math.round(t.xcor * 10);
-      }
-
-      if (hasY) {
-        t.ycor = Math.round(t.ycor * 10);
-      }
-
-      if (hasH) {
-        t.heading = Math.round(t.heading);
-      }
+      xform("heading"    , (h) => Math.round(h     ));
+      xform("xcor"       , (x) => Math.round(x * 10));
+      xform("ycor"       , (y) => Math.round(y * 10));
 
       parent[who] = t;
 
@@ -389,19 +378,11 @@ const recombobulateTurtles = (turtles, parent) => {
   Object.entries(turtles).forEach(
     ([who, turtle]) => {
 
-      const t = deepClone(turtle);
+      const t     = deepClone(turtle);
+      const xform = transform(t);
 
-      if (t.xcor !== undefined) {
-        t.xcor = Math.round(t.xcor / 10);
-      }
-
-      if (t.ycor !== undefined) {
-        t.ycor = Math.round(t.ycor / 10);
-      }
-
-      if (t.heading !== undefined) {
-        t.heading = Math.round(t.heading);
-      }
+      xform("xcor"       , (x) => x / 10);
+      xform("ycor"       , (y) => y / 10);
 
       parent[who] = t;
 

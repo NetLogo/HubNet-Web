@@ -1,3 +1,10 @@
+// (Object[Any]) => (String, (Any) => Any) => Unit
+const transform = (obj) => (key, f) => {
+  if (obj.hasOwnProperty(key)) {
+    obj[key] = f(obj[key]);
+  }
+}
+
 // (String, Object[Any]) => Unit
 const rejiggerToken = (token, parent) => {
 
@@ -153,4 +160,4 @@ const szUnpairSigned = (z) => {
 
 };
 
-export { deepClone, recombobulateToken, rejiggerToken, szPair, szPairSigned, szUnpair, szUnpairSigned }
+export { deepClone, recombobulateToken, rejiggerToken, szPair, szPairSigned, szUnpair, szUnpairSigned, transform }
