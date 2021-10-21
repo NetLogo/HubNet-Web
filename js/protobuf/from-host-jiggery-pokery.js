@@ -33,6 +33,26 @@ const rejiggerBurst = (obj) => {
 };
 
 // (Object[Any], Object[Any]) => Object[Any]
+const rejiggerViewUpdates = (target, parent) => {
+  for (let k0 in target) {
+    const v0 = target[k0];
+    if (k0 === "turtles") {
+      parent[k0] = deepClone(v0, true);
+    } else if (k0 === "patches") {
+      parent[k0] = deepClone(v0, true);
+    } else if (k0 === "links") {
+      parent[k0] = deepClone(v0, true);
+    } else if (k0 === "world") {
+      parent[k0] = deepClone(v0, true, { editableColorIndex: true });
+    } else if (k0 === "observer") {
+      parent[k0] = deepClone(v0, true);
+    } else {
+      parent[k0] = deepClone(v0);
+    }
+  }
+};
+
+// (Object[Any], Object[Any]) => Object[Any]
 const rejiggerPlotUpdates = (target, parent) => {
 
   for (let k0 in target) {
@@ -249,20 +269,8 @@ const rejiggerInitialModel = (obj) => {
       }
 
     } else if (k0 === "state") {
-
       out[k0] = {};
-      for (let k1 in v0) {
-
-        const v1 = v0[k1];
-        if (k1 === "plotUpdates") {
-          out[k0][k1] = {};
-          rejiggerPlotUpdates(v1, out[k0][k1]);
-        } else {
-          out[k0][k1] = v1;
-        }
-
-      }
-
+      rejiggerStateUpdateInner(v0, out[k0]);
     } else {
       out[k0] = v0;
     }
@@ -312,22 +320,51 @@ const rejiggerRelay = (obj) => {
 };
 
 // (Object[Any]) => Object[Any]
+const rejiggerStateUpdateInner = (target, parent) => {
+  for (let k0 in target) {
+    const v0 = target[k0];
+    if (k0 === "viewUpdate") {
+      parent[k0] = {};
+      rejiggerViewUpdates(v0, parent[k0]);
+    } else if (k0 === "plotUpdates") {
+      parent[k0] = {};
+      rejiggerPlotUpdates(v0, parent[k0]);
+    } else {
+      parent[k0] = deepClone(v0);
+    }
+  }
+};
+
+// (Object[Any]) => Object[Any]
 const rejiggerStateUpdate = (obj) => {
 
   const out = {};
 
   for (let k0 in obj) {
     const v0 = obj[k0];
-    if (k0 === "plotUpdates") {
+    if (k0 === "update") {
       out[k0] = {};
-      rejiggerPlotUpdates(v0, out[k0]);
+      rejiggerStateUpdateInner(v0, out[k0]);
     } else {
-      out[k0] = v0;
+      out[k0] = deepClone(v0);
     }
   }
 
   return out;
 
+};
+
+// (Object[Any], Object[Any]) => Object[Any]
+const recombobulateViewUpdates = (target, parent) => {
+  for (let k0 in target) {
+    const v0 = target[k0];
+    if (k0 === "turtles") {
+      parent[k0] = {};
+      recombobulateTurtles(v0, parent[k0]);
+    } else {
+      parent[k0] = deepClone(v0);
+    }
+  }
 };
 
 // (Object[Any]) => Object[Any]
@@ -460,20 +497,8 @@ const recombobulateInitialModel = (obj) => {
       }
 
     } else if (k0 === "state") {
-
       out[k0] = {};
-      for (let k1 in v0) {
-
-        const v1 = v0[k1];
-        if (k1 === "plotUpdates") {
-          out[k0][k1] = {};
-          recombobulatePlotUpdates(v1, out[k0][k1]);
-        } else {
-          out[k0][k1] = v1;
-        }
-
-      }
-
+      recombobulateStateUpdateInner(v0, out[k0]);
     } else {
       out[k0] = v0;
     }
@@ -521,15 +546,31 @@ const recombobulateRelay = (obj) => {
 };
 
 // (Object[Any]) => Object[Any]
+const recombobulateStateUpdateInner = (target, parent) => {
+  for (let k0 in target) {
+    const v0 = target[k0];
+    if (k0 === "viewUpdate") {
+      parent[k0] = {};
+      recombobulateViewUpdates(v0, parent[k0]);
+    } else if (k0 === "plotUpdates") {
+      parent[k0] = {};
+      recombobulatePlotUpdates(v0, parent[k0]);
+    } else {
+      parent[k0] = deepClone(v0);
+    }
+  }
+};
+
+// (Object[Any]) => Object[Any]
 const recombobulateStateUpdate = (obj) => {
 
   const out = {};
 
   for (let k0 in obj) {
     const v0 = obj[k0];
-    if (k0 === "plotUpdates") {
+    if (k0 === "update") {
       out[k0] = {};
-      recombobulatePlotUpdates(v0, out[k0]);
+      recombobulateStateUpdateInner(v0, out[k0]);
     } else {
       out[k0] = v0;
     }

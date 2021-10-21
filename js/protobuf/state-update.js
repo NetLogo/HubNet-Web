@@ -53,14 +53,21 @@ const ViewUpdateStuff = {
     fields: {
       linkbreeds:                { type: "string"     , id:  1, rule: "repeated" }
     , linkshapelist:             { type: "LinkShape"  , id:  2, keyType: "string" }
-    , patchesallblack:           { type: "bool"       , id:  3 }
-    , patcheswithlabels:         { type: "uint64"     , id:  4 }
-    , ticks:                     { type: "double"     , id:  5 }
-    , turtlebreeds:              { type: "string"     , id:  6, rule: "repeated" }
-    , turtleshapelist:           { type: "TurtleShape", id:  7, keyType: "string" }
-    , unbreededlinksaredirected: { type: "bool"       , id:  8 }
-    , worldheight:               { type: "double"     , id:  9 }
-    , worldwidth:                { type: "double"     , id: 10 }
+    , maxpxcor:                  { type: "uint64"     , id:  3 }
+    , maxpycor:                  { type: "uint64"     , id:  4 }
+    , minpxcor:                  { type: "sint64"     , id:  5 }
+    , minpycor:                  { type: "sint64"     , id:  6 }
+    , patchesallblack:           { type: "bool"       , id:  7 }
+    , patcheswithlabels:         { type: "uint64"     , id:  8 }
+    , patchsize:                 { type: "double"     , id:  9 }
+    , ticks:                     { type: "double"     , id: 10 }
+    , turtlebreeds:              { type: "string"     , id: 11, rule: "repeated" }
+    , turtleshapelist:           { type: "TurtleShape", id: 12, keyType: "string" }
+    , unbreededlinksaredirected: { type: "bool"       , id: 13 }
+    , worldheight:               { type: "double"     , id: 14 }
+    , worldwidth:                { type: "double"     , id: 15 }
+    , wrappingallowedinx:        { type: "bool"       , id: 16 }
+    , wrappingallowediny:        { type: "bool"       , id: 17 }
     }
 
   , nested: {
@@ -138,7 +145,7 @@ const ViewUpdateStuff = {
 , Observer: {
     fields: {
       "perspective": { type: "uint32", id: 1 }
-    , "targetAgent": { type: "uint32", id: 2 }
+    , "targetagent": { type: "uint32", id: 2 }
     }
   }
 
@@ -256,194 +263,4 @@ const StateUpdatePB = {
 , nested: Object.assign({}, PlotUpdateStuff, ViewUpdateStuff, WidgetUpdateStuff)
 };
 
-const ViewUpdateStuff2 = {
-
-  Turtle: {
-    fields: {
-      "BREED":       { type: "string", id:  1 }
-    , "COLOR":       { type: "double", id:  2 }
-    , "HEADING":     { type: "double", id:  3 }
-    , "WHO":         { type: "uint32", id:  4 }
-    , "LABEL-COLOR": { type: "double", id:  5 }
-    , "HIDDEN?":     { type: "bool"  , id:  6 }
-    , "LABEL":       { type: "string", id:  7 }
-    , "PEN-SIZE":    { type: "double", id:  8 }
-    , "PEN-MODE":    { type: "string", id:  9 }
-    , "SHAPE":       { type: "string", id: 10 }
-    , "SIZE":        { type: "double", id: 11 }
-    , "XCOR":        { type: "double", id: 12 }
-    , "YCOR":        { type: "double", id: 13 }
-    }
-  }
-
-
-, Patch: {
-    fields: {
-      "PCOLOR":       { type: "double", id: 1 }
-    , "PLABEL":       { type: "string", id: 2 }
-    , "PLABEL-COLOR": { type: "double", id: 3 }
-    , "PXCOR":        { type: "double", id: 4 }
-    , "PYCOR":        { type: "double", id: 5 }
-    }
-  }
-
-, Link: {
-    fields: {
-      "BREED":       { type: "string", id:  1 }
-    , "COLOR":       { type: "double", id:  2 }
-    , "END1":        { type: "uint32", id:  3 }
-    , "END2":        { type: "uint32", id:  4 }
-    , "HEADING":     { type: "double", id:  5 }
-    , "HIDDEN?":     { type: "bool"  , id:  6 }
-    , "DIRECTED?":   { type: "bool"  , id:  7 }
-    , "LABEL":       { type: "string", id:  8 }
-    , "LABEL-COLOR": { type: "double", id:  9 }
-    , "MIDPOINTX":   { type: "double", id: 10 }
-    , "MIDPOINTY":   { type: "double", id: 11 }
-    , "SHAPE":       { type: "string", id: 12 }
-    , "SIZE":        { type: "double", id: 13 }
-    , "THICKNESS":   { type: "double", id: 14 }
-    , "TIE-MODE":    { type: "string", id: 15 }
-    }
-  }
-
-, World: {
-    fields: {
-      "patchesAllBlack":           { type: "bool"  , id:  1 }
-    , "patchesWithLabels":         { type: "bool"  , id:  2 }
-    , "MAXPXCOR":                  { type: "uint64", id:  3 }
-    , "MAXPYCOR":                  { type: "uint64", id:  4 }
-    , "MINPXCOR":                  { type: "sint64", id:  5 }
-    , "MINPYCOR":                  { type: "sint64", id:  6 }
-    , "patchSize":                 { type: "double", id:  7 }
-    , "ticks":                     { type: "double", id:  8 }
-    , "unbreededLinksAreDirected": { type: "bool"  , id:  9 }
-    , "worldHeight":               { type: "double", id: 10 }
-    , "worldWidth":                { type: "double", id: 11 }
-    , "wrappingAllowedInX":        { type: "bool"  , id: 12 }
-    , "wrappingAllowedInY":        { type: "bool"  , id: 13 }
-    }
-  }
-
-, Observer: {
-    fields: {
-      "perspective": { type: "uint32", id: 1 }
-    , "targetAgent": { type: "uint32", id: 2 }
-    }
-  }
-
-, ViewUpdate: {
-    fields: {
-      turtles:  { type: "Turtle"  , id: 1, keyType: "uint32" }
-    , patches:  { type: "Patch"   , id: 2, keyType: "uint32" }
-    , links:    { type: "Link"    , id: 3, keyType: "uint32" }
-    , world:    { type: "World"   , id: 4, keyType: "uint32" }
-    , observer: { type: "Observer", id: 5, keyType: "uint32" }
-    }
-  }
-
-};
-
-const PlotUpdateStuff2 = {
-
-  Pen: {
-    fields: {
-      name:            { type: "string", id: 1 }
-    , color:           { type: "double", id: 2 }
-    }
-  }
-
-, Plot: {
-    fields: {
-      name:            { type: "string", id: 1 }
-    , isLegendEnabled: { type: "bool"  , id: 2 }
-    , xLabel:          { type: "string", id: 3 }
-    , yLabel:          { type: "string", id: 4 }
-    }
-  }
-
-, PlotUpdateAddPoint: {
-    fields: {
-      penName: { type: "string", id: 1 }
-    , x:       { type: "double", id: 2 }
-    , y:       { type: "double", id: 3 }
-    }
-  }
-
-, PlotUpdateReset: {
-    fields: {
-      plot: { type: "Plot", id: 1 }
-    }
-  }
-
-, PlotUpdateResetPen: {
-    fields: {
-      penName: { type: "string", id: 1 }
-    }
-  }
-
-, PlotUpdateRegisterPen: {
-    fields: {
-      pen: { type: "Pen", id: 1 }
-    }
-  }
-
-, PlotUpdatePenColor: {
-    fields: {
-      penName: { type: "string", id: 1 }
-    , color:   { type: "double", id: 2 }
-    }
-  }
-
-, PlotUpdatePenMode: {
-    fields: {
-      penName: { type: "string", id: 1 }
-    , penMode: { type: "string", id: 2 }
-    }
-  }
-
-, PlotUpdate: {
-    oneofs: {
-      plotUpdate: {
-        oneof: ["addPoint", "reset", "resetPen", "registerPen", "updatePenColor", "updatePenMode"]
-      }
-    }
-  , fields: {
-      addPoint:       { type: "PlotUpdateAddPoint"   , id: 1 }
-    , reset:          { type: "PlotUpdateReset"      , id: 2 }
-    , resetPen:       { type: "PlotUpdateResetPen"   , id: 3 }
-    , registerPen:    { type: "PlotUpdateRegisterPen", id: 4 }
-    , updatePenColor: { type: "PlotUpdatePenColor"   , id: 5 }
-    , updatePenMode:  { type: "PlotUpdatePenMode"    , id: 6 }
-    }
-  }
-
-, PlotUpdates: {
-    fields: {
-      value: { type: "PlotUpdate", id: 1, rule: "repeated" }
-    }
-  }
-
-};
-
-const WidgetUpdateStuff2 = {
-  WidgetUpdate: {
-    fields: {
-      "varName": { type: "string", id: 1 }
-    , "value":   { type: "uint32", id: 2 }
-    }
-  }
-};
-
-const StateUpdatePB2 = {
-  fields: {
-    viewUpdate:     { type: "ViewUpdate"  , id: 1 }
-  , plotUpdates:    { type: "PlotUpdates" , id: 2, keyType: "string" }
-  , monitorUpdates: { type: "string"      , id: 3, keyType: "string" }
-  , ticks:          { type: "uint64"      , id: 4 }
-  , widgetUpdates:  { type: "WidgetUpdate", id: 5, rule: "repeated" }
-  }
-, nested: Object.assign({}, PlotUpdateStuff2, ViewUpdateStuff2, WidgetUpdateStuff2)
-};
-
-export { StateUpdatePB, StateUpdatePB2 }
+export { StateUpdatePB }

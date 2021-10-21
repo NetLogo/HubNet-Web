@@ -1,5 +1,5 @@
-import { RolePB                        } from "./role.js"
-import { StateUpdatePB, StateUpdatePB2 } from "./state-update.js"
+import { RolePB        } from "./role.js"
+import { StateUpdatePB } from "./state-update.js"
 
 const FromHostRoot = {
 
@@ -156,7 +156,7 @@ const FromHostRoot = {
         update: { type: "SUPB", id: 1 }
       }
     , nested: {
-        SUPB: StateUpdatePB2
+        SUPB: StateUpdatePB
       }
     }
 

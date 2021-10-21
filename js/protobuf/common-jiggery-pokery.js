@@ -66,36 +66,41 @@ const applyTransforms = (key, value, obj, condPairs) => {
   }
 };
 
-// (Object[Any], (((String, Any) => Boolean, (String, Any) => Any))) => Object[Any]
-const transformativeClone = (obj, condPairs) => {
-  const clone = {};
+// (Object[Any], (((String, Any) => Boolean, (String, Any) => Any)), Boolean, Object[_]) => Object[Any]
+const transformativeClone = (obj, condPairs, shouldLowerCase, whitelist) => {
+  const clone = obj.length !== undefined ? [] : {};
   for (let key in obj) {
-    const value = obj[key];
-    clone[key] = applyTransforms(key, value, obj, condPairs);
+    const value    = obj[key];
+    const trueKey  = (shouldLowerCase && whitelist[key] === undefined) ? key.toLowerCase() : key;
+    clone[trueKey] = applyTransforms(key, value, obj, condPairs);
   }
   return clone;
 };
 
-// (Object[Any]) => Object[Any]
-const innerClone = (obj) => {
+// (Object[Any], Boolean, Object[_]) => Object[Any]
+const innerClone = (obj, shouldLowerCase, whitelist) => {
 
-  const ignoresBuffers = [ ((k, v) => v.byteLength !== undefined)
+  const allowsNulls = [ ((k, v) => v === null)
+                      , ((k, v) => v)
+                      ];
+
+  const ignoresBuffers = [ ((k, v) => v.length !== undefined || v.byteLength !== undefined)
                          , ((k, v) => v)
                          ];
 
   const deeplyClonesObjs = [ ((k, v) => typeof(v) === "object")
-                           , ((k, v) => innerClone(v))
+                           , ((k, v) => innerClone(v, shouldLowerCase, whitelist))
                            ];
 
-  const pairs = [ignoresBuffers, deeplyClonesObjs];
+  const pairs = [allowsNulls, ignoresBuffers, deeplyClonesObjs];
 
-  return transformativeClone(obj, pairs);
+  return transformativeClone(obj, pairs, shouldLowerCase, whitelist);
 
 };
 
-// (Object[Any]) => Object[Any]
-const deepClone = (x) => {
-  return (typeof(x) !== "object") ? x : innerClone(x);
+// (Object[Any], Boolean, Object[_]) => Object[Any]
+const deepClone = (x, shouldLowerCase = false, whitelist = {}) => {
+  return (typeof(x) !== "object") ? x : innerClone(x, shouldLowerCase, whitelist);
 };
 
 export { deepClone, recombobulateToken, rejiggerToken }
