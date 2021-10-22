@@ -190,8 +190,22 @@ const rejiggerInitialModel = (obj) => {
               const outer = { output: deepClone(widget, { type: 1 }) };
               out[k0][k1].push(outer);
             } else if (widget.type === "hnwPlot") {
+
               const outer = { plot: deepClone(widget, { type: 1 }) };
+
+              transform(outer.plot)("xmin", (x) => Math.round(x * 10));
+              transform(outer.plot)("xmax", (x) => Math.round(x * 10));
+              transform(outer.plot)("ymin", (y) => Math.round(y * 10));
+              transform(outer.plot)("ymax", (y) => Math.round(y * 10));
+
+              const pens = Object.values(outer.plot.pens);
+              pens.forEach(
+                (pen) =>
+                  transform(pen)("interval", (i) => Math.round(i * 100))
+              );
+
               out[k0][k1].push(outer);
+
             } else if (widget.type === "hnwSlider") {
               const outer = { slider: deepClone(widget, { type: 1 }) };
               out[k0][k1].push(outer);
@@ -472,8 +486,25 @@ const recombobulateInitialModel = (obj) => {
               const inner = widget.output;
               out[k0][k1].push({ type: "hnwOutput", ...inner });
             } else if (widget.plot !== undefined) {
-              const inner = widget.plot;
-              out[k0][k1].push({ type: "hnwPlot", ...inner });
+
+              const inner   = deepClone(widget.plot);
+              const newPlot = { type: "hnwPlot", ...inner }
+
+              transform(newPlot)("xmin", (x) => x / 10);
+              transform(newPlot)("xmax", (x) => x / 10);
+              transform(newPlot)("ymin", (y) => y / 10);
+              transform(newPlot)("ymax", (y) => y / 10);
+
+              newPlot.pens = newPlot.pens || {};
+
+              const pens = Object.values(newPlot.pens);
+              pens.forEach(
+                (pen) =>
+                  transform(pen)("interval", (i) => i / 100)
+              );
+
+              out[k0][k1].push(newPlot);
+
             } else if (widget.slider !== undefined) {
               const inner = widget.slider;
               out[k0][k1].push({ type: "hnwSlider", ...inner });

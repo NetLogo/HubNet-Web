@@ -82,7 +82,7 @@ const RolePB = {
           fields: {
             display:    { type: "string", id: 1 }
           , mode:       { type: "uint32", id: 2 }
-          , interval:   { type: "double", id: 3 }
+          , interval:   { type: "uint32", id: 3 }
           , inLegend:   { type: "bool"  , id: 4 }
           , color:      { type: "sint32", id: 5 }
           , setupCode:  { type: "string", id: 6 }
@@ -163,10 +163,10 @@ const RolePB = {
           , display:       { type: "string" , id:  5 }
           , xAxis:         { type: "string" , id:  6 }
           , yAxis:         { type: "string" , id:  7 }
-          , xmin:          { type: "double" , id:  8 }
-          , xmax:          { type: "double" , id:  9 }
-          , ymin:          { type: "double" , id: 10 }
-          , ymax:          { type: "double" , id: 11 }
+          , xmin:          { type: "uint32" , id:  8 }
+          , xmax:          { type: "uint32" , id:  9 }
+          , ymin:          { type: "uint32" , id: 10 }
+          , ymax:          { type: "uint32" , id: 11 }
           , autoPlotOn:    { type: "bool"   , id: 12 }
           , legendOn:      { type: "bool"   , id: 13 }
           , setupCode:     { type: "string" , id: 14 }
