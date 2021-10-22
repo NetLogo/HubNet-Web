@@ -73,19 +73,21 @@ const applyTransforms = (key, value, obj, condPairs) => {
   }
 };
 
-// (Object[Any], (((String, Any) => Boolean, (String, Any) => Any)), Boolean, Object[_]) => Object[Any]
-const transformativeClone = (obj, condPairs, shouldLowerCase, whitelist) => {
+// (Object[Any], Array[(((String, Any) => Boolean, (String, Any) => Any))], Object[_], Boolean, Object[_]) => Object[Any]
+const transformativeClone = (obj, condPairs, blacklist, shouldLowerCase, whitelist) => {
   const clone = obj.length !== undefined ? [] : {};
   for (let key in obj) {
-    const value    = obj[key];
-    const trueKey  = (shouldLowerCase && whitelist[key] === undefined) ? key.toLowerCase() : key;
-    clone[trueKey] = applyTransforms(key, value, obj, condPairs);
+    if (!blacklist.hasOwnProperty(key)) {
+      const value    = obj[key];
+      const trueKey  = (shouldLowerCase && !whitelist.hasOwnProperty(key)) ? key.toLowerCase() : key;
+      clone[trueKey] = applyTransforms(key, value, obj, condPairs);
+    }
   }
   return clone;
 };
 
-// (Object[Any], Boolean, Object[_]) => Object[Any]
-const innerClone = (obj, shouldLowerCase, whitelist) => {
+// (Object[Any], Object[_], Boolean, Object[_]) => Object[Any]
+const innerClone = (obj, blacklist, shouldLowerCase, whitelist) => {
 
   const allowsNulls = [ ((k, v) => v === null)
                       , ((k, v) => v)
@@ -96,18 +98,18 @@ const innerClone = (obj, shouldLowerCase, whitelist) => {
                          ];
 
   const deeplyClonesObjs = [ ((k, v) => typeof(v) === "object")
-                           , ((k, v) => innerClone(v, shouldLowerCase, whitelist))
+                           , ((k, v) => innerClone(v, blacklist, shouldLowerCase, whitelist))
                            ];
 
   const pairs = [allowsNulls, ignoresBuffers, deeplyClonesObjs];
 
-  return transformativeClone(obj, pairs, shouldLowerCase, whitelist);
+  return transformativeClone(obj, pairs, blacklist, shouldLowerCase, whitelist);
 
 };
 
-// (Object[Any], Boolean, Object[_]) => Object[Any]
-const deepClone = (x, shouldLowerCase = false, whitelist = {}) => {
-  return (typeof(x) !== "object") ? x : innerClone(x, shouldLowerCase, whitelist);
+// (Object[Any], Object[_], Boolean, Object[_]) => Object[Any]
+const deepClone = (x, blacklist = {}, shouldLowerCase = false, whitelist = {}) => {
+  return (typeof(x) !== "object") ? x : innerClone(x, blacklist, shouldLowerCase, whitelist);
 };
 
 // Szudzik number pairing

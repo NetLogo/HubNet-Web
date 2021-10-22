@@ -38,18 +38,10 @@ const rejiggerRelay = (obj) => {
 
           // Rejigger relay.payload.event[type="raincheck"]
           if (v1.type === "hnw-cash-raincheck") {
-            out[k0][k1].hnwCashRaincheckPayload = {}; // Rename
-            for (let k2 in v1) {
-              const v2 = v1[k2];
-              if (k2 !== "type") { // Ignore `type`
-                out[k0][k1].hnwCashRaincheckPayload[k2] = v2;
-              }
-            }
+            const replacement = deepClone(v1, { type: 1 });
+            out[k0][k1].hnwCashRaincheckPayload = replacement; // Rename
           } else {
-            for (let k2 in v1) {
-              const v2 = v1[k2];
-              out[k0][k1][k2] = v2;
-            }
+            out[k0][k1] = deepClone(v1);
           }
 
         } else if (k1 === "data") {
@@ -58,86 +50,38 @@ const rejiggerRelay = (obj) => {
 
           // Rejigger relay.payload.data[type="button"]
           if (v1.type === "button") {
-            out[k0][k1].hnwButtonPayload = {};
-            for (let k2 in v1) {
-              const v2 = v1[k2];
-              if (k2 !== "type") {
-                out[k0][k1].hnwButtonPayload[k2] = v2;
-              }
-            }
+            const replacement = deepClone(v1, { type: 1 });
+            out[k0][k1].hnwButtonPayload = replacement; // Rename
           } else if (v1.type === "chooser") {
-            out[k0][k1].hnwChooserPayload = {};
-            for (let k2 in v1) {
-              const v2 = v1[k2];
-              if (k2 !== "type") {
-                out[k0][k1].hnwChooserPayload[k2] = v2;
-              }
-            }
+            const replacement = deepClone(v1, { type: 1 });
+            out[k0][k1].hnwChooserPayload = replacement; // Rename
           // BAD: input
           } else if (v1.type === "input78") {
-            out[k0][k1].hnwInputNumberPayload = {};
-            for (let k2 in v1) {
-              const v2 = v1[k2];
-              if (k2 !== "type") {
-                out[k0][k1].hnwInputNumberPayload[k2] = v2;
-              }
-            }
+            const replacement = deepClone(v1, { type: 1 });
+            out[k0][k1].hnwInputNumberPayload = replacement; // Rename
           } else if (v1.type === "input") {
-            out[k0][k1].hnwInputStringPayload = {};
-            for (let k2 in v1) {
-              const v2 = v1[k2];
-              if (k2 !== "type") {
-                out[k0][k1].hnwInputStringPayload[k2] = v2;
-              }
-            }
+            const replacement = deepClone(v1, { type: 1 });
+            out[k0][k1].hnwInputStringPayload = replacement; // Rename
           // BAD: mouse
           } else if (v1.type === "mouse-up") {
-            out[k0][k1].hnwMouseUpPayload = {};
-            for (let k2 in v1) {
-              const v2 = v1[k2];
-              if (k2 !== "type") {
-                out[k0][k1].hnwMouseUpPayload[k2] = v2;
-              }
-            }
+            const replacement = deepClone(v1, { type: 1 });
+            out[k0][k1].hnwMouseUpPayload = replacement; // Rename
           // BAD: mouse
           } else if (v1.type === "mouse-down") {
-            out[k0][k1].hnwMouseDownPayload = {};
-            for (let k2 in v1) {
-              const v2 = v1[k2];
-              if (k2 !== "type") {
-                out[k0][k1].hnwMouseDownPayload[k2] = v2;
-              }
-            }
+            const replacement = deepClone(v1, { type: 1 });
+            out[k0][k1].hnwMouseDownPayload = replacement; // Rename
           // BAD: mouse
           } else if (v1.type === "mouse-move") {
-            out[k0][k1].hnwMouseMovePayload = {};
-            for (let k2 in v1) {
-              const v2 = v1[k2];
-              if (k2 !== "type") {
-                out[k0][k1].hnwMouseMovePayload[k2] = v2;
-              }
-            }
+            const replacement = deepClone(v1, { type: 1 });
+            out[k0][k1].hnwMouseMovePayload = replacement; // Rename
           } else if (v1.type === "slider") {
-            out[k0][k1].hnwSliderPayload = {};
-            for (let k2 in v1) {
-              const v2 = v1[k2];
-              if (k2 !== "type") {
-                out[k0][k1].hnwSliderPayload[k2] = v2;
-              }
-            }
+            const replacement = deepClone(v1, { type: 1 });
+            out[k0][k1].hnwSliderPayload = replacement; // Rename
           } else if (v1.type === "switch") {
-            out[k0][k1].hnwSwitchPayload = {};
-            for (let k2 in v1) {
-              const v2 = v1[k2];
-              if (k2 !== "type") {
-                out[k0][k1].hnwSwitchPayload[k2] = v2;
-              }
-            }
+            const replacement = deepClone(v1, { type: 1 });
+            out[k0][k1].hnwSwitchPayload = replacement; // Rename
           } else {
-            for (let k2 in v1) {
-              const v2 = v1[k2];
-              out[k0][k1][k2] = v2;
-            }
+            out[k0][k1] = deepClone(v1);
           }
 
         } else {
@@ -204,59 +148,23 @@ const recombobulateRelay = (obj) => {
 
             // Rejigger relay.payload.hnwButtonPayload
             if (k2 === "hnwButtonPayload") {
-              const v2 = v1[k2];
-              out[k0][k1].type = "button";
-              for (let k3 in v2) {
-                out[k0][k1][k3] = v2[k3];
-              }
+              out[k0][k1] = { type: "button", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwChooserPayload") {
-              const v2 = v1[k2];
-              out[k0][k1].type = "chooser";
-              for (let k3 in v2) {
-                out[k0][k1][k3] = v2[k3];
-              }
+              out[k0][k1] = { type: "chooser", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwInputNumberPayload") {
-              const v2 = v1[k2];
-              out[k0][k1].type = "input78";
-              for (let k3 in v2) {
-                out[k0][k1][k3] = v2[k3];
-              }
+              out[k0][k1] = { type: "input78", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwInputStringPayload") {
-              const v2 = v1[k2];
-              out[k0][k1].type = "input";
-              for (let k3 in v2) {
-                out[k0][k1][k3] = v2[k3];
-              }
+              out[k0][k1] = { type: "input", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwMouseUpPayload") {
-              const v2 = v1[k2];
-              out[k0][k1].type = "mouse-up";
-              for (let k3 in v2) {
-                out[k0][k1][k3] = v2[k3];
-              }
+              out[k0][k1] = { type: "mouse-up", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwMouseDownPayload") {
-              const v2 = v1[k2];
-              out[k0][k1].type = "mouse-down";
-              for (let k3 in v2) {
-                out[k0][k1][k3] = v2[k3];
-              }
+              out[k0][k1] = { type: "mouse-down", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwMouseMovePayload") {
-              const v2 = v1[k2];
-              out[k0][k1].type = "mouse-move";
-              for (let k3 in v2) {
-                out[k0][k1][k3] = v2[k3];
-              }
+              out[k0][k1] = { type: "mouse-move", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwSliderPayload") {
-              const v2 = v1[k2];
-              out[k0][k1].type = "slider";
-              for (let k3 in v2) {
-                out[k0][k1][k3] = v2[k3];
-              }
+              out[k0][k1] = { type: "slider", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwSwitchPayload") {
-              const v2 = v1[k2];
-              out[k0][k1].type = "switch";
-              for (let k3 in v2) {
-                out[k0][k1][k3] = v2[k3];
-              }
+              out[k0][k1] = { type: "switch", ...deepClone(v1[k2]) };
             } else {
               out[k0][k1][k2] = v1[k2];
             }
