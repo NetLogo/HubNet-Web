@@ -223,8 +223,6 @@ const RolePB = {
           , right:  { type: "uint32", id:  2 }
           , top:    { type: "uint32", id:  3 }
           , bottom: { type: "uint32", id:  4 }
-          , height: { type: "uint32", id:  5 }
-          , width:  { type: "uint32", id:  6 }
           }
         }
 

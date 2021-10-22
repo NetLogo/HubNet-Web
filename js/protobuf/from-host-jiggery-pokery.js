@@ -486,7 +486,9 @@ const recombobulateInitialModel = (obj) => {
               transform(replacement)("color", (c) => c / 10);
               out[k0][k1].push(replacement);
             } else if (widget.view !== undefined) {
-              const inner = widget.view;
+              const inner  = deepClone(widget.view);
+              inner.height = inner.bottom - inner.top;
+              inner.width  = inner.right  - inner.left;
               out[k0][k1].push({ type: "hnwView", ...inner });
             } else {
               console.warn("Well, that's impressive.  What widget type could this be?", widget);
