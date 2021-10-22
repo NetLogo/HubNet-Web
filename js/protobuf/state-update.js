@@ -60,7 +60,7 @@ const ViewUpdateStuff = {
     , patchesallblack:           { type: "bool"       , id:  7 }
     , patcheswithlabels:         { type: "uint64"     , id:  8 }
     , patchsize:                 { type: "uint32"     , id:  9 }
-    , ticks:                     { type: "double"     , id: 10 }
+    , ticks:                     { type: "uint64"     , id: 10 }
     , turtlebreeds:              { type: "string"     , id: 11, rule: "repeated" }
     , turtleshapelist:           { type: "TurtleShape", id: 12, keyType: "string" }
     , unbreededlinksaredirected: { type: "bool"       , id: 13 }

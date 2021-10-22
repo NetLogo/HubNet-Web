@@ -104,6 +104,7 @@ const rejiggerWorlds = (worlds, parent) => {
       const xform = transform(w);
 
       xform("patchsize", (s) => Math.round(s * 100));
+      xform("ticks"    , (t) => Math.round(t * 100));
 
       parent[who] = w;
 
@@ -405,6 +406,7 @@ const recombobulateWorlds = (worlds, parent) => {
       const xform = transform(w);
 
       xform("patchsize", (s) => s / 100);
+      xform("ticks"    , (t) => t / 100);
 
       parent[who] = w;
 
