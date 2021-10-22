@@ -8,7 +8,7 @@ const ViewUpdateStuff = {
     , "hidden?":     { type: "bool"  , id:  4 }
     , "label":       { type: "string", id:  5 }
     , "label-color": { type: "uint32", id:  6 }
-    , "pen-mode":    { type: "string", id:  7 }
+    , "pen-mode":    { type: "uint32", id:  7 }
     , "pen-size":    { type: "uint32", id:  8 }
     , "shape":       { type: "string", id:  9 }
     , "size":        { type: "uint32", id: 10 }
