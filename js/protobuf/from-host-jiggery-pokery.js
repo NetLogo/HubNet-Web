@@ -96,6 +96,68 @@ const rejiggerTurtles = (turtles, parent) => {
   );
 };
 
+// (Object[Any]) => Object[Any]
+const rejiggerSprite = (sprite) => {
+
+  const clone = deepClone(sprite);
+
+  transform(clone)("elements", (es) => {
+    return es.map(
+      (e) => {
+
+        const elem            = deepClone(e);
+        const regex           = /rgba\((\d{1,3}), (\d{1,3}), (\d{1,3}), (\d{1,3})\)/;
+        const [_, r, g, b, a] = elem.color.match(regex);
+
+        elem.colorR = r;
+        elem.colorG = g;
+        elem.colorB = b;
+        elem.colorA = a;
+
+        return elem;
+
+      }
+    );
+  });
+
+  return clone;
+
+}
+
+// (Object[Any]) => Object[Any]
+const rejiggerLinkShapes = (linkShapes) => {
+
+  const out =
+    Object.fromEntries(
+      Object.entries(linkShapes).map(
+        ([name, shape]) => {
+          const s = deepClone(shape);
+          transform(s)("direction-indicator", rejiggerSprite);
+          return [name, s];
+        }
+      )
+    );
+
+  return out;
+
+}
+
+// (Object[Any]) => Object[Any]
+const rejiggerTurtleShapes = (turtleShapes) => {
+
+  const out =
+    Object.fromEntries(
+      Object.entries(turtleShapes).map(
+        ([name, shape]) => {
+          return [name, rejiggerSprite(shape)];
+        }
+      )
+    );
+
+  return out;
+
+}
+
 // (Object[Any], Object[Any]) => Object[Any]
 const rejiggerWorlds = (worlds, parent) => {
   Object.entries(worlds).forEach(
@@ -106,6 +168,9 @@ const rejiggerWorlds = (worlds, parent) => {
 
       xform("patchsize", (s) => Math.round(s * 100));
       xform("ticks"    , (t) => Math.round(t * 100));
+
+      xform("linkshapelist"  , rejiggerLinkShapes);
+      xform("turtleshapelist", rejiggerTurtleShapes);
 
       parent[who] = w;
 
@@ -399,6 +464,61 @@ const recombobulateTurtles = (turtles, parent) => {
   );
 };
 
+// (Object[Any]) => Object[Any]
+const recombobulateSprite = (sprite) => {
+
+  const clone = deepClone(sprite);
+
+  transform(clone)("elements", (es) => {
+    return es.map(
+      (e) => {
+        const blacklist    = { colorR: 1, colorG: 1, colorB: 1, colorA: 1 };
+        const elem         = deepClone(e, blacklist);
+        const [r, g, b, a] = [e.colorR, e.colorG, e.colorB, e.colorA];
+        elem.color         = `rgba(${r}, ${g}, ${b}, ${a})`;
+        return elem;
+      }
+    );
+  });
+
+  return clone;
+
+}
+
+// (Object[Any]) => Object[Any]
+const recombobulateLinkShapes = (linkShapes) => {
+
+  const out =
+    Object.fromEntries(
+      Object.entries(linkShapes).map(
+        ([name, shape]) => {
+          const s = deepClone(shape);
+          transform(s)("direction-indicator", recombobulateSprite);
+          return [name, s];
+        }
+      )
+    );
+
+  return out;
+
+}
+
+// (Object[Any]) => Object[Any]
+const recombobulateTurtleShapes = (turtleShapes) => {
+
+  const out =
+    Object.fromEntries(
+      Object.entries(turtleShapes).map(
+        ([name, shape]) => {
+          return [name, recombobulateSprite(shape)];
+        }
+      )
+    );
+
+  return out;
+
+}
+
 // (Object[Any], Object[Any]) => Object[Any]
 const recombobulateWorlds = (worlds, parent) => {
   Object.entries(worlds).forEach(
@@ -409,6 +529,9 @@ const recombobulateWorlds = (worlds, parent) => {
 
       xform("patchsize", (s) => s / 100);
       xform("ticks"    , (t) => t / 100);
+
+      xform("linkshapelist"  , recombobulateLinkShapes);
+      xform("turtleshapelist", recombobulateTurtleShapes);
 
       parent[who] = w;
 

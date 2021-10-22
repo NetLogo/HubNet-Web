@@ -83,23 +83,26 @@ const ViewUpdateStuff = {
 
     , Element: {
         fields: {
-          color:  { type: "string" , id:  1 }
-        , filled: { type: "bool"   , id:  2 }
-        , marked: { type: "bool"   , id:  3 }
-        , type:   { type: "SVGType", id:  4 }
-        , x1:     { type: "sint32" , id:  5 } // line
-        , x2:     { type: "sint32" , id:  6 } // line
-        , y1:     { type: "sint32" , id:  7 } // line
-        , y2:     { type: "sint32" , id:  8 } // line
-        , xmax:   { type: "sint32" , id:  9 } // rectangle
-        , xmin:   { type: "sint32" , id: 10 } // rectangle
-        , ymax:   { type: "sint32" , id: 11 } // rectangle
-        , ymin:   { type: "sint32" , id: 12 } // rectangle
-        , x:      { type: "sint32" , id: 13 } // circle
-        , y:      { type: "sint32" , id: 14 } // circle
-        , diam:   { type: "sint32" , id: 15 } // circle
-        , xcors:  { type: "sint32" , id: 16, rule: "repeated" } // polygon
-        , ycors:  { type: "sint32" , id: 17, rule: "repeated" } // polygon
+          colorR: { type: "uint32" , id:  1 } // Pokery optimization
+        , colorG: { type: "uint32" , id:  2 } // Pokery optimization
+        , colorB: { type: "uint32" , id:  3 } // Pokery optimization
+        , colorA: { type: "uint32" , id:  4 } // Pokery optimization
+        , filled: { type: "bool"   , id:  5 }
+        , marked: { type: "bool"   , id:  6 }
+        , type:   { type: "SVGType", id:  7 }
+        , x1:     { type: "sint32" , id:  8 } // line
+        , x2:     { type: "sint32" , id:  9 } // line
+        , y1:     { type: "sint32" , id: 10 } // line
+        , y2:     { type: "sint32" , id: 11 } // line
+        , xmax:   { type: "sint32" , id: 12 } // rectangle
+        , xmin:   { type: "sint32" , id: 13 } // rectangle
+        , ymax:   { type: "sint32" , id: 14 } // rectangle
+        , ymin:   { type: "sint32" , id: 15 } // rectangle
+        , x:      { type: "sint32" , id: 16 } // circle
+        , y:      { type: "sint32" , id: 17 } // circle
+        , diam:   { type: "sint32" , id: 18 } // circle
+        , xcors:  { type: "sint32" , id: 19, rule: "repeated" } // polygon
+        , ycors:  { type: "sint32" , id: 20, rule: "repeated" } // polygon
         }
       }
 
