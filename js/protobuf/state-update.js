@@ -64,8 +64,8 @@ const ViewUpdateStuff = {
     , turtlebreeds:              { type: "string"     , id: 11, rule: "repeated" }
     , turtleshapelist:           { type: "TurtleShape", id: 12, keyType: "string" }
     , unbreededlinksaredirected: { type: "bool"       , id: 13 }
-    , worldheight:               { type: "double"     , id: 14 }
-    , worldwidth:                { type: "double"     , id: 15 }
+    , worldheight:               { type: "uint64"     , id: 14 }
+    , worldwidth:                { type: "uint64"     , id: 15 }
     , wrappingallowedinx:        { type: "bool"       , id: 16 }
     , wrappingallowediny:        { type: "bool"       , id: 17 }
     }
