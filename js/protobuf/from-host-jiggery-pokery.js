@@ -40,11 +40,13 @@ const rejiggerLinks = (links, parent) => {
       const l     = deepClone(link, {}, true);
       const xform = transform(l);
 
-      xform("color"      , (c) => Math.floor(c * 10));
-      xform("heading"    , (h) => Math.round(h     ));
-      xform("label-color", (c) => Math.floor(c * 10));
-      xform("midpointx"  , (x) => Math.round(x * 10));
-      xform("midpointy"  , (y) => Math.round(y * 10));
+      xform("color"      , (c) => Math.floor(   c *  10));
+      xform("heading"    , (h) => Math.round(   h      ));
+      xform("label-color", (c) => Math.floor(   c *  10));
+      xform("midpointx"  , (x) => Math.round(   x *  10));
+      xform("midpointy"  , (y) => Math.round(   y *  10));
+      xform("size"       , (s) => Math.  max(0, s * 100));
+      xform("thickness"  , (s) => Math.  max(0, s * 100));
 
       parent[who] = l;
 
@@ -79,13 +81,31 @@ const rejiggerTurtles = (turtles, parent) => {
       const t     = deepClone(turtle, {}, true);
       const xform = transform(t);
 
-      xform("color"      , (c) => Math.floor(c * 10));
-      xform("heading"    , (h) => Math.round(h     ));
-      xform("label-color", (c) => Math.floor(c * 10));
-      xform("xcor"       , (x) => Math.round(x * 10));
-      xform("ycor"       , (y) => Math.round(y * 10));
+      xform("color"      , (c) => Math.floor(   c *  10));
+      xform("heading"    , (h) => Math.round(   h      ));
+      xform("label-color", (c) => Math.floor(   c *  10));
+      xform("pen-size"   , (s) => Math.  max(0, s * 100));
+      xform("size"       , (s) => Math.  max(0, s * 100));
+      xform("xcor"       , (x) => Math.round(   x *  10));
+      xform("ycor"       , (y) => Math.round(   y *  10));
 
       parent[who] = t;
+
+    }
+  );
+};
+
+// (Object[Any], Object[Any]) => Object[Any]
+const rejiggerWorlds = (worlds, parent) => {
+  Object.entries(worlds).forEach(
+    ([who, world]) => {
+
+      const w     = deepClone(world, {}, true, { editableColorIndex: true });
+      const xform = transform(w);
+
+      xform("patchsize", (s) => Math.round(s * 100));
+
+      parent[who] = w;
 
     }
   );
@@ -105,7 +125,8 @@ const rejiggerViewUpdates = (target, parent) => {
       parent[k0] = {};
       rejiggerTurtles(v0, parent[k0]);
     } else if (k0 === "world") {
-      parent[k0] = deepClone(v0, {}, true, { editableColorIndex: true });
+      parent[k0] = {};
+      rejiggerWorlds(v0, parent[k0]);
     } else if (k0 === "observer") {
       parent[k0] = deepClone(v0, {}, true);
     } else {
@@ -322,10 +343,12 @@ const recombobulateLinks = (links, parent) => {
       const l     = deepClone(link);
       const xform = transform(l);
 
-      xform("color"      , (c) => c / 10);
-      xform("label-color", (c) => c / 10);
-      xform("midpointx"  , (x) => x / 10);
-      xform("midpointy"  , (y) => y / 10);
+      xform("color"      , (c) => c /  10);
+      xform("label-color", (c) => c /  10);
+      xform("midpointx"  , (x) => x /  10);
+      xform("midpointy"  , (y) => y /  10);
+      xform("size"       , (s) => s / 100);
+      xform("thickness"  , (s) => s / 100);
 
       parent[who] = l;
 
@@ -360,16 +383,35 @@ const recombobulateTurtles = (turtles, parent) => {
       const t     = deepClone(turtle);
       const xform = transform(t);
 
-      xform("color"      , (c) => c / 10);
-      xform("label-color", (c) => c / 10);
-      xform("xcor"       , (x) => x / 10);
-      xform("ycor"       , (y) => y / 10);
+      xform("color"      , (c) => c /  10);
+      xform("label-color", (c) => c /  10);
+      xform("pen-size"   , (s) => s / 100);
+      xform("size"       , (s) => s / 100);
+      xform("xcor"       , (x) => x /  10);
+      xform("ycor"       , (y) => y /  10);
 
       parent[who] = t;
 
     }
   );
 };
+
+// (Object[Any], Object[Any]) => Object[Any]
+const recombobulateWorlds = (worlds, parent) => {
+  Object.entries(worlds).forEach(
+    ([who, world]) => {
+
+      const w     = deepClone(world, {}, true, { editableColorIndex: true });
+      const xform = transform(w);
+
+      xform("patchsize", (s) => s / 100);
+
+      parent[who] = w;
+
+    }
+  );
+};
+
 
 // (Object[Any], Object[Any]) => Object[Any]
 const recombobulateViewUpdates = (target, parent) => {
@@ -384,6 +426,9 @@ const recombobulateViewUpdates = (target, parent) => {
     } else if (k0 === "turtles") {
       parent[k0] = {};
       recombobulateTurtles(v0, parent[k0]);
+    } else if (k0 === "world") {
+      parent[k0] = {};
+      recombobulateWorlds(v0, parent[k0]);
     } else {
       parent[k0] = deepClone(v0);
     }

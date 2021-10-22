@@ -9,9 +9,9 @@ const ViewUpdateStuff = {
     , "label":       { type: "string", id:  5 }
     , "label-color": { type: "uint32", id:  6 }
     , "pen-mode":    { type: "string", id:  7 }
-    , "pen-size":    { type: "double", id:  8 }
+    , "pen-size":    { type: "uint32", id:  8 }
     , "shape":       { type: "string", id:  9 }
-    , "size":        { type: "double", id: 10 }
+    , "size":        { type: "uint32", id: 10 }
     , "who":         { type: "uint64", id: 11 }
     , "xcor":        { type: "sint32", id: 12 }
     , "ycor":        { type: "sint32", id: 13 }
@@ -42,8 +42,8 @@ const ViewUpdateStuff = {
     , "midpointx":   { type: "sint32", id: 10 }
     , "midpointy":   { type: "sint32", id: 11 }
     , "shape":       { type: "string", id: 12 }
-    , "size":        { type: "double", id: 13 }
-    , "thickness":   { type: "double", id: 14 }
+    , "size":        { type: "uint32", id: 13 }
+    , "thickness":   { type: "uint32", id: 14 }
     , "tie-mode":    { type: "string", id: 15 }
     }
   }
@@ -59,7 +59,7 @@ const ViewUpdateStuff = {
     , minpycor:                  { type: "sint32"     , id:  6 }
     , patchesallblack:           { type: "bool"       , id:  7 }
     , patcheswithlabels:         { type: "uint64"     , id:  8 }
-    , patchsize:                 { type: "double"     , id:  9 }
+    , patchsize:                 { type: "uint32"     , id:  9 }
     , ticks:                     { type: "double"     , id: 10 }
     , turtlebreeds:              { type: "string"     , id: 11, rule: "repeated" }
     , turtleshapelist:           { type: "TurtleShape", id: 12, keyType: "string" }
