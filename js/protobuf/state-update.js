@@ -12,7 +12,7 @@ const ViewUpdateStuff = {
     , "pen-size":    { type: "double", id:  8 }
     , "shape":       { type: "string", id:  9 }
     , "size":        { type: "double", id: 10 }
-    , "who":         { type: "uint32", id: 11 }
+    , "who":         { type: "uint64", id: 11 }
     , "xcor":        { type: "sint32", id: 12 }
     , "ycor":        { type: "sint32", id: 13 }
     }
@@ -53,10 +53,10 @@ const ViewUpdateStuff = {
     fields: {
       linkbreeds:                { type: "string"     , id:  1, rule: "repeated" }
     , linkshapelist:             { type: "LinkShape"  , id:  2, keyType: "string" }
-    , maxpxcor:                  { type: "uint64"     , id:  3 }
-    , maxpycor:                  { type: "uint64"     , id:  4 }
-    , minpxcor:                  { type: "sint64"     , id:  5 }
-    , minpycor:                  { type: "sint64"     , id:  6 }
+    , maxpxcor:                  { type: "uint32"     , id:  3 }
+    , maxpycor:                  { type: "uint32"     , id:  4 }
+    , minpxcor:                  { type: "sint32"     , id:  5 }
+    , minpycor:                  { type: "sint32"     , id:  6 }
     , patchesallblack:           { type: "bool"       , id:  7 }
     , patcheswithlabels:         { type: "uint64"     , id:  8 }
     , patchsize:                 { type: "double"     , id:  9 }
