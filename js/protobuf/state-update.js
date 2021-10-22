@@ -257,8 +257,7 @@ const StateUpdatePB = {
     viewUpdate:     { type: "ViewUpdate"  , id: 1 }
   , plotUpdates:    { type: "PlotUpdates" , id: 2, keyType: "string" }
   , monitorUpdates: { type: "string"      , id: 3, keyType: "string" }
-  , ticks:          { type: "uint64"      , id: 4 }
-  , widgetUpdates:  { type: "WidgetUpdate", id: 5, rule: "repeated" }
+  , widgetUpdates:  { type: "WidgetUpdate", id: 4, rule: "repeated" }
   }
 , nested: Object.assign({}, PlotUpdateStuff, ViewUpdateStuff, WidgetUpdateStuff)
 };
