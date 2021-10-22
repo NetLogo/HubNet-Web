@@ -54,22 +54,22 @@ const JoinerRelayPayloadPB = {
 
   , MouseUpPayload: {
       fields: {
-        "xcor": { type: "double", id: 1 }
-      , "ycor": { type: "double", id: 2 }
+        "xcor": { type: "uint32", id: 1 }
+      , "ycor": { type: "uint32", id: 2 }
       }
     }
 
   , MouseDownPayload: {
       fields: {
-        "xcor": { type: "double", id: 1 }
-      , "ycor": { type: "double", id: 2 }
+        "xcor": { type: "uint32", id: 1 }
+      , "ycor": { type: "uint32", id: 2 }
       }
     }
 
   , MouseMovePayload: {
       fields: {
-        "xcor": { type: "double", id: 1 }
-      , "ycor": { type: "double", id: 2 }
+        "xcor": { type: "uint32", id: 1 }
+      , "ycor": { type: "uint32", id: 2 }
       }
     }
 

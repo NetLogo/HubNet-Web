@@ -1,4 +1,4 @@
-import { deepClone, recombobulateToken, rejiggerToken } from "./common-jiggery-pokery.js"
+import { deepClone, recombobulateToken, rejiggerToken, transform } from "./common-jiggery-pokery.js"
 
 // (Object[Any]) => Object[Any]
 const rejiggerConnEst = (obj) => {
@@ -65,14 +65,20 @@ const rejiggerRelay = (obj) => {
           // BAD: mouse
           } else if (v1.type === "mouse-up") {
             const replacement = deepClone(v1, { type: 1 });
+            transform(replacement)("xcor", (x) => Math.round(x * 10));
+            transform(replacement)("ycor", (y) => Math.round(y * 10));
             out[k0][k1].hnwMouseUpPayload = replacement; // Rename
           // BAD: mouse
           } else if (v1.type === "mouse-down") {
             const replacement = deepClone(v1, { type: 1 });
+            transform(replacement)("xcor", (x) => Math.round(x * 10));
+            transform(replacement)("ycor", (y) => Math.round(y * 10));
             out[k0][k1].hnwMouseDownPayload = replacement; // Rename
           // BAD: mouse
           } else if (v1.type === "mouse-move") {
             const replacement = deepClone(v1, { type: 1 });
+            transform(replacement)("xcor", (x) => Math.round(x * 10));
+            transform(replacement)("ycor", (y) => Math.round(y * 10));
             out[k0][k1].hnwMouseMovePayload = replacement; // Rename
           } else if (v1.type === "slider") {
             const replacement = deepClone(v1, { type: 1 });
@@ -157,10 +163,16 @@ const recombobulateRelay = (obj) => {
               out[k0][k1] = { type: "input", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwMouseUpPayload") {
               out[k0][k1] = { type: "mouse-up", ...deepClone(v1[k2]) };
+              transform(out[k0][k1])("xcor", (x) => x / 10);
+              transform(out[k0][k1])("ycor", (y) => y / 10);
             } else if (k2 === "hnwMouseDownPayload") {
               out[k0][k1] = { type: "mouse-down", ...deepClone(v1[k2]) };
+              transform(out[k0][k1])("xcor", (x) => x / 10);
+              transform(out[k0][k1])("ycor", (y) => y / 10);
             } else if (k2 === "hnwMouseMovePayload") {
               out[k0][k1] = { type: "mouse-move", ...deepClone(v1[k2]) };
+              transform(out[k0][k1])("xcor", (x) => x / 10);
+              transform(out[k0][k1])("ycor", (y) => y / 10);
             } else if (k2 === "hnwSliderPayload") {
               out[k0][k1] = { type: "slider", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwSwitchPayload") {
