@@ -119,7 +119,7 @@ const rejiggerPlotUpdates = (target, parent) => {
 
     for (let k1 in target[k0]) {
       const pupdate = target[k0][k1];
-      // Rejigger *.plotUpdates > *[type="add-point"]
+      // Rejigger *.plotUpdates > *[type="add-point"], etc.
       if (pupdate.type === "add-point") {
         const outer = { addPoint: deepClone(pupdate, { type: 1 }) };
         newPupdates.push(outer);
@@ -173,7 +173,7 @@ const rejiggerInitialModel = (obj) => {
 
             const widget = v1[k2];
 
-            // Rejigger initial-model.role.widgets > [type="button"]
+            // Rejigger initial-model.role.widgets > [type="button"], etc.
             if (widget.type === "hnwButton") {
               const outer = { button: deepClone(widget, { type: 1 }) };
               out[k0][k1].push(outer);
@@ -240,7 +240,7 @@ const rejiggerRelay = (obj) => {
 
       out[k0] = {};
 
-      // Rejigger relay.payload.data[type="ticks-started"]
+      // Rejigger relay.payload.data[type="ticks-started"], etc.
       if (v0.type === "ticks-started") {
         const outer = { hnwTicksStarted: deepClone(v0, { type: 1 }) };
         out[k0] = outer;
@@ -397,7 +397,7 @@ const recombobulatePlotUpdates = (target, parent) => {
 
     for (let pupdate in target[k0]) {
 
-      // recombobulate *.plotUpdates > *{ addPoint }
+      // recombobulate *.plotUpdates > *{ addPoint }, etc.
       if (pupdate.addPoint !== undefined) {
         const inner = pupdate.addPoint;
         newPupdates.push({ type: "add-point", ...inner });
@@ -451,7 +451,7 @@ const recombobulateInitialModel = (obj) => {
 
           out[k0][k1] = [];
 
-          // recombobulate initial-model.role.widgets > *
+          // Recombobulate initial-model.role.widgets > *, etc.
           for (let k2 in v1) {
 
             const widget = v1[k2];
@@ -527,7 +527,7 @@ const recombobulateRelay = (obj) => {
 
         const v1 = v0[k1];
 
-        // recombobulate relay.payload.hnwTicksStarted
+        // Recombobulate relay.payload.hnwTicksStarted, etc.
         if (k1 === "hnwTicksStarted") {
           out[k0][k1] = { type: "ticks-started", ...deepClone(v1) };
         } else {

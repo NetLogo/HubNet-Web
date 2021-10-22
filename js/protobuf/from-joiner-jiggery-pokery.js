@@ -36,10 +36,10 @@ const rejiggerRelay = (obj) => {
 
           out[k0][k1] = {};
 
-          // Rejigger relay.payload.event[type="raincheck"]
+          // Rejigger relay.payload.event[type="raincheck"], etc.
           if (v1.type === "hnw-cash-raincheck") {
             const replacement = deepClone(v1, { type: 1 });
-            out[k0][k1].hnwCashRaincheckPayload = replacement; // Rename
+            out[k0][k1].hnwCashRaincheckPayload = replacement;
           } else {
             out[k0][k1] = deepClone(v1);
           }
@@ -48,44 +48,44 @@ const rejiggerRelay = (obj) => {
 
           out[k0][k1] = {};
 
-          // Rejigger relay.payload.data[type="button"]
+          // Rejigger relay.payload.data[type="button"], etc.
           if (v1.type === "button") {
             const replacement = deepClone(v1, { type: 1 });
-            out[k0][k1].hnwButtonPayload = replacement; // Rename
+            out[k0][k1].hnwButtonPayload = replacement;
           } else if (v1.type === "chooser") {
             const replacement = deepClone(v1, { type: 1 });
-            out[k0][k1].hnwChooserPayload = replacement; // Rename
+            out[k0][k1].hnwChooserPayload = replacement;
           // BAD: input
           } else if (v1.type === "input78") {
             const replacement = deepClone(v1, { type: 1 });
-            out[k0][k1].hnwInputNumberPayload = replacement; // Rename
+            out[k0][k1].hnwInputNumberPayload = replacement;
           } else if (v1.type === "input") {
             const replacement = deepClone(v1, { type: 1 });
-            out[k0][k1].hnwInputStringPayload = replacement; // Rename
+            out[k0][k1].hnwInputStringPayload = replacement;
           // BAD: mouse
           } else if (v1.type === "mouse-up") {
             const replacement = deepClone(v1, { type: 1 });
             transform(replacement)("xcor", (x) => Math.round(x * 10));
             transform(replacement)("ycor", (y) => Math.round(y * 10));
-            out[k0][k1].hnwMouseUpPayload = replacement; // Rename
+            out[k0][k1].hnwMouseUpPayload = replacement;
           // BAD: mouse
           } else if (v1.type === "mouse-down") {
             const replacement = deepClone(v1, { type: 1 });
             transform(replacement)("xcor", (x) => Math.round(x * 10));
             transform(replacement)("ycor", (y) => Math.round(y * 10));
-            out[k0][k1].hnwMouseDownPayload = replacement; // Rename
+            out[k0][k1].hnwMouseDownPayload = replacement;
           // BAD: mouse
           } else if (v1.type === "mouse-move") {
             const replacement = deepClone(v1, { type: 1 });
             transform(replacement)("xcor", (x) => Math.round(x * 10));
             transform(replacement)("ycor", (y) => Math.round(y * 10));
-            out[k0][k1].hnwMouseMovePayload = replacement; // Rename
+            out[k0][k1].hnwMouseMovePayload = replacement;
           } else if (v1.type === "slider") {
             const replacement = deepClone(v1, { type: 1 });
-            out[k0][k1].hnwSliderPayload = replacement; // Rename
+            out[k0][k1].hnwSliderPayload = replacement;
           } else if (v1.type === "switch") {
             const replacement = deepClone(v1, { type: 1 });
-            out[k0][k1].hnwSwitchPayload = replacement; // Rename
+            out[k0][k1].hnwSwitchPayload = replacement;
           } else {
             out[k0][k1] = deepClone(v1);
           }
@@ -134,7 +134,7 @@ const recombobulateRelay = (obj) => {
           out[k0][k1] = {};
           for (let k2 in v1) {
 
-            // recombobulate relay.payload.event.hnwCashRaincheckPayload
+            // recombobulate relay.payload.event.hnwCashRaincheckPayload, etc.
             if (k2 === "hnwCashRaincheckPayload") {
               out[k0][k1].type = "hnw-cash-raincheck";
               for (let k3 in v1) {
@@ -152,7 +152,7 @@ const recombobulateRelay = (obj) => {
 
           for (let k2 in v1) {
 
-            // Rejigger relay.payload.hnwButtonPayload
+            // Rejigger relay.payload.hnwButtonPayload, etc.
             if (k2 === "hnwButtonPayload") {
               out[k0][k1] = { type: "button", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwChooserPayload") {
