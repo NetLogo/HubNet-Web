@@ -41,7 +41,10 @@ const rejiggerLinks = (links, parent) => {
       const xform = transform(l);
 
       xform("color"      , (c) => Math.floor(c * 10));
+      xform("heading"    , (h) => Math.round(h     ));
       xform("label-color", (c) => Math.floor(c * 10));
+      xform("midpointx"  , (x) => Math.round(x * 10));
+      xform("midpointy"  , (y) => Math.round(y * 10));
 
       parent[who] = l;
 
@@ -59,6 +62,8 @@ const rejiggerPatches = (patches, parent) => {
 
       xform("pcolor"      , (c) => Math.floor(c * 10));
       xform("plabel-color", (c) => Math.floor(c * 10));
+      xform("pxcor"       , (x) => Math.round(x * 10));
+      xform("pycor"       , (y) => Math.round(y * 10));
 
       parent[who] = p;
 
@@ -122,6 +127,8 @@ const rejiggerPlotUpdates = (target, parent) => {
       // Rejigger *.plotUpdates > *[type="add-point"], etc.
       if (pupdate.type === "add-point") {
         const outer = { addPoint: deepClone(pupdate, { type: 1 }) };
+        transform(outer.addPoint)("x", (x) => Math.round(x * 10));
+        transform(outer.addPoint)("y", (y) => Math.round(y * 10));
         newPupdates.push(outer);
       } else if (pupdate.type === "reset") {
         const outer = { reset: deepClone(pupdate, { type: 1 }) };
@@ -317,6 +324,8 @@ const recombobulateLinks = (links, parent) => {
 
       xform("color"      , (c) => c / 10);
       xform("label-color", (c) => c / 10);
+      xform("midpointx"  , (x) => x / 10);
+      xform("midpointy"  , (y) => y / 10);
 
       parent[who] = l;
 
@@ -334,6 +343,8 @@ const recombobulatePatches = (patches, parent) => {
 
       xform("pcolor"      , (c) => c / 10);
       xform("plabel-color", (c) => c / 10);
+      xform("pxcor"       , (x) => x / 10);
+      xform("pycor"       , (y) => y / 10);
 
       parent[who] = p;
 
@@ -414,7 +425,10 @@ const recombobulatePlotUpdates = (target, parent) => {
       // recombobulate *.plotUpdates > *{ addPoint }, etc.
       if (pupdate.addPoint !== undefined) {
         const inner = pupdate.addPoint;
-        newPupdates.push({ type: "add-point", ...inner });
+        const out   = { type: "add-point", ...deepClone(inner) };
+        transform(out)("x", (x) => x / 10);
+        transform(out)("y", (y) => y / 10);
+        newPupdates.push(out);
       } else if (pupdate.reset !== undefined) {
         const inner = pupdate.reset;
         newPupdates.push({ type: "reset", ...inner });

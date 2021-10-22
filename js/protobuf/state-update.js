@@ -4,7 +4,7 @@ const ViewUpdateStuff = {
     fields: {
       "breed":       { type: "string", id:  1 }
     , "color":       { type: "uint32", id:  2 }
-    , "heading":     { type: "double", id:  3 }
+    , "heading":     { type: "uint32", id:  3 }
     , "hidden?":     { type: "bool"  , id:  4 }
     , "label":       { type: "string", id:  5 }
     , "label-color": { type: "uint32", id:  6 }
@@ -13,8 +13,8 @@ const ViewUpdateStuff = {
     , "shape":       { type: "string", id:  9 }
     , "size":        { type: "double", id: 10 }
     , "who":         { type: "uint32", id: 11 }
-    , "xcor":        { type: "double", id: 12 }
-    , "ycor":        { type: "double", id: 13 }
+    , "xcor":        { type: "sint32", id: 12 }
+    , "ycor":        { type: "sint32", id: 13 }
     }
   }
 
@@ -23,8 +23,8 @@ const ViewUpdateStuff = {
       "pcolor":       { type: "uint32", id: 1 }
     , "plabel":       { type: "string", id: 2 }
     , "plabel-color": { type: "uint32", id: 3 }
-    , "pxcor":        { type: "double", id: 4 }
-    , "pycor":        { type: "double", id: 5 }
+    , "pxcor":        { type: "sint32", id: 4 }
+    , "pycor":        { type: "sint32", id: 5 }
     }
   }
 
@@ -34,13 +34,13 @@ const ViewUpdateStuff = {
     , "color":       { type: "uint32", id:  2 }
     , "end1":        { type: "uint32", id:  3 }
     , "end2":        { type: "uint32", id:  4 }
-    , "heading":     { type: "double", id:  5 }
+    , "heading":     { type: "uint32", id:  5 }
     , "hidden?":     { type: "bool"  , id:  6 }
     , "directed?":   { type: "bool"  , id:  7 }
     , "label":       { type: "string", id:  8 }
     , "label-color": { type: "uint32", id:  9 }
-    , "midpointx":   { type: "double", id: 10 }
-    , "midpointy":   { type: "double", id: 11 }
+    , "midpointx":   { type: "sint32", id: 10 }
+    , "midpointy":   { type: "sint32", id: 11 }
     , "shape":       { type: "string", id: 12 }
     , "size":        { type: "double", id: 13 }
     , "thickness":   { type: "double", id: 14 }
@@ -182,8 +182,8 @@ const PlotUpdateStuff = {
 , PlotUpdateAddPoint: {
     fields: {
       penName: { type: "string", id: 1 }
-    , x:       { type: "double", id: 2 }
-    , y:       { type: "double", id: 3 }
+    , x:       { type: "sint32", id: 2 }
+    , y:       { type: "sint32", id: 3 }
     }
   }
 
