@@ -119,7 +119,7 @@ const ViewUpdateStuff = {
         fields: {
           "dash-pattern": { type: "uint32", id: 1, rule: "repeated" }
         , "is-visible":   { type: "bool"  , id: 2 }
-        , "x-offset":     { type: "double", id: 3 }
+        , "x-offset":     { type: "uint32", id: 3 }
         }
       }
 
