@@ -125,7 +125,7 @@ const ViewUpdateStuff = {
 
     , LinkShape: {
         fields: {
-          "curviness":           { type: "double", id: 1 }
+          "curviness":           { type: "uint32", id: 1 }
         , "direction-indicator": { type: "DirInd", id: 2 }
         , "lines":               { type: "Line"  , id: 3, rule: "repeated" }
         , "name":                { type: "string", id: 4 }

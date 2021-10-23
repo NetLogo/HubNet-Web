@@ -132,6 +132,7 @@ const rejiggerLinkShapes = (linkShapes) => {
       Object.entries(linkShapes).map(
         ([name, shape]) => {
           const s = deepClone(shape);
+          transform(s)("curviness"          , (c) => Math.round(c * 1000));
           transform(s)("direction-indicator", rejiggerSprite);
           return [name, s];
         }
@@ -493,6 +494,7 @@ const recombobulateLinkShapes = (linkShapes) => {
       Object.entries(linkShapes).map(
         ([name, shape]) => {
           const s = deepClone(shape);
+          transform(s)("curviness"          , (c) => c / 1000);
           transform(s)("direction-indicator", recombobulateSprite);
           return [name, s];
         }
