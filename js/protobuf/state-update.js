@@ -45,6 +45,7 @@ const ViewUpdateStuff = {
     , "size":        { type: "uint32", id: 13 }
     , "thickness":   { type: "uint32", id: 14 }
     , "tie-mode":    { type: "string", id: 15 }
+    , "who":         { type: "uint64", id: 16 }
     }
   }
 

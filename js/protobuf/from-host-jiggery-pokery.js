@@ -48,6 +48,8 @@ const rejiggerLinks = (links, parent) => {
       xform("size"       , (s) => Math.  max(0, s * 100));
       xform("thickness"  , (s) => Math.  max(0, s * 100));
 
+      xform("who", (w) => w + 1);
+
       parent[who] = l;
 
     }
@@ -90,6 +92,12 @@ const rejiggerTurtles = (turtles, parent) => {
       xform("ycor"       , (y) => Math.round(   y *  10));
 
       xform("pen-mode", (m) => (m === "up") ? 0 : (m === "down") ? 1 : 2);
+
+      // The clearest alternative to encoding dead agents as `0` is to encode them as
+      // `MaxInt`.  The problem with that is that dead agents are pretty common in
+      // NetLogo models, and `MaxInt` is several times the size in bytes.
+      // --Jason B. (10/24/21)
+      xform("who", (w) => w + 1);
 
       parent[who] = t;
 
@@ -426,6 +434,12 @@ const recombobulateLinks = (links, parent) => {
       xform("size"       , (s) => s / 100);
       xform("thickness"  , (s) => s / 100);
 
+      // Must uppercase "WHO", due to bug in AgentModel --Jason B. (10/24/21)
+      if (l.who !== undefined) {
+        l.WHO = l.who - 1;
+        delete l.who;
+      }
+
       parent[who] = l;
 
     }
@@ -467,6 +481,12 @@ const recombobulateTurtles = (turtles, parent) => {
       xform("ycor"       , (y) => y /  10);
 
       xform("pen-mode", (m) => (m === 0) ? "up" : (m === 1) ? "down" : "erase");
+
+      // Must uppercase "WHO", due to bug in AgentModel --Jason B. (10/24/21)
+      if (t.who !== undefined) {
+        t.WHO = t.who - 1;
+        delete t.who;
+      }
 
       parent[who] = t;
 
