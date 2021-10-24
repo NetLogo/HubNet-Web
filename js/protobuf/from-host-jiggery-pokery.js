@@ -84,11 +84,12 @@ const rejiggerTurtles = (turtles, parent) => {
       xform("color"      , (c) => Math.floor(   c *  10));
       xform("heading"    , (h) => Math.round(   h      ));
       xform("label-color", (c) => Math.floor(   c *  10));
-      xform("pen-mode"   , (m) => (m === "up") ? 0 : (m === "down") ? 1 : 2);
       xform("pen-size"   , (s) => Math.  max(0, s * 100));
       xform("size"       , (s) => Math.  max(0, s * 100));
       xform("xcor"       , (x) => Math.round(   x *  10));
       xform("ycor"       , (y) => Math.round(   y *  10));
+
+      xform("pen-mode", (m) => (m === "up") ? 0 : (m === "down") ? 1 : 2);
 
       parent[who] = t;
 
@@ -460,11 +461,12 @@ const recombobulateTurtles = (turtles, parent) => {
 
       xform("color"      , (c) => c /  10);
       xform("label-color", (c) => c /  10);
-      xform("pen-mode"   , (m) => (m === 0) ? "up" : (m === 1) ? "down" : "erase");
       xform("pen-size"   , (s) => s / 100);
       xform("size"       , (s) => s / 100);
       xform("xcor"       , (x) => x /  10);
       xform("ycor"       , (y) => y /  10);
+
+      xform("pen-mode", (m) => (m === 0) ? "up" : (m === 1) ? "down" : "erase");
 
       parent[who] = t;
 
