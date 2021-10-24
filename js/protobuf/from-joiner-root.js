@@ -1,4 +1,4 @@
-import { JoinerRelayPayloadPB } from "./joiner-relay-payload.js"
+import { JoinerRelayPayloadPB, RelayUnfurls } from "./joiner-relay-payload.js"
 
 const FromJoinerRoot = {
 
@@ -73,6 +73,9 @@ const FromJoinerRoot = {
         Payload: JoinerRelayPayloadPB
       }
     }
+
+  , ...RelayUnfurls
+
   }
 
 };

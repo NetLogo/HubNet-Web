@@ -1,3 +1,36 @@
+// (Object[Any]) => Object[Any]
+const fieldsFrom = (obj) => {
+  const fields = {};
+  const keys   = Object.keys(obj);
+  for (let i = 0; i < keys.length; i++) {
+    const key   = keys[i];
+    const value = obj[key];
+    fields[key] = { type: value, id: (i + 1) };
+  }
+  return { fields };
+};
+
+// (Object[Any]) => Object[Any]
+const unfurledFrom = (obj) => {
+  return fieldsFrom({ id:          "uint32"
+                    , tokenChunk1: "uint32"
+                    , tokenChunk2: "uint32"
+                    , tokenChunk3: "uint32"
+                    , tokenChunk4: "uint32"
+                    , ...obj
+                    });
+};
+
+const buttonFields      = { message: "string" };
+const chooserFields     = { varName: "string", value: "uint32" };
+const inputNumberFields = { varName: "string", value: "double" };
+const inputStringFields = { varName: "string", value: "string" };
+const mouseUpFields     = { xcor:    "uint32", ycor:  "uint32" };
+const mouseDownFields   = { xcor:    "uint32", ycor:  "uint32" };
+const mouseMoveFields   = { xcor:    "uint32", ycor:  "uint32" };
+const sliderFields      = { varName: "string", value: "double" };
+const switchFields      = { varName: "string", value: "bool"   };
+
 const JoinerRelayPayloadPB = {
 
   oneofs: {
@@ -19,73 +52,21 @@ const JoinerRelayPayloadPB = {
 
 , nested: {
 
-    ButtonPayload: {
-      fields: {
-        "message": { type: "string", id: 1 }
-      }
-    }
-
-  , CashRaincheckPayload: {
+    CashRaincheckPayload: {
       fields: {
         "id": { type: "string", id: 1 }
       }
     }
 
-  , ChooserIndexPayload: {
-      fields: {
-        "varName": { type: "string", id: 1 }
-      , "value":   { type: "uint32", id: 2 }
-      }
-    }
-
-  , InputBoxNumberPayload: {
-      fields: {
-        "varName": { type: "string", id: 1 }
-      , "value":   { type: "double", id: 2 }
-      }
-    }
-
-  , InputBoxStringPayload: {
-      fields: {
-        "varName": { type: "string", id: 1 }
-      , "value":   { type: "string", id: 2 }
-      }
-    }
-
-  , MouseUpPayload: {
-      fields: {
-        "xcor": { type: "uint32", id: 1 }
-      , "ycor": { type: "uint32", id: 2 }
-      }
-    }
-
-  , MouseDownPayload: {
-      fields: {
-        "xcor": { type: "uint32", id: 1 }
-      , "ycor": { type: "uint32", id: 2 }
-      }
-    }
-
-  , MouseMovePayload: {
-      fields: {
-        "xcor": { type: "uint32", id: 1 }
-      , "ycor": { type: "uint32", id: 2 }
-      }
-    }
-
-  , SliderPayload: {
-      fields: {
-        "varName": { type: "string", id: 1 }
-      , "value":   { type: "double", id: 2 }
-      }
-    }
-
-  , SwitchPayload: {
-      fields: {
-        "varName": { type: "string", id: 1 }
-      , "value":   { type: "bool"  , id: 2 }
-      }
-    }
+  , ButtonPayload:         fieldsFrom(     buttonFields)
+  , ChooserIndexPayload:   fieldsFrom(    chooserFields)
+  , InputBoxNumberPayload: fieldsFrom(inputNumberFields)
+  , InputBoxStringPayload: fieldsFrom(inputStringFields)
+  , MouseUpPayload:        fieldsFrom(    mouseUpFields)
+  , MouseDownPayload:      fieldsFrom(  mouseDownFields)
+  , MouseMovePayload:      fieldsFrom(  mouseMoveFields)
+  , SliderPayload:         fieldsFrom(     sliderFields)
+  , SwitchPayload:         fieldsFrom(     switchFields)
 
   , PLData: {
       oneofs: {
@@ -101,10 +82,10 @@ const JoinerRelayPayloadPB = {
       , hnwChooserPayload:       { type: "ChooserIndexPayload"  , id: 2 }
       , hnwInputNumberPayload:   { type: "InputBoxNumberPayload", id: 3 }
       , hnwInputStringPayload:   { type: "InputBoxStringPayload", id: 4 }
-      , hnwSliderPayload:        { type: "SliderPayload"        , id: 5 }
-      , hnwMouseUpPayload:       { type: "MouseUpPayload"       , id: 6 }
-      , hnwMouseDownPayload:     { type: "MouseDownPayload"     , id: 7 }
-      , hnwMouseMovePayload:     { type: "MouseMovePayload"     , id: 8 }
+      , hnwMouseUpPayload:       { type: "MouseUpPayload"       , id: 5 }
+      , hnwMouseDownPayload:     { type: "MouseDownPayload"     , id: 6 }
+      , hnwMouseMovePayload:     { type: "MouseMovePayload"     , id: 7 }
+      , hnwSliderPayload:        { type: "SliderPayload"        , id: 8 }
       , hnwSwitchPayload:        { type: "SwitchPayload"        , id: 9 }
       }
     }
@@ -112,4 +93,16 @@ const JoinerRelayPayloadPB = {
   }
 };
 
-export { JoinerRelayPayloadPB }
+const RelayUnfurls = {
+  UnfurlRelayButton:      unfurledFrom(     buttonFields)
+, UnfurlRelayChooser:     unfurledFrom(    chooserFields)
+, UnfurlRelayInputNumber: unfurledFrom(inputNumberFields)
+, UnfurlRelayInputString: unfurledFrom(inputStringFields)
+, UnfurlRelayMouseUp:     unfurledFrom(    mouseUpFields)
+, UnfurlRelayMouseDown:   unfurledFrom(  mouseDownFields)
+, UnfurlRelayMouseMove:   unfurledFrom(  mouseMoveFields)
+, UnfurlRelaySlider:      unfurledFrom(     sliderFields)
+, UnfurlRelaySwitch:      unfurledFrom(     switchFields)
+};
+
+export { JoinerRelayPayloadPB, RelayUnfurls }
