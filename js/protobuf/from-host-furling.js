@@ -15,7 +15,6 @@ const basicMap =
   , "keep-alive":             lookupType("KeepAlive")
   , "login-successful":       lookupType("LoginSuccessful")
   , "ping":                   lookupType("Ping")
-  , "ping-result":            lookupType("PingResult")
   , "relay":                  lookupType("Relay")
   , "state-update":           lookupType("StateUpdate")
   };

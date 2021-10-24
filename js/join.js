@@ -291,7 +291,7 @@ const handleChannelMessages = (channel, closeSignaling) => ({ data }) => {
   const dataArr = new Uint8Array(data);
   const datum   = decodeInput(dataArr);
 
-  if (datum.type !== "keep-alive" && datum.type !== "ping" && datum.type !== "pong" && datum.type !== "ping-result") {
+  if (datum.type !== "keep-alive" && datum.type !== "ping" && datum.type !== "pong") {
     console.log("Decoded: ", datum);
   }
 
@@ -437,18 +437,23 @@ const processChannelMessage = (channel, closeSignaling, datum) => {
       break;
 
     case "ping":
-      sendRTC(channel)("pong", { id: datum.id });
-      break;
 
-    case "ping-result":
+      const { id, lastPing } = datum;
 
-      recentPings.push(datum.time);
-      if (recentPings.length > 5) {
-        recentPings.shift();
-      };
+      sendRTC(channel)("pong", { id });
 
-      const averagePing = Math.round(recentPings.reduce((x, y) => x + y) / recentPings.length);
-      document.getElementById("latency-span").innerText = averagePing;
+      if (lastPing !== undefined) {
+
+        recentPings.push(lastPing);
+
+        if (recentPings.length > 5) {
+          recentPings.shift();
+        };
+
+        const averagePing = Math.round(recentPings.reduce((x, y) => x + y) / recentPings.length);
+        document.getElementById("latency-span").innerText = averagePing;
+
+      }
 
       break;
 

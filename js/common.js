@@ -45,7 +45,7 @@ const uuidToRTCID = (uuid) => {
 
 // (String) => Boolean
 const typeIsOOB = (type) => {
-  return ["keep-alive", "ping", "ping-result", "pong"].includes(type)
+  return ["keep-alive", "ping", "pong"].includes(type)
 };
 
 // () => UUID

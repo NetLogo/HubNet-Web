@@ -125,9 +125,10 @@ const launchModel = (formDataPlus) => {
               const signalingURL = `ws://localhost:8080/rtc/${hostID}/${joinerID}/host`;
               signaling.postMessage({ type: "connect", url: signalingURL });
 
-              sessions[joinerID] = { networking: { signaling }
+              sessions[joinerID] = { networking:     { signaling }
                                    , hasInitialized: false
-                                   , pingData: {}
+                                   , pingData:       {}
+                                   , recentPings:    []
                                    };
 
               encoderPool.postMessage({ type: "client-connect" });
@@ -164,9 +165,10 @@ const launchModel = (formDataPlus) => {
           Object.values(sessions).forEach((session) => {
             const channel = session.networking.channel;
             if (channel !== undefined) {
-              const id = genNextID(`${channel.label}-${channel.id}-ping`);
+              const id             = genNextID(`${channel.label}-${channel.id}-ping`);
               session.pingData[id] = { startTime: performance.now() };
-              sendRTC(channel)("ping", { id });
+              const lastPing       = session.recentPings[session.recentPings.length - 1];
+              sendRTC(channel)("ping", { id, lastPing });
             }
           });
         }, 2000);
@@ -270,7 +272,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
     }
   ).then((datum) => {
 
-    if (datum.type !== "keep-alive" && datum.type !== "ping" && datum.type !== "pong" && datum.type !== "ping-result") {
+    if (datum.type !== "keep-alive" && datum.type !== "ping" && datum.type !== "pong") {
       console.log("Decoded: ", datum);
     }
 
@@ -298,16 +300,10 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
         pingBucket.endTime = performance.now();
         const pingTime     = pingBucket.endTime - pingBucket.startTime;
 
-        sendRTC(channel)("ping-result", { time: Math.round(pingTime) });
-
-        if (sesh.recentPings === undefined) {
-          sesh.recentPings = [pingTime];
-        } else {
-          sesh.recentPings.push(pingTime);
-          if (sesh.recentPings.length > 5) {
-            sesh.recentPings.shift();
-          };
-        }
+        sesh.recentPings.push(pingTime);
+        if (sesh.recentPings.length > 5) {
+          sesh.recentPings.shift();
+        };
 
         const averagePing = Math.round(sesh.recentPings.reduce((x, y) => x + y) / sesh.recentPings.length);
 

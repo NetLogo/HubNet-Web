@@ -89,6 +89,10 @@ const transformativeClone = (obj, condPairs, blacklist, shouldLowerCase, whiteli
 // (Object[Any], Object[_], Boolean, Object[_]) => Object[Any]
 const innerClone = (obj, blacklist, shouldLowerCase, whitelist) => {
 
+  const allowsUndefs = [ ((k, v) => v === undefined)
+                       , ((k, v) => v)
+                       ];
+
   const allowsNulls = [ ((k, v) => v === null)
                       , ((k, v) => v)
                       ];
@@ -101,7 +105,7 @@ const innerClone = (obj, blacklist, shouldLowerCase, whitelist) => {
                            , ((k, v) => innerClone(v, blacklist, shouldLowerCase, whitelist))
                            ];
 
-  const pairs = [allowsNulls, ignoresBuffers, deeplyClonesObjs];
+  const pairs = [allowsUndefs, allowsNulls, ignoresBuffers, deeplyClonesObjs];
 
   return transformativeClone(obj, pairs, blacklist, shouldLowerCase, whitelist);
 

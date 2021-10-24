@@ -122,13 +122,8 @@ const FromHostRoot = {
 
   , Ping: { // ping
       fields: {
-        id: { type: "uint32", id: 1 }
-      }
-    }
-
-  , PingResult: { // ping-result
-      fields: {
-        time: { type: "uint32", id: 1 }
+        id:       { type: "uint32", id: 1 }
+      , lastPing: { type: "uint32", id: 2 }
       }
     }
 

@@ -11,7 +11,7 @@ import * as FromJoinerFurler from "./from-joiner-furling.js"
 const cMask = 0b10000000;
 
 const trace = (type) => (f) => {
-  const debugBlacklist = ["ping", "ping-result", "pong", "keep-alive"];
+  const debugBlacklist = ["ping", "pong", "keep-alive"];
   if (!debugBlacklist.includes(type)) {
     f();
   }
