@@ -7,7 +7,8 @@ const lookupType = (x) =>
   protobuf.Root.fromJSON(FromHostRoot).lookupType(x);
 
 const basicMap =
-  { "connection-established": lookupType("ConnEstablished")
+  { "bye-bye":                lookupType("ByeBye")
+  , "connection-established": lookupType("ConnEstablished")
   , "hnw-burst":              lookupType("HNWBurst")
   , "host-answer":            lookupType("HostAnswer")
   , "host-ice-candidate":     lookupType("ICECandy")

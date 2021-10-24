@@ -5,7 +5,11 @@ const FromHostRoot = {
 
   nested: {
 
-    ConnEstablished: { // connection-established
+    ByeBye: { // bye-bye
+      fields: {}
+    }
+
+  , ConnEstablished: { // connection-established
       fields: {
         id:            { type: "uint32", id: 1 }
       , protocolMajor: { type: "uint32", id: 2 }
