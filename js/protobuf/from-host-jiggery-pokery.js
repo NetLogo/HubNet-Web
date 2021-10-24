@@ -765,6 +765,9 @@ const recombobulateRelay = (obj) => {
         // Recombobulate relay.payload.hnwTicksStarted, etc.
         if (k1 === "hnwTicksStarted") {
           out[k0][k1] = { type: "ticks-started", ...deepClone(v1) };
+        } else if (k1 === "update") {
+          out[k0].type = "nlw-state-update";
+          out[k0][k1]  = { ...deepClone(v1) };
         } else {
           out[k0][k1] = v1;
         }

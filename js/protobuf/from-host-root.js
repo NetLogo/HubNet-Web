@@ -133,26 +133,20 @@ const FromHostRoot = {
 
   , Relay: { // relay
       fields: {
-        id:      { type: "uint32" , id: 1 }
-      , payload: { type: "Payload", id: 2 }
-      }
-    , nested: {
-        Payload: {
-          oneofs: {
-            dataOneOf: {
-              oneof: ["hnwTicksStarted"]
-            }
-          }
-        , fields: {
-            hnwTicksStarted: { type: "bool", id: 1 }
-          }
-        }
+        id:      { type: "uint32"     , id: 1 }
+      , payload: { type: "StateUpdate", id: 2 }
       }
     }
 
   , StateUpdate: { // state-update
-      fields: {
-        update: { type: "SUPB", id: 1 }
+      oneofs: {
+        dataOneOf: {
+          oneof: ["hnwTicksStarted", "update"]
+        }
+      }
+    , fields: {
+        hnwTicksStarted: { type: "bool", id: 1 }
+      , update:          { type: "SUPB", id: 2 }
       }
     , nested: {
         SUPB: StateUpdatePB
