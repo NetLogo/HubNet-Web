@@ -8,12 +8,18 @@ import * as FromJoinerJP from "./from-joiner-jiggery-pokery.js"
 import * as FromHostFurler   from "./from-host-furling.js"
 import * as FromJoinerFurler from "./from-joiner-furling.js"
 
-// Section: Common
+const trace = (type) => (f) => {
+  const debugBlacklist = ["ping", "ping-result", "pong", "keep-alive"];
+  if (!debugBlacklist.includes(type)) {
+    f();
+  }
+};
+
 const encodePBuf = (isHost) => (msg) => {
 
-  console.log("About to rejigger", msg);
+  trace(msg.type)(() => console.log("About to rejigger", msg));
   const rejiggered = (isHost ? FromHostJP : FromJoinerJP).rejigger(msg);
-  console.log("Done to rejigger", rejiggered);
+  trace(msg.type)(() => console.log("Done to rejigger", rejiggered));
 
   const [preppedMsg, protoType, typeCode] =
     (isHost ? FromHostFurler : FromJoinerFurler).unfurl(rejiggered);
@@ -44,9 +50,10 @@ const decodePBuf = (isHost) => (compressedMsg) => {
   const decodedObj        = protoType.toObject(decoded, { enums: String });
   const reconstructed     = { type, ...decodedObj };
   const furled            = furler.furl(reconstructed);
-  console.log("About to recombobulate", reconstructed);
+  trace(type)(() => console.log("About to recombobulate", reconstructed, furled));
   const recombobulated    = (isHost ? FromJoinerJP : FromHostJP).recombobulate(furled);
-  console.log("Done to recombobulate", recombobulated);
+  trace(type)(() => console.log("Done to recombobulate", recombobulated));
+
   return recombobulated;
 };
 
