@@ -5,9 +5,7 @@ const FromJoinerRoot = {
   nested: {
 
     ByeBye: { // bye-bye
-      fields: {
-        id: { type: "uint32", id: 1 }
-      }
+      fields: {}
     }
 
   , ConnEstablished: { // connection-established
