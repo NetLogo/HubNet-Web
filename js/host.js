@@ -18,6 +18,8 @@ const sendRTC      = CompressJS.sendRTC     (true);
 //                 }
 // , hasInitialized :: Boolean
 // , username       :: String
+// , pingData       :: { [pingID] :: Number }
+// , recentPings    :: Array[Number]
 // }
 
 const sessions = {}; // Object[Session]
