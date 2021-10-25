@@ -514,6 +514,8 @@ const updateBandwidthLabel = () => {
 
 };
 
+let congestionDuration = 0;
+
 // () => Unit
 const updateCongestionStats = () => {
 
@@ -544,6 +546,21 @@ const updateCongestionStats = () => {
     (numCongested === 0)    ? allGoodStatus :
       connectionIsCongested ? minorCongestionStatus :
                               majorCongestionStatus;
+
+  const notifyNLW = (type) => {
+    const frame = document.getElementById( "nlw-frame").querySelector('iframe')
+    frame.contentWindow.postMessage({ type }, "*");
+  };
+
+  if (connectionIsCongested) {
+    notifyNLW("hnw-notify-congested");
+    congestionDuration++;
+  } else {
+    if (congestionDuration > 0) {
+      notifyNLW("hnw-notify-uncongested");
+    }
+    congestionDuration = 0;
+  }
 
   const setText =
     (id, text) => {
