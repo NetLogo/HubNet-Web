@@ -166,7 +166,7 @@ const launchModel = (formDataPlus) => {
             const channel = session.networking.channel;
             if (channel !== undefined) {
               const id             = genNextID(`${channel.label}-${channel.id}-ping`);
-              session.pingData[id] = { startTime: performance.now() };
+              session.pingData[id] = performance.now();
               const lastPing       = session.recentPings[session.recentPings.length - 1];
               sendRTC(channel)("ping", { id, lastPing });
             }
@@ -295,10 +295,10 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
       case "pong":
 
-        const sesh         = sessions[joinerID];
-        const pingBucket   = sesh.pingData[datum.id];
-        pingBucket.endTime = performance.now();
-        const pingTime     = pingBucket.endTime - pingBucket.startTime;
+        const sesh       = sessions[joinerID];
+        const pingBucket = sesh.pingData[datum.id];
+        const pingTime   = performance.now() - pingBucket;
+        delete pingBucket[datum.id];
 
         sesh.recentPings.push(pingTime);
         if (sesh.recentPings.length > 5) {
