@@ -5,34 +5,17 @@ import { awaitWorker, HNWProtocolVersionNumber, typeIsOOB } from "./common.js"
 import { logEntry  } from "./bandwidth-monitor.js"
 import { genNextID } from "./id-manager.js"
 
-// A dummy... for now.  I'll bring in the proper library later. --JAB (7/29/19)
-const pako = {
-  deflate: ((x) => x)
-, inflate: ((x) => x)
-};
-
-// (Any) => String
-const compress = (data) => {
-  return pako.deflate(data, { to: '???' });
-};
-
 // (String, Number) => Array[String]
 const chunk = (arr, length) => {
   const baseArray = Array.from(Array(Math.ceil(arr.length / length)));
   return baseArray.map((x, i) => arr.slice(length * i, length * (i + 1)));
 };
 
-// (String) => Any
-const decompress = (deflated) => {
-  return pako.inflate(deflated, { to: '???' });
-};
-
 // (Array[_]) => Array[Array[U]]
 const chunkForSending = (message) => {
 
   const chunkSize  = 15500;
-  const compressed = compress(message);
-  const messages   = chunk(compressed, chunkSize);
+  const messages   = chunk(message, chunkSize);
 
   if (messages.length * chunkSize <= 2e7)
     return messages;
@@ -165,4 +148,4 @@ const logAndSend = (data, channel) => {
   channel.send(data);
 };
 
-export { decoderPool, decompress, encoderPool, sendBurst, sendGreeting, sendOOB, sendRTC }
+export { decoderPool, encoderPool, sendBurst, sendGreeting, sendOOB, sendRTC }

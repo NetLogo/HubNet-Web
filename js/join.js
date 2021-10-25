@@ -3,7 +3,6 @@ import * as ConvertersCommonJS from "./protobuf/converters-common.js"
 const decodeInput = ConvertersCommonJS.decodePBuf(false);
 
 import { HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID } from "./common.js"
-import { decompress                } from "./compress.js"
 import { MinID, prevID, SentinelID } from "./id-manager.js"
 import { joinerConfig              } from "./webrtc.js"
 
@@ -458,7 +457,7 @@ const processChannelMessage = (channel, closeSignaling, datum) => {
       break;
 
     case "hnw-burst":
-      enqueueMessage(decompress(datum.parcel));
+      enqueueMessage(datum.parcel);
       break;
 
     case "bye-bye":
