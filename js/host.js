@@ -20,6 +20,7 @@ const sendRTC      = CompressJS.sendRTC     (true);
 // , username       :: String
 // , pingData       :: { [pingID] :: Number }
 // , recentPings    :: Array[Number]
+// , recentBuffer   :: Array[Number]
 // }
 
 const sessions = {}; // Object[Session]
@@ -131,6 +132,7 @@ const launchModel = (formDataPlus) => {
                                    , hasInitialized: false
                                    , pingData:       {}
                                    , recentPings:    []
+                                   , recentBuffer:   []
                                    };
 
               encoderPool.postMessage({ type: "client-connect" });
@@ -160,6 +162,8 @@ const launchModel = (formDataPlus) => {
           const numPeers      = Object.values(sessions).filter(nameIsDefined).length;
           statusSocketW.postMessage({ type: "members-update", numPeers });
         }, 1000);
+
+        setInterval(updateCongestionStats, 1000);
 
         setInterval(() => { updateBandwidthLabel(); }, 500);
 
@@ -507,6 +511,48 @@ const updateBandwidthLabel = () => {
       document.getElementById("new-send-span").innerText = newText;
     }
   );
+
+};
+
+// () => Unit
+const updateCongestionStats = () => {
+
+  Object.values(sessions).forEach(
+    (s) => {
+      const bufferLog = s.recentBuffer;
+      bufferLog.push(s.networking.channel.bufferedAmount);
+      if (bufferLog.length > 8) {
+        bufferLog.shift();
+      }
+    }
+  );
+
+  const numClients = Object.keys(sessions).length;
+
+  const numCongested =
+    Object.values(sessions).filter(
+      (s) => s.recentBuffer.filter((x) => x > 20000).length >= 5
+    ).length;
+
+  const allGoodStatus         = "All connections are uncongested";
+  const minorCongestionStatus = `There is congestion for ${numCongested} client(s)`;
+  const majorCongestionStatus = `There is congestion for ${numCongested} client(s); slowing simulation so they can catch up`;
+
+  const connectionIsCongested = numCongested >= (numClients / 3);
+
+  const status =
+    (numCongested === 0)    ? allGoodStatus :
+      connectionIsCongested ? minorCongestionStatus :
+                              majorCongestionStatus;
+
+  const setText =
+    (id, text) => {
+      document.getElementById(id).innerText = text;
+    };
+
+  setText("num-clients-span"    ,   numClients);
+  setText("num-congested-span"  , numCongested);
+  setText("activity-status-span",       status);
 
 };
 
