@@ -165,7 +165,7 @@ const launchModel = (formDataPlus) => {
 
         setInterval(updateCongestionStats, 1000);
 
-        setInterval(() => { updateBandwidthLabel(); }, 500);
+        setInterval(updateBandwidthLabel, 500);
 
         setInterval(() => {
           Object.values(sessions).forEach((session) => {
