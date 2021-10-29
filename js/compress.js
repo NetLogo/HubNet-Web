@@ -86,12 +86,15 @@ const sendBurst = (isHost, ...channels) => (type, obj) => {
 
       const chunks = chunkForSending(encoded);
 
-      const objs = chunks.map((m, index) => ({ index, fullLength: chunks.length, parcel: m }));
+      const objs =
+        chunks.map(
+          (m, index) => ({ index, fullLength: chunks.length, parcel: m })
+        );
 
-      channels.forEach((channel) => {
-        const id = idMap.get(channel);
-        objs.forEach((obj, index) => {
-          channels.forEach((channel) => send(isHost, channel)("hnw-burst", obj, id));
+      objs.forEach((obj, index) => {
+        channels.forEach((channel) => {
+          const id = idMap.get(channel);
+          send(isHost, channel)("hnw-burst", obj, id);
         });
       });
 
