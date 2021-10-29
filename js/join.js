@@ -3,8 +3,8 @@ import * as ConvertersCommonJS from "./protobuf/converters-common.js"
 const decodeInput = ConvertersCommonJS.decodePBuf(false);
 
 import { HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID } from "./common.js"
-import { MinID, prevID, SentinelID } from "./id-manager.js"
-import { joinerConfig              } from "./webrtc.js"
+import { MinID, prevID, SentinelID, succeedsID } from "./id-manager.js"
+import { joinerConfig } from "./webrtc.js"
 
 import * as CompressJS from "./compress.js"
 
@@ -315,9 +315,13 @@ const handleChannelMessages = (channel, closeSignaling) => ({ data }) => {
         lastMsgID = msg.id;
         processChannelMessage(channel, closeSignaling, msg);
       } else {
-        const pred = prevID(msg.id);
-        predIDToMsg[pred] = msg;
-        processMsgQueue();
+        if (succeedsID(msg.id, lastMsgID)) {
+          const pred = prevID(msg.id);
+          predIDToMsg[pred] = msg;
+          processMsgQueue();
+        } else {
+          console.warn(`Received message #${msg.id} when the last-processed message was #${lastMsgID}.  #${msg.id} is out-of-order and will be dropped:`, msg);
+        }
       }
     };
 

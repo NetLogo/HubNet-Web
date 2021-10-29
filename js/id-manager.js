@@ -19,4 +19,18 @@ const prevID = (num) => {
   return (num === SentinelID) ? SentinelID : ((num === MinID) ? MaxID : num - 1);
 };
 
-export { genNextID, MaxID, MinID, nextID, prevID, SentinelID }
+// This logic's a bit funky, because we're supporting ID numbers wrapping
+// back around. --Jason B. (10/29/21)
+//
+// (Number, Number) => Boolean
+const precedesID = (target, ref) => {
+  const maxDist     = 20;
+  const wrappedDist = (ref + maxDist) - ((target + maxDist) % MaxID);
+  return wrappedDist >= MinID &&
+         wrappedDist < (MinID + maxDist);
+};
+
+// (Number, Number) => Boolean
+const succeedsID = (target, ref) => precedesID(ref, target);
+
+export { genNextID, MaxID, MinID, nextID, precedesID, prevID, SentinelID, succeedsID }
