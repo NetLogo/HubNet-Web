@@ -519,7 +519,7 @@ let congestionDuration = 0;
 // () => Unit
 const updateCongestionStats = () => {
 
-  Object.values(sessions).forEach(
+  Object.values(sessions).filter((s) => s.hasOwnProperty('channel')).forEach(
     (s) => {
       const bufferLog = s.recentBuffer;
       bufferLog.push(s.networking.channel.bufferedAmount);
