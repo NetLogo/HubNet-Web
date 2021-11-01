@@ -55,10 +55,13 @@ object SessionManagerActor {
                                 , override val replyTo: ActorRef[Either[String, Vector[UUID]]]
                                 ) extends SeshMessageAsk[Either[String, Vector[UUID]]]
 
+  final case class PushNewJoiner(hostID: UUID
+                                , override val replyTo: ActorRef[Option[UUID]]
+                                ) extends SeshMessageAsk[Option[UUID]]
+
   final case class PulseHost     (hostID: UUID)                                  extends SeshMessage
   final case class PushFromHost  (hostID: UUID, joinerID: UUID, message: String) extends SeshMessage
   final case class PushFromJoiner(hostID: UUID, joinerID: UUID, message: String) extends SeshMessage
-  final case class PushJoinerID  (hostID: UUID, joinerID: UUID)                  extends SeshMessage
   final case class UpdateNumPeers(hostID: UUID, numPeers: Int)                   extends SeshMessage
   final case class UpdatePreview (hostID: UUID, base64: String)                  extends SeshMessage
 
@@ -111,8 +114,8 @@ object SessionManagerActor {
             SessionManager.pushFromJoiner(hostID, joinerID, msg)
             Behaviors.same
 
-          case PushJoinerID(hostID, joinerID) =>
-            SessionManager.pushJoinerID(hostID, joinerID)
+          case PushNewJoiner(hostID, replyTo) =>
+            replyTo ! SessionManager.pushNewJoiner(hostID)
             Behaviors.same
 
           case UpdateNumPeers(hostID, numPeers) =>
@@ -244,7 +247,7 @@ private object SessionManager {
   def getSessions: Vector[SessionInfo] =
     sessionMap.values.toVector
 
-  def pushJoinerID(hostID: UUID, joinerID: UUID): Unit =
+  private def pushJoinerID(hostID: UUID, joinerID: UUID): Unit =
     push(hostID)(_.connInfo.joinerIDs)(joinerID)((si, news) => si.copy(connInfo = si.connInfo.copy(joinerIDs = news)))
 
   def pullJoinerIDs(hostID: UUID): Either[String, Vector[UUID]] =
@@ -264,6 +267,23 @@ private object SessionManager {
 
   def pushFromJoiner(hostID: UUID, joinerID: UUID, message: String): Unit =
     mush(hostID)(_.connInfo.fromJoinerMap)(joinerID -> message)((si, news) => si.copy(connInfo = si.connInfo.copy(fromJoinerMap = news)))
+
+  def pushNewJoiner(hostID: UUID): Option[UUID] = {
+
+    val hashSet =
+      sessionMap
+        .get(hostID)
+        .fold(Vector[UUID]())(sinfo => sinfo.connInfo.fromHostMap.keys.toVector)
+        .map(toUUIDHash)
+        .toSet
+
+    val joinerIDOpt = genSafeUUID(hashSet)
+
+    joinerIDOpt.foreach(pushJoinerID(hostID, _))
+
+    joinerIDOpt
+
+  }
 
   def pullFromJoiner(hostID: UUID, joinerID: UUID): Either[String, Vector[String]] =
     pullEither(hostID)(_.connInfo.fromJoinerMap.get(joinerID).toRight(s"No entry for $joinerID"))(
@@ -320,6 +340,31 @@ private object SessionManager {
   }
 
   private val GrayB64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wYGEwkDoISeKgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAADElEQVQI12NobmwEAAMQAYa2CjzCAAAAAElFTkSuQmCC"
+
+  private val MaxHash = 256
+
+  private def genSafeUUID(knownHashes: Set[Int]): Option[UUID] = {
+
+    def gen(): UUID = {
+      val uuid = UUID.randomUUID()
+      if (!knownHashes.contains(toUUIDHash(uuid)))
+        uuid
+      else
+        gen()
+    }
+
+    if (knownHashes.size < MaxHash)
+      Option(gen())
+    else
+      None
+
+  }
+
+  private def toUUIDHash(uuid: UUID): Int = {
+    val codePoints = uuid.toString.map(_.toInt)
+    val baseHash   = codePoints.foldLeft(0)(((acc, x) => (((acc << 5) - acc) + x) | 0))
+    Math.abs(baseHash) % MaxHash;
+  }
 
 }
 

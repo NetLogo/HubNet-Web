@@ -28,7 +28,7 @@ import spray.json.{ JsArray, JsNumber, JsObject, JsonParser, JsString }
 import session.{ SessionInfo, SessionManagerActor }
 import session.SessionManagerActor.{ CreateSession, CreateXSession, DelistSession, GetPreview
                                    , GetSessions, PullFromHost, PullFromJoiner, PullJoinerIDs
-                                   , PulseHost, PushFromHost, PushFromJoiner, PushJoinerID
+                                   , PulseHost, PushFromHost, PushFromJoiner, PushNewJoiner
                                    , SeshMessageAsk, UpdateNumPeers, UpdatePreview
                                    }
 
@@ -118,7 +118,7 @@ object Controller {
     , {
       case (modelSource, json, modelName) =>
 
-        val uuid = UUID.randomUUID
+        val uuid = UUID.randomUUID()
 
         val scheduleIn = {
           (d: FiniteDuration, thunk: () => Unit) =>
@@ -175,9 +175,10 @@ object Controller {
   }
 
   private def startJoin(hostID: UUID): RequestContext => Future[RouteResult] = {
-    val uuid = UUID.randomUUID()
-    seshManager ! PushJoinerID(hostID, uuid)
-    complete(uuid.toString)
+    val response =
+      askSeshFor(PushNewJoiner(hostID, _))
+        .fold("No more hashes")(uuid => uuid.toString)
+    complete(response)
   }
 
   private def rtcHost(hostID: UUID, joinerID: UUID): Flow[Message, Message, Any] = {

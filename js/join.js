@@ -204,9 +204,13 @@ const connectAndLogin = (hostID) => {
 
   fetch(`/rtc/join/${hostID}`).then((response) => response.text()).then(
     (joinerID) => {
-      const rtcID   = uuidToRTCID(joinerID);
-      const channel = joinerConnection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
-      return joinerConnection.createOffer().then((offer) => [joinerID, channel, offer]);
+      if (joinerID !== "No more hashes") {
+        const rtcID   = uuidToRTCID(joinerID);
+        const channel = joinerConnection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
+        return joinerConnection.createOffer().then((offer) => [joinerID, channel, offer]);
+      } else {
+        throw new Error("Session is full");
+      }
     }
   ).then(
     ([joinerID, channel, offer]) => {
@@ -269,6 +273,8 @@ const connectAndLogin = (hostID) => {
       };
 
     }
+  ).catch(
+    error => alert(`Cannot join session: ${error.message}`)
   );
 };
 
