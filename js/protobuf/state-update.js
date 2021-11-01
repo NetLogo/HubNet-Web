@@ -148,8 +148,9 @@ const ViewUpdateStuff = {
 
 , Observer: {
     fields: {
-      "perspective": { type: "uint32", id: 1 }
-    , "targetagent": { type: "uint32", id: 2 }
+      "followRadius": { type: "uint32", id: 1 }
+    , "perspective":  { type: "uint32", id: 2 }
+    , "targetAgent":  { type: "uint32", id: 3, rule: "repeated" }
     }
   }
 
