@@ -266,14 +266,14 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
   new Promise(
     (resolve, reject) => {
 
-      const channel = new MessageChannel();
+      const chan = new MessageChannel();
 
-      channel.port1.onmessage = ({ data }) => {
-        channel.port1.close();
+      chan.port1.onmessage = ({ data }) => {
+        chan.port1.close();
         resolve(data);
       };
 
-      decoderPool.postMessage({ type: "decode", parcel: dataArr }, [channel.port2]);
+      decoderPool.postMessage({ type: "decode", parcel: dataArr }, [chan.port2]);
 
     }
   ).then((datum) => {
