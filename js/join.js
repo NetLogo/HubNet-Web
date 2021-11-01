@@ -475,7 +475,7 @@ const processChannelMessage = (channel, closeSignaling, datum) => {
       break;
 
     default:
-      console.warn(`Unknown WebSocket event type: ${datum.type}`);
+      console.warn(`Unknown channel event type: ${datum.type}`);
 
   }
 
