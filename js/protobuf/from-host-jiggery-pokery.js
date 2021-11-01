@@ -225,7 +225,7 @@ const rejiggerPlotUpdates = (target, parent) => {
   for (let k0 in target) {
 
     const newPupdates = [];
-    parent[k0]        = newPupdates;
+    parent[k0]        = { value: newPupdates };
 
     for (let k1 in target[k0]) {
       const pupdate = target[k0][k1];
@@ -630,7 +630,9 @@ const recombobulatePlotUpdates = (target, parent) => {
     const newPupdates = [];
     parent[k0]        = newPupdates;
 
-    for (let pupdate in target[k0]) {
+    for (let k1 in target[k0].value) {
+
+      const pupdate = target[k0].value[k1];
 
       // recombobulate *.plotUpdates > *{ addPoint }, etc.
       if (pupdate.addPoint !== undefined) {
