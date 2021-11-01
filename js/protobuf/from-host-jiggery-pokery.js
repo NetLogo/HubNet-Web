@@ -115,13 +115,13 @@ const rejiggerSprite = (sprite) => {
       (e) => {
 
         const elem            = deepClone(e);
-        const regex           = /rgba\((\d{1,3}), (\d{1,3}), (\d{1,3}), (\d{1,3})\)/;
+        const regex           = /rgba\((\d{1,3}), (\d{1,3}), (\d{1,3}), (\d{1,3}(?:\.\d)?)\)/;
         const [_, r, g, b, a] = elem.color.match(regex);
 
         elem.colorR = r;
         elem.colorG = g;
         elem.colorB = b;
-        elem.colorA = a;
+        elem.colorA = Math.round(a * 10);
 
         return elem;
 
@@ -504,7 +504,7 @@ const recombobulateSprite = (sprite) => {
       (e) => {
         const blacklist    = { colorR: 1, colorG: 1, colorB: 1, colorA: 1 };
         const elem         = deepClone(e, blacklist);
-        const [r, g, b, a] = [e.colorR, e.colorG, e.colorB, e.colorA];
+        const [r, g, b, a] = [e.colorR, e.colorG, e.colorB, e.colorA / 10];
         elem.color         = `rgba(${r}, ${g}, ${b}, ${a})`;
         return elem;
       }
