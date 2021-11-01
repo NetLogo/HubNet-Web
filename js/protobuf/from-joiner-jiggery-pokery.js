@@ -174,6 +174,7 @@ const recombobulateRelay = (obj) => {
 
           }
 
+        } else if (k1.startsWith("tokenChunk")) {
         } else {
           out[k0][k1] = v1;
         }
