@@ -98,10 +98,9 @@ const furl = (msg) => {
 
   const reconstitute = (msg, widgetType, dataKeys) => {
     const data = pluck(msg, dataKeys);
-    data.type = widgetType;
     return { id:      msg.id
            , payload: { type: "hnw-widget-message"
-                      , data
+                      , data:        { [widgetType]: data }
                       , tokenChunk1: msg.tokenChunk1
                       , tokenChunk2: msg.tokenChunk2
                       , tokenChunk3: msg.tokenChunk3
@@ -112,15 +111,15 @@ const furl = (msg) => {
   };
 
   const correlator =
-    { "unfurled-relay-button":       ["button"    , ["message"]         ]
-    , "unfurled-relay-chooser":      ["chooser"   , ["varName", "value"]]
-    , "unfurled-relay-input-number": ["input78"   , ["varName", "value"]]
-    , "unfurled-relay-input-string": ["input"     , ["varName", "value"]]
-    , "unfurled-relay-mouse-up":     ["mouse-up"  , ["xcor"   , "ycor" ]]
-    , "unfurled-relay-mouse-down":   ["mouse-down", ["xcor"   , "ycor" ]]
-    , "unfurled-relay-mouse-move":   ["mouse-move", ["xcor"   , "ycor" ]]
-    , "unfurled-relay-slider":       ["slider"    , ["varName", "value"]]
-    , "unfurled-relay-switch":       ["switch"    , ["varName", "value"]]
+    { "unfurled-relay-button":       ["hnwButtonPayload"     , ["message"]         ]
+    , "unfurled-relay-chooser":      ["hnwChooserPayload"    , ["varName", "value"]]
+    , "unfurled-relay-input-number": ["hnwInputNumberPayload", ["varName", "value"]]
+    , "unfurled-relay-input-string": ["hnwInputStringPayload", ["varName", "value"]]
+    , "unfurled-relay-mouse-up":     ["hnwMouseUpPayload"    , ["xcor"   , "ycor" ]]
+    , "unfurled-relay-mouse-down":   ["hnwMouseDownPayload"  , ["xcor"   , "ycor" ]]
+    , "unfurled-relay-mouse-move":   ["hnwMouseMovePayload"  , ["xcor"   , "ycor" ]]
+    , "unfurled-relay-slider":       ["hnwSliderPayload"     , ["varName", "value"]]
+    , "unfurled-relay-switch":       ["hnwSwitchPayload"     , ["varName", "value"]]
     };
 
   const correlation = correlator[msg.type];

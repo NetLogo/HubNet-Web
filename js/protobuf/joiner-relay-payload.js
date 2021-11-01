@@ -25,9 +25,9 @@ const buttonFields      = { message: "string" };
 const chooserFields     = { varName: "string", value: "uint32" };
 const inputNumberFields = { varName: "string", value: "double" };
 const inputStringFields = { varName: "string", value: "string" };
-const mouseUpFields     = { xcor:    "uint32", ycor:  "uint32" };
-const mouseDownFields   = { xcor:    "uint32", ycor:  "uint32" };
-const mouseMoveFields   = { xcor:    "uint32", ycor:  "uint32" };
+const mouseUpFields     = { xcor:    "sint32", ycor:  "sint32" };
+const mouseDownFields   = { xcor:    "sint32", ycor:  "sint32" };
+const mouseMoveFields   = { xcor:    "sint32", ycor:  "sint32" };
 const sliderFields      = { varName: "string", value: "double" };
 const switchFields      = { varName: "string", value: "bool"   };
 

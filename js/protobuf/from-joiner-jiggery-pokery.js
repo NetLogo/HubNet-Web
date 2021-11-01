@@ -62,24 +62,15 @@ const rejiggerRelay = (obj) => {
           } else if (v1.type === "input") {
             const replacement = deepClone(v1, { type: 1 });
             out[k0][k1].hnwInputStringPayload = replacement;
-          // BAD: mouse
-          } else if (v1.type === "mouse-up") {
+          } else if (v1.type === "view") {
             const replacement = deepClone(v1, { type: 1 });
-            transform(replacement)("xcor", (x) => Math.round(x * 10));
-            transform(replacement)("ycor", (y) => Math.round(y * 10));
-            out[k0][k1].hnwMouseUpPayload = replacement;
-          // BAD: mouse
-          } else if (v1.type === "mouse-down") {
-            const replacement = deepClone(v1, { type: 1 });
-            transform(replacement)("xcor", (x) => Math.round(x * 10));
-            transform(replacement)("ycor", (y) => Math.round(y * 10));
-            out[k0][k1].hnwMouseDownPayload = replacement;
-          // BAD: mouse
-          } else if (v1.type === "mouse-move") {
-            const replacement = deepClone(v1, { type: 1 });
-            transform(replacement)("xcor", (x) => Math.round(x * 10));
-            transform(replacement)("ycor", (y) => Math.round(y * 10));
-            out[k0][k1].hnwMouseMovePayload = replacement;
+            replacement.xcor = Math.round(replacement.message.xcor * 10);
+            replacement.ycor = Math.round(replacement.message.ycor * 10);
+            const k2 = (replacement.message.subtype === "mouse-up"  ) ? "hnwMouseUpPayload"   :
+                      ((replacement.message.subtype === "mouse-down") ? "hnwMouseDownPayload" :
+                                                                        "hnwMouseMovePayload");
+            delete replacement.message;
+            out[k0][k1][k2] = replacement;
           } else if (v1.type === "slider") {
             const replacement = deepClone(v1, { type: 1 });
             out[k0][k1].hnwSliderPayload = replacement;
@@ -162,17 +153,17 @@ const recombobulateRelay = (obj) => {
             } else if (k2 === "hnwInputStringPayload") {
               out[k0][k1] = { type: "input", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwMouseUpPayload") {
-              out[k0][k1] = { type: "mouse-up", ...deepClone(v1[k2]) };
-              transform(out[k0][k1])("xcor", (x) => x / 10);
-              transform(out[k0][k1])("ycor", (y) => y / 10);
+              const xcor = v1[k2].xcor / 10;
+              const ycor = v1[k2].ycor / 10;
+              out[k0][k1] = { type: "view", message: { subtype: "mouse-up", xcor, ycor } };
             } else if (k2 === "hnwMouseDownPayload") {
-              out[k0][k1] = { type: "mouse-down", ...deepClone(v1[k2]) };
-              transform(out[k0][k1])("xcor", (x) => x / 10);
-              transform(out[k0][k1])("ycor", (y) => y / 10);
+              const xcor = v1[k2].xcor / 10;
+              const ycor = v1[k2].ycor / 10;
+              out[k0][k1] = { type: "view", message: { subtype: "mouse-down", xcor, ycor } };
             } else if (k2 === "hnwMouseMovePayload") {
-              out[k0][k1] = { type: "mouse-move", ...deepClone(v1[k2]) };
-              transform(out[k0][k1])("xcor", (x) => x / 10);
-              transform(out[k0][k1])("ycor", (y) => y / 10);
+              const xcor = v1[k2].xcor / 10;
+              const ycor = v1[k2].ycor / 10;
+              out[k0][k1] = { type: "view", message: { subtype: "mouse-move", xcor, ycor } };
             } else if (k2 === "hnwSliderPayload") {
               out[k0][k1] = { type: "slider", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwSwitchPayload") {
