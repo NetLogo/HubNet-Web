@@ -207,7 +207,13 @@ const connectAndLogin = (hostID) => {
       if (joinerID !== "No more hashes") {
         const rtcID   = uuidToRTCID(joinerID);
         const channel = joinerConnection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
-        return joinerConnection.createOffer().then((offer) => [joinerID, channel, offer]);
+        return joinerConnection.createOffer().then(
+          (ofr) => {
+            // For Safari 15- --Jason B. (11/1/21)
+            const offer = (ofr instanceof RTCSessionDescription) ? ofr.toJSON() : ofr;
+            return [joinerID, channel, offer]
+          }
+        );
       } else {
         throw new Error("Session is full");
       }
@@ -217,7 +223,7 @@ const connectAndLogin = (hostID) => {
 
       const signalingW   = new Worker('js/joiner-signaling-socket.js', { type: "module" });
       const signalingURL = `ws://localhost:8080/rtc/${hostID}/${joinerID}/join`;
-      signalingW.postMessage({ type: "connect", url: signalingURL, offer: offer.toJSON() });
+      signalingW.postMessage({ type: "connect", url: signalingURL, offer });
 
       const closeSignaling = () => signalingW.terminate();
 
