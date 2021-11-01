@@ -12,12 +12,15 @@ const basicMap =
   , "hnw-burst":              lookupType("HNWBurst")
   , "host-answer":            lookupType("HostAnswer")
   , "host-ice-candidate":     lookupType("ICECandy")
+  , "incorrect-password":     lookupType("IncorrectPassword")
   , "initial-model":          lookupType("InitialModel")
   , "keep-alive":             lookupType("KeepAlive")
   , "login-successful":       lookupType("LoginSuccessful")
+  , "no-username-given":      lookupType("NoUsernameGiven")
   , "ping":                   lookupType("Ping")
   , "relay":                  lookupType("Relay")
   , "state-update":           lookupType("StateUpdate")
+  , "username-already-taken": lookupType("UsernameTaken")
   };
 
 const furlingMap =

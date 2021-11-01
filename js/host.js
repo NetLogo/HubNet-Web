@@ -379,7 +379,6 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
 
       } else {
         sendRTC(channel)("incorrect-password", {});
-        // TODO: We also need to close the channel in all of these cases
       }
     } else {
       sendRTC(channel)("username-already-taken", {});

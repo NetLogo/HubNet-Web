@@ -60,6 +60,12 @@ const FromHostRoot = {
       }
     }
 
+  , IncorrectPassword: { // incorrect-password
+      fields: {
+        id: { type: "uint32", id: 1 }
+      }
+    }
+
   , InitialModel: { // initial-model
       fields: {
         role:  { type: "Role"       , id: 1 }
@@ -124,6 +130,12 @@ const FromHostRoot = {
       }
     }
 
+  , NoUsernameGiven: { // no-username-given
+      fields: {
+        id: { type: "uint32", id: 1 }
+      }
+    }
+
   , Ping: { // ping
       fields: {
         id:       { type: "uint32", id: 1 }
@@ -150,6 +162,12 @@ const FromHostRoot = {
       }
     , nested: {
         SUPB: StateUpdatePB
+      }
+    }
+
+  , UsernameTaken: { // username-already-taken
+      fields: {
+        id: { type: "uint32", id: 1 }
       }
     }
 
