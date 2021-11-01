@@ -228,6 +228,9 @@ const connectAndLogin = (hostID) => {
           case "host-ice-candidate":
             joinerConnection.addIceCandidate(datum.candidate);
             break;
+          case "bye-bye":
+            console.warn("Central server disconnected from signaling");
+            break;
           default:
             console.warn(`Unknown signaling message type: ${datum.type}`);
         };
