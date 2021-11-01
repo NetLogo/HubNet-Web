@@ -235,6 +235,8 @@ const connectAndLogin = (hostID) => {
           case "bye-bye":
             console.warn("Central server disconnected from signaling");
             break;
+          case "keep-alive":
+            break;
           default:
             console.warn(`Unknown signaling message type: ${datum.type}`);
         };
