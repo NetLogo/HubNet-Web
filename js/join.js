@@ -434,19 +434,19 @@ const processChannelMessage = (channel, closeSignaling, datum) => {
 
     case "incorrect-password":
       setStatus("Login rejected!  Use correct password.")
-      alert("Bad password, pal—real bad!");
+      alert("Incorrect password");
       document.getElementById('join-button').disabled = false;
       break;
 
     case "no-username-given":
-      setStatus("Login rejected!  The server did not receive a username from you.")
-      alert("No username given!");
+      setStatus("Login rejected!  Please provide a username.")
+      alert("You must provide a username.");
       document.getElementById('join-button').disabled = false;
       break;
 
     case "username-already-taken":
-      setStatus("Login rejected!  Use a unique username.")
-      alert("Username already in use!");
+      setStatus("Login rejected!  Choose a unique username.")
+      alert("Username already in use.");
       document.getElementById('join-button').disabled = false;
       break;
 
