@@ -31,7 +31,7 @@ encoderPool.onmessage = (msg) => {
     case "shutdown-complete":
       break;
     default:
-      console.warn("Unknown encoder pool response type:", e.type, e);
+      console.warn("Unknown encoder pool response type:", msg.type, msg);
   }
 };
 
@@ -42,7 +42,7 @@ decoderPool.onmessage = (msg) => {
     case "shutdown-complete":
       break;
     default:
-      console.warn("Unknown decoder pool response type:", e.type, e);
+      console.warn("Unknown decoder pool response type:", msg.type, msg);
   }
 };
 

@@ -42,7 +42,7 @@ const sendObj = (type, obj) => {
     case WebSocket.CLOSING:
     case WebSocket.CLOSED:
       const s = `Cannot send '${type}' message over WebSocket, because it is already closed`;
-      console.warn(s, channel, obj);
+      console.warn(s, socket, obj);
       break;
     case WebSocket.OPEN:
       if (typeIsOOB(type)) {
