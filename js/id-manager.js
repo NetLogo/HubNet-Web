@@ -33,4 +33,5 @@ const precedesID = (target, ref) => {
 // (Number, Number) => Boolean
 const succeedsID = (target, ref) => precedesID(ref, target);
 
-export { genNextID, MaxID, MinID, nextID, precedesID, prevID, SentinelID, succeedsID };
+export { genNextID, MaxID, MinID, nextID, precedesID, prevID, SentinelID
+       , succeedsID };

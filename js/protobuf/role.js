@@ -16,8 +16,8 @@ const RolePB = {
     Widget: {
       oneofs: {
         widgetOneOf: {
-          oneof: [ "button", "chooser", "inputBox", "monitor", "output", "plot", "slider"
-                 , "switch", "textBox", "view"]
+          oneof: [ "button", "chooser", "inputBox", "monitor", "output", "plot"
+                 , "slider", "switch", "textBox", "view"]
         }
       }
     , fields: {

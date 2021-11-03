@@ -72,7 +72,8 @@ const launchModel = (formDataPlus) => {
 
     }
   ).then(([fdp, fileEvent]) => {
-    const modelUpdate = fileEvent.result !== undefined ? { model: fileEvent.result } : {};
+    const modelUpdate =
+      fileEvent.result !== undefined ? { model: fileEvent.result } : {};
     return { ...fdp, ...modelUpdate };
   }).then((fddp) => {
 
@@ -104,23 +105,16 @@ const launchModel = (formDataPlus) => {
         nlwFrame .classList.remove("invis");
         history.pushState({ name: "hosting" }, "hosting");
 
-        const babyDearest = nlwFrame.querySelector("iframe").contentWindow;
-
-        babyDearest.postMessage({
-          ...json
-        , nlogo: nlogo
-        , type: "hnw-become-oracle"
-        }, "*");
-
-        babyDearest.postMessage({ type: "nlw-subscribe-to-updates", uuid: hostID }, "*");
+        postToNLW({ ...json, type: "hnw-become-oracle", nlogo });
+        postToNLW({          type: "nlw-subscribe-to-updates", uuid: hostID });
 
         broadSocketW.onmessage = ({ data }) => {
           switch (data.type) {
 
             case "hello":
 
-              const joinerID     = data.joinerID;
-              const connection   = new RTCPeerConnection(hostConfig);
+              const joinerID   = data.joinerID;
+              const connection = new RTCPeerConnection(hostConfig);
 
               const signaling     = new Worker("js/host-signaling-socket.js", { type: "module" });
               signaling.onmessage = handleConnectionMessage(connection, nlogo, sessionName, joinerID);
@@ -171,16 +165,18 @@ const launchModel = (formDataPlus) => {
           Object.values(sessions).forEach((session) => {
             const channel = session.networking.channel;
             if (channel !== undefined) {
-              const id             = genNextID(`${channel.label}-${channel.id}-ping`);
+              const idType         = `${channel.label}-${channel.id}-ping`;
+              const id             = genNextID(idType);
               session.pingData[id] = performance.now();
-              const lastPing       = session.recentPings[session.recentPings.length - 1];
+              const lastIndex      = session.recentPings.length - 1;
+              const lastPing       = session.recentPings[lastIndex];
               sendRTC(channel)("ping", { id, lastPing });
             }
           });
         }, 2000);
 
         setInterval(() => {
-          babyDearest.postMessage({ type: "nlw-request-view" }, "*");
+          postToNLW({ type: "nlw-request-view" });
         }, 8000);
 
       });
@@ -278,10 +274,6 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
     }
   ).then((datum) => {
 
-    if (datum.type !== "keep-alive" && datum.type !== "ping" && datum.type !== "pong") {
-      console.log("Decoded: ", datum);
-    }
-
     switch (datum.type) {
 
       case "connection-established":
@@ -311,19 +303,22 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
           sesh.recentPings.shift();
         }
 
-        const averagePing = Math.round(sesh.recentPings.reduce((x, y) => x + y) / sesh.recentPings.length);
+        const recents     = sesh.recentPings;
+        const numRecents  = recents.length;
+        const averagePing = Math.round(recents.reduce((x, y) => x + y) / numRecents);
 
-        document.querySelector("#nlw-frame > iframe").contentWindow.postMessage({
-          type:    "hnw-latest-ping"
-        , ping:    pingTime
-        , joinerID
-        }, "*");
+        const latestPing =
+          { type: "hnw-latest-ping"
+          , ping: pingTime
+          , joinerID
+          };
+
+        postToNLW(latestPing);
 
         break;
 
       case "relay":
-        const babyDearest = document.getElementById("nlw-frame").querySelector("iframe").contentWindow;
-        babyDearest.postMessage(datum.payload, "*");
+        postToNLW(datum.payload);
         break;
 
       case "bye-bye":
@@ -341,8 +336,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
 // (String) => () => Unit
 const cleanUpJoiner = (joinerID) => {
-  const babyDearest = document.getElementById( "nlw-frame").querySelector("iframe").contentWindow;
-  babyDearest.postMessage({ joinerID, type: "hnw-notify-disconnect" }, "*");
+  postToNLW              ({ type: "hnw-notify-disconnect", joinerID });
   encoderPool.postMessage({ type: "client-disconnect" });
   decoderPool.postMessage({ type: "client-disconnect" });
   delete sessions[joinerID];
@@ -353,9 +347,12 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
 
   if (datum.username !== undefined) {
 
+    const isRelevant = ([k, s]) => k !== joinerID && s.username !== undefined;
+    const isTaken    = ([k, s]) => s.username.toLowerCase() === joinerUsername;
+
     const joinerUsername  = datum.username.toLowerCase();
-    const relevantPairs   = Object.entries(sessions).filter(([k, s]) => k !== joinerID && s.username !== undefined);
-    const usernameIsTaken = relevantPairs.some(([k, s]) => s.username.toLowerCase() === joinerUsername);
+    const relevantPairs   = Object.entries(sessions).filter(isRelevant);
+    const usernameIsTaken = relevantPairs.some(isTaken);
 
     if (!usernameIsTaken) {
       if (password === null || password === datum.password) {
@@ -369,13 +366,14 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
         session.isInitialized = false;
         sendRTC(channel)("login-successful", {});
 
-        const babyDearest = document.getElementById("nlw-frame").querySelector("iframe").contentWindow;
-        babyDearest.postMessage({
-          type:     "hnw-request-initial-state"
-        , token:    joinerID
-        , roleName: "student"
-        , username: sessions[joinerID].username
-        }, "*");
+        const requestInitState =
+          { type:     "hnw-request-initial-state"
+          , token:    joinerID
+          , roleName: "student"
+          , username: sessions[joinerID].username
+          };
+
+        postToNLW(requestInitState);
 
       } else {
         sendRTC(channel)("incorrect-password", {});
@@ -408,10 +406,12 @@ self.addEventListener("message", ({ data }) => {
 
   const broadcast = (type, message) => {
     const checkIsEligible = (s) => {
-      const nw = s.networking;
-      return nw.channel !== undefined && nw.channel.readyState === "open" && s.hasInitialized;
+      const nw         = s.networking;
+      const hasChannel = nw.channel !== undefined;
+      return hasChannel && nw.channel.readyState === "open" && s.hasInitialized;
     };
-    const channels = Object.values(sessions).filter(checkIsEligible).map((s) => s.networking.channel);
+    const toChannel = (s) => s.networking.channel;
+    const channels  = Object.values(sessions).filter(checkIsEligible).map(toChannel);
     sendBurst(true, ...channels)(type, message);
   };
 
@@ -518,7 +518,7 @@ let congestionDuration = 0;
 // () => Unit
 const updateCongestionStats = () => {
 
-  Object.values(sessions).filter((s) => s.hasOwnProperty("channel")).forEach(
+  Object.values(sessions).filter((s) => s.channel !== undefined).forEach(
     (s) => {
       const bufferLog = s.recentBuffer;
       bufferLog.push(s.networking.channel.bufferedAmount);
@@ -546,17 +546,12 @@ const updateCongestionStats = () => {
       connectionIsCongested ? minorCongestionStatus :
                               majorCongestionStatus;
 
-  const notifyNLW = (type) => {
-    const frame = document.getElementById( "nlw-frame").querySelector("iframe");
-    frame.contentWindow.postMessage({ type }, "*");
-  };
-
   if (connectionIsCongested) {
-    notifyNLW("hnw-notify-congested");
+    postToNLW({ type: "hnw-notify-congested" });
     congestionDuration++;
   } else {
     if (congestionDuration > 0) {
-      notifyNLW("hnw-notify-uncongested");
+      postToNLW({ type: "hnw-notify-uncongested" });
     }
     congestionDuration = 0;
   }
@@ -570,6 +565,11 @@ const updateCongestionStats = () => {
   setText("num-congested-span"  , numCongested);
   setText("activity-status-span",       status);
 
+};
+
+// (Object[Any]) => Unit
+const postToNLW = (msg) => {
+  document.querySelector("#nlw-frame > iframe").contentWindow.postMessage(msg, "*");
 };
 
 // (String) => String

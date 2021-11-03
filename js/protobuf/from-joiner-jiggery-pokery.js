@@ -1,4 +1,5 @@
-import { deepClone, recombobulateToken, rejiggerToken, transform } from "./common-jiggery-pokery.js";
+import { deepClone, recombobulateToken, rejiggerToken
+       , transform } from "./common-jiggery-pokery.js";
 
 // (Object[Any]) => Object[Any]
 const rejiggerConnEst = (obj) => {
@@ -64,11 +65,12 @@ const rejiggerRelay = (obj) => {
             out[k0][k1].hnwInputStringPayload = replacement;
           } else if (v1.type === "view") {
             const replacement = deepClone(v1, { type: 1 });
-            replacement.xcor = Math.round(replacement.message.xcor * 10);
-            replacement.ycor = Math.round(replacement.message.ycor * 10);
-            const k2 = (replacement.message.subtype === "mouse-up"  ) ? "hnwMouseUpPayload"   :
-                      ((replacement.message.subtype === "mouse-down") ? "hnwMouseDownPayload" :
-                                                                        "hnwMouseMovePayload");
+            const subtype     = replacement.message.subtype;
+            replacement.xcor  = Math.round(replacement.message.xcor * 10);
+            replacement.ycor  = Math.round(replacement.message.ycor * 10);
+            const k2 = (subtype === "mouse-up"  ) ? "hnwMouseUpPayload"   :
+                      ((subtype === "mouse-down") ? "hnwMouseDownPayload" :
+                                                    "hnwMouseMovePayload");
             delete replacement.message;
             out[k0][k1][k2] = replacement;
           } else if (v1.type === "slider") {
@@ -100,7 +102,10 @@ const rejiggerRelay = (obj) => {
 // (Object[Any]) => Object[Any]
 const recombobulateConnEst = (obj) => {
   const out           = deepClone(obj);
-  out.protocolVersion = `${out.protocolMajor}.${out.protocolMinor}.${out.protocolPatch}`;
+  const major         = out.protocolMajor;
+  const minor         = out.protocolMinor;
+  const patch         = out.protocolPatch;
+  out.protocolVersion = `${major}.${minor}.${patch}`;
   return out;
 };
 
@@ -153,17 +158,20 @@ const recombobulateRelay = (obj) => {
             } else if (k2 === "hnwInputStringPayload") {
               out[k0][k1] = { type: "input", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwMouseUpPayload") {
-              const xcor = v1[k2].xcor / 10;
-              const ycor = v1[k2].ycor / 10;
-              out[k0][k1] = { type: "view", message: { subtype: "mouse-up", xcor, ycor } };
+              const xcor    = v1[k2].xcor / 10;
+              const ycor    = v1[k2].ycor / 10;
+              const message = { subtype: "mouse-up", xcor, ycor };
+              out[k0][k1]   = { type: "view", message };
             } else if (k2 === "hnwMouseDownPayload") {
-              const xcor = v1[k2].xcor / 10;
-              const ycor = v1[k2].ycor / 10;
-              out[k0][k1] = { type: "view", message: { subtype: "mouse-down", xcor, ycor } };
+              const xcor    = v1[k2].xcor / 10;
+              const ycor    = v1[k2].ycor / 10;
+              const message = { subtype: "mouse-down", xcor, ycor };
+              out[k0][k1]   = { type: "view", message };
             } else if (k2 === "hnwMouseMovePayload") {
-              const xcor = v1[k2].xcor / 10;
-              const ycor = v1[k2].ycor / 10;
-              out[k0][k1] = { type: "view", message: { subtype: "mouse-move", xcor, ycor } };
+              const xcor    = v1[k2].xcor / 10;
+              const ycor    = v1[k2].ycor / 10;
+              const message = { subtype: "mouse-move", xcor, ycor };
+              out[k0][k1]   = { type: "view", message };
             } else if (k2 === "hnwSliderPayload") {
               out[k0][k1] = { type: "slider", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwSwitchPayload") {

@@ -53,7 +53,7 @@ const asyncEncode = (parcel, isHost) => {
 };
 
 // (Boolean, RTCDataChannel) => (String, Any, UUID) => Unit
-const send = (isHost, channel) => (type, obj, id = genNextID(`${channel.label}-${channel.id}`)) => {
+const send = (isHost, channel) => (type, obj, id = genChanID(channel)) => {
 
   const parcel = { ...obj };
   parcel.id    = id;
@@ -75,11 +75,9 @@ const sendOOB = (isHost, channel) => (type, obj) => {
 // (Boolean, RTCDataChannel*) => (String, Any) => Unit
 const sendBurst = (isHost, ...channels) => (type, obj) => {
 
-  const genID = (channel) => genNextID(`${channel.label}-${channel.id}`);
-
   // Log the IDs right away, before we do anything async, lest message IDs get
   // out of order. --Jason B. (10/16/21)
-  const idMap = new Map(channels.map((channel) => [channel, genID(channel)]));
+  const idMap = new Map(channels.map((channel) => [channel, genChanID(channel)]));
 
   asyncEncode({ type, ...obj }, isHost).then(
     (encoded) => {
@@ -138,7 +136,8 @@ const sendGreeting = (isHost) => (channel) => {
       console.warn("Cannot send 'connect-established' message, because connection is already closed");
       break;
     case "open":
-      send(isHost, channel)("connection-established", { protocolVersion: HNWProtocolVersionNumber });
+      const baseMsg = { protocolVersion: HNWProtocolVersionNumber };
+      send(isHost, channel)("connection-established", baseMsg);
       break;
     default:
       console.warn(`Unknown connection ready state: ${channel.readyState}`);
@@ -150,5 +149,7 @@ const logAndSend = (data, channel) => {
   logEntry(data, channel);
   channel.send(data);
 };
+
+const genChanID = (channel) => genNextID(`${channel.label}-${channel.id}`);
 
 export { decoderPool, encoderPool, sendBurst, sendGreeting, sendOOB, sendRTC };

@@ -1,4 +1,5 @@
-import { deepClone, recombobulateToken, rejiggerToken, transform } from "./common-jiggery-pokery.js";
+import { deepClone, recombobulateToken, rejiggerToken
+       , transform } from "./common-jiggery-pokery.js";
 
 // (Object[Any]) => Object[Any]
 const rejiggerConnEst = (obj) => {
@@ -603,7 +604,10 @@ const recombobulateViewUpdates = (target, parent) => {
 // (Object[Any]) => Object[Any]
 const recombobulateConnEst = (obj) => {
   const out           = deepClone(obj);
-  out.protocolVersion = `${out.protocolMajor}.${out.protocolMinor}.${out.protocolPatch}`;
+  const major         = out.protocolMajor;
+  const minor         = out.protocolMinor;
+  const patch         = out.protocolPatch;
+  out.protocolVersion = `${major}.${minor}.${patch}`;
   return out;
 };
 
@@ -748,7 +752,8 @@ const recombobulateInitialModel = (obj) => {
               inner.width  = inner.right  - inner.left;
               out[k0][k1].push({ type: "hnwView", ...inner });
             } else {
-              console.warn("Well, that's impressive.  What widget type could this be?", widget);
+              const s = "Well, that's impressive.  What widget type could this be?";
+              console.warn(s, widget);
             }
 
           }

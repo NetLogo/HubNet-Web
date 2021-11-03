@@ -65,7 +65,8 @@ const refreshSelection = (oldActiveUUID) => {
   );
 
   const activeElem  = document.querySelector(".active");
-  const activeEntry = activeElem !== null ? sessionData.find((x) => x.oracleID === activeElem.dataset.uuid) : null;
+  const isTarget    = (x) => x.oracleID === activeElem.dataset.uuid;
+  const activeEntry = activeElem !== null ? sessionData.find(isTarget) : null;
 
   const passwordInput    = document.getElementById("password");
   passwordInput.disabled = activeEntry !== null ? !activeEntry.hasPassword : true;
@@ -104,14 +105,19 @@ const populateSessionList = (sessions) => {
 
   const template = document.getElementById("session-option-template");
 
-  const nodes = sessions.sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1).map(
+  const comparator = (a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1;
+  const nodes      = sessions.sort(comparator).map(
     (session) => {
 
+      const numClients = session.roleInfo[0][1];
+
       const node = template.content.cloneNode(true);
+
       node.querySelector(".session-name").textContent       = session.name;
       node.querySelector(".session-model-name").textContent = session.modelName;
-      node.querySelector(".session-info").textContent       = `${session.roleInfo[0][1]} people`;
+      node.querySelector(".session-info").textContent       = `${numClients} people`;
       node.querySelector(".session-label").dataset.uuid     = session.oracleID;
+
       node.querySelector(".session-option").onchange =
         (event) => {
           if (event.target.checked) {
@@ -159,9 +165,12 @@ const populateSessionList = (sessions) => {
       const match                = document.querySelector(`.session-label[data-uuid="${oracleID}"] > .session-option`);
       if (match !== null) {
         match.click();
-        document.getElementById("username").value = username !== undefined ? username : prompt("Please enter your login name");
+        const hasUsername = username !== undefined;
+        document.getElementById("username").value =
+          hasUsername ? username : prompt("Please enter your login name");
         if (sessionData.find((x) => x.oracleID === oracleID).hasPassword) {
-          document.getElementById("password").value = prompt("Please enter the room's password");
+          document.getElementById("password").value =
+            prompt("Please enter the room's password");
         }
         document.getElementById("join-button").click();
       }
@@ -173,9 +182,11 @@ const populateSessionList = (sessions) => {
 
 // () => Unit
 self.filterSessionList = () => {
-  const term     = document.getElementById("session-filter-box").value.trim().toLowerCase();
-  const checkIt  = ({ name, modelName }) => name.toLowerCase().includes(term) || modelName.toLowerCase().includes(term);
-  const filtered = term === "" ? sessionData : sessionData.filter(checkIt);
+  const filterBox = document.getElementById("session-filter-box");
+  const term      = filterBox.value.trim().toLowerCase();
+  const matches   = (haystack, needle) => haystack.toLowerCase().include(needle);
+  const checkIt   = (s) => matches(s.name, term) || matches(s.modelName, term);
+  const filtered  = term === "" ? sessionData : sessionData.filter(checkIt);
   populateSessionList(filtered);
 };
 
@@ -210,7 +221,8 @@ const connectAndLogin = (hostID) => {
         return joinerConnection.createOffer().then(
           (ofr) => {
             // For Safari 15- --Jason B. (11/1/21)
-            const offer = (ofr instanceof RTCSessionDescription) ? ofr.toJSON() : ofr;
+            const isntSafari = ofr instanceof RTCSessionDescription;
+            const offer      = isntSafari ? ofr.toJSON() : ofr;
             return [joinerID, channel, offer];
           }
         );
@@ -266,12 +278,20 @@ const connectAndLogin = (hostID) => {
 
       joinerConnection.setLocalDescription(offer);
 
-      channel.onopen    = () => { setStatus("Connected!  Attempting to log in...."); login(channel); };
-      channel.onmessage = handleChannelMessages(channel, closeSignaling);
-      channel.onclose   = (e) => { cleanupSession(e.code === 1000, e.reason); };
-      channels[hostID]  = channel;
+      channel.onopen = () => {
+        setStatus("Connected!  Attempting to log in....");
+        login(channel);
+      };
 
-      loopIsTerminated = false; // Boolean
+      channel.onclose = (e) => {
+        cleanupSession(e.code === 1000, e.reason);
+      };
+
+      channel.onmessage = handleChannelMessages(channel, closeSignaling);
+
+      channels[hostID] = channel;
+
+      loopIsTerminated = false;
       requestAnimationFrame(processQueue);
 
       joinerConnection.oniceconnectionstatechange = () => {
@@ -307,10 +327,6 @@ const handleChannelMessages = (channel, closeSignaling) => ({ data }) => {
   const dataArr = new Uint8Array(data);
   const datum   = decodeInput(dataArr);
 
-  if (datum.type !== "keep-alive" && datum.type !== "ping" && datum.type !== "pong") {
-    console.log("Decoded: ", datum);
-  }
-
   if (typeIsOOB(datum.type)) {
     processChannelMessage(channel, closeSignaling, datum);
   } else {
@@ -337,7 +353,8 @@ const handleChannelMessages = (channel, closeSignaling) => ({ data }) => {
           predIDToMsg[pred] = msg;
           processMsgQueue();
         } else {
-          console.warn(`Received message #${msg.id} when the last-processed message was #${lastMsgID}.  #${msg.id} is out-of-order and will be dropped:`, msg);
+          const s = `Received message #${msg.id} when the last-processed message was #${lastMsgID}.  #${msg.id} is out-of-order and will be dropped:`;
+          console.warn(s, msg);
         }
       }
     };
@@ -470,7 +487,8 @@ const processChannelMessage = (channel, closeSignaling, datum) => {
           recentPings.shift();
         }
 
-        const averagePing = Math.round(recentPings.reduce((x, y) => x + y) / recentPings.length);
+        const add         = (x, y) => x + y;
+        const averagePing = Math.round(recentPings.reduce(add) / recentPings.length);
         document.getElementById("latency-span").innerText = averagePing;
 
       }
@@ -550,9 +568,7 @@ const handleBurstMessage = (datum) => {
 
       const intervalID = setInterval(
         () => {
-          document.querySelector("#nlw-frame > iframe").contentWindow.postMessage({
-            type: "hnw-are-you-ready-for-interface" }
-          , "*");
+          postToNLW({ type: "hnw-are-you-ready-for-interface" });
         }
       , 1000);
 
@@ -578,14 +594,14 @@ const handleBurstMessage = (datum) => {
       break;
 
     case "state-update":
-      document.querySelector("#nlw-frame > iframe").contentWindow.postMessage({
+      postToNLW({
         update: datum.update,
         type:   "nlw-apply-update"
-      }, "*");
+      });
       break;
 
     case "relay":
-      document.querySelector("#nlw-frame > iframe").contentWindow.postMessage(datum.payload, "*");
+      postToNLW(datum.payload);
       break;
 
     case "hnw-resize":
@@ -659,7 +675,7 @@ const loadFakeModel = () => {
     , view:     fakeView
     };
 
-  document.getElementById("nlw-frame").querySelector("iframe").contentWindow.postMessage(fakePayload, "*");
+  postToNLW(fakePayload);
 
 };
 
@@ -728,6 +744,11 @@ const disconnectChannels = (reason) => {
   });
 };
 
+// (Object[Any]) => Unit
+const postToNLW = (msg) => {
+  document.querySelector("#nlw-frame > iframe").contentWindow.postMessage(msg, "*");
+};
+
 self.addEventListener("message", (event) => {
   switch (event.data.type) {
 
@@ -737,7 +758,7 @@ self.addEventListener("message", (event) => {
         const stateEntry = waitingForBabby[event.data.payload.type];
         if (stateEntry !== undefined) {
           delete waitingForBabby[event.data.payload.type];
-          document.querySelector("#nlw-frame > iframe").contentWindow.postMessage(stateEntry.forPosting, "*");
+          postToNLW(stateEntry.forPosting);
         }
         setPageState("booted up");
       } else {
@@ -762,8 +783,8 @@ self.addEventListener("message", (event) => {
       setStatus("Loading up interface in NetLogo Web...");
       const uiEntry = waitingForBabby[event.data.type];
       delete waitingForBabby[event.data.type];
-      document.querySelector("#nlw-frame > iframe").contentWindow.postMessage(uiEntry.forPosting , "*");
-      document.querySelector("#nlw-frame > iframe").contentWindow.postMessage(uiEntry.forFollowup, "*");
+      postToNLW(uiEntry.forPosting );
+      postToNLW(uiEntry.forFollowup);
       clearInterval(uiEntry.forCancel);
       break;
 
@@ -777,7 +798,8 @@ self.addEventListener("message", (event) => {
 });
 
 self.addEventListener("beforeunload", (event) => {
-  // Honestly, this will probably not run before the tab closes.  Not much I can do about that.  --JAB (8/21/20)
+  // Honestly, this will probably not run before the tab closes.
+  // Not much I can do about that.  --Jason B. (8/21/20)
   disconnectChannels("");
 });
 

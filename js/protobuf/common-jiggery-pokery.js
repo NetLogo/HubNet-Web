@@ -74,13 +74,14 @@ const applyTransforms = (key, value, obj, condPairs) => {
 };
 
 // (Object[Any], Array[(((String, Any) => Boolean, (String, Any) => Any))], Object[_], Boolean, Object[_]) => Object[Any]
-const transformativeClone = (obj, condPairs, blacklist, shouldLowerCase, whitelist) => {
+const transformativeClone = (obj, condPairs, blacklist, shouldLower, whitelist) => {
   const clone = obj.length !== undefined ? [] : {};
   for (let key in obj) {
     if (!blacklist.hasOwnProperty(key)) {
-      const value    = obj[key];
-      const trueKey  = (shouldLowerCase && !whitelist.hasOwnProperty(key)) ? key.toLowerCase() : key;
-      clone[trueKey] = applyTransforms(key, value, obj, condPairs);
+      const value       = obj[key];
+      const isLowerable = shouldLower && !whitelist.hasOwnProperty(key);
+      const trueKey     = isLowerable ? key.toLowerCase() : key;
+      clone[trueKey]    = applyTransforms(key, value, obj, condPairs);
     }
   }
   return clone;
@@ -97,7 +98,8 @@ const innerClone = (obj, blacklist, shouldLowerCase, whitelist) => {
                       , ((k, v) => v)
                       ];
 
-  const ignoresBuffers = [ ((k, v) => v.length !== undefined || v.byteLength !== undefined)
+  const ignoresBuffers = [ ((k, v) => v.length     !== undefined ||
+                                      v.byteLength !== undefined)
                          , ((k, v) => v)
                          ];
 

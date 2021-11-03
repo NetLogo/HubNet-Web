@@ -227,7 +227,8 @@ const PlotUpdateStuff = {
 , PlotUpdate: {
     oneofs: {
       plotUpdate: {
-        oneof: ["addPoint", "reset", "resetPen", "registerPen", "updatePenColor", "updatePenMode"]
+        oneof: [ "addPoint", "reset", "resetPen", "registerPen"
+               , "updatePenColor", "updatePenMode"]
       }
     }
   , fields: {

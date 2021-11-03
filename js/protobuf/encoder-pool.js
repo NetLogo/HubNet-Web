@@ -5,12 +5,12 @@ const maxNumWorkers = Math.max(1, navigator.hardwareConcurrency);
 // Array[{ isIdle: Boolean, worker: WebWorker }]
 const workerPool = [];
 
-initWorker = () => {
+const initWorker = () => {
   const worker = new Worker("encoder.js", { type: "module" });
   workerPool.push({ worker, isIdle: true });
 };
 
-encode = (msg, port) => {
+const encode = (msg, port) => {
   const workerBundle = workerPool.find((bundle) => bundle.isIdle);
   if (workerBundle !== undefined) {
     workerBundle.isIdle = false;
@@ -25,7 +25,8 @@ encode = (msg, port) => {
           resolve(data);
         };
 
-        workerBundle.worker.postMessage({ type: "encode", parcel: msg }, [channel.port2]);
+        const message = { type: "encode", parcel: msg };
+        workerBundle.worker.postMessage(message, [channel.port2]);
 
       }
     ).then((encoded) => {

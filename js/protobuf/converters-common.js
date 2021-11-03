@@ -71,7 +71,8 @@ const decodePBuf = (isHost) => (byteStream) => {
   const reconstructed     = { type, ...decodedObj };
   const furled            = furler.furl(reconstructed);
   trace(type)(() => console.log("About to recombobulate", reconstructed, furled));
-  const recombobulated    = (isHost ? FromJoinerJP : FromHostJP).recombobulate(furled);
+  const jiggeryPokery     = isHost ? FromJoinerJP : FromHostJP;
+  const recombobulated    = jiggeryPokery.recombobulate(furled);
   trace(type)(() => console.log("Done to recombobulate", recombobulated));
 
   return recombobulated;

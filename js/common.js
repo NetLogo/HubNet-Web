@@ -32,7 +32,9 @@ const byteSizeLabel = (n, precision = 2) => {
 
 // (String) => String
 const stringToHash = (str) => {
-  return Array.from(str).map((x) => x.codePointAt(0)).reduce(((acc, x) => (((acc << 5) - acc) + x) | 0), 0);
+  const toCodePoint = (x)      => x.codePointAt(0);
+  const toHash      = (acc, x) => (((acc << 5) - acc) + x) | 0;
+  return Array.from(str).map(toCodePoint).reduce(toHash, 0);
 };
 
 // (String) => Number
@@ -62,4 +64,5 @@ const genUUID = () => {
 
 };
 
-export { awaitWorker, byteSizeLabel, genUUID, HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID };
+export { awaitWorker, byteSizeLabel, genUUID, HNWProtocolVersionNumber
+       , typeIsOOB, uuidToRTCID };
