@@ -39,22 +39,27 @@ const decode = (msg, port) => {
 
 onmessage = (e) => {
   switch (e.data.type) {
-    case "client-connect":
+    case "client-connect": {
       if (workerPool.length < maxNumWorkers) {
         initWorker();
       }
       break;
-    case "client-disconnect":
+    }
+    case "client-disconnect": {
       break;
-    case "decode":
+    }
+    case "decode": {
       decode(e.data.parcel, e.ports[0]);
       break;
-    case "shutdown":
+    }
+    case "shutdown": {
       workerPool.forEach((w) => w.worker.terminate());
       postMessage({ type: "shutdown-complete" });
       break;
-    default:
+    }
+    default: {
       console.warn("Unknown decoder pool message type:", e.data.type, e);
+    }
   }
 };
 

@@ -28,10 +28,12 @@ const encoderPool = new Worker("js/protobuf/encoder-pool.js");
 
 encoderPool.onmessage = (msg) => {
   switch (msg.type) {
-    case "shutdown-complete":
+    case "shutdown-complete": {
       break;
-    default:
+    }
+    default: {
       console.warn("Unknown encoder pool response type:", msg.type, msg);
+    }
   }
 };
 
@@ -39,10 +41,12 @@ const decoderPool = new Worker("js/protobuf/decoder-pool.js");
 
 decoderPool.onmessage = (msg) => {
   switch (msg.type) {
-    case "shutdown-complete":
+    case "shutdown-complete": {
       break;
-    default:
+    }
+    default: {
       console.warn("Unknown decoder pool response type:", msg.type, msg);
+    }
   }
 };
 
@@ -105,22 +109,26 @@ const sendBurst = (isHost, ...channels) => (type, msg) => {
 const sendRTC = (isHost) => (...channels) => (type, obj) => {
   channels.forEach((channel) => {
     switch (channel.readyState) {
-      case "connecting":
+      case "connecting": {
         setTimeout(() => { sendRTC(isHost)(channel)(type, obj); }, 50);
         break;
+      }
       case "closing":
-      case "closed":
+      case "closed": {
         console.warn(`Cannot send '${type}' message over connection, because it is already closed`, channel, obj);
         break;
-      case "open":
+      }
+      case "open": {
         if (typeIsOOB(type)) {
           sendOOB(isHost, channel)(type, obj);
         } else {
           send(isHost, channel)(type, obj);
         }
         break;
-      default:
+      }
+      default: {
         console.warn(`Unknown connection ready state: ${channel.readyState}`);
+      }
     }
   });
 };
@@ -128,19 +136,23 @@ const sendRTC = (isHost) => (...channels) => (type, obj) => {
 // (Boolean) => (RTCDataChannel) => Unit
 const sendGreeting = (isHost) => (channel) => {
   switch (channel.readyState) {
-    case "connecting":
+    case "connecting": {
       setTimeout(() => { sendGreeting(isHost)(channel); }, 50);
       break;
+    }
     case "closing":
-    case "closed":
+    case "closed": {
       console.warn("Cannot send 'connect-established' message, because connection is already closed");
       break;
-    case "open":
+    }
+    case "open": {
       const baseMsg = { protocolVersion: HNWProtocolVersionNumber };
       send(isHost, channel)("connection-established", baseMsg);
       break;
-    default:
+    }
+    default: {
       console.warn(`Unknown connection ready state: ${channel.readyState}`);
+    }
   }
 };
 

@@ -203,24 +203,30 @@ const recombobulateRelay = (obj) => {
 // (Object[Any]) => Object[Any]
 const rejigger = (msg) => {
   switch (msg.type) {
-    case "connection-established":
+    case "connection-established": {
       return rejiggerConnEst(msg);
-    case "relay":
+    }
+    case "relay": {
       return rejiggerRelay(msg);
-    default:
+    }
+    default: {
       return deepClone(msg);
+    }
   }
 };
 
 // (Object[Any]) => Object[Any]
 const recombobulate = (msg) => {
   switch (msg.type) {
-    case "connection-established":
+    case "connection-established": {
       return recombobulateConnEst(msg);
-    case "relay":
+    }
+    case "relay": {
       return recombobulateRelay(msg);
-    default:
+    }
+    default: {
       return deepClone(msg);
+    }
   }
 };
 

@@ -3,7 +3,7 @@ import { setSocket } from "./websocket-common.js";
 
 onmessage = (e) => {
   switch (e.data.type) {
-    case "connect":
+    case "connect": {
       const socket = new WebSocket(e.data.url);
       socket.onmessage = ({ data }) => {
         const datum = JSON.parse(data);
@@ -17,13 +17,17 @@ onmessage = (e) => {
       };
       setSocket(socket);
       break;
-    case "request-new-send":
+    }
+    case "request-new-send": {
       e.ports[0].postMessage(reportNewSend());
       break;
-    case "request-bandwidth-report":
+    }
+    case "request-bandwidth-report": {
       e.ports[0].postMessage(reportBandwidth());
       break;
-    default:
+    }
+    default: {
       console.warn("Unknown broadSocket message type:", e.data.type, e);
+    }
   }
 };

@@ -36,23 +36,27 @@ const sendOOB = (type, obj) => {
 // (String, Object[Any]) => Unit
 const sendObj = (type, obj) => {
   switch (socket.readyState) {
-    case WebSocket.CONNECTING:
+    case WebSocket.CONNECTING: {
       setTimeout(() => { sendObj(type, obj); }, 50);
       break;
+    }
     case WebSocket.CLOSING:
-    case WebSocket.CLOSED:
+    case WebSocket.CLOSED: {
       const s = `Cannot send '${type}' message over WebSocket, because it is already closed`;
       console.warn(s, socket, obj);
       break;
-    case WebSocket.OPEN:
+    }
+    case WebSocket.OPEN: {
       if (typeIsOOB(type)) {
         sendOOB(type, obj);
       } else {
         send(type, obj);
       }
       break;
-    default:
+    }
+    default: {
       console.warn(`Unknown WebSocket ready state: ${socket.readyState}`);
+    }
   }
 };
 

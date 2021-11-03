@@ -11,25 +11,31 @@ base64EncoderW.onmessage = ({ data }) => {
 
 onmessage = (e) => {
   switch (e.data.type) {
-    case "connect":
+    case "connect": {
       setSocket(new WebSocket(e.data.url));
       break;
-    case "image-update":
+    }
+    case "image-update": {
       base64EncoderW.postMessage({ type: "encode-blob", blob: e.data.blob });
       break;
-    case "members-update":
+    }
+    case "members-update": {
       if (lastMemberCount !== e.data.numPeers) {
         lastMemberCount = e.data.numPeers;
         sendObj("members-update", { numPeers: e.data.numPeers });
       }
       break;
-    case "request-new-send":
+    }
+    case "request-new-send": {
       e.ports[0].postMessage(reportNewSend());
       break;
-    case "request-bandwidth-report":
+    }
+    case "request-bandwidth-report": {
       e.ports[0].postMessage(reportBandwidth());
       break;
-    default:
+    }
+    default: {
       console.warn("Unknown status socket message type:", e.data.type, e);
+    }
   }
 };

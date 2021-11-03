@@ -242,21 +242,26 @@ const connectAndLogin = (hostID) => {
       signalingW.onmessage = ({ data }) => {
         const datum = JSON.parse(data);
         switch (datum.type) {
-          case "host-answer":
+          case "host-answer": {
             if (joinerConnection.remoteDescription === null) {
               joinerConnection.setRemoteDescription(datum.answer);
             }
             break;
-          case "host-ice-candidate":
+          }
+          case "host-ice-candidate": {
             joinerConnection.addIceCandidate(datum.candidate);
             break;
-          case "bye-bye":
+          }
+          case "bye-bye": {
             console.warn("Central server disconnected from signaling");
             break;
-          case "keep-alive":
+          }
+          case "keep-alive": {
             break;
-          default:
+          }
+          default: {
             console.warn(`Unknown signaling message type: ${datum.type}`);
+          }
         }
       };
 
@@ -420,7 +425,7 @@ const processChannelMessage = (channel, closeSignaling, datum) => {
 
   switch (datum.type) {
 
-    case "connection-established":
+    case "connection-established": {
 
       if (datum.protocolVersion !== HNWProtocolVersionNumber) {
         alert(`HubNet protocol version mismatch!  You are using protocol version '${HNWProtocolVersionNumber}', while the host is using version '${datum.protocolVersion}'.  To ensure that you and the host are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  Your connection will now close.`);
@@ -448,32 +453,38 @@ const processChannelMessage = (channel, closeSignaling, datum) => {
 
       break;
 
-    case "login-successful":
+    }
+
+    case "login-successful": {
       closeSignaling();
       setStatus("Logged in!  Loading NetLogo and then asking for model....");
       serverListSocketW.postMessage({ type: "hibernate" });
       switchToNLW();
       break;
+    }
 
-    case "incorrect-password":
+    case "incorrect-password": {
       setStatus("Login rejected!  Use correct password.");
       alert("Incorrect password");
       document.getElementById("join-button").disabled = false;
       break;
+    }
 
-    case "no-username-given":
+    case "no-username-given": {
       setStatus("Login rejected!  Please provide a username.");
       alert("You must provide a username.");
       document.getElementById("join-button").disabled = false;
       break;
+    }
 
-    case "username-already-taken":
+    case "username-already-taken": {
       setStatus("Login rejected!  Choose a unique username.");
       alert("Username already in use.");
       document.getElementById("join-button").disabled = false;
       break;
+    }
 
-    case "ping":
+    case "ping": {
 
       const { id, lastPing } = datum;
 
@@ -495,19 +506,25 @@ const processChannelMessage = (channel, closeSignaling, datum) => {
 
       break;
 
-    case "hnw-burst":
+    }
+
+    case "hnw-burst": {
       enqueueMessage(datum.parcel);
       break;
+    }
 
-    case "bye-bye":
+    case "bye-bye": {
       channel.close(1000, "The host disconnected.  Awaiting new selection.");
       alert("The host disconnected from the activity");
+    }
 
-    case "keep-alive":
+    case "keep-alive": {
       break;
+    }
 
-    default:
+    default: {
       console.warn(`Unknown channel event type: ${datum.type}`);
+    }
 
   }
 
@@ -560,7 +577,7 @@ const handleBurstMessage = (datum) => {
 
   switch (datum.type) {
 
-    case "initial-model":
+    case "initial-model": {
 
       setStatus("Model and world acquired!  Waiting for NetLogo Web to be ready...");
 
@@ -593,22 +610,28 @@ const handleBurstMessage = (datum) => {
 
       break;
 
-    case "state-update":
+    }
+
+    case "state-update": {
       postToNLW({
         update: datum.update,
         type:   "nlw-apply-update"
       });
       break;
+    }
 
-    case "relay":
+    case "relay": {
       postToNLW(datum.payload);
       break;
+    }
 
-    case "hnw-resize":
+    case "hnw-resize": {
       break;
+    }
 
-    default:
+    default: {
       console.warn(`Unknown bursted sub-event type: ${datum.type}`);
+    }
 
   }
 
@@ -752,7 +775,7 @@ const postToNLW = (msg) => {
 self.addEventListener("message", (event) => {
   switch (event.data.type) {
 
-    case "relay":
+    case "relay": {
       if (event.data.payload.type === "interface-loaded") {
         setStatus("Model loaded and ready for you to use!");
         const stateEntry = waitingForBabby[event.data.payload.type];
@@ -766,20 +789,24 @@ self.addEventListener("message", (event) => {
         sendRTC(channels[hostID])("relay", event.data);
       }
       break;
+    }
 
-    case "hnw-fatal-error":
+    case "hnw-fatal-error": {
       switch (event.data.subtype) {
-        case "unknown-agent":
+        case "unknown-agent": {
           alert(`We received an update for an agent that we have never heard of (${event.data.agentType} #${event.data.agentID}).\n\nIn a later version, we will add the ability to resynchronize with the server to get around this issue.  However, the only solution right now is for the activity to close.\n\nYou might have better success if you reconnect.`);
           break;
-        default:
+        }
+        default: {
           alert(`An unknown fatal error has occurred: ${event.data.subtype}`);
+        }
       }
       setStatus("You encountered an error and your session had to be closed.  Sorry about that.  Maybe your next session will treat you better.");
       cleanupSession(true, undefined);
       break;
+    }
 
-    case "yes-i-am-ready-for-interface":
+    case "yes-i-am-ready-for-interface": {
       setStatus("Loading up interface in NetLogo Web...");
       const uiEntry = waitingForBabby[event.data.type];
       delete waitingForBabby[event.data.type];
@@ -787,12 +814,15 @@ self.addEventListener("message", (event) => {
       postToNLW(uiEntry.forFollowup);
       clearInterval(uiEntry.forCancel);
       break;
+    }
 
-    case "hnw-resize":
+    case "hnw-resize": {
       break;
+    }
 
-    default:
+    default: {
       console.warn(`Unknown message type: ${event.data.type}`);
+    }
 
   }
 });
@@ -806,11 +836,13 @@ self.addEventListener("beforeunload", () => {
 self.addEventListener("popstate", (event) => {
   if (event.state !== null && event.state !== undefined) {
     switch (event.state.name) {
-      case "joined":
+      case "joined": {
         joinerConnection = new RTCPeerConnection(joinerConfig);
         cleanupSession(true, undefined);
-      default:
+      }
+      default: {
         console.warn(`Unknown state: ${event.state.name}`);
+      }
     }
   }
 });

@@ -851,36 +851,48 @@ const recombobulateStateUpdate = (obj) => {
 // (Object[Any]) => Object[Any]
 const rejigger = (msg) => {
   switch (msg.type) {
-    case "connection-established":
+    case "connection-established": {
       return rejiggerConnEst(msg);
-    case "hnw-burst":
+    }
+    case "hnw-burst": {
       return rejiggerBurst(msg);
-    case "initial-model":
+    }
+    case "initial-model": {
       return rejiggerInitialModel(msg);
-    case "relay":
+    }
+    case "relay": {
       return rejiggerRelay(msg);
-    case "state-update":
+    }
+    case "state-update": {
       return rejiggerStateUpdate(msg);
-    default:
+    }
+    default: {
       return deepClone(msg);
+    }
   }
 };
 
 // (Object[Any]) => Object[Any]
 const recombobulate = (msg) => {
   switch (msg.type) {
-    case "connection-established":
+    case "connection-established": {
       return recombobulateConnEst(msg);
-    case "hnw-burst":
+    }
+    case "hnw-burst": {
       return recombobulateBurst(msg);
-    case "initial-model":
+    }
+    case "initial-model": {
       return recombobulateInitialModel(msg);
-    case "relay":
+    }
+    case "relay": {
       return recombobulateRelay(msg);
-    case "state-update":
+    }
+    case "state-update": {
       return recombobulateStateUpdate(msg);
-    default:
+    }
+    default: {
       return deepClone(msg);
+    }
   }
 };
 

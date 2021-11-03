@@ -111,7 +111,7 @@ const launchModel = (formDataPlus) => {
         broadSocketW.onmessage = ({ data }) => {
           switch (data.type) {
 
-            case "hello":
+            case "hello": {
 
               const joinerID   = data.joinerID;
               const connection = new RTCPeerConnection(hostConfig);
@@ -134,8 +134,11 @@ const launchModel = (formDataPlus) => {
 
               break;
 
-            default:
+            }
+
+            default: {
               console.warn(`Unknown broad event type: ${data.type}`);
+            }
 
           }
         };
@@ -243,14 +246,17 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
 const handleConnectionMessage = (connection, nlogo, sessionName, joinerID) => ({ data }) => {
   const datum = JSON.parse(data);
   switch (datum.type) {
-    case "joiner-offer":
+    case "joiner-offer": {
       processOffer(connection, nlogo, sessionName, joinerID)(datum.offer);
       break;
-    case "joiner-ice-candidate":
+    }
+    case "joiner-ice-candidate": {
       connection.addIceCandidate(datum.candidate);
       break;
-    default:
+    }
+    default: {
       console.warn(`Unknown narrow event type: ${datum.type}`);
+    }
   }
 };
 
@@ -276,7 +282,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
     switch (datum.type) {
 
-      case "connection-established":
+      case "connection-established": {
 
         if (datum.protocolVersion !== HNWProtocolVersionNumber) {
           const id = sessions[joinerID] && sessions[joinerID].username || joinerID;
@@ -287,11 +293,14 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
         break;
 
-      case "login":
+      }
+
+      case "login": {
         handleLogin(channel, nlogo, sessionName, datum, joinerID);
         break;
+      }
 
-      case "pong":
+      case "pong": {
 
         const sesh       = sessions[joinerID];
         const pingBucket = sesh.pingData[datum.id];
@@ -313,16 +322,21 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
         break;
 
-      case "relay":
+      }
+
+      case "relay": {
         postToNLW(datum.payload);
         break;
+      }
 
-      case "bye-bye":
+      case "bye-bye": {
         cleanUpJoiner(joinerID);
         break;
+      }
 
-      default:
+      default: {
         console.warn(`Unknown channel event type: ${datum.type}`);
+      }
 
     }
 
@@ -409,16 +423,18 @@ self.addEventListener("message", ({ data }) => {
   };
 
   switch (data.type) {
-    case "nlw-state-update":
+    case "nlw-state-update": {
       if (data.isNarrowcast)
         narrowcast("state-update", { update: data.update }, data.recipient);
       else
         broadcast("state-update", { update: data.update });
       break;
-    case "nlw-view":
+    }
+    case "nlw-view": {
       statusSocketW.postMessage({ type: "image-update", blob: data.blob });
       break;
-    case "galapagos-direct-launch":
+    }
+    case "galapagos-direct-launch": {
       const { nlogo, config, sessionName, password: pw } = data;
       launchModel({ modelType:  "upload"
                   , model:       nlogo
@@ -427,12 +443,14 @@ self.addEventListener("message", ({ data }) => {
                   , config
                   });
       break;
-    case "hnw-initial-state":
+    }
+    case "hnw-initial-state": {
       const { token, role, state, viewState } = data;
       narrowcast("initial-model", { role, token, state, view: viewState }, token);
       sessions[token].hasInitialized = true;
       break;
-    case "relay":
+    }
+    case "relay": {
       if (data.isNarrowcast) {
         const parcel = Object.assign({}, data);
         delete parcel.isNarrowcast;
@@ -442,14 +460,18 @@ self.addEventListener("message", ({ data }) => {
         broadcast("relay", data);
       }
       break;
-    case "hnw-fatal-error":
+    }
+    case "hnw-fatal-error": {
       alert(`Fatal error received from client: ${data.subtype}`);
       self.location.reload();
       break;
-    case "nlw-resize":
+    }
+    case "nlw-resize": {
       break;
-    default:
+    }
+    default: {
       console.warn(`Unknown postMessage type: ${data.type}`);
+    }
   }
 
 });
@@ -464,10 +486,12 @@ self.addEventListener("beforeunload", () => {
 
 self.addEventListener("popstate", (event) => {
   switch (event.state.name) {
-    case "hosting":
+    case "hosting": {
       cleanupHostingSession();
-    default:
+    }
+    default: {
       console.warn(`Unknown state: ${event.state.name}`);
+    }
   }
 });
 
