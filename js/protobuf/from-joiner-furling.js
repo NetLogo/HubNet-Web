@@ -88,11 +88,11 @@ const trueUnfurl = (msg) => {
 };
 
 // (Message) => Message
-const furl = (msg) => {
+const furl = (message) => {
 
-  const pluck = (msg, keys) => {
+  const pluck = (target, keys) => {
     const obj = {};
-    keys.forEach((key) => obj[key] = msg[key]);
+    keys.forEach((key) => obj[key] = target[key]);
     return obj;
   };
 
@@ -122,9 +122,10 @@ const furl = (msg) => {
     , "unfurled-relay-switch":       ["hnwSwitchPayload"     , ["varName", "value"]]
     };
 
-  const correlation = correlator[msg.type];
+  const correlation   = correlator[message.type];
+  const doesCorrelate = correlation !== undefined;
 
-  return (correlation !== undefined) ? reconstitute(msg, ...correlation) : msg;
+  return doesCorrelate ? reconstitute(message, ...correlation) : message;
 
 };
 

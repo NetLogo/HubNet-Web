@@ -73,13 +73,13 @@ const sendOOB = (isHost, channel) => (type, obj) => {
 };
 
 // (Boolean, RTCDataChannel*) => (String, Any) => Unit
-const sendBurst = (isHost, ...channels) => (type, obj) => {
+const sendBurst = (isHost, ...channels) => (type, msg) => {
 
   // Log the IDs right away, before we do anything async, lest message IDs get
   // out of order. --Jason B. (10/16/21)
   const idMap = new Map(channels.map((channel) => [channel, genChanID(channel)]));
 
-  asyncEncode({ type, ...obj }, isHost).then(
+  asyncEncode({ type, ...msg }, isHost).then(
     (encoded) => {
 
       const chunks = chunkForSending(encoded);

@@ -264,9 +264,9 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
       const chan = new MessageChannel();
 
-      chan.port1.onmessage = ({ data }) => {
+      chan.port1.onmessage = ({ data: d }) => {
         chan.port1.close();
-        resolve(data);
+        resolve(d);
       };
 
       decoderPool.postMessage({ type: "decode", parcel: dataArr }, [chan.port2]);
@@ -419,11 +419,11 @@ self.addEventListener("message", ({ data }) => {
       statusSocketW.postMessage({ type: "image-update", blob: data.blob });
       break;
     case "galapagos-direct-launch":
-      const { nlogo, config, sessionName, password } = data;
+      const { nlogo, config, sessionName, password: pw } = data;
       launchModel({ modelType:  "upload"
                   , model:       nlogo
                   , sessionName
-                  , password
+                  , password:    pw
                   , config
                   });
       break;

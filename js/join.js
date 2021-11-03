@@ -396,9 +396,9 @@ const handleChannelMessages = (channel, closeSignaling) => ({ data }) => {
 
       if (bucket.every((x) => x !== null)) {
 
-        const parcel  = decodeInput(assembleBucket(bucket));
+        const decoded = decodeInput(assembleBucket(bucket));
         const header  = multipartHeaders[id];
-        const fullMsg = Object.assign({}, header, { parcel });
+        const fullMsg = Object.assign({}, header, { parcel: decoded });
 
         delete multiparts[id];
         delete multipartHeaders[id];
