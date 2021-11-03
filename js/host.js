@@ -29,20 +29,20 @@ let password = null; // String
 
 const SigTerm = "signaling-terminated";
 
-const broadSocketW = new Worker('js/broadsocket.js', { type: "module" });
+const broadSocketW = new Worker("js/broadsocket.js", { type: "module" });
 
-const statusSocketW = new Worker('js/status-socket.js', { type: "module" });
+const statusSocketW = new Worker("js/status-socket.js", { type: "module" });
 
 // (DOMElement) => Boolean
 self.submitLaunchForm = (elem) => {
 
   const formData = new FormData(elem);
-  const lm       = formData.get('libraryModel').slice(4);
+  const lm       = formData.get("libraryModel").slice(4);
 
-  launchModel({ 'modelType':   'library'
-              , 'sessionName': formData.get('sessionName')
-              , 'password':    formData.get('password')
-              , 'model':       lm
+  launchModel({ "modelType":   "library"
+              , "sessionName": formData.get("sessionName")
+              , "password":    formData.get("password")
+              , "model":       lm
               });
 
   return true;
@@ -77,12 +77,12 @@ const launchModel = (formDataPlus) => {
   }).then((fddp) => {
 
     const data =
-      { method:  'POST'
-      , headers: { 'Content-Type': 'application/json' }
+      { method:  "POST"
+      , headers: { "Content-Type": "application/json" }
       , body:    JSON.stringify(fddp)
       };
 
-    return fetch('/x-launch-session', data).then((response) => [fddp, response]);
+    return fetch("/x-launch-session", data).then((response) => [fddp, response]);
 
   }).then(([formDataLike, response]) => {
 
@@ -90,7 +90,7 @@ const launchModel = (formDataPlus) => {
 
       response.json().then(({ id: hostID, type, nlogoMaybe, jsonMaybe }) => {
 
-        document.getElementById('id-display').innerText = hostID;
+        document.getElementById("id-display").innerText = hostID;
 
         const canDealWith = type === "from-library" || type === "from-upload";
         const nlogo       = canDealWith ? nlogoMaybe            : "what is this model type?!";
@@ -104,7 +104,7 @@ const launchModel = (formDataPlus) => {
         nlwFrame .classList.remove("invis");
         history.pushState({ name: "hosting" }, "hosting");
 
-        const babyDearest = nlwFrame.querySelector('iframe').contentWindow;
+        const babyDearest = nlwFrame.querySelector("iframe").contentWindow;
 
         babyDearest.postMessage({
           ...json
@@ -122,7 +122,7 @@ const launchModel = (formDataPlus) => {
               const joinerID     = data.joinerID;
               const connection   = new RTCPeerConnection(hostConfig);
 
-              const signaling     = new Worker('js/host-signaling-socket.js', { type: "module" });
+              const signaling     = new Worker("js/host-signaling-socket.js", { type: "module" });
               signaling.onmessage = handleConnectionMessage(connection, nlogo, sessionName, joinerID);
 
               const signalingURL = `ws://localhost:8080/rtc/${hostID}/${joinerID}/host`;
@@ -313,7 +313,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
         const averagePing = Math.round(sesh.recentPings.reduce((x, y) => x + y) / sesh.recentPings.length);
 
-        document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
+        document.querySelector("#nlw-frame > iframe").contentWindow.postMessage({
           type:    "hnw-latest-ping"
         , ping:    pingTime
         , joinerID
@@ -322,7 +322,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
         break;
 
       case "relay":
-        const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
+        const babyDearest = document.getElementById("nlw-frame").querySelector("iframe").contentWindow;
         babyDearest.postMessage(datum.payload, "*");
         break;
 
@@ -341,7 +341,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
 // (String) => () => Unit
 const cleanUpJoiner = (joinerID) => {
-  const babyDearest = document.getElementById( "nlw-frame").querySelector('iframe').contentWindow;
+  const babyDearest = document.getElementById( "nlw-frame").querySelector("iframe").contentWindow;
   babyDearest.postMessage({ joinerID, type: "hnw-notify-disconnect" }, "*");
   encoderPool.postMessage({ type: "client-disconnect" });
   decoderPool.postMessage({ type: "client-disconnect" });
@@ -369,7 +369,7 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
         session.isInitialized = false;
         sendRTC(channel)("login-successful", {});
 
-        const babyDearest = document.getElementById("nlw-frame").querySelector('iframe').contentWindow;
+        const babyDearest = document.getElementById("nlw-frame").querySelector("iframe").contentWindow;
         babyDearest.postMessage({
           type:     "hnw-request-initial-state"
         , token:    joinerID
@@ -427,7 +427,7 @@ self.addEventListener("message", ({ data }) => {
       break;
     case "galapagos-direct-launch":
       const { nlogo, config, sessionName, password } = data;
-      launchModel({ 'modelType': 'upload'
+      launchModel({ modelType:  "upload"
                   , model:       nlogo
                   , sessionName
                   , password
@@ -469,7 +469,7 @@ self.addEventListener("beforeunload", (event) => {
   });
 });
 
-self.addEventListener('popstate', (event) => {
+self.addEventListener("popstate", (event) => {
   switch (event.state.name) {
     case "hosting":
       cleanupHostingSession();
@@ -518,7 +518,7 @@ let congestionDuration = 0;
 // () => Unit
 const updateCongestionStats = () => {
 
-  Object.values(sessions).filter((s) => s.hasOwnProperty('channel')).forEach(
+  Object.values(sessions).filter((s) => s.hasOwnProperty("channel")).forEach(
     (s) => {
       const bufferLog = s.recentBuffer;
       bufferLog.push(s.networking.channel.bufferedAmount);
@@ -547,7 +547,7 @@ const updateCongestionStats = () => {
                               majorCongestionStatus;
 
   const notifyNLW = (type) => {
-    const frame = document.getElementById( "nlw-frame").querySelector('iframe');
+    const frame = document.getElementById( "nlw-frame").querySelector("iframe");
     frame.contentWindow.postMessage({ type }, "*");
   };
 

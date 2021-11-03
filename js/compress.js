@@ -20,11 +20,11 @@ const chunkForSending = (message) => {
   if (messages.length * chunkSize <= 2e7)
     return messages;
   else
-    throw new Error('This activity is generating too much data for HubNet Web to reliably transfer.  Aborting....');
+    throw new Error("This activity is generating too much data for HubNet Web to reliably transfer.  Aborting....");
 
 };
 
-const encoderPool = new Worker('js/protobuf/encoder-pool.js');
+const encoderPool = new Worker("js/protobuf/encoder-pool.js");
 
 encoderPool.onmessage = (msg) => {
   switch (msg.type) {
@@ -35,7 +35,7 @@ encoderPool.onmessage = (msg) => {
   }
 };
 
-const decoderPool = new Worker('js/protobuf/decoder-pool.js');
+const decoderPool = new Worker("js/protobuf/decoder-pool.js");
 
 decoderPool.onmessage = (msg) => {
   switch (msg.type) {
@@ -135,7 +135,7 @@ const sendGreeting = (isHost) => (channel) => {
       break;
     case "closing":
     case "closed":
-      console.warn(`Cannot send 'connect-established' message, because connection is already closed`);
+      console.warn("Cannot send 'connect-established' message, because connection is already closed");
       break;
     case "open":
       send(isHost, channel)("connection-established", { protocolVersion: HNWProtocolVersionNumber });

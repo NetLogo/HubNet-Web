@@ -19,7 +19,7 @@ const placeholderBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAA
 
 // () => Unit
 const usePlaceholderPreview = () => {
-  document.getElementById('session-preview-image').src = placeholderBase64;
+  document.getElementById("session-preview-image").src = placeholderBase64;
 };
 
 usePlaceholderPreview();
@@ -53,35 +53,35 @@ const multipartHeaders = {}; // Object[UUID, String]
 // (String) => Unit
 const refreshSelection = (oldActiveUUID) => {
 
-  const container = document.getElementById('session-option-container');
-  Array.from(container.querySelectorAll('.session-label')).forEach(
+  const container = document.getElementById("session-option-container");
+  Array.from(container.querySelectorAll(".session-label")).forEach(
     (label) => {
-      if (label.querySelector('.session-option').checked) {
-        label.classList.add('active');
+      if (label.querySelector(".session-option").checked) {
+        label.classList.add("active");
       } else {
-        label.classList.remove('active');
+        label.classList.remove("active");
       }
     }
   );
 
-  const activeElem  = document.querySelector('.active');
+  const activeElem  = document.querySelector(".active");
   const activeEntry = activeElem !== null ? sessionData.find((x) => x.oracleID === activeElem.dataset.uuid) : null;
 
-  const passwordInput    = document.getElementById('password');
+  const passwordInput    = document.getElementById("password");
   passwordInput.disabled = activeEntry !== null ? !activeEntry.hasPassword : true;
 
   if (activeElem === null || oldActiveUUID !== activeElem.dataset.uuid) {
-    passwordInput.value = '';
+    passwordInput.value = "";
   }
 
-  const roleSelect     = document.getElementById('role-select');
+  const roleSelect     = document.getElementById("role-select");
   roleSelect.disabled  = activeEntry === null;
-  roleSelect.innerHTML = '';
+  roleSelect.innerHTML = "";
 
   if (activeEntry !== null) {
     activeEntry.roleInfo.forEach(
       ([roleName, current, max]) => {
-        const node        = document.createElement('option');
+        const node        = document.createElement("option");
         const isUnlimited = max === 0;
         node.disabled     = !isUnlimited && current >= max;
         node.innerText    = isUnlimited ? `${roleName} | ${current}` : `${roleName} | ${current}/${max}`;
@@ -92,17 +92,17 @@ const refreshSelection = (oldActiveUUID) => {
   }
 
   // Better criteria later (especially the # of slots open in session) --JAB (6/12/19)
-  document.getElementById('join-button').disabled = activeEntry === null;
+  document.getElementById("join-button").disabled = activeEntry === null;
 
 };
 
 // (Array[Session]) => Unit
 const populateSessionList = (sessions) => {
 
-  const activeElem    = document.querySelector('.active');
+  const activeElem    = document.querySelector(".active");
   const oldActiveUUID = activeElem !== null ? activeElem.dataset.uuid : null;
 
-  const template = document.getElementById('session-option-template');
+  const template = document.getElementById("session-option-template");
 
   const nodes = sessions.sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1).map(
     (session) => {
@@ -127,14 +127,14 @@ const populateSessionList = (sessions) => {
     }
   );
 
-  const container = document.getElementById('session-option-container');
-  const labels    = Array.from(container.querySelectorAll('.session-label'));
-  const selected  = labels.find((label) => label.querySelector('.session-option').checked);
+  const container = document.getElementById("session-option-container");
+  const labels    = Array.from(container.querySelectorAll(".session-label"));
+  const selected  = labels.find((label) => label.querySelector(".session-option").checked);
 
   if (selected !== undefined) {
-    const match = nodes.find((node) => node.querySelector('.session-label').dataset.uuid === selected.dataset.uuid);
+    const match = nodes.find((node) => node.querySelector(".session-label").dataset.uuid === selected.dataset.uuid);
     if (match !== undefined) {
-      match.querySelector('.session-option').checked = true;
+      match.querySelector(".session-option").checked = true;
       refreshImage(selected.dataset.uuid);
     } else {
       usePlaceholderPreview();
@@ -155,15 +155,15 @@ const populateSessionList = (sessions) => {
   if (!self.hasCheckedHash) {
     if (self.location.hash !== "") {
       const trueHash             = self.location.hash.slice(1);
-      const [oracleID, username] = trueHash.split(',', 2);
-      const match                = document.querySelector(`.session-label[data-uuid='${oracleID}'] > .session-option`);
+      const [oracleID, username] = trueHash.split(",", 2);
+      const match                = document.querySelector(`.session-label[data-uuid="${oracleID}"] > .session-option`);
       if (match !== null) {
         match.click();
-        document.getElementById('username').value = username !== undefined ? username : prompt("Please enter your login name");
+        document.getElementById("username").value = username !== undefined ? username : prompt("Please enter your login name");
         if (sessionData.find((x) => x.oracleID === oracleID).hasPassword) {
-          document.getElementById('password').value = prompt("Please enter the room's password");
+          document.getElementById("password").value = prompt("Please enter the room's password");
         }
-        document.getElementById('join-button').click();
+        document.getElementById("join-button").click();
       }
     }
     self.hasCheckedHash = true;
@@ -173,15 +173,15 @@ const populateSessionList = (sessions) => {
 
 // () => Unit
 self.filterSessionList = () => {
-  const term     = document.getElementById('session-filter-box').value.trim().toLowerCase();
+  const term     = document.getElementById("session-filter-box").value.trim().toLowerCase();
   const checkIt  = ({ name, modelName }) => name.toLowerCase().includes(term) || modelName.toLowerCase().includes(term);
-  const filtered = term === '' ? sessionData : sessionData.filter(checkIt);
+  const filtered = term === "" ? sessionData : sessionData.filter(checkIt);
   populateSessionList(filtered);
 };
 
 // () => Unit
 self.selectSession = () => {
-  const activeElem = document.querySelector('.active');
+  const activeElem = document.querySelector(".active");
   refreshSelection(activeElem !== null ? activeElem.dataset.uuid : null);
   setStatus("Session selected.  Please enter a username, enter a password (if needed), and click 'Join'.");
 };
@@ -189,8 +189,8 @@ self.selectSession = () => {
 // () => Unit
 self.join = () => {
   setStatus("Attempting to connect...");
-  document.getElementById('join-button').disabled = true;
-  const hostID = document.querySelector('.active').dataset.uuid;
+  document.getElementById("join-button").disabled = true;
+  const hostID = document.querySelector(".active").dataset.uuid;
   if (channels[hostID] === undefined) {
     channels[hostID] = null;
     connectAndLogin(hostID);
@@ -221,7 +221,7 @@ const connectAndLogin = (hostID) => {
   ).then(
     ([joinerID, channel, offer]) => {
 
-      const signalingW   = new Worker('js/joiner-signaling-socket.js', { type: "module" });
+      const signalingW   = new Worker("js/joiner-signaling-socket.js", { type: "module" });
       const signalingURL = `ws://localhost:8080/rtc/${hostID}/${joinerID}/join`;
       signalingW.postMessage({ type: "connect", url: signalingURL, offer });
 
@@ -286,7 +286,7 @@ const connectAndLogin = (hostID) => {
   );
 };
 
-const serverListSocketW = new Worker('js/server-list-socket.js', { type: "module" });
+const serverListSocketW = new Worker("js/server-list-socket.js", { type: "module" });
 serverListSocketW.postMessage({ type: "connect" });
 serverListSocketW.onmessage = ({ data }) => {
   sessionData = JSON.parse(data);
@@ -295,8 +295,8 @@ serverListSocketW.onmessage = ({ data }) => {
 
 // (Protocol.Channel) => Unit
 const login = (channel) => {
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
   sendGreeting(channel);
   sendRTC(channel)("login", { username, password });
 };
@@ -441,19 +441,19 @@ const processChannelMessage = (channel, closeSignaling, datum) => {
     case "incorrect-password":
       setStatus("Login rejected!  Use correct password.");
       alert("Incorrect password");
-      document.getElementById('join-button').disabled = false;
+      document.getElementById("join-button").disabled = false;
       break;
 
     case "no-username-given":
       setStatus("Login rejected!  Please provide a username.");
       alert("You must provide a username.");
-      document.getElementById('join-button').disabled = false;
+      document.getElementById("join-button").disabled = false;
       break;
 
     case "username-already-taken":
       setStatus("Login rejected!  Choose a unique username.");
       alert("Username already in use.");
-      document.getElementById('join-button').disabled = false;
+      document.getElementById("join-button").disabled = false;
       break;
 
     case "ping":
@@ -546,11 +546,11 @@ const handleBurstMessage = (datum) => {
 
       setStatus("Model and world acquired!  Waiting for NetLogo Web to be ready...");
 
-      const username = document.getElementById('username').value;
+      const username = document.getElementById("username").value;
 
       const intervalID = setInterval(
         () => {
-          document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
+          document.querySelector("#nlw-frame > iframe").contentWindow.postMessage({
             type: "hnw-are-you-ready-for-interface" }
           , "*");
         }
@@ -578,14 +578,14 @@ const handleBurstMessage = (datum) => {
       break;
 
     case "state-update":
-      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage({
+      document.querySelector("#nlw-frame > iframe").contentWindow.postMessage({
         update: datum.update,
         type:   "nlw-apply-update"
       }, "*");
       break;
 
     case "relay":
-      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage(datum.payload, "*");
+      document.querySelector("#nlw-frame > iframe").contentWindow.postMessage(datum.payload, "*");
       break;
 
     case "hnw-resize":
@@ -600,7 +600,7 @@ const handleBurstMessage = (datum) => {
 
 // (String) => Unit
 const refreshImage = (oracleID) => {
-  const image = document.getElementById('session-preview-image');
+  const image = document.getElementById("session-preview-image");
   fetch(`/preview/${oracleID}`).then((response) => {
     if (response.ok) {
       response.text().then((base64) => { image.src = base64; });
@@ -680,7 +680,7 @@ const cleanupSession = (wasExpected, statusText) => {
   formFrame.classList.remove("hidden");
   serverListSocketW.postMessage({ type: "connect" });
   loadFakeModel();
-  document.getElementById('join-button').disabled = false;
+  document.getElementById("join-button").disabled = false;
 
   if (!wasExpected) {
     alert("Connection to host lost");
@@ -695,7 +695,7 @@ const cleanupSession = (wasExpected, statusText) => {
 // () => Unit
 const switchToNLW = () => {
 
-  document.querySelector('.session-option').checked = false;
+  document.querySelector(".session-option").checked = false;
   usePlaceholderPreview();
 
   const formFrame = document.getElementById("server-browser-frame");
@@ -710,7 +710,7 @@ const switchToNLW = () => {
 
 // (String) => Unit
 const setStatus = (statusText) => {
-  document.getElementById('status-value').innerText = statusText;
+  document.getElementById("status-value").innerText = statusText;
 };
 
 // (String) => Unit
@@ -728,7 +728,7 @@ const disconnectChannels = (reason) => {
   });
 };
 
-self.addEventListener('message', (event) => {
+self.addEventListener("message", (event) => {
   switch (event.data.type) {
 
     case "relay":
@@ -737,11 +737,11 @@ self.addEventListener('message', (event) => {
         const stateEntry = waitingForBabby[event.data.payload.type];
         if (stateEntry !== undefined) {
           delete waitingForBabby[event.data.payload.type];
-          document.querySelector('#nlw-frame > iframe').contentWindow.postMessage(stateEntry.forPosting, "*");
+          document.querySelector("#nlw-frame > iframe").contentWindow.postMessage(stateEntry.forPosting, "*");
         }
         setPageState("booted up");
       } else {
-        const hostID = document.querySelector('.active').dataset.uuid;
+        const hostID = document.querySelector(".active").dataset.uuid;
         sendRTC(channels[hostID])("relay", event.data);
       }
       break;
@@ -762,8 +762,8 @@ self.addEventListener('message', (event) => {
       setStatus("Loading up interface in NetLogo Web...");
       const uiEntry = waitingForBabby[event.data.type];
       delete waitingForBabby[event.data.type];
-      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage(uiEntry.forPosting , "*");
-      document.querySelector('#nlw-frame > iframe').contentWindow.postMessage(uiEntry.forFollowup, "*");
+      document.querySelector("#nlw-frame > iframe").contentWindow.postMessage(uiEntry.forPosting , "*");
+      document.querySelector("#nlw-frame > iframe").contentWindow.postMessage(uiEntry.forFollowup, "*");
       clearInterval(uiEntry.forCancel);
       break;
 
@@ -781,7 +781,7 @@ self.addEventListener("beforeunload", (event) => {
   disconnectChannels("");
 });
 
-self.addEventListener('popstate', (event) => {
+self.addEventListener("popstate", (event) => {
   if (event.state !== null && event.state !== undefined) {
     switch (event.state.name) {
       case "joined":

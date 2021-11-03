@@ -1,4 +1,4 @@
-const commonConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+const commonConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 
 const   hostConfig = { ...commonConfig };
 const joinerConfig = { ...commonConfig };

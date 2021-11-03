@@ -3,7 +3,7 @@ import { sendObj, setSocket } from "./websocket-common.js";
 
 let lastMemberCount = undefined; // Number
 
-const base64EncoderW = new Worker('b64-encoder.js', { type: "module" });
+const base64EncoderW = new Worker("b64-encoder.js", { type: "module" });
 
 base64EncoderW.onmessage = ({ data }) => {
   sendObj("image-update", { base64: data });

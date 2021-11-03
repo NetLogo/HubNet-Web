@@ -36,7 +36,7 @@ const rejiggerToken = (token, parent) => {
 const recombobulateToken = (target, parent) => {
 
   const toHex = (numDigits) => (x) => {
-    return x.toString(16).padStart(numDigits, '0');
+    return x.toString(16).padStart(numDigits, "0");
   };
 
   const toHex8 = toHex(8);

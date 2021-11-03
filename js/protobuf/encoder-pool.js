@@ -6,7 +6,7 @@ const maxNumWorkers = Math.max(1, navigator.hardwareConcurrency);
 const workerPool = [];
 
 initWorker = () => {
-  const worker = new Worker('encoder.js', { type: "module" });
+  const worker = new Worker("encoder.js", { type: "module" });
   workerPool.push({ worker, isIdle: true });
 };
 
