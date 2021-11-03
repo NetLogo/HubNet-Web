@@ -82,7 +82,6 @@ object Controller {
       path("host")             { getFromFile("html/host.html")  } ~
       path("x-launch-session") { post { entity(as[LaunchReq])(handleXLaunchReq) } } ~
       path("join")             { getFromFile("html/join.html")  } ~
-      path("megajoin")         { getFromFile("html/megajoin.html") } ~
       path("available-models") { get { complete(availableModels) } } ~
       path("rtc" / "join" / Segment)           { (hostID)           => get { startJoin(toID(hostID)) } } ~
       path("rtc" / Segment / Segment / "host") { (hostID, joinerID) => handleWebSocketMessages(rtcHost(toID(hostID), toID(joinerID))) } ~
