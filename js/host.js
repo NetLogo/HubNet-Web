@@ -101,7 +101,7 @@ const launchModel = (formDataPlus) => {
         const formFrame = document.getElementById("form-frame");
         const  nlwFrame = document.getElementById( "nlw-frame");
 
-        formFrame.classList.add(   "hidden");
+        formFrame.classList.add(  "hidden");
         nlwFrame .classList.remove("invis");
         history.pushState({ name: "hosting" }, "hosting");
 
