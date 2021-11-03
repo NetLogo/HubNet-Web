@@ -4,7 +4,7 @@ const HNWProtocolVersionNumber = "0.0.1";
 const awaitWorker = (worker, msg) => {
 
   const f =
-    (resolve, reject) => {
+    (resolve) => {
 
       const channel = new MessageChannel();
 

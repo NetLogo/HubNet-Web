@@ -1,5 +1,5 @@
 import { reportBandwidth, reportNewSend } from "./bandwidth-monitor.js";
-import { sendObj, setSocket } from "./websocket-common.js";
+import { setSocket } from "./websocket-common.js";
 
 onmessage = (e) => {
   switch (e.data.type) {

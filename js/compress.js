@@ -49,7 +49,7 @@ decoderPool.onmessage = (msg) => {
 // (Object[Any], Boolean) => Promise[Any]
 const asyncEncode = (parcel, isHost) => {
   return isHost ? awaitWorker(encoderPool, { type: "encode", parcel }) :
-                  new Promise((res, rej) => res(encodePBuf(false)(parcel)));
+                  new Promise((resolve) => resolve(encodePBuf(false)(parcel)));
 };
 
 // (Boolean, RTCDataChannel) => (String, Any, UUID) => Unit
@@ -89,7 +89,7 @@ const sendBurst = (isHost, ...channels) => (type, obj) => {
           (m, index) => ({ index, fullLength: chunks.length, parcel: m })
         );
 
-      objs.forEach((obj, index) => {
+      objs.forEach((obj) => {
         channels.forEach((channel) => {
           const id = idMap.get(channel);
           send(isHost, channel)("hnw-burst", obj, id);

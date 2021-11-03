@@ -310,7 +310,7 @@ const serverListSocketW = new Worker("js/server-list-socket.js", { type: "module
 serverListSocketW.postMessage({ type: "connect" });
 serverListSocketW.onmessage = ({ data }) => {
   sessionData = JSON.parse(data);
-  filterSessionList();
+  self.filterSessionList();
 };
 
 // (Protocol.Channel) => Unit
@@ -797,7 +797,7 @@ self.addEventListener("message", (event) => {
   }
 });
 
-self.addEventListener("beforeunload", (event) => {
+self.addEventListener("beforeunload", () => {
   // Honestly, this will probably not run before the tab closes.
   // Not much I can do about that.  --Jason B. (8/21/20)
   disconnectChannels("");

@@ -1,5 +1,3 @@
-let clientCount = 0;
-
 const maxNumWorkers = Math.max(1, navigator.hardwareConcurrency);
 
 // Array[{ isIdle: Boolean, worker: WebWorker }]
@@ -16,7 +14,7 @@ const encode = (msg, port) => {
     workerBundle.isIdle = false;
 
     new Promise(
-      (resolve, reject) => {
+      (resolve) => {
 
         const channel = new MessageChannel();
 
@@ -42,13 +40,11 @@ const encode = (msg, port) => {
 onmessage = (e) => {
   switch (e.data.type) {
     case "client-connect":
-      clientCount++;
       if (workerPool.length < maxNumWorkers) {
         initWorker();
       }
       break;
     case "client-disconnect":
-      clientCount--;
       break;
     case "encode":
       encode(e.data.parcel, e.ports[0]);

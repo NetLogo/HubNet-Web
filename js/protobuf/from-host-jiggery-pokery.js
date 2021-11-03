@@ -8,7 +8,7 @@ const rejiggerConnEst = (obj) => {
 
   const regex                    = /(\d+)\.(\d+)\.(\d+)/;
   const version                  = out.protocolVersion;
-  const [_, major, minor, patch] = version.match(regex);
+  const [ , major, minor, patch] = version.match(regex);
 
   out.protocolMajor = major;
   out.protocolMinor = minor;
@@ -117,7 +117,7 @@ const rejiggerSprite = (sprite) => {
 
         const elem            = deepClone(e);
         const regex           = /rgba\((\d{1,3}), (\d{1,3}), (\d{1,3}), (\d{1,3}(?:\.\d)?)\)/;
-        const [_, r, g, b, a] = elem.color.match(regex);
+        const [ , r, g, b, a] = elem.color.match(regex);
 
         elem.colorR = r;
         elem.colorG = g;
@@ -853,19 +853,14 @@ const rejigger = (msg) => {
   switch (msg.type) {
     case "connection-established":
       return rejiggerConnEst(msg);
-      break;
     case "hnw-burst":
       return rejiggerBurst(msg);
-      break;
     case "initial-model":
       return rejiggerInitialModel(msg);
-      break;
     case "relay":
       return rejiggerRelay(msg);
-      break;
     case "state-update":
       return rejiggerStateUpdate(msg);
-      break;
     default:
       return deepClone(msg);
   }
@@ -876,19 +871,14 @@ const recombobulate = (msg) => {
   switch (msg.type) {
     case "connection-established":
       return recombobulateConnEst(msg);
-      break;
     case "hnw-burst":
       return recombobulateBurst(msg);
-      break;
     case "initial-model":
       return recombobulateInitialModel(msg);
-      break;
     case "relay":
       return recombobulateRelay(msg);
-      break;
     case "state-update":
       return recombobulateStateUpdate(msg);
-      break;
     default:
       return deepClone(msg);
   }

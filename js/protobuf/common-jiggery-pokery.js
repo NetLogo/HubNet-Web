@@ -9,7 +9,7 @@ const transform = (obj) => (key, f) => {
 const rejiggerToken = (token, parent) => {
 
   const uuidRegex = /(........)-(....)-(4...)-(....)-(....)(........)/;
-  const [_, a, b, c, d, e, f] = token.match(uuidRegex);
+  const [ , a, b, c, d, e, f] = token.match(uuidRegex);
 
   // Must be broken into at least 3 parts.  There are 32 digits
   // in the hex number, and attempts to run `parseInt` on 16-digit
@@ -51,10 +51,10 @@ const recombobulateToken = (target, parent) => {
   const uuid3Regex = /(....)(....)/;
   const uuid4Regex = /(........)/;
 
-  const [x, a   ] = chunk1.match(uuid1Regex);
-  const [y, b, c] = chunk2.match(uuid2Regex);
-  const [z, d, e] = chunk3.match(uuid3Regex);
-  const [_, f   ] = chunk4.match(uuid4Regex);
+  const [ , a   ] = chunk1.match(uuid1Regex);
+  const [ , b, c] = chunk2.match(uuid2Regex);
+  const [ , d, e] = chunk3.match(uuid3Regex);
+  const [ , f   ] = chunk4.match(uuid4Regex);
 
   parent.token = `${a}-${b}-${c}-${d}-${e}${f}`;
 

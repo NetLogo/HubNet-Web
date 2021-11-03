@@ -1,4 +1,4 @@
-import { awaitWorker, byteSizeLabel, genUUID, HNWProtocolVersionNumber
+import { awaitWorker, byteSizeLabel, HNWProtocolVersionNumber
        , uuidToRTCID } from "./common.js";
 
 import { reportBandwidth, reportNewSend      } from "./bandwidth-monitor.js";
@@ -58,7 +58,7 @@ const launchModel = (formDataPlus) => {
     password = formDataPlus.password;
 
   new Promise(
-    (resolve, reject) => {
+    (resolve) => {
 
       if (formDataPlus.model instanceof File) {
         const reader = new FileReader();
@@ -260,7 +260,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
   const dataArr = new Uint8Array(data);
 
   new Promise(
-    (resolve, reject) => {
+    (resolve) => {
 
       const chan = new MessageChannel();
 
@@ -303,10 +303,6 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
           sesh.recentPings.shift();
         }
 
-        const recents     = sesh.recentPings;
-        const numRecents  = recents.length;
-        const averagePing = Math.round(recents.reduce((x, y) => x + y) / numRecents);
-
         const latestPing =
           { type: "hnw-latest-ping"
           , ping: pingTime
@@ -348,7 +344,7 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
   if (datum.username !== undefined) {
 
     const isRelevant = ([k, s]) => k !== joinerID && s.username !== undefined;
-    const isTaken    = ([k, s]) => s.username.toLowerCase() === joinerUsername;
+    const isTaken    = ([ , s]) => s.username.toLowerCase() === joinerUsername;
 
     const joinerUsername  = datum.username.toLowerCase();
     const relevantPairs   = Object.entries(sessions).filter(isRelevant);
@@ -458,9 +454,9 @@ self.addEventListener("message", ({ data }) => {
 
 });
 
-self.addEventListener("beforeunload", (event) => {
+self.addEventListener("beforeunload", () => {
   // Honestly, this will probably not run before the tab closes.  Not much I can do about that.  --JAB (8/21/20)
-  Object.entries(sessions).forEach(([joinerID, { networking: { channel } }]) => {
+  Object.entries(sessions).forEach(([ , { networking: { channel } }]) => {
     sendRTC(channel)("bye-bye");
     channel.close(1000, "Terminating unneeded sockets...");
   });
@@ -568,7 +564,3 @@ const updateCongestionStats = () => {
 const postToNLW = (msg) => {
   document.querySelector("#nlw-frame > iframe").contentWindow.postMessage(msg, "*");
 };
-
-// (String) => String
-const extractModelName = (path) =>
-  (/(?:.*[/\\])?(.*)/).exec(path)[1].replace(/\.nlogo$/, "");

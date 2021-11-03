@@ -1,5 +1,5 @@
-import { deepClone, recombobulateToken, rejiggerToken
-       , transform } from "./common-jiggery-pokery.js";
+import { deepClone, recombobulateToken
+       , rejiggerToken } from "./common-jiggery-pokery.js";
 
 // (Object[Any]) => Object[Any]
 const rejiggerConnEst = (obj) => {
@@ -8,7 +8,7 @@ const rejiggerConnEst = (obj) => {
 
   const regex                    = /(\d+)\.(\d+)\.(\d+)/;
   const version                  = out.protocolVersion;
-  const [_, major, minor, patch] = version.match(regex);
+  const [ , major, minor, patch] = version.match(regex);
 
   out.protocolMajor = major;
   out.protocolMinor = minor;
@@ -204,10 +204,8 @@ const rejigger = (msg) => {
   switch (msg.type) {
     case "connection-established":
       return rejiggerConnEst(msg);
-      break;
     case "relay":
       return rejiggerRelay(msg);
-      break;
     default:
       return deepClone(msg);
   }
@@ -218,10 +216,8 @@ const recombobulate = (msg) => {
   switch (msg.type) {
     case "connection-established":
       return recombobulateConnEst(msg);
-      break;
     case "relay":
       return recombobulateRelay(msg);
-      break;
     default:
       return deepClone(msg);
   }

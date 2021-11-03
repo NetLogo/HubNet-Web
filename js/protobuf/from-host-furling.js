@@ -29,10 +29,6 @@ const furlingMap =
 
 const typeMap = { ...basicMap, ...furlingMap };
 
-const fieldNameToType =
-  {
-  };
-
 // (Object[Any]) => Object[Any]
 const trueUnfurl = (msg) => {
   return msg;
