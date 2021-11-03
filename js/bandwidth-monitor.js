@@ -101,4 +101,4 @@ setInterval(() => {
   entries = (i > 0) ? entries.slice(i) : ((i < 0) ? [] : entries);
 }, 10000);
 
-export { logEntry, reportBandwidth, reportNewSend }
+export { logEntry, reportBandwidth, reportNewSend };

@@ -1,4 +1,4 @@
-import { deepClone, recombobulateToken, rejiggerToken, transform } from "./common-jiggery-pokery.js"
+import { deepClone, recombobulateToken, rejiggerToken, transform } from "./common-jiggery-pokery.js";
 
 // (Object[Any]) => Object[Any]
 const rejiggerConnEst = (obj) => {
@@ -131,7 +131,7 @@ const rejiggerSprite = (sprite) => {
 
   return clone;
 
-}
+};
 
 // (Object[Any]) => Object[Any]
 const rejiggerLinkShapes = (linkShapes) => {
@@ -157,7 +157,7 @@ const rejiggerLinkShapes = (linkShapes) => {
 
   return out;
 
-}
+};
 
 // (Object[Any]) => Object[Any]
 const rejiggerTurtleShapes = (turtleShapes) => {
@@ -173,7 +173,7 @@ const rejiggerTurtleShapes = (turtleShapes) => {
 
   return out;
 
-}
+};
 
 // (Object[Any], Object[Any]) => Object[Any]
 const rejiggerWorlds = (worlds, parent) => {
@@ -513,7 +513,7 @@ const recombobulateSprite = (sprite) => {
 
   return clone;
 
-}
+};
 
 // (Object[Any]) => Object[Any]
 const recombobulateLinkShapes = (linkShapes) => {
@@ -539,7 +539,7 @@ const recombobulateLinkShapes = (linkShapes) => {
 
   return out;
 
-}
+};
 
 // (Object[Any]) => Object[Any]
 const recombobulateTurtleShapes = (turtleShapes) => {
@@ -555,7 +555,7 @@ const recombobulateTurtleShapes = (turtleShapes) => {
 
   return out;
 
-}
+};
 
 // (Object[Any], Object[Any]) => Object[Any]
 const recombobulateWorlds = (worlds, parent) => {
@@ -603,7 +603,7 @@ const recombobulateViewUpdates = (target, parent) => {
 // (Object[Any]) => Object[Any]
 const recombobulateConnEst = (obj) => {
   const out           = deepClone(obj);
-  out.protocolVersion = `${out.protocolMajor}.${out.protocolMinor}.${out.protocolPatch}`
+  out.protocolVersion = `${out.protocolMajor}.${out.protocolMinor}.${out.protocolPatch}`;
   return out;
 };
 
@@ -714,7 +714,7 @@ const recombobulateInitialModel = (obj) => {
             } else if (widget.plot !== undefined) {
 
               const inner   = deepClone(widget.plot);
-              const newPlot = { type: "hnwPlot", ...inner }
+              const newPlot = { type: "hnwPlot", ...inner };
 
               transform(newPlot)("xmin", (x) => x / 10);
               transform(newPlot)("xmax", (x) => x / 10);
@@ -889,4 +889,4 @@ const recombobulate = (msg) => {
   }
 };
 
-export { recombobulate, rejigger }
+export { recombobulate, rejigger };

@@ -1,6 +1,6 @@
-import { FromJoinerRoot } from "./from-joiner-root.js"
+import { FromJoinerRoot } from "./from-joiner-root.js";
 
-import * as Furling from "./common-furling.js"
+import * as Furling from "./common-furling.js";
 
 // (String) => ProtoBufType
 const lookupType = (x) =>
@@ -91,7 +91,7 @@ const trueUnfurl = (msg) => {
 const furl = (msg) => {
 
   const pluck = (msg, keys) => {
-    const obj = {}
+    const obj = {};
     keys.forEach((key) => obj[key] = msg[key]);
     return obj;
   };
@@ -134,4 +134,4 @@ const lookupTypeCode = Furling.lookupTypeCode(typeMap);
 // (Message) => (Message, ProtoBufType, Number)
 const unfurl = Furling.unfurl(trueUnfurl, typeMap);
 
-export { furl, lookupTypeCode, unfurl }
+export { furl, lookupTypeCode, unfurl };

@@ -9,7 +9,7 @@ const genNextID = (channelID) => {
   const next = (lsid !== undefined) ? nextID(lsid) : MinID;
   lastSentIDMap[channelID] = next;
   return next;
-}
+};
 
 const nextID = (num) => {
   return (num === SentinelID) ? SentinelID : ((num === MaxID) ? MinID : num + 1);
@@ -33,4 +33,4 @@ const precedesID = (target, ref) => {
 // (Number, Number) => Boolean
 const succeedsID = (target, ref) => precedesID(ref, target);
 
-export { genNextID, MaxID, MinID, nextID, precedesID, prevID, SentinelID, succeedsID }
+export { genNextID, MaxID, MinID, nextID, precedesID, prevID, SentinelID, succeedsID };

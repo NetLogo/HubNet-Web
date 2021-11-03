@@ -1,12 +1,12 @@
-import { protobuf } from "/assets/js/protobuf.min.js"
+import { protobuf } from "/assets/js/protobuf.min.js";
 
-import { inflate, deflate } from "/assets/js/pako.esm.mjs"
+import { inflate, deflate } from "/assets/js/pako.esm.mjs";
 
-import * as FromHostJP   from "./from-host-jiggery-pokery.js"
-import * as FromJoinerJP from "./from-joiner-jiggery-pokery.js"
+import * as FromHostJP   from "./from-host-jiggery-pokery.js";
+import * as FromJoinerJP from "./from-joiner-jiggery-pokery.js";
 
-import * as FromHostFurler   from "./from-host-furling.js"
-import * as FromJoinerFurler from "./from-joiner-furling.js"
+import * as FromHostFurler   from "./from-host-furling.js";
+import * as FromJoinerFurler from "./from-joiner-furling.js";
 
 const cMask = 0b10000000;
 
@@ -78,4 +78,4 @@ const decodePBuf = (isHost) => (byteStream) => {
 
 };
 
-export { decodePBuf, encodePBuf }
+export { decodePBuf, encodePBuf };

@@ -1,6 +1,6 @@
-import { FromHostRoot } from "./from-host-root.js"
+import { FromHostRoot } from "./from-host-root.js";
 
-import * as Furling from "./common-furling.js"
+import * as Furling from "./common-furling.js";
 
 // (String) => ProtoBufType
 const lookupType = (x) =>
@@ -49,4 +49,4 @@ const lookupTypeCode = Furling.lookupTypeCode(typeMap);
 // (Message) => (Message, ProtoBufType, Number)
 const unfurl = Furling.unfurl(trueUnfurl, typeMap);
 
-export { furl, lookupTypeCode, unfurl }
+export { furl, lookupTypeCode, unfurl };

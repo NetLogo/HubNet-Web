@@ -267,4 +267,4 @@ const StateUpdatePB = {
 , nested: Object.assign({}, PlotUpdateStuff, ViewUpdateStuff, WidgetUpdateStuff)
 };
 
-export { StateUpdatePB }
+export { StateUpdatePB };

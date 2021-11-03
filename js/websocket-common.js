@@ -1,6 +1,6 @@
-import { logEntry  } from "./bandwidth-monitor.js"
-import { typeIsOOB } from "./common.js"
-import { genNextID } from "./id-manager.js"
+import { logEntry  } from "./bandwidth-monitor.js";
+import { typeIsOOB } from "./common.js";
+import { genNextID } from "./id-manager.js";
 
 let socket = null; // WebSocket
 
@@ -82,4 +82,4 @@ const setSocket = (s) => {
   refreshKeepAlive();
 };
 
-export { getSocket, sendObj, setSocket }
+export { getSocket, sendObj, setSocket };

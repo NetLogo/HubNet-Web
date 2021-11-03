@@ -6,4 +6,4 @@ const joinerConfig = { ...commonConfig };
 // type Protocol = { connection :: RTCPeerConnection, channel :: RTCDataChannel, socket :: WebSocket }
 // type Channel  = RTCDataChannel
 
-export { hostConfig, joinerConfig }
+export { hostConfig, joinerConfig };

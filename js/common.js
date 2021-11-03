@@ -45,7 +45,7 @@ const uuidToRTCID = (uuid) => {
 
 // (String) => Boolean
 const typeIsOOB = (type) => {
-  return ["keep-alive", "ping", "pong"].includes(type)
+  return ["keep-alive", "ping", "pong"].includes(type);
 };
 
 // () => UUID
@@ -56,10 +56,10 @@ const genUUID = () => {
       const r = Math.random() * 16 | 0;
       const v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
-    }
+    };
 
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, replacer);
 
 };
 
-export { awaitWorker, byteSizeLabel, genUUID, HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID }
+export { awaitWorker, byteSizeLabel, genUUID, HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID };

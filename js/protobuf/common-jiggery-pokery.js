@@ -3,7 +3,7 @@ const transform = (obj) => (key, f) => {
   if (obj.hasOwnProperty(key)) {
     obj[key] = f(obj[key]);
   }
-}
+};
 
 // (String, Object[Any]) => Unit
 const rejiggerToken = (token, parent) => {
@@ -116,4 +116,4 @@ const deepClone = (x, blacklist = {}, shouldLowerCase = false, whitelist = {}) =
   return (typeof(x) !== "object") ? x : innerClone(x, blacklist, shouldLowerCase, whitelist);
 };
 
-export { deepClone, recombobulateToken, rejiggerToken, transform }
+export { deepClone, recombobulateToken, rejiggerToken, transform };

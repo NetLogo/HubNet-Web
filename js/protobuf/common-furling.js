@@ -17,4 +17,4 @@ const unfurl = (unfurler, typeMap) => (msg) => {
 
 };
 
-export { lookupTypeCode, unfurl }
+export { lookupTypeCode, unfurl };

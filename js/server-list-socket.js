@@ -1,4 +1,4 @@
-import { getSocket, setSocket } from "./websocket-common.js"
+import { getSocket, setSocket } from "./websocket-common.js";
 
 onmessage = (e) => {
   switch (e.data.type) {
@@ -13,6 +13,6 @@ onmessage = (e) => {
       getSocket().close(1000, "Server list is not currently needed");
       break;
     default:
-      console.warn("Unknown signaling socket message type:", e.data.type, e)
+      console.warn("Unknown signaling socket message type:", e.data.type, e);
   }
 };

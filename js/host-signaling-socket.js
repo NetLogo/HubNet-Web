@@ -1,5 +1,5 @@
-import { reportBandwidth, reportNewSend } from "./bandwidth-monitor.js"
-import { sendObj, setSocket } from "./websocket-common.js"
+import { reportBandwidth, reportNewSend } from "./bandwidth-monitor.js";
+import { sendObj, setSocket } from "./websocket-common.js";
 
 onmessage = (e) => {
   switch (e.data.type) {
@@ -23,6 +23,6 @@ onmessage = (e) => {
       e.ports[0].postMessage(reportBandwidth());
       break;
     default:
-      console.warn("Unknown signaling socket message type:", e.data.type, e)
+      console.warn("Unknown signaling socket message type:", e.data.type, e);
   }
 };

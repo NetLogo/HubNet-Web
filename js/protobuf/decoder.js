@@ -1,4 +1,4 @@
-import { decodePBuf } from "./converters-common.js"
+import { decodePBuf } from "./converters-common.js";
 
 onmessage = (e) => {
   switch (e.data.type) {
@@ -7,6 +7,6 @@ onmessage = (e) => {
       e.ports[0].postMessage(decoded);
       break;
     default:
-      console.warn("Unknown decode message type:", e.data.type, e)
+      console.warn("Unknown decode message type:", e.data.type, e);
   }
 };

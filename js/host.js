@@ -1,12 +1,12 @@
 import { awaitWorker, byteSizeLabel, genUUID, HNWProtocolVersionNumber
-       , uuidToRTCID } from "./common.js"
+       , uuidToRTCID } from "./common.js";
 
-import { reportBandwidth, reportNewSend      } from "./bandwidth-monitor.js"
-import { decoderPool, encoderPool, sendBurst } from "./compress.js"
-import { genNextID                           } from "./id-manager.js"
-import { hostConfig                          } from "./webrtc.js"
+import { reportBandwidth, reportNewSend      } from "./bandwidth-monitor.js";
+import { decoderPool, encoderPool, sendBurst } from "./compress.js";
+import { genNextID                           } from "./id-manager.js";
+import { hostConfig                          } from "./webrtc.js";
 
-import * as CompressJS from "./compress.js"
+import * as CompressJS from "./compress.js";
 
 const sendGreeting = CompressJS.sendGreeting(true);
 const sendRTC      = CompressJS.sendRTC     (true);
@@ -67,12 +67,12 @@ const launchModel = (formDataPlus) => {
         };
         reader.readAsText(formDataPlus.model);
       } else {
-        resolve([formDataPlus, formDataPlus.model])
+        resolve([formDataPlus, formDataPlus.model]);
       }
 
     }
   ).then(([fdp, fileEvent]) => {
-    const modelUpdate = fileEvent.result !== undefined ? { model: fileEvent.result } : {}
+    const modelUpdate = fileEvent.result !== undefined ? { model: fileEvent.result } : {};
     return { ...fdp, ...modelUpdate };
   }).then((fddp) => {
 
@@ -309,7 +309,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
         sesh.recentPings.push(pingTime);
         if (sesh.recentPings.length > 5) {
           sesh.recentPings.shift();
-        };
+        }
 
         const averagePing = Math.round(sesh.recentPings.reduce((x, y) => x + y) / sesh.recentPings.length);
 
@@ -404,7 +404,7 @@ self.addEventListener("message", ({ data }) => {
         sesh.networking.channel.readyState === "open") {
       sendBurst(true, sesh.networking.channel)(type, message);
     }
-  }
+  };
 
   const broadcast = (type, message) => {
     const checkIsEligible = (s) => {
@@ -413,7 +413,7 @@ self.addEventListener("message", ({ data }) => {
     };
     const channels = Object.values(sessions).filter(checkIsEligible).map((s) => s.networking.channel);
     sendBurst(true, ...channels)(type, message);
-  }
+  };
 
   switch (data.type) {
     case "nlw-state-update":
@@ -441,7 +441,7 @@ self.addEventListener("message", ({ data }) => {
       break;
     case "relay":
       if (data.isNarrowcast) {
-        const parcel = Object.assign({}, data)
+        const parcel = Object.assign({}, data);
         delete parcel.isNarrowcast;
         delete parcel.recipient;
         narrowcast("relay", parcel, data.recipient);
@@ -451,7 +451,7 @@ self.addEventListener("message", ({ data }) => {
       break;
     case "hnw-fatal-error":
       alert(`Fatal error received from client: ${data.subtype}`);
-      self.location.reload()
+      self.location.reload();
       break;
     case "nlw-resize":
       break;
@@ -547,7 +547,7 @@ const updateCongestionStats = () => {
                               majorCongestionStatus;
 
   const notifyNLW = (type) => {
-    const frame = document.getElementById( "nlw-frame").querySelector('iframe')
+    const frame = document.getElementById( "nlw-frame").querySelector('iframe');
     frame.contentWindow.postMessage({ type }, "*");
   };
 

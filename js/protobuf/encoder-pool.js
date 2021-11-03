@@ -57,7 +57,7 @@ onmessage = (e) => {
       postMessage({ type: "shutdown-complete" });
       break;
     default:
-      console.warn("Unknown encoder pool message type:", e.data.type, e)
+      console.warn("Unknown encoder pool message type:", e.data.type, e);
   }
 };
 

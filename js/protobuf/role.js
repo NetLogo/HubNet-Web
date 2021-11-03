@@ -231,4 +231,4 @@ const RolePB = {
   }
 };
 
-export { RolePB }
+export { RolePB };

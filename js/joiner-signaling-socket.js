@@ -1,4 +1,4 @@
-import { sendObj, setSocket } from "./websocket-common.js"
+import { sendObj, setSocket } from "./websocket-common.js";
 
 onmessage = (e) => {
   switch (e.data.type) {
@@ -14,6 +14,6 @@ onmessage = (e) => {
       sendObj("joiner-ice-candidate", { candidate: e.data.candidate });
       break;
     default:
-      console.warn("Unknown signaling socket message type:", e.data.type, e)
+      console.warn("Unknown signaling socket message type:", e.data.type, e);
   }
 };

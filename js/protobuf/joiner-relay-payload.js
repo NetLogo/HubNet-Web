@@ -105,4 +105,4 @@ const RelayUnfurls = {
 , UnfurlRelaySwitch:      unfurledFrom(     switchFields)
 };
 
-export { JoinerRelayPayloadPB, RelayUnfurls }
+export { JoinerRelayPayloadPB, RelayUnfurls };

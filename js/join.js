@@ -1,12 +1,12 @@
-import * as ConvertersCommonJS from "./protobuf/converters-common.js"
+import * as ConvertersCommonJS from "./protobuf/converters-common.js";
 
 const decodeInput = ConvertersCommonJS.decodePBuf(false);
 
-import { HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID } from "./common.js"
-import { MinID, prevID, SentinelID, succeedsID } from "./id-manager.js"
-import { joinerConfig } from "./webrtc.js"
+import { HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID } from "./common.js";
+import { MinID, prevID, SentinelID, succeedsID } from "./id-manager.js";
+import { joinerConfig } from "./webrtc.js";
 
-import * as CompressJS from "./compress.js"
+import * as CompressJS from "./compress.js";
 
 const sendGreeting = CompressJS.sendGreeting(false);
 const sendRTC      = CompressJS.sendRTC     (false);
@@ -132,7 +132,7 @@ const populateSessionList = (sessions) => {
   const selected  = labels.find((label) => label.querySelector('.session-option').checked);
 
   if (selected !== undefined) {
-    const match = nodes.find((node) => node.querySelector('.session-label').dataset.uuid === selected.dataset.uuid)
+    const match = nodes.find((node) => node.querySelector('.session-label').dataset.uuid === selected.dataset.uuid);
     if (match !== undefined) {
       match.querySelector('.session-option').checked = true;
       refreshImage(selected.dataset.uuid);
@@ -211,7 +211,7 @@ const connectAndLogin = (hostID) => {
           (ofr) => {
             // For Safari 15- --Jason B. (11/1/21)
             const offer = (ofr instanceof RTCSessionDescription) ? ofr.toJSON() : ofr;
-            return [joinerID, channel, offer]
+            return [joinerID, channel, offer];
           }
         );
       } else {
@@ -245,7 +245,7 @@ const connectAndLogin = (hostID) => {
             break;
           default:
             console.warn(`Unknown signaling message type: ${datum.type}`);
-        };
+        }
       };
 
       let knownCandies = new Set([]);
@@ -262,17 +262,17 @@ const connectAndLogin = (hostID) => {
               }
             }
           }
-        }
+        };
 
       joinerConnection.setLocalDescription(offer);
 
-      channel.onopen    = () => { setStatus("Connected!  Attempting to log in...."); login(channel); }
+      channel.onopen    = () => { setStatus("Connected!  Attempting to log in...."); login(channel); };
       channel.onmessage = handleChannelMessages(channel, closeSignaling);
-      channel.onclose   = (e) => { cleanupSession(e.code === 1000, e.reason); }
+      channel.onclose   = (e) => { cleanupSession(e.code === 1000, e.reason); };
       channels[hostID]  = channel;
 
       loopIsTerminated = false; // Boolean
-      requestAnimationFrame(processQueue)
+      requestAnimationFrame(processQueue);
 
       joinerConnection.oniceconnectionstatechange = () => {
         if (joinerConnection.iceConnectionState == "disconnected") {
@@ -316,10 +316,10 @@ const handleChannelMessages = (channel, closeSignaling) => ({ data }) => {
   } else {
 
     const processMsgQueue = () => {
-      const successor = predIDToMsg[lastMsgID]
+      const successor = predIDToMsg[lastMsgID];
       if (successor !== undefined) {
         delete predIDToMsg[lastMsgID];
-        lastMsgID = successor.id
+        lastMsgID = successor.id;
         processChannelMessage(channel, closeSignaling, successor);
         processMsgQueue();
       }
@@ -347,7 +347,7 @@ const handleChannelMessages = (channel, closeSignaling) => ({ data }) => {
       const totalLength = bucket.reduce((acc, x) => acc + x.length, 0);
       const arr         = new Uint8Array(totalLength);
 
-      bucket.reduce((acc, x) => { arr.set(x, acc); return acc + x.length }, 0);
+      bucket.reduce((acc, x) => { arr.set(x, acc); return acc + x.length; }, 0);
 
       return arr;
 
@@ -360,7 +360,7 @@ const handleChannelMessages = (channel, closeSignaling) => ({ data }) => {
       processIt(fullMsg);
     } else if ((datum.fullLength || 1) !== 1) {
 
-      const { id, index, fullLength, parcel } = datum
+      const { id, index, fullLength, parcel } = datum;
 
       if (fullLength > 1) {
         console.log(`Got ${id} (${(index + 1)}/${fullLength})`);
@@ -371,7 +371,7 @@ const handleChannelMessages = (channel, closeSignaling) => ({ data }) => {
       }
 
       if (index === 0) {
-        multipartHeaders[id] = { type: datum.type, id }
+        multipartHeaders[id] = { type: datum.type, id };
       }
 
       const bucket = multiparts[id];
@@ -433,25 +433,25 @@ const processChannelMessage = (channel, closeSignaling, datum) => {
 
     case "login-successful":
       closeSignaling();
-      setStatus("Logged in!  Loading NetLogo and then asking for model....")
+      setStatus("Logged in!  Loading NetLogo and then asking for model....");
       serverListSocketW.postMessage({ type: "hibernate" });
       switchToNLW();
       break;
 
     case "incorrect-password":
-      setStatus("Login rejected!  Use correct password.")
+      setStatus("Login rejected!  Use correct password.");
       alert("Incorrect password");
       document.getElementById('join-button').disabled = false;
       break;
 
     case "no-username-given":
-      setStatus("Login rejected!  Please provide a username.")
+      setStatus("Login rejected!  Please provide a username.");
       alert("You must provide a username.");
       document.getElementById('join-button').disabled = false;
       break;
 
     case "username-already-taken":
-      setStatus("Login rejected!  Choose a unique username.")
+      setStatus("Login rejected!  Choose a unique username.");
       alert("Username already in use.");
       document.getElementById('join-button').disabled = false;
       break;
@@ -468,7 +468,7 @@ const processChannelMessage = (channel, closeSignaling, datum) => {
 
         if (recentPings.length > 5) {
           recentPings.shift();
-        };
+        }
 
         const averagePing = Math.round(recentPings.reduce((x, y) => x + y) / recentPings.length);
         document.getElementById("latency-span").innerText = averagePing;

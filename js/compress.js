@@ -1,9 +1,9 @@
-import { encodePBuf } from "./protobuf/converters-common.js"
+import { encodePBuf } from "./protobuf/converters-common.js";
 
-import { awaitWorker, HNWProtocolVersionNumber, typeIsOOB } from "./common.js"
+import { awaitWorker, HNWProtocolVersionNumber, typeIsOOB } from "./common.js";
 
-import { logEntry  } from "./bandwidth-monitor.js"
-import { genNextID } from "./id-manager.js"
+import { logEntry  } from "./bandwidth-monitor.js";
+import { genNextID } from "./id-manager.js";
 
 // (String, Number) => Array[String]
 const chunk = (arr, length) => {
@@ -31,7 +31,7 @@ encoderPool.onmessage = (msg) => {
     case "shutdown-complete":
       break;
     default:
-      console.warn("Unknown encoder pool response type:", e.type, e)
+      console.warn("Unknown encoder pool response type:", e.type, e);
   }
 };
 
@@ -42,7 +42,7 @@ decoderPool.onmessage = (msg) => {
     case "shutdown-complete":
       break;
     default:
-      console.warn("Unknown decoder pool response type:", e.type, e)
+      console.warn("Unknown decoder pool response type:", e.type, e);
   }
 };
 
@@ -151,4 +151,4 @@ const logAndSend = (data, channel) => {
   channel.send(data);
 };
 
-export { decoderPool, encoderPool, sendBurst, sendGreeting, sendOOB, sendRTC }
+export { decoderPool, encoderPool, sendBurst, sendGreeting, sendOOB, sendRTC };

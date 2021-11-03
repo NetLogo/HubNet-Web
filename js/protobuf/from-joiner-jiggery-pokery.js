@@ -1,4 +1,4 @@
-import { deepClone, recombobulateToken, rejiggerToken, transform } from "./common-jiggery-pokery.js"
+import { deepClone, recombobulateToken, rejiggerToken, transform } from "./common-jiggery-pokery.js";
 
 // (Object[Any]) => Object[Any]
 const rejiggerConnEst = (obj) => {
@@ -100,7 +100,7 @@ const rejiggerRelay = (obj) => {
 // (Object[Any]) => Object[Any]
 const recombobulateConnEst = (obj) => {
   const out           = deepClone(obj);
-  out.protocolVersion = `${out.protocolMajor}.${out.protocolMinor}.${out.protocolPatch}`
+  out.protocolVersion = `${out.protocolMajor}.${out.protocolMinor}.${out.protocolPatch}`;
   return out;
 };
 
@@ -219,4 +219,4 @@ const recombobulate = (msg) => {
   }
 };
 
-export { recombobulate, rejigger }
+export { recombobulate, rejigger };

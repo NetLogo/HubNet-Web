@@ -1,5 +1,5 @@
-import { RolePB        } from "./role.js"
-import { StateUpdatePB } from "./state-update.js"
+import { RolePB        } from "./role.js";
+import { StateUpdatePB } from "./state-update.js";
 
 const FromHostRoot = {
 
@@ -175,4 +175,4 @@ const FromHostRoot = {
 
 };
 
-export { FromHostRoot }
+export { FromHostRoot };
