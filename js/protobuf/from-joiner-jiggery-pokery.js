@@ -22,13 +22,13 @@ const rejiggerConnEst = (obj) => {
 const rejiggerRelay = (obj) => {
 
   const out = {};
-  for (let k0 in obj) {
+  for (const k0 in obj) {
 
     const v0 = obj[k0];
     if (k0 === "payload") {
 
       out[k0] = {};
-      for (let k1 in v0) {
+      for (const k1 in v0) {
 
         const v1 = v0[k1];
         if (k1 === "token") {
@@ -113,7 +113,7 @@ const recombobulateConnEst = (obj) => {
 const recombobulateRelay = (obj) => {
 
   const out = {};
-  for (let k0 in obj) {
+  for (const k0 in obj) {
 
     const v0 = obj[k0];
     if (k0 === "payload") {
@@ -122,18 +122,18 @@ const recombobulateRelay = (obj) => {
 
       recombobulateToken(v0, out[k0]);
 
-      for (let k1 in v0) {
+      for (const k1 in v0) {
 
         const v1 = v0[k1];
         if (k1 === "event") {
 
           out[k0][k1] = {};
-          for (let k2 in v1) {
+          for (const k2 in v1) {
 
             // recombobulate relay.payload.event.hnwCashRaincheckPayload, etc.
             if (k2 === "hnwCashRaincheckPayload") {
               out[k0][k1].type = "hnw-cash-raincheck";
-              for (let k3 in v1) {
+              for (const k3 in v1) {
                 out[k0][k1][k3] = v1[k2][k3];
               }
             } else {
@@ -146,7 +146,7 @@ const recombobulateRelay = (obj) => {
 
           out[k0][k1] = {};
 
-          for (let k2 in v1) {
+          for (const k2 in v1) {
 
             // Rejigger relay.payload.hnwButtonPayload, etc.
             if (k2 === "hnwButtonPayload") {

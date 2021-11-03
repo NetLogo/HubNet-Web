@@ -76,7 +76,7 @@ const applyTransforms = (key, value, obj, condPairs) => {
 // (Object[Any], Array[(((String, Any) => Boolean, (String, Any) => Any))], Object[_], Boolean, Object[_]) => Object[Any]
 const transformativeClone = (obj, condPairs, blacklist, shouldLower, whitelist) => {
   const clone = (obj.length !== undefined) ? [] : {};
-  for (let key in obj) {
+  for (const key in obj) {
     if (blacklist[key] === undefined) {
       const value       = obj[key];
       const isLowerable = shouldLower && whitelist[key] === undefined;

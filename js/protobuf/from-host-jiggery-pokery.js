@@ -198,7 +198,7 @@ const rejiggerWorlds = (worlds, parent) => {
 
 // (Object[Any], Object[Any]) => Object[Any]
 const rejiggerViewUpdates = (target, parent) => {
-  for (let k0 in target) {
+  for (const k0 in target) {
     const v0 = target[k0];
     if (k0 === "links") {
       parent[k0] = {};
@@ -223,12 +223,12 @@ const rejiggerViewUpdates = (target, parent) => {
 // (Object[Any], Object[Any]) => Object[Any]
 const rejiggerPlotUpdates = (target, parent) => {
 
-  for (let k0 in target) {
+  for (const k0 in target) {
 
     const newPupdates = [];
     parent[k0]        = { value: newPupdates };
 
-    for (let k1 in target[k0]) {
+    for (const k1 in target[k0]) {
       const pupdate = target[k0][k1];
       // Rejigger *.plotUpdates > *[type="add-point"], etc.
       if (pupdate.type === "add-point") {
@@ -266,7 +266,7 @@ const rejiggerPlotUpdates = (target, parent) => {
 const rejiggerInitialModel = (obj) => {
 
   const out = {};
-  for (let k0 in obj) {
+  for (const k0 in obj) {
 
     const v0 = obj[k0];
 
@@ -275,14 +275,14 @@ const rejiggerInitialModel = (obj) => {
     } else if (k0 === "role") {
 
       out[k0] = {};
-      for (let k1 in v0) {
+      for (const k1 in v0) {
 
         const v1 = v0[k1];
         if (k1 === "widgets") {
 
           out[k0][k1] = [];
 
-          for (let k2 in v1) {
+          for (const k2 in v1) {
 
             const widget = v1[k2];
 
@@ -360,7 +360,7 @@ const rejiggerInitialModel = (obj) => {
 const rejiggerRelay = (obj) => {
 
   const out = {};
-  for (let k0 in obj) {
+  for (const k0 in obj) {
 
     const v0 = obj[k0];
     if (k0 === "payload") {
@@ -387,7 +387,7 @@ const rejiggerRelay = (obj) => {
 
 // (Object[Any]) => Object[Any]
 const rejiggerStateUpdateInner = (target, parent) => {
-  for (let k0 in target) {
+  for (const k0 in target) {
     const v0 = target[k0];
     if (k0 === "viewUpdate") {
       parent[k0] = {};
@@ -406,7 +406,7 @@ const rejiggerStateUpdate = (obj) => {
 
   const out = {};
 
-  for (let k0 in obj) {
+  for (const k0 in obj) {
     const v0 = obj[k0];
     if (k0 === "update") {
       out[k0] = {};
@@ -581,7 +581,7 @@ const recombobulateWorlds = (worlds, parent) => {
 
 // (Object[Any], Object[Any]) => Object[Any]
 const recombobulateViewUpdates = (target, parent) => {
-  for (let k0 in target) {
+  for (const k0 in target) {
     const v0 = target[k0];
     if (k0 === "links") {
       parent[k0] = {};
@@ -629,12 +629,12 @@ const recombobulateBurst = (obj) => {
 // (Object[Any], Object[Any]) => Object[Any]
 const recombobulatePlotUpdates = (target, parent) => {
 
-  for (let k0 in target) {
+  for (const k0 in target) {
 
     const newPupdates = [];
     parent[k0]        = newPupdates;
 
-    for (let k1 in target[k0].value) {
+    for (const k1 in target[k0].value) {
 
       const pupdate = target[k0].value[k1];
 
@@ -681,14 +681,14 @@ const recombobulateInitialModel = (obj) => {
 
   recombobulateToken(obj, out);
 
-  for (let k0 in obj) {
+  for (const k0 in obj) {
 
     const v0 = obj[k0];
 
     if (k0 === "role") {
 
       out[k0] = {};
-      for (let k1 in v0) {
+      for (const k1 in v0) {
 
         const v1 = v0[k1];
         if (k1 === "widgets") {
@@ -696,7 +696,7 @@ const recombobulateInitialModel = (obj) => {
           out[k0][k1] = [];
 
           // Recombobulate initial-model.role.widgets > *, etc.
-          for (let k2 in v1) {
+          for (const k2 in v1) {
 
             const widget = v1[k2];
 
@@ -781,13 +781,13 @@ const recombobulateInitialModel = (obj) => {
 const recombobulateRelay = (obj) => {
 
   const out = {};
-  for (let k0 in obj) {
+  for (const k0 in obj) {
 
     const v0 = obj[k0];
     if (k0 === "payload") {
 
       out[k0] = {};
-      for (let k1 in v0) {
+      for (const k1 in v0) {
 
         const v1 = v0[k1];
 
@@ -815,7 +815,7 @@ const recombobulateRelay = (obj) => {
 
 // (Object[Any]) => Object[Any]
 const recombobulateStateUpdateInner = (target, parent) => {
-  for (let k0 in target) {
+  for (const k0 in target) {
     const v0 = target[k0];
     if (k0 === "viewUpdate") {
       parent[k0] = {};
@@ -834,7 +834,7 @@ const recombobulateStateUpdate = (obj) => {
 
   const out = {};
 
-  for (let k0 in obj) {
+  for (const k0 in obj) {
     const v0 = obj[k0];
     if (k0 === "update") {
       out[k0] = {};
