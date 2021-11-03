@@ -19,7 +19,7 @@ const logEntry = (x, channel) => {
   const bytesAdded =
     (x instanceof Blob)          ? x.size       :
     (x.byteLength !== undefined) ? x.byteLength :
-                                   (new TextEncoder().encode(x)).length;
+                                   (new TextEncoder()).encode(x).length;
 
   entries.push({ bytesAdded
                , bufferSnapshot: getBufferedSize(channel)
