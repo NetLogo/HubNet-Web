@@ -183,6 +183,7 @@ const recombobulateRelay = (obj) => {
           }
 
         } else if (k1.startsWith("tokenChunk")) {
+          // Ignore these; they are assembled into `token` --Jason B. (11/3/21)
         } else {
           out[k0][k1] = v1;
         }
