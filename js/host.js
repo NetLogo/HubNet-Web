@@ -396,11 +396,8 @@ const cleanupHostingSession = () => {
 self.addEventListener("message", ({ data }) => {
 
   const narrowcast = (type, message, recipientUUID) => {
-    const sesh   = sessions[recipientUUID];
-    if (sesh !== undefined &&
-        sesh.networking.channel !== undefined &&
-        sesh.networking.channel.readyState === "open") {
-      sendBurst(true, sesh.networking.channel)(type, message);
+    if (sessions[recipientUUID]?.networking.channel?.readyState === "open") {
+      sendBurst(true, sessions[recipientUUID].networking.channel)(type, message);
     }
   };
 

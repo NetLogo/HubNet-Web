@@ -1,4 +1,4 @@
-let lastImageSize = undefined; // Number
+let lastImageSize = null; // Number
 
 onmessage = (e) => {
   switch (e.data.type) {

@@ -1,7 +1,7 @@
 import { reportBandwidth, reportNewSend } from "./bandwidth-monitor.js";
 import { sendObj, setSocket } from "./websocket-common.js";
 
-let lastMemberCount = undefined; // Number
+let lastMemberCount = null; // Number
 
 const base64EncoderW = new Worker("b64-encoder.js", { type: "module" });
 

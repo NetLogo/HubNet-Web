@@ -65,9 +65,7 @@ const refreshKeepAlive = () => {
 
   timeoutID =
     setTimeout(() => {
-      const isDefined = socket.url !== undefined;
-      const isOpen    = socket.readyState === WebSocket.OPEN;
-      if (isDefined && isOpen) {
+      if (socket?.readyState === WebSocket.OPEN) {
         sendObj("keep-alive", {});
       }
     }, 30000);
