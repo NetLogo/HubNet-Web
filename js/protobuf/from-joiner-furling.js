@@ -93,7 +93,7 @@ const furl = (message) => {
 
   const pluck = (target, keys) => {
     const obj = {};
-    keys.forEach((key) => obj[key] = target[key]);
+    keys.forEach((key) => { obj[key] = target[key]; });
     return obj;
   };
 
