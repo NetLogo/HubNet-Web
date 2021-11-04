@@ -300,7 +300,7 @@ const connectAndLogin = (hostID) => {
       requestAnimationFrame(processQueue);
 
       joinerConnection.oniceconnectionstatechange = () => {
-        if (joinerConnection.iceConnectionState == "disconnected") {
+        if (joinerConnection.iceConnectionState === "disconnected") {
           cleanupSession();
         }
       };

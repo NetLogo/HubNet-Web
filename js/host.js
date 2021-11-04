@@ -230,7 +230,7 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
     };
 
   connection.oniceconnectionstatechange = () => {
-    if (connection.iceConnectionState == "disconnected") {
+    if (connection.iceConnectionState === "disconnected") {
       cleanUpJoiner(joinerID);
     }
   };
