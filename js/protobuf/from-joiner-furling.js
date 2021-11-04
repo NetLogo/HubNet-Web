@@ -59,6 +59,7 @@ const unfurlWidget = (msg) => (fieldNames) => {
            };
   } else {
     console.error("Impossible-to-unfurl widget message!", msg);
+    return {};
   }
 
 };
