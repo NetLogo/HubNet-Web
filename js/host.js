@@ -235,10 +235,10 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
     }
   };
 
-  connection.setRemoteDescription(offer)
-    .then(()     => connection.createAnswer())
-    .then(answer => connection.setLocalDescription(answer))
-    .then(()     => signal("answer", { answer: connection.localDescription.toJSON() }));
+  connection.setRemoteDescription(offer).
+    then(()     => connection.createAnswer()).
+    then(answer => connection.setLocalDescription(answer)).
+    then(()     => signal("answer", { answer: connection.localDescription.toJSON() }));
 
 };
 

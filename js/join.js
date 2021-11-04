@@ -615,8 +615,8 @@ const handleBurstMessage = (datum) => {
 
     case "state-update": {
       postToNLW({
-        update: datum.update,
-        type:   "nlw-apply-update"
+        update: datum.update
+      , type:   "nlw-apply-update"
       });
       break;
     }
