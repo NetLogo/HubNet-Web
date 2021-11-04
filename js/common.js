@@ -30,12 +30,14 @@ const byteSizeLabel = (n, precision = 2) => {
                       `${trunc(n)} B`;
 };
 
+/* eslint-disable no-bitwise */
 // (String) => String
 const stringToHash = (str) => {
   const toCodePoint = (x)      => x.codePointAt(0);
   const toHash      = (acc, x) => (((acc << 5) - acc) + x) | 0;
   return Array.from(str).map(toCodePoint).reduce(toHash, 0);
 };
+/* eslint-enable no-bitwise */
 
 // (String) => Number
 const uuidToRTCID = (uuid) => {
@@ -50,6 +52,7 @@ const typeIsOOB = (type) => {
   return ["keep-alive", "ping", "pong"].includes(type);
 };
 
+/* eslint-disable no-bitwise */
 // () => UUID
 const genUUID = () => {
 
@@ -63,6 +66,7 @@ const genUUID = () => {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, replacer);
 
 };
+/* eslint-enable no-bitwise */
 
 export { awaitWorker, byteSizeLabel, genUUID, HNWProtocolVersionNumber
        , typeIsOOB, uuidToRTCID };

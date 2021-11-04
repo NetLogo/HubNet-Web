@@ -17,6 +17,7 @@ const trace = (type) => (f) => {
   }
 };
 
+/* eslint-disable no-bitwise */
 const encodePBuf = (isHost) => (msg) => {
 
   trace(msg.type)(() => console.log("About to rejigger", msg));
@@ -78,5 +79,6 @@ const decodePBuf = (isHost) => (byteStream) => {
   return recombobulated;
 
 };
+/* eslint-enable no-bitwise */
 
 export { decodePBuf, encodePBuf };
