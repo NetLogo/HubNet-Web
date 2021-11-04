@@ -1,6 +1,6 @@
 import { protobuf } from "/assets/js/protobuf.min.js";
 
-import { inflate, deflate } from "/assets/js/pako.esm.mjs";
+import { inflate, deflate } from "/depend/js/pako.esm.mjs";
 
 import * as FromHostJP   from "./from-host-jiggery-pokery.js";
 import * as FromJoinerJP from "./from-joiner-jiggery-pokery.js";

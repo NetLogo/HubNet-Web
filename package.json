@@ -1,6 +1,6 @@
 { "name": "hubnet-web"
 , "version": "0.0.1"
-, "dependencies": {
+, "dependencies": { "pako": "~2.0.4"
                   }
 , "devDependencies": { "eslint": "~8.1.0"
                      }

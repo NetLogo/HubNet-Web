@@ -90,6 +90,7 @@ object Controller {
       path("hnw" / "session-stream") { handleWebSocketMessages(sessionStream) } ~
       path("hnw" / "my-status" / Segment) { (hostID) => handleWebSocketMessages(sessionStatus(toID(hostID))) } ~
       path("preview" / Segment)      { uuid => get { handlePreview(toID(uuid)) } } ~
+      path("depend" / "js" / "pako.esm.mjs") { getFromFile("node_modules/pako/dist/pako.esm.mjs") } ~
       pathPrefix("js")               { getFromDirectory("js")         } ~
       pathPrefix("assets")           { getFromDirectory("assets")     }
 
