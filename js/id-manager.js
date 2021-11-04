@@ -2,7 +2,7 @@ const lastSentIDMap = {}; // Object[String, Number]
 
 const SentinelID = 0;
 const MinID      = 1;
-const MaxID      = Math.pow(2, 32) - 1;
+const MaxID      = (2 ** 32) - 1;
 
 const genNextID = (channelID) => {
   const lsid = lastSentIDMap[channelID];
