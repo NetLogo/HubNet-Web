@@ -10,6 +10,9 @@
 .#*
 .DS_Store
 .history
+
+/node_modules/
+
 project/project/
 target/
 tmp/
