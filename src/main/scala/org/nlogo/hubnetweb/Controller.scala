@@ -26,7 +26,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import spray.json.{ JsArray, JsNumber, JsObject, JsonParser, JsString }
 
 import session.{ SessionInfo, SessionManagerActor }
-import session.SessionManagerActor.{ CreateSession, CreateXSession, DelistSession, GetPreview
+import session.SessionManagerActor.{ CreateSession, DelistSession, GetPreview
                                    , GetSessions, PullFromHost, PullFromJoiner, PullJoinerIDs
                                    , PulseHost, PushFromHost, PushFromJoiner, PushNewJoiner
                                    , SeshMessageAsk, UpdateNumPeers, UpdatePreview
@@ -80,7 +80,7 @@ object Controller {
 
       path("")                 { getFromFile("html/index.html") } ~
       path("host")             { getFromFile("html/host.html")  } ~
-      path("x-launch-session") { post { entity(as[LaunchReq])(handleXLaunchReq) } } ~
+      path("launch-session")   { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
       path("join")             { getFromFile("html/join.html")  } ~
       path("available-models") { get { complete(availableModels) } } ~
       path("rtc" / "join" / Segment)           { (hostID)           => get { startJoin(toID(hostID)) } } ~
@@ -104,7 +104,7 @@ object Controller {
 
   }
 
-  private def handleXLaunchReq(req: LaunchReq)(implicit ec: ExecutionContext): RequestContext => Future[RouteResult] = {
+  private def handleLaunchReq(req: LaunchReq)(implicit ec: ExecutionContext): RequestContext => Future[RouteResult] = {
 
     val modelSourceJsonEither =
       req.modelType match {
@@ -128,7 +128,7 @@ object Controller {
 
         val makeParcel =
           replyTo =>
-            CreateXSession(modelName, modelSource, json, req.sessionName, req.password, uuid, scheduleIn, replyTo)
+            CreateSession(modelName, modelSource, json, req.sessionName, req.password, uuid, scheduleIn, replyTo)
 
         val result = askSeshFor(makeParcel)
 

@@ -27,15 +27,12 @@ object SessionManagerActor {
     def replyTo: ActorRef[T]
   }
 
-  final case class CreateSession( modelName: String, modelSource: String, name: String, password: Option[String]
-                                , uuid: UUID, scheduleIn: Scheduler
+  final case class CreateSession( modelName: String, modelSource: String
+                                , json: String, name: String
+                                , password: Option[String], uuid: UUID
+                                , scheduleIn: Scheduler
                                 , override val replyTo: ActorRef[Either[String, String]]
                                 ) extends SeshMessageAsk[Either[String, String]]
-
-  final case class CreateXSession( modelName: String, modelSource: String, json: String, name: String
-                                 , password: Option[String], uuid: UUID, scheduleIn: Scheduler
-                                 , override val replyTo: ActorRef[Either[String, String]]
-                                 ) extends SeshMessageAsk[Either[String, String]]
 
   final case class DelistSession(uuid: UUID) extends SeshMessage
 
@@ -72,12 +69,10 @@ object SessionManagerActor {
       case (context, message) =>
         message match {
 
-          case CreateSession(modelName, modelSource, name, password, uuid, scheduleIn, replyTo) =>
-            replyTo ! SessionManager.createSession(modelName, modelSource, name, password, uuid, scheduleIn)
-            Behaviors.same
-
-          case CreateXSession(modelName, modelSource, json, name, password, uuid, scheduleIn, replyTo) =>
-            replyTo ! SessionManager.createXSession(modelName, modelSource, json, name, password, uuid, scheduleIn)
+          case CreateSession( modelName, modelSource, json, name, password, uuid
+                            , scheduleIn, replyTo) =>
+            replyTo ! SessionManager.createSession( modelName, modelSource, json
+                                                  , name, password, uuid, scheduleIn)
             Behaviors.same
 
           case DelistSession(uuid) =>
@@ -140,39 +135,9 @@ private object SessionManager {
 
   private val sessionMap: MMap[UUID, SessionInfo] = MMap()
 
-  def createSession( modelName: String, modelSource: String, name: String, password: Option[String]
-                   , uuid: UUID, scheduleIn: Scheduler
-                   ): Either[String, String] = {
-
-    val time        = System.currentTimeMillis()
-    val anyRoleInfo = RoleInfo("any", 0, None)
-    val image       = GrayB64
-
-    sessionMap += uuid -> SessionInfo( uuid, name, password, Map("any" -> anyRoleInfo)
-                                     , new ConnectionInfo(Vector(), Map(), Map())
-                                     , new Model(modelName, modelSource, ""), image, time
-                                     )
-
-    {
-
-      import scala.concurrent.duration.DurationInt
-
-      scheduleIn(25 hours, {
-        () =>
-          sessionMap -= uuid
-          ()
-      })
-
-      scheduleIn(1 minute, () => checkIn(scheduleIn)(uuid))
-
-    }
-
-    Right(uuid.toString)
-
-  }
-
-  def createXSession( modelName: String, modelSource: String, json: String
-                   , name: String, password: Option[String], uuid: UUID, scheduleIn: Scheduler
+  def createSession( modelName: String, modelSource: String, json: String
+                   , name: String, password: Option[String], uuid: UUID
+                   , scheduleIn: Scheduler
                    ): Either[String, String] = {
 
     val time        = System.currentTimeMillis()

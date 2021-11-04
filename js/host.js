@@ -83,7 +83,7 @@ const launchModel = (formDataPlus) => {
       , body:    JSON.stringify(fddp)
       };
 
-    return fetch("/x-launch-session", data).then((response) => [fddp, response]);
+    return fetch("/launch-session", data).then((response) => [fddp, response]);
 
   }).then(([formDataLike, response]) => {
 
