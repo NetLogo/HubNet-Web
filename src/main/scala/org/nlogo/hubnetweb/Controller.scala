@@ -27,9 +27,10 @@ import spray.json.{ JsArray, JsNumber, JsObject, JsonParser, JsString }
 
 import session.{ SessionInfo, SessionManagerActor }
 import session.SessionManagerActor.{ CreateSession, DelistSession, GetPreview
-                                   , GetSessions, PullFromHost, PullFromJoiner, PullJoinerIDs
-                                   , PulseHost, PushFromHost, PushFromJoiner, PushNewJoiner
-                                   , SeshMessageAsk, UpdateNumPeers, UpdatePreview
+                                   , GetSessions, PullFromHost, PullFromJoiner
+                                   , PullJoinerIDs, PulseHost, PushFromHost
+                                   , PushFromJoiner, PushNewJoiner, SeshMessageAsk
+                                   , UpdateNumPeers, UpdatePreview
                                    }
 
 object Controller {
@@ -71,8 +72,10 @@ object Controller {
       implicit val contentTypeResolver =
         new ContentTypeResolver {
            override def apply(filename: String): ContentType = {
-             if (filename.endsWith(".mjs"))
-               ContentType(MediaType.custom(s"text/javascript", binary = false, Compressible, List("mjs")), () => HttpCharsets.`UTF-8`)
+             if (filename.endsWith(".mjs")) {
+               val mt = MediaType.custom(s"text/javascript", binary = false, Compressible, List("mjs"))
+               ContentType(mt, () => HttpCharsets.`UTF-8`)
+             }
              else
                ContentTypeResolver.Default(filename)
            }
@@ -128,11 +131,13 @@ object Controller {
 
         val makeParcel =
           replyTo =>
-            CreateSession(modelName, modelSource, json, req.sessionName, req.password, uuid, scheduleIn, replyTo)
+            CreateSession( modelName, modelSource, json, req.sessionName
+                         , req.password, uuid, scheduleIn, replyTo)
 
         val result = askSeshFor(makeParcel)
 
-        complete(XLaunchResp(uuid.toString, s"from-${req.modelType}", Some(modelSource), Some(json)))
+        complete(XLaunchResp( uuid.toString, s"from-${req.modelType}"
+                            , Some(modelSource), Some(json)))
 
     })
 

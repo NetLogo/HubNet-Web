@@ -144,9 +144,11 @@ private object SessionManager {
     val anyRoleInfo = RoleInfo("any", 0, None)
     val image       = GrayB64
 
-    sessionMap += uuid -> SessionInfo( uuid, name, password, Map("any" -> anyRoleInfo)
+    sessionMap += uuid -> SessionInfo( uuid, name, password
+                                     , Map("any" -> anyRoleInfo)
                                      , new ConnectionInfo(Vector(), Map(), Map())
-                                     , new Model(modelName, modelSource, json), image, time
+                                     , new Model(modelName, modelSource, json)
+                                     , image, time
                                      )
 
     {
@@ -311,9 +313,15 @@ private object SessionManager {
 }
 
 case class Model(name: String, source: String, json: String)
-case class ConnectionInfo(joinerIDs: Vector[UUID], fromHostMap: Map[UUID, Vector[String]], fromJoinerMap: Map[UUID, Vector[String]])
+
+case class ConnectionInfo( joinerIDs: Vector[UUID]
+                         , fromHostMap: Map[UUID, Vector[String]]
+                         , fromJoinerMap: Map[UUID, Vector[String]])
+
 case class RoleInfo(name: String, var numInRole: Int, limit: Option[Int])
 
-case class SessionInfo( uuid: UUID, name: String, password: Option[String], roleInfo: Map[String, RoleInfo]
-                      , connInfo: ConnectionInfo, model: Model, previewBase64: String, lastCheckInTimestamp: Long
+case class SessionInfo( uuid: UUID, name: String, password: Option[String]
+                      , roleInfo: Map[String, RoleInfo], connInfo: ConnectionInfo
+                      , model: Model, previewBase64: String
+                      , lastCheckInTimestamp: Long
                       )
