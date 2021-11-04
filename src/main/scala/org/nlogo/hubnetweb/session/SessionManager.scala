@@ -15,6 +15,8 @@ import akka.actor.typed.scaladsl.Behaviors
 
 import SessionManagerActor.SeshMessage
 
+import IDService.{ genSafeUUID, toUUIDHash }
+
 object SessionManagerActor {
 
   private type Scheduler = (FiniteDuration, () => Unit) => Unit
@@ -340,31 +342,6 @@ private object SessionManager {
   }
 
   private val GrayB64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wYGEwkDoISeKgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAADElEQVQI12NobmwEAAMQAYa2CjzCAAAAAElFTkSuQmCC"
-
-  private val MaxHash = 256
-
-  private def genSafeUUID(knownHashes: Set[Int]): Option[UUID] = {
-
-    def gen(): UUID = {
-      val uuid = UUID.randomUUID()
-      if (!knownHashes.contains(toUUIDHash(uuid)))
-        uuid
-      else
-        gen()
-    }
-
-    if (knownHashes.size < MaxHash)
-      Option(gen())
-    else
-      None
-
-  }
-
-  private def toUUIDHash(uuid: UUID): Int = {
-    val codePoints = uuid.toString.map(_.toInt)
-    val baseHash   = codePoints.foldLeft(0)(((acc, x) => (((acc << 5) - acc) + x) | 0))
-    Math.abs(baseHash) % MaxHash;
-  }
 
 }
 
