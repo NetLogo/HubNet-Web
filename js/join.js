@@ -516,6 +516,7 @@ const processChannelMessage = (channel, closeSignaling, datum) => {
     case "bye-bye": {
       channel.close(1000, "The host disconnected.  Awaiting new selection.");
       alert("The host disconnected from the activity");
+      break;
     }
 
     case "keep-alive": {
@@ -839,6 +840,7 @@ self.addEventListener("popstate", (event) => {
       case "joined": {
         joinerConnection = new RTCPeerConnection(joinerConfig);
         cleanupSession(true, undefined);
+        break;
       }
       default: {
         console.warn(`Unknown state: ${event.state.name}`);

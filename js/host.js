@@ -488,6 +488,7 @@ self.addEventListener("popstate", (event) => {
   switch (event.state.name) {
     case "hosting": {
       cleanupHostingSession();
+      break;
     }
     default: {
       console.warn(`Unknown state: ${event.state.name}`);
