@@ -452,7 +452,7 @@ self.addEventListener("message", ({ data }) => {
     }
     case "relay": {
       if (data.isNarrowcast) {
-        const parcel = Object.assign({}, data);
+        const parcel = { ...data };
         delete parcel.isNarrowcast;
         delete parcel.recipient;
         narrowcast("relay", parcel, data.recipient);

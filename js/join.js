@@ -378,7 +378,7 @@ const handleChannelMessages = (channel, closeSignaling) => ({ data }) => {
     if (datum.fullLength === 1) {
       const parcel  = decodeInput(datum.parcel);
       const header  = { type: datum.type, id: datum.id };
-      const fullMsg = Object.assign({}, header, { parcel });
+      const fullMsg = { ...header, parcel };
       processIt(fullMsg);
     } else if ((datum.fullLength || 1) !== 1) {
 
@@ -403,7 +403,7 @@ const handleChannelMessages = (channel, closeSignaling) => ({ data }) => {
 
         const decoded = decodeInput(assembleBucket(bucket));
         const header  = multipartHeaders[id];
-        const fullMsg = Object.assign({}, header, { parcel: decoded });
+        const fullMsg = { ...header, parcel: decoded };
 
         delete multiparts[id];
         delete multipartHeaders[id];

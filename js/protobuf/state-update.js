@@ -265,7 +265,7 @@ const StateUpdatePB = {
   , monitorUpdates: { type: "string"      , id: 3, keyType: "string" }
   , widgetUpdates:  { type: "WidgetUpdate", id: 4, rule: "repeated" }
   }
-, nested: Object.assign({}, PlotUpdateStuff, ViewUpdateStuff, WidgetUpdateStuff)
+, nested: { ...PlotUpdateStuff, ...ViewUpdateStuff, ...WidgetUpdateStuff }
 };
 
 export { StateUpdatePB };
