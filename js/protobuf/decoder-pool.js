@@ -28,7 +28,7 @@ const decode = (msg, port) => {
     );
 
   } else {
-    setTimeout((() => decode(msg, port)), 50);
+    setTimeout((() => decode(msg, port)), 5);
   }
 
 };

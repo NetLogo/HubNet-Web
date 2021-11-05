@@ -28,7 +28,7 @@ const encode = (msg, port) => {
     );
 
   } else {
-    setTimeout((() => encode(msg, port)), 50);
+    setTimeout((() => encode(msg, port)), 5);
   }
 
 };
