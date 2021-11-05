@@ -1,15 +1,5 @@
-import { encodePBuf } from "./converters-common.js";
+import { encodePBuf    } from "./converters-common.js";
+import { handleMessage } from "./coder.js";
 
 // (MessageEvent) => Unit
-onmessage = (e) => {
-  switch (e.data.type) {
-    case "encode": {
-      const encoded = encodePBuf(true)(e.data.parcel);
-      e.ports[0].postMessage(encoded);
-      break;
-    }
-    default: {
-      console.warn("Unknown encoder message type:", e.data.type, e);
-    }
-  }
-};
+onmessage = handleMessage("encoder", "encode", encodePBuf);
