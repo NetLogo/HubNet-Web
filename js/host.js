@@ -3,6 +3,7 @@ import { awaitWorker, byteSizeLabel, HNWProtocolVersionNumber
 
 import { reportBandwidth, reportNewSend      } from "./bandwidth-monitor.js";
 import { decoderPool, encoderPool, sendBurst } from "./compress.js";
+import { galapagos, hnw                      } from "./domain.js";
 import { genNextID                           } from "./id-manager.js";
 import { hostConfig                          } from "./webrtc.js";
 
@@ -32,6 +33,10 @@ const SigTerm = "signaling-terminated"; // String
 const broadSocketW = new Worker("js/broadsocket.js", { type: "module" });
 
 const statusSocketW = new Worker("js/status-socket.js", { type: "module" });
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelector(".nlw-iframe").src = `http://${galapagos}/hnw-host`;
+});
 
 // (DOMElement) => Boolean
 self.submitLaunchForm = (elem) => {
@@ -119,7 +124,7 @@ const launchModel = (formDataPlus) => {
               const signaling     = new Worker("js/host-signaling-socket.js", { type: "module" });
               signaling.onmessage = handleConnectionMessage(connection, nlogo, sessionName, joinerID);
 
-              const signalingURL = `ws://localhost:8080/rtc/${hostID}/${joinerID}/host`;
+              const signalingURL = `ws://${hnw}/rtc/${hostID}/${joinerID}/host`;
               signaling.postMessage({ type: "connect", url: signalingURL });
 
               sessions[joinerID] = { networking:     { signaling }
@@ -143,10 +148,10 @@ const launchModel = (formDataPlus) => {
           }
         };
 
-        const broadSocketURL = `ws://localhost:8080/rtc/${hostID}`;
+        const broadSocketURL = `ws://${hnw}/rtc/${hostID}`;
         broadSocketW.postMessage({ type: "connect", url: broadSocketURL });
 
-        const statusSocketURL = `ws://localhost:8080/hnw/my-status/${hostID}`;
+        const statusSocketURL = `ws://${hnw}/hnw/my-status/${hostID}`;
         statusSocketW.postMessage({ type: "connect", url: statusSocketURL });
 
         setInterval(() => {
@@ -588,5 +593,6 @@ const updateCongestionStats = () => {
 
 // (Object[Any]) => Unit
 const postToNLW = (msg) => {
-  document.querySelector("#nlw-frame > iframe").contentWindow.postMessage(msg, "*");
+  const frame = document.querySelector("#nlw-frame > iframe").contentWindow;
+  frame.postMessage(msg, `http://${galapagos}`);
 };

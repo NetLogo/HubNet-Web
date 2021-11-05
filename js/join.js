@@ -4,8 +4,9 @@ import * as ConvertersCommonJS from "./protobuf/converters-common.js";
 const decodeInput = ConvertersCommonJS.decodePBuf(false);
 
 import { HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID } from "./common.js";
-import { MinID, prevID, SentinelID, succeedsID } from "./id-manager.js";
-import { joinerConfig } from "./webrtc.js";
+import { galapagos, hnw                                   } from "./domain.js";
+import { MinID, prevID, SentinelID, succeedsID            } from "./id-manager.js";
+import { joinerConfig                                     } from "./webrtc.js";
 
 import * as CompressJS from "./compress.js";
 
@@ -51,6 +52,10 @@ let predIDToMsg = {};      // Object[UUID, Any]
 
 const multiparts       = {}; // Object[UUID, String]
 const multipartHeaders = {}; // Object[UUID, String]
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelector(".nlw-iframe").src = `http://${galapagos}/hnw-join`;
+});
 
 // (String) => Unit
 const refreshSelection = (oldActiveUUID) => {
@@ -236,7 +241,7 @@ const connectAndLogin = (hostID) => {
     ([joinerID, channel, offer]) => {
 
       const signalingW   = new Worker("js/joiner-signaling-socket.js", { type: "module" });
-      const signalingURL = `ws://localhost:8080/rtc/${hostID}/${joinerID}/join`;
+      const signalingURL = `ws://${hnw}/rtc/${hostID}/${joinerID}/join`;
       signalingW.postMessage({ type: "connect", url: signalingURL, offer });
 
       const closeSignaling = () => signalingW.terminate();
@@ -772,7 +777,8 @@ const disconnectChannels = (reason) => {
 
 // (Object[Any]) => Unit
 const postToNLW = (msg) => {
-  document.querySelector("#nlw-frame > iframe").contentWindow.postMessage(msg, "*");
+  const frame = document.querySelector("#nlw-frame > iframe").contentWindow;
+  frame.postMessage(msg, `http://${galapagos}`);
 };
 
 // (MessageEvent) => Unit

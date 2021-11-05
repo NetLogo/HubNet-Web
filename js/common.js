@@ -1,5 +1,6 @@
-// String
-const HNWProtocolVersionNumber = "0.0.1";
+import { galapagos } from "./domain.js";
+
+const HNWProtocolVersionNumber = "0.0.1"; // String
 
 // (WebWorker, Object[Any]) => Promise[Any]
 const awaitWorker = (worker, msg) => {

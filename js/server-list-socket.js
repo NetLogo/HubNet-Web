@@ -1,10 +1,11 @@
+import { hnw                  } from "./domain.js";
 import { getSocket, setSocket } from "./websocket-common.js";
 
 // (MessageEvent) => Unit
 onmessage = (e) => {
   switch (e.data.type) {
     case "connect": {
-      const socket     = new WebSocket("ws://localhost:8080/hnw/session-stream");
+      const socket     = new WebSocket(`ws://${hnw}/hnw/session-stream`);
       socket.onmessage = ({ data }) => {
         postMessage(data);
       };
