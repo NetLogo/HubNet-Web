@@ -483,7 +483,8 @@ self.addEventListener("message", ({ data }) => {
 });
 
 self.addEventListener("beforeunload", () => {
-  // Honestly, this will probably not run before the tab closes.  Not much I can do about that.  --JAB (8/21/20)
+  // Honestly, this will probably not run before the tab closes.
+  // Not much I can do about that.  --Jason B. (8/21/20)
   Object.entries(sessions).forEach(([ , { networking: { channel } }]) => {
     sendRTC(channel)("bye-bye");
     channel.close(1000, "Terminating unneeded sockets...");

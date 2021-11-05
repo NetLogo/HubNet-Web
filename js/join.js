@@ -99,7 +99,8 @@ const refreshSelection = (oldActiveUUID) => {
     );
   }
 
-  // Better criteria later (especially the # of slots open in session) --JAB (6/12/19)
+  // Better criteria later (especially the # of slots open in session)
+  // --Jason B. (6/12/19)
   document.getElementById("join-button").disabled = activeEntry === null;
 
 };

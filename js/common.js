@@ -44,8 +44,8 @@ const stringToHash = (str) => {
 // (String) => Number
 const uuidToRTCID = (uuid) => {
   // The docs say that the limit on the number of channels is 65534,
-  // but Chromium barfs if the ID is 1024 or higher --JAB (7/15/19)
-  // Oh, you think Chromium's bad?  Firefox only allows 256! --JAB (5/13/21)
+  // but Chromium barfs if the ID is 1024 or higher --Jason B. (7/15/19)
+  // Oh, you think Chromium's bad?  Firefox only allows 256! --Jason B. (5/13/21)
   return Math.abs(stringToHash(uuid)) % 256;
 };
 
