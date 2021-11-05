@@ -1,6 +1,6 @@
-import { awaitWorker, byteSizeLabel, HNWProtocolVersionNumber
-       , uuidToRTCID } from "./common.js";
+import { byteSizeLabel, HNWProtocolVersionNumber, uuidToRTCID } from "./common.js";
 
+import { awaitWorker                         } from "./await.js";
 import { reportBandwidth, reportNewSend      } from "./bandwidth-monitor.js";
 import { decoderPool, encoderPool, sendBurst } from "./compress.js";
 import { galapagos, hnw                      } from "./domain.js";

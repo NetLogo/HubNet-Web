@@ -1,27 +1,4 @@
-import { galapagos } from "./domain.js";
-
 const HNWProtocolVersionNumber = "0.0.1"; // String
-
-// (WebWorker, Object[Any]) => Promise[Any]
-const awaitWorker = (worker, msg) => {
-
-  const f =
-    (resolve) => {
-
-      const channel = new MessageChannel();
-
-      channel.port1.onmessage = ({ data }) => {
-        channel.port1.close();
-        resolve(data);
-      };
-
-      worker.postMessage(msg, [channel.port2]);
-
-    };
-
-  return new Promise(f);
-
-};
 
 // (Number, Number) => String
 const byteSizeLabel = (n, precision = 2) => {
@@ -70,5 +47,4 @@ const genUUID = () => {
 };
 /* eslint-enable no-bitwise */
 
-export { awaitWorker, byteSizeLabel, genUUID, HNWProtocolVersionNumber
-       , typeIsOOB, uuidToRTCID };
+export { byteSizeLabel, genUUID, HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID };

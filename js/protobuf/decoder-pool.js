@@ -1,3 +1,5 @@
+import { awaitWorker } from "../await.js"
+
 const maxNumWorkers = Math.max(1, navigator.hardwareConcurrency);
 
 // Array[{ isIdle: Boolean, worker: WebWorker }]
