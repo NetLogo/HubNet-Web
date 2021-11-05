@@ -1,12 +1,11 @@
 // (Object[Any]) => Object[Any]
 const fieldsFrom = (obj) => {
-  const fields = {};
-  const keys   = Object.keys(obj);
-  for (let i = 0; i < keys.length; i++) {
-    const key   = keys[i];
-    const value = obj[key];
-    fields[key] = { type: value, id: (i + 1) };
-  }
+  const fields =
+    Object.fromEntries(
+      Object.entries(obj).map(
+        ([key, value], i) => [key, { type: value, id: (i + 1) }]
+      )
+    );
   return { fields };
 };
 
