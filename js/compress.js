@@ -25,7 +25,7 @@ const chunkForSending = (message) => {
 
 };
 
-const encoderPool = new Worker("js/protobuf/encoder-pool.js");
+const encoderPool = new Worker("js/protobuf/encoder-pool.js", { type: "module" });
 
 encoderPool.onmessage = (msg) => {
   switch (msg.type) {
@@ -38,7 +38,7 @@ encoderPool.onmessage = (msg) => {
   }
 };
 
-const decoderPool = new Worker("js/protobuf/decoder-pool.js");
+const decoderPool = new Worker("js/protobuf/decoder-pool.js", { type: "module" });
 
 decoderPool.onmessage = (msg) => {
   switch (msg.type) {

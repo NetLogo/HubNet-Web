@@ -1,4 +1,4 @@
-import { awaitWorker } from "../await.js"
+import { awaitWorker } from "../await.js";
 
 const maxNumWorkers = Math.max(1, navigator.hardwareConcurrency);
 
@@ -11,32 +11,26 @@ const initWorker = () => {
 };
 
 const decode = (msg, port) => {
+
   const workerBundle = workerPool.find((bundle) => bundle.isIdle);
+
   if (workerBundle !== undefined) {
+
     workerBundle.isIdle = false;
 
-    new Promise(
-      (resolve) => {
+    const message = { type: "decode", parcel: msg };
 
-        const channel = new MessageChannel();
-
-        channel.port1.onmessage = ({ data }) => {
-          channel.port1.close();
-          resolve(data);
-        };
-
-        const message = { type: "decode", parcel: msg };
-        workerBundle.worker.postMessage(message, [channel.port2]);
-
+    awaitWorker(workerBundle.worker, message).then(
+      (decoded) => {
+        workerBundle.isIdle = true;
+        port.postMessage(decoded);
       }
-    ).then((decoded) => {
-      workerBundle.isIdle = true;
-      port.postMessage(decoded);
-    });
+    );
 
   } else {
     setTimeout((() => decode(msg, port)), 50);
   }
+
 };
 
 // (MessageEvent) => Unit
