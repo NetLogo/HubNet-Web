@@ -17,34 +17,35 @@ const basicMap =
   , "relay":                  lookupType("Relay"          )
   };
 
-// Object[ProtoBufType]
-const furlingMap =
-  { "unfurled-relay-button":       lookupType("UnfurlRelayButton"     )
-  , "unfurled-relay-chooser":      lookupType("UnfurlRelayChooser"    )
-  , "unfurled-relay-input-number": lookupType("UnfurlRelayInputNumber")
-  , "unfurled-relay-input-string": lookupType("UnfurlRelayInputString")
-  , "unfurled-relay-mouse-up":     lookupType("UnfurlRelayMouseUp"    )
-  , "unfurled-relay-mouse-down":   lookupType("UnfurlRelayMouseDown"  )
-  , "unfurled-relay-mouse-move":   lookupType("UnfurlRelayMouseMove"  )
-  , "unfurled-relay-slider":       lookupType("UnfurlRelaySlider"     )
-  , "unfurled-relay-switch":       lookupType("UnfurlRelaySwitch"     )
-  };
+// type FurlingConfig = { pbName :: String, unfurledPBName :: String, unfurledType :: String, pluckables :: Array[String] }
+//
+// Array[FurlingConfig]
+const furlingConfigs =
+  [ { pbName: "hnwButtonPayload"     , unfurledPBName: "UnfurlRelayButton"     , unfurledType: "unfurled-relay-button"      , pluckables: ["message"]          }
+  , { pbName: "hnwChooserPayload"    , unfurledPBName: "UnfurlRelayChooser"    , unfurledType: "unfurled-relay-chooser"     , pluckables: ["varName", "value"] }
+  , { pbName: "hnwInputNumberPayload", unfurledPBName: "UnfurlRelayInputNumber", unfurledType: "unfurled-relay-input-number", pluckables: ["varName", "value"] }
+  , { pbName: "hnwInputStringPayload", unfurledPBName: "UnfurlRelayInputString", unfurledType: "unfurled-relay-input-string", pluckables: ["varName", "value"] }
+  , { pbName: "hnwMouseUpPayload"    , unfurledPBName: "UnfurlRelayMouseUp"    , unfurledType: "unfurled-relay-mouse-up"    , pluckables: ["xcor"   , "ycor" ] }
+  , { pbName: "hnwMouseDownPayload"  , unfurledPBName: "UnfurlRelayMouseDown"  , unfurledType: "unfurled-relay-mouse-down"  , pluckables: ["xcor"   , "ycor" ] }
+  , { pbName: "hnwMouseMovePayload"  , unfurledPBName: "UnfurlRelayMouseMove"  , unfurledType: "unfurled-relay-mouse-move"  , pluckables: ["xcor"   , "ycor" ] }
+  , { pbName: "hnwSliderPayload"     , unfurledPBName: "UnfurlRelaySlider"     , unfurledType: "unfurled-relay-slider"      , pluckables: ["varName", "value"] }
+  , { pbName: "hnwSwitchPayload"     , unfurledPBName: "UnfurlRelaySwitch"     , unfurledType: "unfurled-relay-switch"      , pluckables: ["varName", "value"] }
+  ];
+
+// (Array[FurlingConfig]) => Object[ProtoBufType]
+const genFurlingMap = (configs) => {
+  return Object.fromEntries(
+    configs.map((c) => [c.unfurledType, lookupType(c.unfurledPBName)])
+  );
+};
 
 // Object[ProtoBufType]
-const typeMap = { ...basicMap, ...furlingMap };
+const typeMap = { ...basicMap, ...genFurlingMap(furlingConfigs) };
 
 // Object[String]
-const fieldNameToType =
-  { hnwButtonPayload:      "unfurled-relay-button"
-  , hnwChooserPayload:     "unfurled-relay-chooser"
-  , hnwInputNumberPayload: "unfurled-relay-input-number"
-  , hnwInputStringPayload: "unfurled-relay-input-string"
-  , hnwMouseUpPayload:     "unfurled-relay-mouse-up"
-  , hnwMouseDownPayload:   "unfurled-relay-mouse-down"
-  , hnwMouseMovePayload:   "unfurled-relay-mouse-move"
-  , hnwSliderPayload:      "unfurled-relay-slider"
-  , hnwSwitchPayload:      "unfurled-relay-switch"
-  };
+const fieldNameToType = (fieldName) => {
+  return furlingConfigs.find((c) => c.pbName === fieldName).unfurledType;
+};
 
 // (Object[Any]) => (Array[String]) => Object[Any]
 const unfurlWidget = (msg) => (fieldNames) => {
@@ -53,7 +54,7 @@ const unfurlWidget = (msg) => (fieldNames) => {
     fieldNames.find((name) => msg.payload.data[name] !== undefined);
 
   if (matcher !== undefined) {
-    return { type:        fieldNameToType[matcher]
+    return { type:        fieldNameToType(matcher)
            , id:          msg.id
            , tokenChunk1: msg.payload.tokenChunk1
            , tokenChunk2: msg.payload.tokenChunk2
@@ -72,18 +73,7 @@ const unfurlWidget = (msg) => (fieldNames) => {
 const trueUnfurl = (msg) => {
   if (msg.type === "relay") {
     if (msg.payload.type === "hnw-widget-message") {
-      return unfurlWidget(msg)(
-        [ "hnwButtonPayload"
-        , "hnwChooserPayload"
-        , "hnwInputNumberPayload"
-        , "hnwInputStringPayload"
-        , "hnwMouseUpPayload"
-        , "hnwMouseDownPayload"
-        , "hnwMouseMovePayload"
-        , "hnwSliderPayload"
-        , "hnwSwitchPayload"
-        ]
-      );
+      return unfurlWidget(msg)(furlingConfigs.map((c) => c.pbName));
     } else {
       return msg;
     }
@@ -115,22 +105,11 @@ const furl = (message) => {
            };
   };
 
-  const correlator =
-    { "unfurled-relay-button":       ["hnwButtonPayload"     , ["message"]         ]
-    , "unfurled-relay-chooser":      ["hnwChooserPayload"    , ["varName", "value"]]
-    , "unfurled-relay-input-number": ["hnwInputNumberPayload", ["varName", "value"]]
-    , "unfurled-relay-input-string": ["hnwInputStringPayload", ["varName", "value"]]
-    , "unfurled-relay-mouse-up":     ["hnwMouseUpPayload"    , ["xcor"   , "ycor" ]]
-    , "unfurled-relay-mouse-down":   ["hnwMouseDownPayload"  , ["xcor"   , "ycor" ]]
-    , "unfurled-relay-mouse-move":   ["hnwMouseMovePayload"  , ["xcor"   , "ycor" ]]
-    , "unfurled-relay-slider":       ["hnwSliderPayload"     , ["varName", "value"]]
-    , "unfurled-relay-switch":       ["hnwSwitchPayload"     , ["varName", "value"]]
-    };
+  const config        = furlingConfigs.find((c) => c.unfurledType === message.type);
+  const doesCorrelate = config !== undefined;
 
-  const correlation   = correlator[message.type];
-  const doesCorrelate = correlation !== undefined;
-
-  return doesCorrelate ? reconstitute(message, ...correlation) : message;
+  return doesCorrelate ? reconstitute(message, config.pbName, config.pluckables) :
+                         message;
 
 };
 
