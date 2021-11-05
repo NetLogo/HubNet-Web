@@ -58,24 +58,24 @@ const encodePBuf = (isHost) => (msg) => {
 // (Boolean) => (Uint8Array) => Object[Any]
 const decodePBuf = (isHost) => (byteStream) => {
 
-  const furler = isHost ? FromJoinerFurler : FromHostFurler;
+  const furler        = isHost ? FromJoinerFurler : FromHostFurler;
+  const jiggeryPokery = isHost ? FromJoinerJP     : FromHostJP;
 
   const initialCode = byteStream[0];
   const dataStream  = byteStream.slice(1);
 
   const unmask = (x) => x & 0b01111111;
 
-  const [typeCode, msgBuf] =
-    ((initialCode & cMask) === cMask) ? [unmask(initialCode), inflate(dataStream)] :
-                                        [       initialCode ,         dataStream ];
+  const isRaw = (initialCode & cMask) !== cMask;
 
+  const typeCode          = isRaw ? initialCode : unmask (initialCode);
+  const msgBuf            = isRaw ?  dataStream : inflate( dataStream);
   const [type, protoType] = furler.lookupTypeCode(typeCode);
   const decoded           = protoType.decode(msgBuf);
   const decodedObj        = protoType.toObject(decoded, { enums: String });
   const reconstructed     = { type, ...decodedObj };
   const furled            = furler.furl(reconstructed);
   trace(type)(() => console.log("About to recombobulate", reconstructed, furled));
-  const jiggeryPokery     = isHost ? FromJoinerJP : FromHostJP;
   const recombobulated    = jiggeryPokery.recombobulate(furled);
   trace(type)(() => console.log("Done to recombobulate", recombobulated));
 
