@@ -1,5 +1,6 @@
 import * as ConvertersCommonJS from "./protobuf/converters-common.js";
 
+// (Uint8Array) => Object[Any]
 const decodeInput = ConvertersCommonJS.decodePBuf(false);
 
 import { HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID } from "./common.js";
@@ -25,14 +26,15 @@ const usePlaceholderPreview = () => {
 usePlaceholderPreview();
 
 // type Session = { modelName :: String, name :: String, oracleID :: String }
+
 let sessionData = []; // Array[Session]
 
-const channels = {};   // Object[Protocol.Channel]
+const channels = {}; // Object[Protocol.Channel]
 
 let joinerConnection = new RTCPeerConnection(joinerConfig);
 
-let pageState   = "uninitialized";
-let pageStateTS = -1;
+let pageState   = "uninitialized"; // String
+let pageStateTS = -1;              // Number
 
 const messageQueue = []; // Array[Object[Any]]
 
@@ -773,6 +775,7 @@ const postToNLW = (msg) => {
   document.querySelector("#nlw-frame > iframe").contentWindow.postMessage(msg, "*");
 };
 
+// (MessageEvent) => Unit
 self.addEventListener("message", (event) => {
   switch (event.data.type) {
 

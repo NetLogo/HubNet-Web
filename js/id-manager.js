@@ -4,6 +4,7 @@ const SentinelID = 0;
 const MinID      = 1;
 const MaxID      = (2 ** 32) - 1;
 
+// (Number) => Number
 const genNextID = (channelID) => {
   const lsid = lastSentIDMap[channelID];
   const next = (lsid !== undefined) ? nextID(lsid) : MinID;
@@ -11,10 +12,12 @@ const genNextID = (channelID) => {
   return next;
 };
 
+// (Number) => Number
 const nextID = (num) => {
   return (num === SentinelID) ? SentinelID : ((num === MaxID) ? MinID : num + 1);
 };
 
+// (Number) => Number
 const prevID = (num) => {
   return (num === SentinelID) ? SentinelID : ((num === MinID) ? MaxID : num - 1);
 };

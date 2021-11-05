@@ -27,7 +27,7 @@ const sessions = {}; // Object[Session]
 
 let password = null; // String
 
-const SigTerm = "signaling-terminated";
+const SigTerm = "signaling-terminated"; // String
 
 const broadSocketW = new Worker("js/broadsocket.js", { type: "module" });
 
@@ -403,6 +403,7 @@ const cleanupHostingSession = () => {
   location.reload();
 };
 
+// (MessageEvent) => Unit
 self.addEventListener("message", ({ data }) => {
 
   const narrowcast = (type, message, recipientUUID) => {
@@ -531,7 +532,7 @@ const updateBandwidthLabel = () => {
 
 };
 
-let congestionDuration = 0;
+let congestionDuration = 0; // Number
 
 // () => Unit
 const updateCongestionStats = () => {

@@ -1,6 +1,7 @@
 import { reportBandwidth, reportNewSend } from "./bandwidth-monitor.js";
 import { setSocket } from "./websocket-common.js";
 
+// (MessageEvent) => Unit
 onmessage = (e) => {
   switch (e.data.type) {
     case "connect": {

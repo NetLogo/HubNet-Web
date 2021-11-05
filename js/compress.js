@@ -162,6 +162,7 @@ const logAndSend = (data, channel) => {
   channel.send(data);
 };
 
+// (Channel) => Number
 const genChanID = (channel) => genNextID(`${channel.label}-${channel.id}`);
 
 export { decoderPool, encoderPool, sendBurst, sendGreeting, sendOOB, sendRTC };

@@ -8,8 +8,9 @@ import * as FromJoinerJP from "./from-joiner-jiggery-pokery.js";
 import * as FromHostFurler   from "./from-host-furling.js";
 import * as FromJoinerFurler from "./from-joiner-furling.js";
 
-const cMask = 0b10000000;
+const cMask = 0b10000000; // Number
 
+// (String) => (() => Unit) => Unit
 const trace = (type) => (f) => {
   const debugBlacklist = ["ping", "pong", "keep-alive"];
   if (!debugBlacklist.includes(type)) {
@@ -17,6 +18,7 @@ const trace = (type) => (f) => {
   }
 };
 
+// (Boolean) => (Object[Any]) => Uint8Array
 /* eslint-disable no-bitwise */
 const encodePBuf = (isHost) => (msg) => {
 
@@ -53,6 +55,7 @@ const encodePBuf = (isHost) => (msg) => {
 
 };
 
+// (Boolean) => (Uint8Array) => Object[Any]
 const decodePBuf = (isHost) => (byteStream) => {
 
   const furler = isHost ? FromJoinerFurler : FromHostFurler;

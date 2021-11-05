@@ -1,3 +1,4 @@
+// String
 const HNWProtocolVersionNumber = "0.0.1";
 
 // (WebWorker, Object[Any]) => Promise[Any]
@@ -30,8 +31,8 @@ const byteSizeLabel = (n, precision = 2) => {
                       `${trunc(n)} B`;
 };
 
-/* eslint-disable no-bitwise */
 // (String) => String
+/* eslint-disable no-bitwise */
 const stringToHash = (str) => {
   const toCodePoint = (x)      => x.codePointAt(0);
   const toHash      = (acc, x) => (((acc << 5) - acc) + x) | 0;
@@ -52,8 +53,8 @@ const typeIsOOB = (type) => {
   return ["keep-alive", "ping", "pong"].includes(type);
 };
 
-/* eslint-disable no-bitwise */
 // () => UUID
+/* eslint-disable no-bitwise */
 const genUUID = () => {
 
   const replacer =

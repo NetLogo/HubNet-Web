@@ -37,6 +37,7 @@ const encode = (msg, port) => {
   }
 };
 
+// (MessageEvent) => Unit
 onmessage = (e) => {
   switch (e.data.type) {
     case "client-connect": {

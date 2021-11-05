@@ -1,5 +1,6 @@
 let lastImageSize = null; // Number
 
+// (MessageEvent) => Unit
 onmessage = (e) => {
   switch (e.data.type) {
     case "encode-blob": {

@@ -6,6 +6,7 @@ import * as Furling from "./common-furling.js";
 const lookupType = (x) =>
   protobuf.Root.fromJSON(FromHostRoot).lookupType(x);
 
+// Object[ProtoBufType]
 const basicMap =
   { "bye-bye":                lookupType("ByeBye")
   , "connection-established": lookupType("ConnEstablished")
@@ -23,10 +24,12 @@ const basicMap =
   , "username-already-taken": lookupType("UsernameTaken")
   };
 
+// Object[ProtoBufType]
 const furlingMap =
   {
   };
 
+// Object[ProtoBufType]
 const typeMap = { ...basicMap, ...furlingMap };
 
 // (Object[Any]) => Object[Any]

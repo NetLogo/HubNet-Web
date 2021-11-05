@@ -9,6 +9,7 @@ base64EncoderW.onmessage = ({ data }) => {
   sendObj("image-update", { base64: data });
 };
 
+// (MessageEvent) => Unit
 onmessage = (e) => {
   switch (e.data.type) {
     case "connect": {

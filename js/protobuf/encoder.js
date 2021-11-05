@@ -1,5 +1,6 @@
 import { encodePBuf } from "./converters-common.js";
 
+// (MessageEvent) => Unit
 onmessage = (e) => {
   switch (e.data.type) {
     case "encode": {

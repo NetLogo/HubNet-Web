@@ -6,6 +6,7 @@ import * as Furling from "./common-furling.js";
 const lookupType = (x) =>
   protobuf.Root.fromJSON(FromJoinerRoot).lookupType(x);
 
+// Object[ProtoBufType]
 const basicMap =
   { "bye-bye":                lookupType("ByeBye"         )
   , "connection-established": lookupType("ConnEstablished")
@@ -16,6 +17,7 @@ const basicMap =
   , "relay":                  lookupType("Relay"          )
   };
 
+// Object[ProtoBufType]
 const furlingMap =
   { "unfurled-relay-button":       lookupType("UnfurlRelayButton"     )
   , "unfurled-relay-chooser":      lookupType("UnfurlRelayChooser"    )
@@ -28,8 +30,10 @@ const furlingMap =
   , "unfurled-relay-switch":       lookupType("UnfurlRelaySwitch"     )
   };
 
+// Object[ProtoBufType]
 const typeMap = { ...basicMap, ...furlingMap };
 
+// Object[String]
 const fieldNameToType =
   { hnwButtonPayload:      "unfurled-relay-button"
   , hnwChooserPayload:     "unfurled-relay-chooser"
