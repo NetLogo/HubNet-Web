@@ -23,7 +23,7 @@ const code = (msg, port, type) => {
 
     const message = { type, parcel: msg };
 
-    awaitWorker(workerBundle.worker, message).then(
+    awaitWorker(workerBundle.worker)(message).then(
       (coded) => {
         workerBundle.isIdle = true;
         port.postMessage(coded);

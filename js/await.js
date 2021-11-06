@@ -1,7 +1,7 @@
 import { galapagos } from "./domain.js";
 
-// [T] @ ((T, Object[Any], MessagePort) => Unit) => (T, Object[Any]) => Promise[Any]
-const awaitResponse = (postMessage) => (target, msg) => {
+// [T] @ ((T, Object[Any], MessagePort) => Unit) => (T) => (Object[Any]) => Promise[Any]
+const awaitResponse = (postMessage) => (target) => (msg) => {
 
   const f =
     (resolve) => {
@@ -21,7 +21,7 @@ const awaitResponse = (postMessage) => (target, msg) => {
 
 };
 
-// (ContentWindow, Object[Any]) => Promise[Any]
+// (ContentWindow) => (Object[Any]) => Promise[Any]
 const awaitFrame =
   awaitResponse(
     (frame, msg, port) => {
@@ -29,7 +29,7 @@ const awaitFrame =
     }
   );
 
-// (WebWorker, Object[Any]) => Promise[Any]
+// (WebWorker) => (Object[Any]) => Promise[Any]
 const awaitWorker =
   awaitResponse(
     (worker, msg, port) => {
