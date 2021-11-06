@@ -6,17 +6,14 @@ import { awaitWorker } from "./await.js";
 import { logEntry    } from "./bandwidth-monitor.js";
 import { genNextID   } from "./id-manager.js";
 
-// (String, Number) => Array[String]
-const chunk = (arr, length) => {
-  const baseArray = Array.from(Array(Math.ceil(arr.length / length)));
-  return baseArray.map((x, i) => arr.slice(length * i, length * (i + 1)));
-};
-
 // (Array[_]) => Array[Array[U]]
 const chunkForSending = (message) => {
 
-  const chunkSize  = 15500;
-  const messages   = chunk(message, chunkSize);
+  const chunkSize = 15500;
+  const chunks    = Array.from(Array(Math.ceil(message.length / chunkSize)));
+
+  const messages =
+    chunks.map((x, i) => message.slice(chunkSize * i, chunkSize * (i + 1)));
 
   if (messages.length * chunkSize <= 2e7)
     return messages;
