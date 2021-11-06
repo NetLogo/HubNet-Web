@@ -110,6 +110,8 @@ const logAndSend = (data, channel) => {
 };
 
 // (Channel) => Number
-const genChanID = (channel) => genNextID(`${channel.label}-${channel.id}`);
+const genChanID = (channel) => {
+  return genNextID(`${channel.label}-${channel.id}`);
+};
 
 export { sendBurst, sendGreeting, sendOOB, sendRTC };
