@@ -12,8 +12,8 @@ const initWorker = (workerPath) => {
   workerPool.push({ worker, isIdle: true });
 };
 
-// (Object[Any], MessagePort, String) => Unit
-const code = (msg, port, type) => {
+// (Object[Any], Boolean, MessagePort, String) => Unit
+const code = (parcel, isHost, port, type) => {
 
   const workerBundle = workerPool.find((bundle) => bundle.isIdle);
 
@@ -31,7 +31,7 @@ const code = (msg, port, type) => {
     );
 
   } else {
-    setTimeout((() => code(msg, port, type)), 5);
+    setTimeout((() => code(parcel, isHost, port, type)), 5);
   }
 
 };
@@ -51,7 +51,7 @@ const handleMessage = (reqMsgType, innerMsgType, workerPath, poolDesc) => {
         break;
       }
       case reqMsgType: {
-        code(e.data.parcel, e.ports[0], innerMsgType);
+        code(e.data.parcel, e.data.isHost, e.ports[0], innerMsgType);
         break;
       }
       case "shutdown": {

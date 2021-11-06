@@ -22,8 +22,7 @@ const chunkForSending = (message) => {
 
 // (Object[Any], Boolean) => Promise[Any]
 const asyncEncode = (parcel, isHost) => {
-  return isHost ? awaitEncoder("encode", { parcel }) :
-                  new Promise((resolve) => resolve(encodePBuf(false)(parcel)));
+  return awaitEncoder("encode", { parcel, isHost });
 };
 
 // (Boolean, RTCDataChannel) => (String, Any, UUID) => Unit
