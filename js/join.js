@@ -1,12 +1,8 @@
-import * as ConvertersCommonJS from "./protobuf/converters-common.js";
+import { HNWProtocolVersionNumber, uuidToRTCID } from "./common.js";
+import { galapagos, hnw                        } from "./domain.js";
+import { joinerConfig                          } from "./webrtc.js";
 
-// (Uint8Array) => Object[Any]
-const decodeInput = ConvertersCommonJS.decodePBuf(false);
-
-import { HNWProtocolVersionNumber, typeIsOOB, uuidToRTCID } from "./common.js";
-import { galapagos, hnw                                   } from "./domain.js";
-import { MinID, prevID, SentinelID, succeedsID            } from "./id-manager.js";
-import { joinerConfig                                     } from "./webrtc.js";
+import RxQueue from "./rx-queue.js";
 
 import * as CompressJS from "./compress.js";
 
@@ -44,14 +40,6 @@ const waitingForBabby = {}; // Object[Any]
 let loopIsTerminated = false; // Boolean
 
 let recentPings = []; // Array[Number]
-
-const dummyID = 0; // Number
-
-let lastMsgID   = dummyID; // Number
-let predIDToMsg = {};      // Object[UUID, Any]
-
-const multiparts       = {}; // Object[UUID, String]
-const multipartHeaders = {}; // Object[UUID, String]
 
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".nlw-iframe").src = `http://${galapagos}/hnw-join`;
@@ -291,6 +279,8 @@ const connectAndLogin = (hostID) => {
 
       joinerConnection.setLocalDescription(offer);
 
+      self.rxQueue = new RxQueue(processChannelMessage(channel, closeSignaling));
+
       channel.onopen = () => {
         setStatus("Connected!  Attempting to log in....");
         login(channel);
@@ -300,7 +290,7 @@ const connectAndLogin = (hostID) => {
         cleanupSession(e.code === 1000, e.reason);
       };
 
-      channel.onmessage = handleChannelMessages(channel, closeSignaling);
+      channel.onmessage = self.rxQueue.enqueue;
 
       channels[hostID] = channel;
 
@@ -334,102 +324,8 @@ const login = (channel) => {
   sendRTC(channel)("login", { username, password });
 };
 
-// (Protocol.Channel, () => Unit) => (Any) => Unit
-const handleChannelMessages = (channel, closeSignaling) => ({ data }) => {
-
-  const dataArr = new Uint8Array(data);
-  const datum   = decodeInput(dataArr);
-
-  if (typeIsOOB(datum.type)) {
-    processChannelMessage(channel, closeSignaling, datum);
-  } else {
-
-    const processMsgQueue = () => {
-      const successor = predIDToMsg[lastMsgID];
-      if (successor !== undefined) {
-        delete predIDToMsg[lastMsgID];
-        lastMsgID = successor.id;
-        processChannelMessage(channel, closeSignaling, successor);
-        processMsgQueue();
-      }
-    };
-
-    const processIt = (msg) => {
-      if (msg.id === SentinelID) {
-        processChannelMessage(channel, closeSignaling, msg);
-      } else if (msg.id === MinID) {
-        lastMsgID = msg.id;
-        processChannelMessage(channel, closeSignaling, msg);
-      } else {
-        if (succeedsID(msg.id, lastMsgID)) {
-          const pred = prevID(msg.id);
-          predIDToMsg[pred] = msg;
-          processMsgQueue();
-        } else {
-          const s = `Received message #${msg.id} when the last-processed message was #${lastMsgID}.  #${msg.id} is out-of-order and will be dropped:`;
-          console.warn(s, msg);
-        }
-      }
-    };
-
-    const assembleBucket = (bucket) => {
-
-      const totalLength = bucket.reduce((acc, x) => acc + x.length, 0);
-      const arr         = new Uint8Array(totalLength);
-
-      bucket.reduce((acc, x) => { arr.set(x, acc); return acc + x.length; }, 0);
-
-      return arr;
-
-    };
-
-    if (datum.fullLength === 1) {
-      const parcel  = decodeInput(datum.parcel);
-      const header  = { type: datum.type, id: datum.id };
-      const fullMsg = { ...header, parcel };
-      processIt(fullMsg);
-    } else if ((datum.fullLength || 1) !== 1) {
-
-      const { id, index, fullLength, parcel } = datum;
-
-      if (fullLength > 1) {
-        console.log(`Got ${id} (${(index + 1)}/${fullLength})`);
-      }
-
-      if (multiparts[id] === undefined) {
-        multiparts[id] = Array(fullLength).fill(null);
-      }
-
-      if (index === 0) {
-        multipartHeaders[id] = { type: datum.type, id };
-      }
-
-      const bucket = multiparts[id];
-      bucket[index] = parcel;
-
-      if (bucket.every((x) => x !== null)) {
-
-        const decoded = decodeInput(assembleBucket(bucket));
-        const header  = multipartHeaders[id];
-        const fullMsg = { ...header, parcel: decoded };
-
-        delete multiparts[id];
-        delete multipartHeaders[id];
-
-        processIt(fullMsg);
-
-      }
-
-    } else {
-      processIt(datum);
-    }
-
-  }
-
-};
-
-// (Protocol.Channel, () => Unit, Object[Any]) => Unit
-const processChannelMessage = (channel, closeSignaling, datum) => {
+// (Protocol.Channel, () => Unit) => (Object[Any]) => Unit
+const processChannelMessage = (channel, closeSignaling) => (datum) => {
 
   switch (datum.type) {
 
@@ -718,8 +614,8 @@ const cleanupSession = (wasExpected, statusText) => {
 
   joinerConnection = new RTCPeerConnection(joinerConfig);
   recentPings      = [];
-  lastMsgID        = dummyID;
-  predIDToMsg      = {};
+
+  self.rxQueue.reset();
 
   setPageState("uninitialized");
   const formFrame = document.getElementById("server-browser-frame");
