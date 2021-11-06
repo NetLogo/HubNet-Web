@@ -4,71 +4,6 @@ import { logEntry     } from "./bandwidth-monitor.js";
 import { genNextID    } from "./id-manager.js";
 import { awaitEncoder } from "./pool-party.js";
 
-// (Array[_]) => Array[Array[U]]
-const chunkForSending = (message) => {
-
-  const chunkSize = 15500;
-  const chunks    = Array.from(Array(Math.ceil(message.length / chunkSize)));
-
-  const messages =
-    chunks.map((x, i) => message.slice(chunkSize * i, chunkSize * (i + 1)));
-
-  if (messages.length * chunkSize <= 2e7)
-    return messages;
-  else
-    throw new Error("This activity is generating too much data for HubNet Web to reliably transfer.  Aborting....");
-
-};
-
-// (Object[Any], Boolean) => Promise[Any]
-const asyncEncode = (parcel, isHost) => {
-  return awaitEncoder("encode", { parcel, isHost });
-};
-
-// (Boolean, RTCDataChannel) => (String, Any, UUID) => Unit
-const send = (isHost, channel) => (type, obj, id = genChanID(channel)) => {
-  const parcel = { ...obj, id, type };
-  asyncEncode(parcel, isHost).then((encoded) => logAndSend(encoded, channel));
-};
-
-// (Boolean, RTCDataChannel) => (String, Any) => Unit
-const sendOOB = (isHost, channel) => (type, obj) => {
-  asyncEncode({ type, ...obj }, isHost).then(
-    (encoded) => {
-      logAndSend(encoded, channel);
-    }
-  );
-};
-
-// (Boolean, RTCDataChannel*) => (String, Any) => Unit
-const sendBurst = (isHost, ...channels) => (type, msg) => {
-
-  // Log the IDs right away, before we do anything async, lest message IDs get
-  // out of order. --Jason B. (10/16/21)
-  const idMap = new Map(channels.map((channel) => [channel, genChanID(channel)]));
-
-  asyncEncode({ type, ...msg }, isHost).then(
-    (encoded) => {
-
-      const chunks = chunkForSending(encoded);
-
-      const objs =
-        chunks.map(
-          (m, index) => ({ index, fullLength: chunks.length, parcel: m })
-        );
-
-      objs.forEach((obj) => {
-        channels.forEach((channel) => {
-          const id = idMap.get(channel);
-          send(isHost, channel)("hnw-burst", obj, id);
-        });
-      });
-
-    }
-  );
-
-};
-
 // (Boolean) => (RTCDataChannel*) => (String, Object[Any]) => Unit
 const sendRTC = (isHost) => (...channels) => (type, obj) => {
   channels.forEach((channel) => {
@@ -103,10 +38,75 @@ const sendGreeting = (isHost) => (channel) => {
   sendRTC(isHost)(channel)("connection-established", baseMsg);
 };
 
+// (Boolean, RTCDataChannel*) => (String, Any) => Unit
+const sendBurst = (isHost, ...channels) => (type, msg) => {
+
+  // Log the IDs right away, before we do anything async, lest message IDs get
+  // out of order. --Jason B. (10/16/21)
+  const idMap = new Map(channels.map((channel) => [channel, genChanID(channel)]));
+
+  asyncEncode({ type, ...msg }, isHost).then(
+    (encoded) => {
+
+      const chunks = chunkForSending(encoded);
+
+      const objs =
+        chunks.map(
+          (m, index) => ({ index, fullLength: chunks.length, parcel: m })
+        );
+
+      objs.forEach((obj) => {
+        channels.forEach((channel) => {
+          const id = idMap.get(channel);
+          send(isHost, channel)("hnw-burst", obj, id);
+        });
+      });
+
+    }
+  );
+
+};
+
+// (Boolean, RTCDataChannel) => (String, Any, UUID) => Unit
+const send = (isHost, channel) => (type, obj, id = genChanID(channel)) => {
+  const parcel = { ...obj, id, type };
+  asyncEncode(parcel, isHost).then((encoded) => logAndSend(encoded, channel));
+};
+
+// (Boolean, RTCDataChannel) => (String, Any) => Unit
+const sendOOB = (isHost, channel) => (type, obj) => {
+  asyncEncode({ type, ...obj }, isHost).then(
+    (encoded) => {
+      logAndSend(encoded, channel);
+    }
+  );
+};
+
+// (Array[_]) => Array[Array[U]]
+const chunkForSending = (message) => {
+
+  const chunkSize = 15500;
+  const chunks    = Array.from(Array(Math.ceil(message.length / chunkSize)));
+
+  const messages =
+    chunks.map((x, i) => message.slice(chunkSize * i, chunkSize * (i + 1)));
+
+  if (messages.length * chunkSize <= 2e7)
+    return messages;
+  else
+    throw new Error("This activity is generating too much data for HubNet Web to reliably transfer.  Aborting....");
+
+};
+
 // (Sendable, RTCDataChannel) => Unit
 const logAndSend = (data, channel) => {
   logEntry(data, channel);
   channel.send(data);
+};
+
+// (Object[Any], Boolean) => Promise[Any]
+const asyncEncode = (parcel, isHost) => {
+  return awaitEncoder("encode", { parcel, isHost });
 };
 
 // (Channel) => Number
