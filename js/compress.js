@@ -56,13 +56,8 @@ const asyncEncode = (parcel, isHost) => {
 
 // (Boolean, RTCDataChannel) => (String, Any, UUID) => Unit
 const send = (isHost, channel) => (type, obj, id = genChanID(channel)) => {
-
-  const parcel = { ...obj };
-  parcel.id    = id;
-
-  parcel.type = type;
+  const parcel = { ...obj, id, type };
   asyncEncode(parcel, isHost).then((encoded) => logAndSend(encoded, channel));
-
 };
 
 // (Boolean, RTCDataChannel) => (String, Any) => Unit
