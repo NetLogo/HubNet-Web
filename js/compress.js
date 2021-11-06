@@ -50,7 +50,7 @@ decoderPool.onmessage = (msg) => {
 
 // (Object[Any], Boolean) => Promise[Any]
 const asyncEncode = (parcel, isHost) => {
-  return isHost ? awaitWorker(encoderPool)({ type: "encode", parcel }) :
+  return isHost ? awaitWorker(encoderPool)("encode", { parcel }) :
                   new Promise((resolve) => resolve(encodePBuf(false)(parcel)));
 };
 

@@ -1,7 +1,7 @@
 import { galapagos } from "./domain.js";
 
-// [T] @ ((T, Object[Any], MessagePort) => Unit) => (T) => (Object[Any]) => Promise[Any]
-const awaitResponse = (postMessage) => (target) => (msg) => {
+// [T] @ ((T, Object[Any], MessagePort) => Unit) => (T) => (String, Object[Any]) => Promise[Any]
+const awaitResponse = (postMessage) => (target) => (type, msg = {}) => {
 
   const f =
     (resolve) => {
@@ -13,7 +13,7 @@ const awaitResponse = (postMessage) => (target) => (msg) => {
         resolve(data);
       };
 
-      postMessage(target, msg, channel.port2);
+      postMessage(target, { ...msg, type }, channel.port2);
 
     };
 
@@ -21,7 +21,7 @@ const awaitResponse = (postMessage) => (target) => (msg) => {
 
 };
 
-// (ContentWindow) => (Object[Any]) => Promise[Any]
+// (ContentWindow) => (String, Object[Any]) => Promise[Any]
 const awaitFrame =
   awaitResponse(
     (frame, msg, port) => {
@@ -29,7 +29,7 @@ const awaitFrame =
     }
   );
 
-// (WebWorker) => (Object[Any]) => Promise[Any]
+// (WebWorker) => (String, Object[Any]) => Promise[Any]
 const awaitWorker =
   awaitResponse(
     (worker, msg, port) => {

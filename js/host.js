@@ -513,9 +513,9 @@ const updateBandwidthLabel = () => {
   const signalers     = Object.values(sessions).map((s) => s.networking.signaling);
   const trueSignalers = signalers.filter((x) => x !== SigTerm);
 
-  const parcel        = { type: "request-bandwidth-report" };
-  const workers       = [broadSocketW, statusSocketW].concat(trueSignalers);
-  const promises      = workers.map((w) => awaitWorker(w)(parcel));
+  const rbrType  = "request-bandwidth-report";
+  const workers  = [broadSocketW, statusSocketW].concat(trueSignalers);
+  const promises = workers.map((w) => awaitWorker(w)(rbrType));
 
   Promise.all(promises).then(
     (results) => {
@@ -525,8 +525,8 @@ const updateBandwidthLabel = () => {
     }
   );
 
-  const newSendParcel   = { type: "request-new-send" };
-  const newSendPromises = workers.map((w) => awaitWorker(w)(newSendParcel));
+  const rnsType         = "request-new-send";
+  const newSendPromises = workers.map((w) => awaitWorker(w)(rnsType));
 
   Promise.all(newSendPromises).then(
     (results) => {

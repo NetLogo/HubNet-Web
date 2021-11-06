@@ -21,9 +21,9 @@ const code = (msg, port, type) => {
 
     workerBundle.isIdle = false;
 
-    const message = { type, parcel: msg };
+    const message = { parcel, isHost };
 
-    awaitWorker(workerBundle.worker)(message).then(
+    awaitWorker(workerBundle.worker)(type, message).then(
       (coded) => {
         workerBundle.isIdle = true;
         port.postMessage(coded);
