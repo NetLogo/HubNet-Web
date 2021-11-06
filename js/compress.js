@@ -1,10 +1,8 @@
-import { encodePBuf } from "./protobuf/converters-common.js";
-
 import { HNWProtocolVersionNumber, typeIsOOB } from "./common.js";
 
-import { awaitWorker } from "./await.js";
-import { logEntry    } from "./bandwidth-monitor.js";
-import { genNextID   } from "./id-manager.js";
+import { logEntry     } from "./bandwidth-monitor.js";
+import { genNextID    } from "./id-manager.js";
+import { awaitEncoder } from "./pool-party.js";
 
 // (Array[_]) => Array[Array[U]]
 const chunkForSending = (message) => {
@@ -22,35 +20,9 @@ const chunkForSending = (message) => {
 
 };
 
-const encoderPool = new Worker("js/protobuf/encoder-pool.js", { type: "module" });
-
-encoderPool.onmessage = (msg) => {
-  switch (msg.type) {
-    case "shutdown-complete": {
-      break;
-    }
-    default: {
-      console.warn("Unknown encoder pool response type:", msg.type, msg);
-    }
-  }
-};
-
-const decoderPool = new Worker("js/protobuf/decoder-pool.js", { type: "module" });
-
-decoderPool.onmessage = (msg) => {
-  switch (msg.type) {
-    case "shutdown-complete": {
-      break;
-    }
-    default: {
-      console.warn("Unknown decoder pool response type:", msg.type, msg);
-    }
-  }
-};
-
 // (Object[Any], Boolean) => Promise[Any]
 const asyncEncode = (parcel, isHost) => {
-  return isHost ? awaitWorker(encoderPool)("encode", { parcel }) :
+  return isHost ? awaitEncoder("encode", { parcel }) :
                   new Promise((resolve) => resolve(encodePBuf(false)(parcel)));
 };
 
@@ -141,4 +113,4 @@ const logAndSend = (data, channel) => {
 // (Channel) => Number
 const genChanID = (channel) => genNextID(`${channel.label}-${channel.id}`);
 
-export { decoderPool, encoderPool, sendBurst, sendGreeting, sendOOB, sendRTC };
+export { sendBurst, sendGreeting, sendOOB, sendRTC };

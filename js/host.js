@@ -1,11 +1,13 @@
 import { byteSizeLabel, HNWProtocolVersionNumber, uuidToRTCID } from "./common.js";
 
-import { awaitWorker                         } from "./await.js";
-import { reportBandwidth, reportNewSend      } from "./bandwidth-monitor.js";
-import { decoderPool, encoderPool, sendBurst } from "./compress.js";
-import { galapagos, hnw                      } from "./domain.js";
-import { genNextID                           } from "./id-manager.js";
-import { hostConfig                          } from "./webrtc.js";
+import { reportBandwidth, reportNewSend             } from "./bandwidth-monitor.js";
+import { awaitDecoder, notifyDecoder, notifyEncoder } from "./pool-party.js";
+
+import { awaitWorker    } from "./await.js";
+import { sendBurst      } from "./compress.js";
+import { galapagos, hnw } from "./domain.js";
+import { genNextID      } from "./id-manager.js";
+import { hostConfig     } from "./webrtc.js";
 
 import * as CompressJS from "./compress.js";
 
@@ -134,8 +136,8 @@ const launchModel = (formDataPlus) => {
                                    , recentBuffer:   []
                                    };
 
-              encoderPool.postMessage({ type: "client-connect" });
-              decoderPool.postMessage({ type: "client-connect" });
+              notifyEncoder("client-connect");
+              notifyDecoder("client-connect");
 
               break;
 
@@ -268,22 +270,9 @@ const handleConnectionMessage = (connection, nlogo, sessionName, joinerID) => ({
 // (Protocol.Channel, String, String, String) => (Any) => Unit
 const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data }) => {
 
-  const dataArr = new Uint8Array(data);
+  const message = { parcel: new Uint8Array(data) };
 
-  new Promise(
-    (resolve) => {
-
-      const chan = new MessageChannel();
-
-      chan.port1.onmessage = ({ data: d }) => {
-        chan.port1.close();
-        resolve(d);
-      };
-
-      decoderPool.postMessage({ type: "decode", parcel: dataArr }, [chan.port2]);
-
-    }
-  ).then((datum) => {
+  awaitDecoder("decode", message).then((datum) => {
 
     switch (datum.type) {
 
@@ -351,9 +340,9 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
 // (String) => () => Unit
 const cleanUpJoiner = (joinerID) => {
-  postToNLW              ({ type: "hnw-notify-disconnect", joinerID });
-  encoderPool.postMessage({ type: "client-disconnect" });
-  decoderPool.postMessage({ type: "client-disconnect" });
+  postToNLW({ type: "hnw-notify-disconnect", joinerID });
+  notifyEncoder("client-disconnect");
+  notifyDecoder("client-disconnect");
   delete sessions[joinerID];
 };
 
