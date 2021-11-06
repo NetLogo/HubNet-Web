@@ -133,25 +133,8 @@ const sendRTC = (isHost) => (...channels) => (type, obj) => {
 
 // (Boolean) => (RTCDataChannel) => Unit
 const sendGreeting = (isHost) => (channel) => {
-  switch (channel.readyState) {
-    case "connecting": {
-      setTimeout(() => { sendGreeting(isHost)(channel); }, 50);
-      break;
-    }
-    case "closing":
-    case "closed": {
-      console.warn("Cannot send 'connect-established' message, because connection is already closed");
-      break;
-    }
-    case "open": {
-      const baseMsg = { protocolVersion: HNWProtocolVersionNumber };
-      send(isHost, channel)("connection-established", baseMsg);
-      break;
-    }
-    default: {
-      console.warn(`Unknown connection ready state: ${channel.readyState}`);
-    }
-  }
+  const baseMsg = { protocolVersion: HNWProtocolVersionNumber };
+  sendRTC(isHost)(channel)("connection-established", baseMsg);
 };
 
 // (Sendable, RTCDataChannel) => Unit
