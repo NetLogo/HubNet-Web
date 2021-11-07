@@ -2,7 +2,8 @@ import { HNWProtocolVersionNumber, uuidToRTCID } from "./common.js";
 import { galapagos, hnw                        } from "./domain.js";
 import { joinerConfig                          } from "./webrtc.js";
 
-import RxQueue from "./rx-queue.js";
+import fakeModel from "./fake-model.js";
+import RxQueue   from "./rx-queue.js";
 
 import * as CompressJS from "./compress.js";
 
@@ -554,59 +555,6 @@ const refreshImage = (oracleID) => {
   }).catch(() => { usePlaceholderPreview(); });
 };
 
-// () => Unit
-const loadFakeModel = () => {
-
-  const fakeDimensions =
-    { minPxcor:           0
-    , maxPxcor:           0
-    , minPycor:           0
-    , maxPycor:           0
-    , patchSize:          1
-    , wrappingAllowedInX: true
-    , wrappingAllowedInY: true
-    };
-
-  const fakeView =
-    { bottom:           0
-    , compilation:      { success: true, messages: [] }
-    , dimensions:       fakeDimensions
-    , fontSize:         10
-    , frameRate:        30
-    , id:               0
-    , left:             0
-    , right:            0
-    , showTickCounter:  true
-    , tickCounterLabel: "ticks"
-    , top:              0
-    , type:             "view"
-    , updateMode:       "TickBased"
-    };
-
-  const fakeRole =
-    { canJoinMidRun: true
-    , isSpectator:   true
-    , limit:         -1
-    , name:          "fake role"
-    , onConnect:     ""
-    , onCursorClick: null
-    , onCursorMove:  null
-    , onDisconnect:  ""
-    , widgets:       [fakeView]
-    };
-
-  const fakePayload =
-    { role:     fakeRole
-    , token:    "invalid token"
-    , type:     "hnw-load-interface"
-    , username: "no username"
-    , view:     fakeView
-    };
-
-  postToNLW(fakePayload);
-
-};
-
 // (Boolean, String) => Unit
 const cleanupSession = (wasExpected, statusText) => {
 
@@ -623,7 +571,7 @@ const cleanupSession = (wasExpected, statusText) => {
   nlwFrame .classList.add(   "hidden");
   formFrame.classList.remove("hidden");
   serverListSocketW.postMessage({ type: "connect" });
-  loadFakeModel();
+  postToNLW(fakeModel);
   document.getElementById("join-button").disabled = false;
 
   if (!wasExpected) {
