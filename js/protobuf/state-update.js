@@ -15,6 +15,15 @@ const ViewUpdateStuff = {
     , "who":         { type: "uint64", id: 11 }
     , "xcor":        { type: "sint32", id: 12 }
     , "ycor":        { type: "sint32", id: 13 }
+    // Begin jiggery optimizations
+    , "color-r":       { type: "uint32", id: 14 }
+    , "color-g":       { type: "uint32", id: 15 }
+    , "color-b":       { type: "uint32", id: 16 }
+    , "color-a":       { type: "uint32", id: 17 }
+    , "label-color-r": { type: "uint32", id: 18 }
+    , "label-color-g": { type: "uint32", id: 19 }
+    , "label-color-b": { type: "uint32", id: 20 }
+    , "label-color-a": { type: "uint32", id: 21 }
     }
   }
 
@@ -25,6 +34,15 @@ const ViewUpdateStuff = {
     , "plabel-color": { type: "uint32", id: 3 }
     , "pxcor":        { type: "sint32", id: 4 }
     , "pycor":        { type: "sint32", id: 5 }
+    // Begin jiggery optimizations
+    , "pcolor-r":       { type: "uint32", id:  6 }
+    , "pcolor-g":       { type: "uint32", id:  7 }
+    , "pcolor-b":       { type: "uint32", id:  8 }
+    , "pcolor-a":       { type: "uint32", id:  9 }
+    , "plabel-color-r": { type: "uint32", id: 10 }
+    , "plabel-color-g": { type: "uint32", id: 11 }
+    , "plabel-color-b": { type: "uint32", id: 12 }
+    , "plabel-color-a": { type: "uint32", id: 13 }
     }
   }
 
@@ -46,6 +64,15 @@ const ViewUpdateStuff = {
     , "thickness":   { type: "uint32", id: 14 }
     , "tie-mode":    { type: "string", id: 15 }
     , "who":         { type: "uint64", id: 16 }
+    // Begin jiggery optimizations
+    , "color-r":       { type: "uint32", id: 17 }
+    , "color-g":       { type: "uint32", id: 18 }
+    , "color-b":       { type: "uint32", id: 19 }
+    , "color-a":       { type: "uint32", id: 20 }
+    , "label-color-r": { type: "uint32", id: 21 }
+    , "label-color-g": { type: "uint32", id: 22 }
+    , "label-color-b": { type: "uint32", id: 23 }
+    , "label-color-a": { type: "uint32", id: 24 }
     }
   }
 
@@ -172,6 +199,11 @@ const PlotUpdateStuff = {
     fields: {
       name:  { type: "string", id: 1 }
     , color: { type: "uint32", id: 2 }
+    // Begin jiggery optimizations
+    , "color-r": { type: "uint32", id: 3 }
+    , "color-g": { type: "uint32", id: 4 }
+    , "color-b": { type: "uint32", id: 5 }
+    , "color-a": { type: "uint32", id: 6 }
     }
   }
 
@@ -214,6 +246,11 @@ const PlotUpdateStuff = {
     fields: {
       penName: { type: "string", id: 1 }
     , color:   { type: "uint32", id: 2 }
+    // Begin jiggery optimizations
+    , "color-r": { type: "uint32", id: 3 }
+    , "color-g": { type: "uint32", id: 4 }
+    , "color-b": { type: "uint32", id: 5 }
+    , "color-a": { type: "uint32", id: 6 }
     }
   }
 

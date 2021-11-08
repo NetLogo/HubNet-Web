@@ -18,6 +18,25 @@ const rejiggerConnEst = (obj) => {
 
 };
 
+// (Object[Any], Number|Array[Number]) => Unit
+const rejiggerColor = (target, key) => {
+
+  const initColor = target[key];
+
+  if (initColor !== undefined) {
+    if (typeof(initColor) === "number") {
+      target[key] = Math.floor(initColor * 10);
+    } else if (initColor.length !== undefined) {
+      target[`${key}-r`] = initColor[0];
+      target[`${key}-g`] = initColor[1];
+      target[`${key}-b`] = initColor[2];
+      target[`${key}-a`] = initColor[3];
+      delete target[key];
+    }
+  }
+
+};
+
 // (Object[Any]) => Object[Any]
 const rejiggerBurst = (obj) => {
 
@@ -41,13 +60,14 @@ const rejiggerLinks = (links, parent) => {
       const l     = deepClone(link, {}, true);
       const xform = transform(l);
 
-      xform("color"      , (c) => Math.floor(   c *  10));
-      xform("heading"    , (h) => Math.round(   h      ));
-      xform("label-color", (c) => Math.floor(   c *  10));
-      xform("midpointx"  , (x) => Math.round(   x *  10));
-      xform("midpointy"  , (y) => Math.round(   y *  10));
-      xform("size"       , (s) => Math.  max(0, s * 100));
-      xform("thickness"  , (s) => Math.  max(0, s * 100));
+      rejiggerColor(l, "color");
+      rejiggerColor(l, "label-color");
+
+      xform("heading"  , (h) => Math.round(   h      ));
+      xform("midpointx", (x) => Math.round(   x *  10));
+      xform("midpointy", (y) => Math.round(   y *  10));
+      xform("size"     , (s) => Math.  max(0, s * 100));
+      xform("thickness", (s) => Math.  max(0, s * 100));
 
       xform("who", (w) => w + 1);
 
@@ -65,10 +85,11 @@ const rejiggerPatches = (patches, parent) => {
       const p     = deepClone(patch, {}, true);
       const xform = transform(p);
 
-      xform("pcolor"      , (c) => Math.floor(c * 10));
-      xform("plabel-color", (c) => Math.floor(c * 10));
-      xform("pxcor"       , (x) => Math.round(x * 10));
-      xform("pycor"       , (y) => Math.round(y * 10));
+      rejiggerColor(p, "pcolor");
+      rejiggerColor(p, "plabel-color");
+
+      xform("pxcor", (x) => Math.round(x * 10));
+      xform("pycor", (y) => Math.round(y * 10));
 
       parent[who] = p;
 
@@ -84,13 +105,14 @@ const rejiggerTurtles = (turtles, parent) => {
       const t     = deepClone(turtle, {}, true);
       const xform = transform(t);
 
-      xform("color"      , (c) => Math.floor(   c *  10));
-      xform("heading"    , (h) => Math.round(   h      ));
-      xform("label-color", (c) => Math.floor(   c *  10));
-      xform("pen-size"   , (s) => Math.  max(0, s * 100));
-      xform("size"       , (s) => Math.  max(0, s * 100));
-      xform("xcor"       , (x) => Math.round(   x *  10));
-      xform("ycor"       , (y) => Math.round(   y *  10));
+      rejiggerColor(t, "color");
+      rejiggerColor(t, "label-color");
+
+      xform("heading" , (h) => Math.round(   h      ));
+      xform("pen-size", (s) => Math.  max(0, s * 100));
+      xform("size"    , (s) => Math.  max(0, s * 100));
+      xform("xcor"    , (x) => Math.round(   x *  10));
+      xform("ycor"    , (y) => Math.round(   y *  10));
 
       xform("pen-mode", (m) => (m === "up") ? 0 : (m === "down") ? 1 : 2);
 
@@ -244,11 +266,11 @@ const rejiggerPlotUpdates = (target, parent) => {
         newPupdates.push(outer);
       } else if (pupdate.type === "register-pen") {
         const outer = { registerPen: deepClone(pupdate, { type: 1 }) };
-        transform(outer.registerPen)("color", (c) => Math.floor(c * 10));
+        rejiggerColor(outer.registerPen.pen, "color");
         newPupdates.push(outer);
       } else if (pupdate.type === "update-pen-color") {
         const outer = { updatePenColor: deepClone(pupdate, { type: 1 }) };
-        transform(outer.updatePenColor)("color", (c) => Math.floor(c * 10));
+        rejiggerColor(outer.updatePenColor, "color");
         newPupdates.push(outer);
       } else if (pupdate.type === "update-pen-mode") {
         const outer = { updatePenMode: deepClone(pupdate, { type: 1 }) };
@@ -327,7 +349,7 @@ const rejiggerInitialModel = (obj) => {
               out[k0][k1].push(outer);
             } else if (widget.type === "hnwTextBox") {
               const outer = { textBox: deepClone(widget, { type: 1 }) };
-              transform(outer.textBox)("color", (c) => Math.floor(c * 10));
+              transform(outer.textBox)("color", rejiggerColor);
               out[k0][k1].push(outer);
             } else if (widget.type === "hnwView") {
               const outer = { view: deepClone(widget, { type: 1 }) };
@@ -428,12 +450,13 @@ const recombobulateLinks = (links, parent) => {
       const l     = deepClone(link);
       const xform = transform(l);
 
-      xform("color"      , (c) => c /  10);
-      xform("label-color", (c) => c /  10);
-      xform("midpointx"  , (x) => x /  10);
-      xform("midpointy"  , (y) => y /  10);
-      xform("size"       , (s) => s / 100);
-      xform("thickness"  , (s) => s / 100);
+      recombobulateColor(l, "color"      );
+      recombobulateColor(l, "label-color");
+
+      xform("midpointx", (x) => x /  10);
+      xform("midpointy", (y) => y /  10);
+      xform("size"     , (s) => s / 100);
+      xform("thickness", (s) => s / 100);
 
       // Must uppercase "WHO", due to bug in AgentModel --Jason B. (10/24/21)
       if (l.who !== undefined) {
@@ -455,10 +478,11 @@ const recombobulatePatches = (patches, parent) => {
       const p     = deepClone(patch);
       const xform = transform(p);
 
-      xform("pcolor"      , (c) => c / 10);
-      xform("plabel-color", (c) => c / 10);
-      xform("pxcor"       , (x) => x / 10);
-      xform("pycor"       , (y) => y / 10);
+      recombobulateColor(p, "pcolor"      );
+      recombobulateColor(p, "plabel-color");
+
+      xform("pxcor", (x) => x / 10);
+      xform("pycor", (y) => y / 10);
 
       parent[who] = p;
 
@@ -474,12 +498,13 @@ const recombobulateTurtles = (turtles, parent) => {
       const t     = deepClone(turtle);
       const xform = transform(t);
 
-      xform("color"      , (c) => c /  10);
-      xform("label-color", (c) => c /  10);
-      xform("pen-size"   , (s) => s / 100);
-      xform("size"       , (s) => s / 100);
-      xform("xcor"       , (x) => x /  10);
-      xform("ycor"       , (y) => y /  10);
+      recombobulateColor(t, "color"      );
+      recombobulateColor(t, "label-color");
+
+      xform("pen-size", (s) => s / 100);
+      xform("size"    , (s) => s / 100);
+      xform("xcor"    , (x) => x /  10);
+      xform("ycor"    , (y) => y /  10);
 
       xform("pen-mode", (m) => (m === 0) ? "up" : (m === 1) ? "down" : "erase");
 
@@ -611,6 +636,27 @@ const recombobulateConnEst = (obj) => {
   return out;
 };
 
+// (Object[Any], Number|Array[Number]) => Unit
+const recombobulateColor = (target, key) => {
+  if (target[key] !== undefined) {
+    target[key] = target[key] / 10;
+  } else if (target[`${key}-r`] !== undefined) {
+
+    const r = target[`${key}-r`];
+    const g = target[`${key}-g`];
+    const b = target[`${key}-b`];
+    const a = target[`${key}-a`];
+
+    delete target[`${key}-r`];
+    delete target[`${key}-g`];
+    delete target[`${key}-b`];
+    delete target[`${key}-a`];
+
+    target[key] = (a !== undefined) ? [r, g, b, a] : [r, g, b];
+
+  }
+};
+
 // (Object[Any]) => Object[Any]
 const recombobulateBurst = (obj) => {
 
@@ -654,12 +700,12 @@ const recombobulatePlotUpdates = (target, parent) => {
       } else if (pupdate.registerPen !== undefined) {
         const inner   = pupdate.registerPen;
         const out     = { type: "register-pen", ...deepClone(inner) };
-        transform(out.pen)("color", (c) => c / 10);
+        recombobulateColor(out.pen, "color");
         newPupdates.push(out);
       } else if (pupdate.updatePenColor !== undefined) {
         const inner = pupdate.updatePenColor;
         const out   = { type: "update-pen-color", ...deepClone(inner) };
-        transform(out)("color", (c) => c / 10);
+        recombobulateColor(out, "color");
         newPupdates.push(out);
       } else if (pupdate.updatePenMode !== undefined) {
         const inner = pupdate.updatePenMode;
