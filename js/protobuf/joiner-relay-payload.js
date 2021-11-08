@@ -53,7 +53,7 @@ const JoinerRelayPayloadPB = {
 
     CashRaincheckPayload: {
       fields: {
-        "id": { type: "string", id: 1 }
+        "id": { type: "sint64", id: 1 }
       }
     }
 

@@ -236,6 +236,9 @@ const rejiggerViewUpdates = (target, parent) => {
       rejiggerWorlds(v0, parent[k0]);
     } else if (k0 === "observer") {
       parent[k0] = deepClone(v0, {}, true);
+    } else if (k0 === "drawingEvents") {
+      parent[k0] = [];
+      rejiggerDrawingEvents(v0, parent[k0]);
     } else {
       parent[k0] = deepClone(v0);
     }
@@ -282,6 +285,23 @@ const rejiggerPlotUpdates = (target, parent) => {
 
   }
 
+};
+
+// (Object[Any], Object[Any]) => Object[Any]
+const rejiggerDrawingEvents = (target, parent) => {
+  for (const k0 in target) {
+    const devent = target[k0];
+    // Rejigger *.drawingEvents > *[type="import-drawing-raincheck"], etc.
+    if (devent.type === "import-drawing-raincheck") {
+      const outer = { importDrawingRaincheck: deepClone(devent) };
+      parent.push(outer);
+    } else if (devent.type === "import-drawing") {
+      const outer = { importDrawing: deepClone(devent) };
+      parent.push(outer);
+    } else {
+      console.warn("Impossible type for devent!", devent);
+    }
+  }
 };
 
 // (Object[Any]) => Object[Any]
@@ -393,6 +413,9 @@ const rejiggerRelay = (obj) => {
       if (v0.type === "ticks-started") {
         const outer = { hnwTicksStarted: deepClone(v0, { type: 1 }) };
         out[k0] = outer;
+      } else if (v0.type === "nlw-state-update") {
+        out[k0].update = {};
+        rejiggerStateUpdateInner(v0.update, out[k0].update);
       } else {
         out[k0] = deepClone(v0);
       }
@@ -620,6 +643,9 @@ const recombobulateViewUpdates = (target, parent) => {
     } else if (k0 === "world") {
       parent[k0] = {};
       recombobulateWorlds(v0, parent[k0]);
+    } else if (k0 === "drawingEvents") {
+      parent[k0] = [];
+      recombobulateDrawingEvents(v0, parent[k0]);
     } else {
       parent[k0] = deepClone(v0);
     }
@@ -672,7 +698,7 @@ const recombobulateBurst = (obj) => {
 
 };
 
-// (Object[Any], Object[Any]) => Object[Any]
+// (Object[Any], Object[Any]) => Unit
 const recombobulatePlotUpdates = (target, parent) => {
 
   for (const k0 in target) {
@@ -711,13 +737,30 @@ const recombobulatePlotUpdates = (target, parent) => {
         const inner = pupdate.updatePenMode;
         newPupdates.push({ type: "update-pen-mode", ...inner });
       } else {
-        console.warn("Impossible type for pupdate!", pupdate);
+        console.warn("Impossible key for pupdate!", pupdate);
       }
 
     }
 
   }
 
+};
+
+// (Object[Any], Object[Any]) => Unit
+const recombobulateDrawingEvents = (target, parent) => {
+  for (const k0 in target) {
+    const devent = target[k0];
+    // Recombobulate *.drawingEvents > *[type="import-drawing-raincheck"], etc.
+    if (devent.importDrawingRaincheck !== undefined) {
+      const replacement = { type: "import-drawing-raincheck", ...devent.importDrawingRaincheck };
+      parent.push(replacement);
+    } else if (devent.importDrawing !== undefined) {
+      const outer = { type: "import-drawing", ...devent.importDrawing };
+      parent.push(outer);
+    } else {
+      console.warn("Impossible key for devent!", devent);
+    }
+  }
 };
 
 // (Object[Any]) => Object[Any]
@@ -841,8 +884,9 @@ const recombobulateRelay = (obj) => {
         if (k1 === "hnwTicksStarted") {
           out[k0][k1] = { type: "ticks-started", ...deepClone(v1) };
         } else if (k1 === "update") {
+          out[k0][k1]  = {};
           out[k0].type = "nlw-state-update";
-          out[k0][k1]  = { ...deepClone(v1) };
+          recombobulateStateUpdateInner(v1, out[k0][k1]);
         } else {
           out[k0][k1] = v1;
         }
@@ -869,6 +913,9 @@ const recombobulateStateUpdateInner = (target, parent) => {
     } else if (k0 === "plotUpdates") {
       parent[k0] = {};
       recombobulatePlotUpdates(v0, parent[k0]);
+    } else if (k0 === "drawingEvents") {
+      parent[k0] = {};
+      recombobulateDrawingEvents(v0, parent[k0]);
     } else {
       parent[k0] = deepClone(v0);
     }

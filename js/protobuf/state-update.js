@@ -181,13 +181,39 @@ const ViewUpdateStuff = {
     }
   }
 
+, DrawingEvent: {
+    oneofs: {
+      drawingEvent: {
+        oneof: ["import-drawing", "import-drawing-raincheck"]
+      }
+    }
+  , fields: {
+      importDrawing:          { type: "ImportDrawing"         , id: 1 }
+    , importDrawingRaincheck: { type: "ImportDrawingRaincheck", id: 2 }
+    }
+  }
+
+, ImportDrawing: {
+    fields: {
+      hash:        { type: "sint64", id: 1 }
+    , imageBase64: { type: "string", id: 2 }
+    }
+  }
+
+, ImportDrawingRaincheck: {
+    fields: {
+      hash: { type: "sint64", id: 1 }
+    }
+  }
+
 , ViewUpdate: {
     fields: {
-      turtles:  { type: "Turtle"  , id: 1, keyType: "uint32" }
-    , patches:  { type: "Patch"   , id: 2, keyType: "uint32" }
-    , links:    { type: "Link"    , id: 3, keyType: "uint32" }
-    , world:    { type: "World"   , id: 4, keyType: "uint32" }
-    , observer: { type: "Observer", id: 5, keyType: "uint32" }
+      turtles:       { type: "Turtle"      , id: 1, keyType: "uint32" }
+    , patches:       { type: "Patch"       , id: 2, keyType: "uint32" }
+    , links:         { type: "Link"        , id: 3, keyType: "uint32" }
+    , world:         { type: "World"       , id: 4, keyType: "uint32" }
+    , observer:      { type: "Observer"    , id: 5, keyType: "uint32" }
+    , drawingEvents: { type: "DrawingEvent", id: 6, rule: "repeated" }
     }
   }
 

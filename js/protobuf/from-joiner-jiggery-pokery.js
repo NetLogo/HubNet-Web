@@ -34,17 +34,7 @@ const rejiggerRelay = (obj) => {
         if (k1 === "token") {
           rejiggerToken(v1, out[k0]);
         } else if (k1 === "event") {
-
-          out[k0][k1] = {};
-
-          // Rejigger relay.payload.event[type="raincheck"], etc.
-          if (v1.type === "hnw-cash-raincheck") {
-            const replacement = deepClone(v1, { type: 1 });
-            out[k0][k1].hnwCashRaincheckPayload = replacement;
-          } else {
-            out[k0][k1] = deepClone(v1);
-          }
-
+          out[k0][k1] = deepClone(v1);
         } else if (k1 === "data") {
 
           out[k0][k1] = {};
@@ -82,7 +72,8 @@ const rejiggerRelay = (obj) => {
           } else {
             out[k0][k1] = deepClone(v1);
           }
-
+        } else if (v0.type === "hnw-cash-raincheck") {
+          out[k0].hnwCashRaincheckPayload = { id: v0.id };
         } else {
           out[k0][k1] = v1;
         }
@@ -126,22 +117,10 @@ const recombobulateRelay = (obj) => {
 
         const v1 = v0[k1];
         if (k1 === "event") {
-
           out[k0][k1] = {};
           for (const k2 in v1) {
-
-            // recombobulate relay.payload.event.hnwCashRaincheckPayload, etc.
-            if (k2 === "hnwCashRaincheckPayload") {
-              out[k0][k1].type = "hnw-cash-raincheck";
-              for (const k3 in v1) {
-                out[k0][k1][k3] = v1[k2][k3];
-              }
-            } else {
-              out[k0][k1][k2] = v1[k2];
-            }
-
+            out[k0][k1][k2] = v1[k2];
           }
-
         } else if (k1 === "data") {
 
           out[k0][k1] = {};
@@ -184,6 +163,12 @@ const recombobulateRelay = (obj) => {
 
         } else if (k1.startsWith("tokenChunk")) {
           // Ignore these; they are assembled into `token` --Jason B. (11/3/21)
+        } else if (k1 === "hnwCashRaincheckPayload") {
+          out[k0].type = "hnw-cash-raincheck";
+          for (const k2 in v1) {
+            out[k0][k2] = v1[k2];
+          }
+          console.log("Recombob rain", k1, v1, out[k0][k1]);
         } else {
           out[k0][k1] = v1;
         }
