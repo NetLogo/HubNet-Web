@@ -184,25 +184,25 @@ const ViewUpdateStuff = {
 , DrawingEvent: {
     oneofs: {
       drawingEvent: {
-        oneof: ["import-drawing", "import-drawing-raincheck"]
+        oneof: ["importDrawing", "importDrawingRaincheck"]
       }
     }
   , fields: {
       importDrawing:          { type: "ImportDrawing"         , id: 1 }
     , importDrawingRaincheck: { type: "ImportDrawingRaincheck", id: 2 }
     }
-  }
-
-, ImportDrawing: {
-    fields: {
-      hash:        { type: "sint64", id: 1 }
-    , imageBase64: { type: "string", id: 2 }
-    }
-  }
-
-, ImportDrawingRaincheck: {
-    fields: {
-      hash: { type: "sint64", id: 1 }
+  , nested: {
+      ImportDrawing: {
+        fields: {
+          hash:        { type: "sint64", id: 1 }
+        , imageBase64: { type: "string", id: 2 }
+        }
+      }
+    , ImportDrawingRaincheck: {
+        fields: {
+          hash: { type: "sint64", id: 1 }
+        }
+      }
     }
   }
 
