@@ -553,7 +553,7 @@ const updateCongestionStats = () => {
   const minorCongestionStatus = `There is congestion for ${numCongested} client(s)`;
   const majorCongestionStatus = `There is congestion for ${numCongested} client(s); slowing simulation so they can catch up`;
 
-  const connectionIsCongested = numCongested >= (numClients / 3);
+  const connectionIsCongested = numCongested >= Math.max(1, numClients / 3);
 
   const status =
     (numCongested === 0)    ? allGoodStatus :
