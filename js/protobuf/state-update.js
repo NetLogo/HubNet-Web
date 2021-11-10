@@ -184,15 +184,19 @@ const ViewUpdateStuff = {
 , DrawingEvent: {
     oneofs: {
       drawingEvent: {
-        oneof: ["importDrawing", "importDrawingRaincheck"]
+        oneof: ["clearDrawing", "importDrawing", "importDrawingRaincheck"]
       }
     }
   , fields: {
-      importDrawing:          { type: "ImportDrawing"         , id: 1 }
-    , importDrawingRaincheck: { type: "ImportDrawingRaincheck", id: 2 }
+      clearDrawing:           { type: "ClearDrawing"          , id: 1 }
+    , importDrawing:          { type: "ImportDrawing"         , id: 2 }
+    , importDrawingRaincheck: { type: "ImportDrawingRaincheck", id: 3 }
     }
   , nested: {
-      ImportDrawing: {
+      ClearDrawing: {
+        fields: {}
+      }
+    , ImportDrawing: {
         fields: {
           hash:        { type: "sint64", id: 1 }
         , imageBase64: { type: "string", id: 2 }

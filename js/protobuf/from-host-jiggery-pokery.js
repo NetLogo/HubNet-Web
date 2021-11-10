@@ -292,7 +292,10 @@ const rejiggerDrawingEvents = (target, parent) => {
   for (const k0 in target) {
     const devent = target[k0];
     // Rejigger *.drawingEvents > *[type="import-drawing-raincheck"], etc.
-    if (devent.type === "import-drawing-raincheck") {
+    if (devent.type === "clear-drawing") {
+      const outer = { clearDrawing: {} };
+      parent.push(outer);
+    } else if (devent.type === "import-drawing-raincheck") {
       const outer = { importDrawingRaincheck: deepClone(devent) };
       parent.push(outer);
     } else if (devent.type === "import-drawing") {
@@ -751,7 +754,10 @@ const recombobulateDrawingEvents = (target, parent) => {
   for (const k0 in target) {
     const devent = target[k0];
     // Recombobulate *.drawingEvents > *[type="import-drawing-raincheck"], etc.
-    if (devent.importDrawingRaincheck !== undefined) {
+    if (devent.clearDrawing !== undefined) {
+      const replacement = { type: "clear-drawing" };
+      parent.push(replacement);
+    } else if (devent.importDrawingRaincheck !== undefined) {
       const replacement = { type: "import-drawing-raincheck", ...devent.importDrawingRaincheck };
       parent.push(replacement);
     } else if (devent.importDrawing !== undefined) {
