@@ -322,6 +322,10 @@ to-report num-bugs
   report count bugs
 end
 
+to clear-background
+  clear-drawing
+end
+
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Plotting Procedure
 ;;;;;;;;;;;;;;;;;;;;;
@@ -548,7 +552,7 @@ BUTTON
 425
 95
 clear background
-clear-drawing
+clear-background
 NIL
 1
 T
