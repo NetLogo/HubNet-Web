@@ -7,6 +7,7 @@ import ChannelHandler        from "./channel-handler.js";
 import fakeModel             from "./fake-model.js";
 import genCHB                from "./gen-chan-han-bundle.js";
 import RxQueue               from "./rx-queue.js";
+import ServerList            from "./server-list.js";
 import usePlaceholderPreview from "./use-placeholder-preview.js";
 
 import * as CompressJS from "./compress.js";
@@ -29,6 +30,13 @@ let sessionData = []; // Array[Session]
 const channels = {}; // Object[Protocol.Channel]
 
 let joinerConnection = new RTCPeerConnection(joinerConfig);
+
+const serverList = new ServerList(
+  ({ data }) => {
+    sessionData = JSON.parse(data);
+    self.filterSessionList();
+  }
+);
 
 const nlwFrame = // Window
   document.querySelector("#nlw-frame > iframe").contentWindow;
@@ -282,15 +290,13 @@ const connectAndLogin = (hostID) => {
 
       self.burstQueue = new BurstQueue(burstBundle, bqBundle);
 
-      const slsw = serverListSocketW;
-
       const bundleBundle =
         { channel
         , disconnectChannels
+        , closeServerListSocket: serverList.hibernate
         , enqueue:               self.burstQueue.enqueue
         , notifyLoggedIn:        self.burstQueue.setStateLoggedIn
         , closeSignaling:        () => { signalingW.terminate(); }
-        , closeServerListSocket: () => { slsw.postMessage({ type: "hibernate" }); }
         , getConnectionStats:    () => joinerConnection.getStats()
         , setStatus
         };
@@ -326,13 +332,6 @@ const connectAndLogin = (hostID) => {
   );
 };
 
-const serverListSocketW = new Worker("js/server-list-socket.js", { type: "module" });
-serverListSocketW.postMessage({ type: "connect" });
-serverListSocketW.onmessage = ({ data }) => {
-  sessionData = JSON.parse(data);
-  self.filterSessionList();
-};
-
 // (Protocol.Channel) => Unit
 const login = (channel) => {
   const username = document.getElementById("username").value;
@@ -365,7 +364,7 @@ const cleanupSession = (warrantsExplanation, statusText) => {
   const galaFrame = document.getElementById(           "nlw-frame");
   galaFrame.classList.add(   "hidden");
   formFrame.classList.remove("hidden");
-  serverListSocketW.postMessage({ type: "connect" });
+  serverList.connect();
   postToNLW(fakeModel);
   document.getElementById("join-button").disabled = false;
 
