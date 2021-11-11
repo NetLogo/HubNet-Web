@@ -309,7 +309,7 @@ const connectAndLogin = (hostID) => {
 
       joinerConnection.oniceconnectionstatechange = () => {
         if (joinerConnection.iceConnectionState === "disconnected") {
-          cleanupSession();
+          cleanupSession(false, "ICE disconnected");
         }
       };
 
