@@ -21,7 +21,7 @@ const awaitResponse = (postMessage) => (target) => (type, msg = {}) => {
 
 };
 
-// (ContentWindow) => (String, Object[Any]) => Promise[Any]
+// (Window) => (String, Object[Any]) => Promise[Any]
 const awaitFrame =
   awaitResponse(
     (frame, msg, port) => {
@@ -37,4 +37,41 @@ const awaitWorker =
     }
   );
 
-export { awaitFrame, awaitWorker };
+// (Window) => (String, Object[Any]) => Promise[Any]
+const spamFrame = (frame) => (type, msg = {}) => {
+
+  let resolution = null;
+
+  const postMsg =
+    () => {
+
+      const channel = new MessageChannel();
+
+      channel.port1.onmessage = ({ data }) => {
+        channel.port1.close();
+        resolution = data;
+      };
+
+      frame.postMessage({ ...msg, type }, `http://${galapagos}`, [channel.port2]);
+
+    };
+
+  const wrapper =
+    (resolve) => {
+      const innerF =
+        () => {
+          if (resolution !== null) {
+            resolve(resolution);
+          } else {
+            postMsg();
+            setTimeout(innerF, 1000 / 60);
+          }
+        };
+      innerF();
+    };
+
+  return new Promise(wrapper);
+
+};
+
+export { awaitFrame, awaitWorker, spamFrame };

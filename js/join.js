@@ -1,3 +1,4 @@
+import { awaitFrame, spamFrame                 } from "./await.js";
 import { HNWProtocolVersionNumber, uuidToRTCID } from "./common.js";
 import { galapagos, hnw                        } from "./domain.js";
 import { joinerConfig                          } from "./webrtc.js";
@@ -36,11 +37,12 @@ let pageStateTS = -1;              // Number
 
 const messageQueue = []; // Array[Object[Any]]
 
-const waitingForBabby = {}; // Object[Any]
-
 let loopIsTerminated = false; // Boolean
 
 let recentPings = []; // Array[Number]
+
+const nlwFrame =
+  document.querySelector("#nlw-frame > iframe").contentWindow; // Window
 
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".nlw-iframe").src = `http://${galapagos}/hnw-join`;
@@ -479,43 +481,49 @@ const processQueue = () => {
 };
 
 // (Object[Any]) => Unit
+const handleInitialModel = ({ role, token, view, state }) => {
+
+  setStatus("Model and world acquired!  Waiting for NetLogo Web to be ready...");
+
+  const username = document.getElementById("username").value;
+
+  const postInitialInterface =
+    () => {
+      setStatus("Loading up interface in NetLogo Web...");
+      const initialInterface =
+        { username
+        , role
+        , token
+        , view
+        };
+      return awaitFrame(nlwFrame)("hnw-load-interface", initialInterface);
+    };
+
+  const postInitialState =
+    () => {
+      setStatus("Model loaded and ready for you to use!");
+      setPageState("booted up");
+      const parcel =
+        { type:   "nlw-state-update"
+        , update: state
+        };
+      postToNLW(parcel);
+    };
+
+  spamFrame(nlwFrame)("hnw-are-you-ready-for-interface").
+    then(postInitialInterface).
+    then(postInitialState);
+
+}
+
+// (Object[Any]) => Unit
 const handleBurstMessage = (datum) => {
 
   switch (datum.type) {
 
     case "initial-model": {
-
-      setStatus("Model and world acquired!  Waiting for NetLogo Web to be ready...");
-
-      const username = document.getElementById("username").value;
-
-      const intervalID = setInterval(
-        () => {
-          postToNLW({ type: "hnw-are-you-ready-for-interface" });
-        }
-      , 1000);
-
-      waitingForBabby["yes-i-am-ready-for-interface"] = {
-        forPosting: {
-          type:  "hnw-load-interface"
-        , username
-        , role:  datum.role
-        , token: datum.token
-        , view:  datum.view
-        }
-      , forFollowup: "hnw-are-you-ready-for-state"
-      , forCancel:   intervalID
-      };
-
-      waitingForBabby["interface-loaded"] = {
-        forPosting: {
-          type:   "nlw-state-update"
-        , update: datum.state
-        }
-      };
-
+      handleInitialModel(datum);
       break;
-
     }
 
     case "state-update": {
@@ -567,8 +575,8 @@ const cleanupSession = (wasExpected, statusText) => {
 
   setPageState("uninitialized");
   const formFrame = document.getElementById("server-browser-frame");
-  const  nlwFrame = document.getElementById(           "nlw-frame");
-  nlwFrame .classList.add(   "hidden");
+  const galaFrame = document.getElementById(           "nlw-frame");
+  galaFrame.classList.add(   "hidden");
   formFrame.classList.remove("hidden");
   serverListSocketW.postMessage({ type: "connect" });
   postToNLW(fakeModel);
@@ -591,9 +599,9 @@ const switchToNLW = () => {
   usePlaceholderPreview();
 
   const formFrame = document.getElementById("server-browser-frame");
-  const  nlwFrame = document.getElementById(           "nlw-frame");
+  const galaFrame = document.getElementById(           "nlw-frame");
   formFrame.classList.add(   "hidden");
-  nlwFrame .classList.remove("hidden");
+  galaFrame.classList.remove("hidden");
 
   history.pushState({ name: "joined" }, "joined");
   setPageState("logged in");
@@ -622,8 +630,7 @@ const disconnectChannels = (reason) => {
 
 // (Object[Any]) => Unit
 const postToNLW = (msg) => {
-  const frame = document.querySelector("#nlw-frame > iframe").contentWindow;
-  frame.postMessage(msg, `http://${galapagos}`);
+  nlwFrame.postMessage(msg, `http://${galapagos}`);
 };
 
 // (MessageEvent) => Unit
@@ -631,18 +638,8 @@ self.addEventListener("message", (event) => {
   switch (event.data.type) {
 
     case "relay": {
-      if (event.data.payload.type === "interface-loaded") {
-        setStatus("Model loaded and ready for you to use!");
-        const stateEntry = waitingForBabby[event.data.payload.type];
-        if (stateEntry !== undefined) {
-          delete waitingForBabby[event.data.payload.type];
-          postToNLW(stateEntry.forPosting);
-        }
-        setPageState("booted up");
-      } else {
-        const hostID = document.querySelector(".active").dataset.uuid;
-        sendRTC(channels[hostID])("relay", event.data);
-      }
+      const hostID = document.querySelector(".active").dataset.uuid;
+      sendRTC(channels[hostID])("relay", event.data);
       break;
     }
 
@@ -658,16 +655,6 @@ self.addEventListener("message", (event) => {
       }
       setStatus("You encountered an error and your session had to be closed.  Sorry about that.  Maybe your next session will treat you better.");
       cleanupSession(true, undefined);
-      break;
-    }
-
-    case "yes-i-am-ready-for-interface": {
-      setStatus("Loading up interface in NetLogo Web...");
-      const uiEntry = waitingForBabby[event.data.type];
-      delete waitingForBabby[event.data.type];
-      postToNLW(uiEntry.forPosting );
-      postToNLW(uiEntry.forFollowup);
-      clearInterval(uiEntry.forCancel);
       break;
     }
 
