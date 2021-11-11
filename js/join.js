@@ -1,10 +1,10 @@
-import { awaitFrame, spamFrame                 } from "./await.js";
 import { HNWProtocolVersionNumber, uuidToRTCID } from "./common.js";
 import { galapagos, hnw                        } from "./domain.js";
 import { joinerConfig                          } from "./webrtc.js";
 
-import fakeModel from "./fake-model.js";
-import RxQueue   from "./rx-queue.js";
+import fakeModel          from "./fake-model.js";
+import handleBurstMessage from "./handle-burst-message.js";
+import RxQueue            from "./rx-queue.js";
 
 import * as CompressJS from "./compress.js";
 
@@ -452,9 +452,9 @@ const processQueue = () => {
       const deferred   = [];
       while (stillGoing && messageQueue.length > 0) {
         const message = messageQueue.shift();
-        if (message.type ===  "initial-model") {
+        if (message.type === "initial-model") {
           setStatus("Downloading model from host...");
-          handleBurstMessage(message);
+          handleBurstMessage(burstBundle)(message);
           stillGoing = false;
         } else {
           deferred.push(message);
@@ -468,7 +468,7 @@ const processQueue = () => {
   } else if (pageState === "booted up") {
     while (messageQueue.length > 0) {
       const message = messageQueue.shift();
-      handleBurstMessage(message);
+      handleBurstMessage(burstBundle)(message);
     }
   } else {
     console.log("Skipping while in state:", pageState);
@@ -476,77 +476,6 @@ const processQueue = () => {
 
   if (!loopIsTerminated) {
     requestAnimationFrame(processQueue);
-  }
-
-};
-
-// (Object[Any]) => Unit
-const handleInitialModel = ({ role, token, view, state }) => {
-
-  setStatus("Model and world acquired!  Waiting for NetLogo Web to be ready...");
-
-  const username = document.getElementById("username").value;
-
-  const postInitialInterface =
-    () => {
-      setStatus("Loading up interface in NetLogo Web...");
-      const initialInterface =
-        { username
-        , role
-        , token
-        , view
-        };
-      return awaitFrame(nlwFrame)("hnw-load-interface", initialInterface);
-    };
-
-  const postInitialState =
-    () => {
-      setStatus("Model loaded and ready for you to use!");
-      setPageState("booted up");
-      const parcel =
-        { type:   "nlw-state-update"
-        , update: state
-        };
-      postToNLW(parcel);
-    };
-
-  spamFrame(nlwFrame)("hnw-are-you-ready-for-interface").
-    then(postInitialInterface).
-    then(postInitialState);
-
-}
-
-// (Object[Any]) => Unit
-const handleBurstMessage = (datum) => {
-
-  switch (datum.type) {
-
-    case "initial-model": {
-      handleInitialModel(datum);
-      break;
-    }
-
-    case "state-update": {
-      postToNLW({
-        update: datum.update
-      , type:   "nlw-apply-update"
-      });
-      break;
-    }
-
-    case "relay": {
-      postToNLW(datum.payload);
-      break;
-    }
-
-    case "hnw-resize": {
-      break;
-    }
-
-    default: {
-      console.warn(`Unknown bursted sub-event type: ${datum.type}`);
-    }
-
   }
 
 };
@@ -632,6 +561,14 @@ const disconnectChannels = (reason) => {
 const postToNLW = (msg) => {
   nlwFrame.postMessage(msg, `http://${galapagos}`);
 };
+
+const burstBundle =
+  { frame:          nlwFrame
+  , getUsername:    () => document.getElementById("username").value
+  , notifyBootedUp: () => setPageState("booted up")
+  , postToNLW
+  , setStatus
+  };
 
 // (MessageEvent) => Unit
 self.addEventListener("message", (event) => {
