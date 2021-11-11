@@ -384,7 +384,7 @@ const refreshImage = (oracleID) => {
 };
 
 // (Boolean, String) => Unit
-const cleanupSession = (wasExpected, statusText) => {
+const cleanupSession = (warrantsExplanation, statusText) => {
 
   loopIsTerminated = true;
 
@@ -401,7 +401,7 @@ const cleanupSession = (wasExpected, statusText) => {
   postToNLW(fakeModel);
   document.getElementById("join-button").disabled = false;
 
-  if (!wasExpected) {
+  if (!warrantsExplanation) {
     alert("Connection to host lost");
   }
 
