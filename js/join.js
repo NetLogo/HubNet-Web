@@ -7,7 +7,7 @@ import ChannelHandler        from "./channel-handler.js";
 import fakeModel             from "./fake-model.js";
 import genCHB                from "./gen-chan-han-bundle.js";
 import RxQueue               from "./rx-queue.js";
-import ServerList            from "./server-list.js";
+import SessionStream         from "./session-stream.js";
 import usePlaceholderPreview from "./use-placeholder-preview.js";
 
 import * as CompressJS from "./compress.js";
@@ -31,7 +31,7 @@ const channels = {}; // Object[Protocol.Channel]
 
 let joinerConnection = new RTCPeerConnection(joinerConfig);
 
-const serverList = new ServerList(
+const sessionStream = new SessionStream(
   ({ data }) => {
     sessionData = JSON.parse(data);
     self.filterSessionList();
@@ -293,11 +293,11 @@ const connectAndLogin = (hostID) => {
       const bundleBundle =
         { channel
         , disconnectChannels
-        , closeServerListSocket: serverList.hibernate
-        , enqueue:               self.burstQueue.enqueue
-        , notifyLoggedIn:        self.burstQueue.setStateLoggedIn
-        , closeSignaling:        () => { signalingW.terminate(); }
-        , getConnectionStats:    () => joinerConnection.getStats()
+        , closeSessionListSocket: sessionStream.hibernate
+        , enqueue:                self.burstQueue.enqueue
+        , notifyLoggedIn:         self.burstQueue.setStateLoggedIn
+        , closeSignaling:         () => { signalingW.terminate(); }
+        , getConnectionStats:     () => joinerConnection.getStats()
         , setStatus
         };
 
@@ -360,11 +360,11 @@ const cleanupSession = (warrantsExplanation, statusText) => {
   self.burstQueue.halt();
   self.rxQueue.reset();
 
-  const formFrame = document.getElementById("server-browser-frame");
-  const galaFrame = document.getElementById(           "nlw-frame");
+  const formFrame = document.getElementById("session-browser-frame");
+  const galaFrame = document.getElementById(            "nlw-frame");
   galaFrame.classList.add(   "hidden");
   formFrame.classList.remove("hidden");
-  serverList.connect();
+  sessionStream.connect();
   postToNLW(fakeModel);
   document.getElementById("join-button").disabled = false;
 

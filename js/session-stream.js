@@ -1,10 +1,10 @@
-export default class ServerList {
+export default class SessionStream {
 
-  #worker = undefined; // Worker[ServerListSocket]
+  #worker = undefined; // Worker[SessionStreamWorker]
 
-  // ((Object[Any]) => Unit) => ServerList
+  // ((Object[Any]) => Unit) => SessionStream
   constructor(onmessage) {
-    const buddyURL = "js/server-list-socket.js";
+    const buddyURL = "js/session-stream-worker.js";
     this.#worker = new Worker(buddyURL, { type: "module" });
     this.connect();
     this.#worker.onmessage = onmessage;

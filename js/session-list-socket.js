@@ -13,7 +13,7 @@ onmessage = (e) => {
       break;
     }
     case "hibernate": {
-      getSocket().close(1000, "Server list is not currently needed");
+      getSocket().close(1000, "Session list is not currently needed");
       break;
     }
     default: {

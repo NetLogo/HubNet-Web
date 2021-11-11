@@ -10,8 +10,8 @@ const switchToNLW = (notifyLoggedIn) => {
   document.querySelector(".session-option").checked = false;
   usePlaceholderPreview();
 
-  const formFrame = document.getElementById("server-browser-frame");
-  const galaFrame = document.getElementById(           "nlw-frame");
+  const formFrame = document.getElementById("session-browser-frame");
+  const galaFrame = document.getElementById(            "nlw-frame");
   formFrame.classList.add(   "hidden");
   galaFrame.classList.remove("hidden");
 
@@ -34,7 +34,7 @@ export default (bundle) => {
 
   const handleLogin = () => {
     bundle.closeSignaling();
-    bundle.closeServerListSocket();
+    bundle.closeSessionListSocket();
     switchToNLW(bundle.notifyLoggedIn);
   };
 
