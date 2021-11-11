@@ -180,7 +180,7 @@ const populateSessionList = (sessions) => {
 self.filterSessionList = () => {
   const filterBox = document.getElementById("session-filter-box");
   const term      = filterBox.value.trim().toLowerCase();
-  const matches   = (haystack, needle) => haystack.toLowerCase().include(needle);
+  const matches   = (haystack, needle) => haystack.toLowerCase().includes(needle);
   const checkIt   = (s) => matches(s.name, term) || matches(s.modelName, term);
   const filtered  = term === "" ? sessionData : sessionData.filter(checkIt);
   populateSessionList(filtered);
