@@ -120,8 +120,6 @@ rules:
     - error
   no-useless-concat:
     - error
-  no-useless-constructor:
-    - error
   no-useless-rename:
     - error
   no-useless-return:
