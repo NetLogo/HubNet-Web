@@ -157,8 +157,15 @@ const launchModel = (formDataPlus) => {
         statusSocketW.postMessage({ type: "connect", url: statusSocketURL });
 
         setInterval(() => {
-          const channels = Object.values(sessions).map((session) => session.networking.channel);
+
+          const channels =
+            Object.
+              values(sessions).
+              map((session) => session.networking.channel).
+              filter((channel) => channel !== undefined);
+
           channels.forEach((channel) => sendRTC(channel)("keep-alive", {}));
+
         }, 30000);
 
         setInterval(() => {
