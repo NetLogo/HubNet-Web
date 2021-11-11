@@ -35,8 +35,8 @@ const messageQueue = []; // Array[Object[Any]]
 
 let loopIsTerminated = false; // Boolean
 
-const nlwFrame =
-  document.querySelector("#nlw-frame > iframe").contentWindow; // Window
+const nlwFrame = // Window
+  document.querySelector("#nlw-frame > iframe").contentWindow;
 
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".nlw-iframe").src = `http://${galapagos}/hnw-join`;
@@ -84,7 +84,7 @@ const refreshSelection = (oldActiveUUID) => {
     );
   }
 
-  // Better criteria later (especially the # of slots open in session)
+  // TODO: Better criteria later (especially the # of slots open in session)
   // --Jason B. (6/12/19)
   document.getElementById("join-button").disabled = activeEntry === null;
 
