@@ -2,10 +2,10 @@ import { uuidToRTCID    } from "./common.js";
 import { galapagos, hnw } from "./domain.js";
 import { joinerConfig   } from "./webrtc.js";
 
-import genCHB                from "./gen-chan-han-bundle.js";
+import BurstQueue            from "./burst-queue.js";
 import ChannelHandler        from "./channel-handler.js";
 import fakeModel             from "./fake-model.js";
-import handleBurstMessage    from "./handle-burst-message.js";
+import genCHB                from "./gen-chan-han-bundle.js";
 import RxQueue               from "./rx-queue.js";
 import usePlaceholderPreview from "./use-placeholder-preview.js";
 
@@ -17,6 +17,8 @@ const sendRTC      = CompressJS.sendRTC     (false);
 const SigTerm = "signaling-terminated";
 
 self.hasCheckedHash = false;
+self.burstQueue     = undefined; // RxQueue
+self.rxQueue        = undefined; // BurstQueue
 
 usePlaceholderPreview();
 
@@ -27,13 +29,6 @@ let sessionData = []; // Array[Session]
 const channels = {}; // Object[Protocol.Channel]
 
 let joinerConnection = new RTCPeerConnection(joinerConfig);
-
-let pageState   = "uninitialized"; // String
-let pageStateTS = -1;              // Number
-
-const messageQueue = []; // Array[Object[Any]]
-
-let loopIsTerminated = false; // Boolean
 
 const nlwFrame = // Window
   document.querySelector("#nlw-frame > iframe").contentWindow;
@@ -274,16 +269,29 @@ const connectAndLogin = (hostID) => {
 
       joinerConnection.setLocalDescription(offer);
 
+      const notifyFailedInit = () => {
+        alert("Sorry.  Something went wrong when trying to load the model.  Please try again.");
+        cleanupSession(true, "NetLogo Web failed to load the host's model.  Try again.");
+      };
+
+      const bqBundle =
+        { loop:              (f) => { requestAnimationFrame(f); }
+        , notifyDownloading: ()  => { setStatus("Downloading model from host..."); }
+        , notifyFailedInit
+        };
+
+      self.burstQueue = new BurstQueue(burstBundle, bqBundle);
+
       const slsw = serverListSocketW;
 
       const bundleBundle =
         { channel
         , disconnectChannels
-        , closeSignaling:        ()  => { signalingW.terminate(); }
-        , closeServerListSocket: ()  => { slsw.postMessage({ type: "hibernate" }); }
-        , enqueue:               (x) => messageQueue.push(x)
-        , getConnectionStats:    ()  => joinerConnection.getStats()
-        , notifyLoggedIn:        ()  => { setPageState("logged in"); }
+        , enqueue:               self.burstQueue.enqueue
+        , notifyLoggedIn:        self.burstQueue.setStateLoggedIn
+        , closeSignaling:        () => { signalingW.terminate(); }
+        , closeServerListSocket: () => { slsw.postMessage({ type: "hibernate" }); }
+        , getConnectionStats:    () => joinerConnection.getStats()
         , setStatus
         };
 
@@ -304,8 +312,7 @@ const connectAndLogin = (hostID) => {
 
       channels[hostID] = channel;
 
-      loopIsTerminated = false;
-      requestAnimationFrame(processQueue);
+      requestAnimationFrame(self.burstQueue.run);
 
       joinerConnection.oniceconnectionstatechange = () => {
         if (joinerConnection.iceConnectionState === "disconnected") {
@@ -334,43 +341,6 @@ const login = (channel) => {
   sendRTC(channel)("login", { username, password });
 };
 
-// () => Unit
-const processQueue = () => {
-
-  if (pageState === "logged in") {
-    if (pageStateTS + 60000 >= (new Date).getTime()) {
-      let   stillGoing = true;
-      const deferred   = [];
-      while (stillGoing && messageQueue.length > 0) {
-        const message = messageQueue.shift();
-        if (message.type === "initial-model") {
-          setStatus("Downloading model from host...");
-          handleBurstMessage(burstBundle)(message);
-          stillGoing = false;
-        } else {
-          deferred.push(message);
-        }
-      }
-      deferred.forEach((d) => messageQueue.push(d));
-    } else {
-      alert("Sorry.  Something went wrong when trying to load the model.  Please try again.");
-      cleanupSession(true, "NetLogo Web failed to load the host's model.  Try again.");
-    }
-  } else if (pageState === "booted up") {
-    while (messageQueue.length > 0) {
-      const message = messageQueue.shift();
-      handleBurstMessage(burstBundle)(message);
-    }
-  } else {
-    console.log("Skipping while in state:", pageState);
-  }
-
-  if (!loopIsTerminated) {
-    requestAnimationFrame(processQueue);
-  }
-
-};
-
 // (String) => Unit
 const refreshImage = (oracleID) => {
   const image = document.getElementById("session-preview-image");
@@ -386,13 +356,11 @@ const refreshImage = (oracleID) => {
 // (Boolean, String) => Unit
 const cleanupSession = (warrantsExplanation, statusText) => {
 
-  loopIsTerminated = true;
-
   joinerConnection = new RTCPeerConnection(joinerConfig);
 
+  self.burstQueue.halt();
   self.rxQueue.reset();
 
-  setPageState("uninitialized");
   const formFrame = document.getElementById("server-browser-frame");
   const galaFrame = document.getElementById(           "nlw-frame");
   galaFrame.classList.add(   "hidden");
@@ -417,12 +385,6 @@ const setStatus = (statusText) => {
 };
 
 // (String) => Unit
-const setPageState = (state) => {
-  pageState   = state;
-  pageStateTS = (new Date).getTime();
-};
-
-// (String) => Unit
 const disconnectChannels = (reason) => {
   Object.entries(channels).forEach(([hostID, channel]) => {
     sendRTC(channel)("bye-bye");
@@ -437,9 +399,8 @@ const postToNLW = (msg) => {
 };
 
 const burstBundle =
-  { frame:          nlwFrame
-  , getUsername:    () => document.getElementById("username").value
-  , notifyBootedUp: () => setPageState("booted up")
+  { frame:       nlwFrame
+  , getUsername: () => document.getElementById("username").value
   , postToNLW
   , setStatus
   };
