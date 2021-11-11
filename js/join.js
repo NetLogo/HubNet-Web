@@ -2,9 +2,10 @@ import { HNWProtocolVersionNumber, uuidToRTCID } from "./common.js";
 import { galapagos, hnw                        } from "./domain.js";
 import { joinerConfig                          } from "./webrtc.js";
 
-import fakeModel          from "./fake-model.js";
-import handleBurstMessage from "./handle-burst-message.js";
-import RxQueue            from "./rx-queue.js";
+import fakeModel             from "./fake-model.js";
+import handleBurstMessage    from "./handle-burst-message.js";
+import RxQueue               from "./rx-queue.js";
+import usePlaceholderPreview from "./use-placeholder-preview.js";
 
 import * as CompressJS from "./compress.js";
 
@@ -14,13 +15,6 @@ const sendRTC      = CompressJS.sendRTC     (false);
 const SigTerm = "signaling-terminated";
 
 self.hasCheckedHash = false;
-
-const placeholderBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wYGEwkDoISeKgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAADElEQVQI12NobmwEAAMQAYa2CjzCAAAAAElFTkSuQmCC";
-
-// () => Unit
-const usePlaceholderPreview = () => {
-  document.getElementById("session-preview-image").src = placeholderBase64;
-};
 
 usePlaceholderPreview();
 
