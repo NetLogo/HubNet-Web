@@ -3,6 +3,8 @@ import { MinID, prevID, SentinelID, succeedsID } from "./id-manager.js";
 
 import { decodePBuf } from "./protobuf/converters-common.js";
 
+// type MessageHandler = { reset :: () => Unit, run :: (Object[Any]) => Unit }
+
 const dummyID = 0; // Number
 
 // (Array[Uint8Array]) => Uint8Array
@@ -26,16 +28,16 @@ export default class RxQueue {
 
   #decodeInput      = undefined; // (Uint8Array) => Object[Any]
   #lastMsgID        = undefined; // Number
+  #messageHandler   = undefined; // MessageHandler
   #multipartHeaders = undefined; // Object[UUID, String]
   #multiparts       = undefined; // Object[UUID, String]
   #predIDToMsg      = undefined; // Object[UUID, Any]
-  #processMessage   = undefined; // (Object[Any]) => Unit
 
-  // (Object[Any]) => RxQueue
-  constructor(processMessage, isHost) {
+  // (MessageHandler, Boolean) => RxQueue
+  constructor(messageHandler, isHost) {
     this.#decodeInput    = decodePBuf(isHost);
     this.#lastMsgID      = dummyID;
-    this.#processMessage = processMessage;
+    this.#messageHandler = messageHandler;
     this.reset();
   }
 
@@ -43,7 +45,7 @@ export default class RxQueue {
   enqueue = ({ data }) => {
 
     const decodeInput    = this.#decodeInput;
-    const processMessage = this.#processMessage;
+    const processMessage = this.#messageHandler.run;
 
     const dataArr = new Uint8Array(data);
     const datum   = decodeInput(dataArr);
@@ -68,6 +70,7 @@ export default class RxQueue {
 
   // () => Unit
   reset = () => {
+    this.#messageHandler.reset();
     this.#multipartHeaders = {};
     this.#multiparts       = {};
     this.#predIDToMsg      = {};
@@ -112,7 +115,7 @@ export default class RxQueue {
 
     const lastMsgID      = this.#lastMsgID;
     const predIDToMsg    = this.#predIDToMsg;
-    const processMessage = this.#processMessage;
+    const processMessage = this.#messageHandler.run;
 
     if (msg.id === SentinelID) {
       processMessage(msg);
@@ -136,7 +139,7 @@ export default class RxQueue {
 
     const lastMsgID      = this.#lastMsgID;
     const predIDToMsg    = this.#predIDToMsg;
-    const processMessage = this.#processMessage;
+    const processMessage = this.#messageHandler.run;
     const recurse        = this.#processQueue;
 
     const successor = predIDToMsg[lastMsgID];

@@ -1,7 +1,9 @@
-import { HNWProtocolVersionNumber, uuidToRTCID } from "./common.js";
-import { galapagos, hnw                        } from "./domain.js";
-import { joinerConfig                          } from "./webrtc.js";
+import { uuidToRTCID    } from "./common.js";
+import { galapagos, hnw } from "./domain.js";
+import { joinerConfig   } from "./webrtc.js";
 
+import genCHB                from "./gen-chan-han-bundle.js";
+import ChannelHandler        from "./channel-handler.js";
 import fakeModel             from "./fake-model.js";
 import handleBurstMessage    from "./handle-burst-message.js";
 import RxQueue               from "./rx-queue.js";
@@ -32,8 +34,6 @@ let pageStateTS = -1;              // Number
 const messageQueue = []; // Array[Object[Any]]
 
 let loopIsTerminated = false; // Boolean
-
-let recentPings = []; // Array[Number]
 
 const nlwFrame =
   document.querySelector("#nlw-frame > iframe").contentWindow; // Window
@@ -230,8 +230,6 @@ const connectAndLogin = (hostID) => {
       const signalingURL = `ws://${hnw}/rtc/${hostID}/${joinerID}/join`;
       signalingW.postMessage({ type: "connect", url: signalingURL, offer });
 
-      const closeSignaling = () => signalingW.terminate();
-
       signalingW.onmessage = ({ data }) => {
         const datum = JSON.parse(data);
         switch (datum.type) {
@@ -276,7 +274,22 @@ const connectAndLogin = (hostID) => {
 
       joinerConnection.setLocalDescription(offer);
 
-      self.rxQueue = new RxQueue(processChannelMessage(channel, closeSignaling));
+      const slsw = serverListSocketW;
+
+      const bundleBundle =
+        { channel
+        , disconnectChannels
+        , closeSignaling:        ()  => { signalingW.terminate(); }
+        , closeServerListSocket: ()  => { slsw.postMessage({ type: "hibernate" }); }
+        , enqueue:               (x) => messageQueue.push(x)
+        , getConnectionStats:    ()  => joinerConnection.getStats()
+        , notifyLoggedIn:        ()  => { setPageState("logged in"); }
+        , setStatus
+        };
+
+      const chanHanBundle = genCHB(bundleBundle);
+      const chanHan       = new ChannelHandler(chanHanBundle);
+      self.rxQueue        = new RxQueue(chanHan, false);
 
       channel.onopen = () => {
         setStatus("Connected!  Attempting to log in....");
@@ -319,122 +332,6 @@ const login = (channel) => {
   const password = document.getElementById("password").value;
   sendGreeting(channel);
   sendRTC(channel)("login", { username, password });
-};
-
-// (Protocol.Channel, () => Unit) => (Object[Any]) => Unit
-const processChannelMessage = (channel, closeSignaling) => (datum) => {
-
-  switch (datum.type) {
-
-    case "connection-established": {
-
-      if (datum.protocolVersion !== HNWProtocolVersionNumber) {
-        alert(`HubNet protocol version mismatch!  You are using protocol version '${HNWProtocolVersionNumber}', while the host is using version '${datum.protocolVersion}'.  To ensure that you and the host are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  Your connection will now close.`);
-        disconnectChannels("Protocol version number mismatch");
-      }
-
-      joinerConnection.getStats().then(
-        (stats) => {
-
-          const usesTURN =
-            Array.from(stats.values()).some(
-              (v) =>
-                v.type === "candidate-pair" &&
-                  v.state === "succeeded" &&
-                  v.localCandidateId &&
-                  stats.get(v.localCandidateId).candidateType === "relay"
-            );
-
-          const desc = usesTURN ? "Server-based" : "Peer-to-Peer";
-
-          document.getElementById("connection-type-span").innerText = desc;
-
-        }
-      );
-
-      break;
-
-    }
-
-    case "login-successful": {
-      closeSignaling();
-      setStatus("Logged in!  Loading NetLogo and then asking for model....");
-      serverListSocketW.postMessage({ type: "hibernate" });
-      switchToNLW();
-      break;
-    }
-
-    case "incorrect-password": {
-      setStatus("Login rejected!  Use correct password.");
-      alert("Incorrect password");
-      document.getElementById("join-button").disabled = false;
-      break;
-    }
-
-    case "no-username-given": {
-      setStatus("Login rejected!  Please provide a username.");
-      alert("You must provide a username.");
-      document.getElementById("join-button").disabled = false;
-      break;
-    }
-
-    case "username-already-taken": {
-      setStatus("Login rejected!  Choose a unique username.");
-      alert("Username already in use.");
-      document.getElementById("join-button").disabled = false;
-      break;
-    }
-
-    case "ping": {
-
-      const { id, lastPing } = datum;
-
-      sendRTC(channel)("pong", { id });
-
-      if (lastPing !== undefined) {
-
-        recentPings.push(lastPing);
-
-        if (recentPings.length > 5) {
-          recentPings.shift();
-        }
-
-        const add         = (x, y) => x + y;
-        const averagePing = Math.round(recentPings.reduce(add) / recentPings.length);
-        document.getElementById("latency-span").innerText = averagePing;
-
-      }
-
-      break;
-
-    }
-
-    case "hnw-burst": {
-      enqueueMessage(datum.parcel);
-      break;
-    }
-
-    case "bye-bye": {
-      channel.close(1000, "The host disconnected.  Awaiting new selection.");
-      alert("The host disconnected from the activity");
-      break;
-    }
-
-    case "keep-alive": {
-      break;
-    }
-
-    default: {
-      console.warn(`Unknown channel event type: ${datum.type}`);
-    }
-
-  }
-
-};
-
-// (Object[Any]) => Unit
-const enqueueMessage = (datum) => {
-  messageQueue.push(datum);
 };
 
 // () => Unit
@@ -492,7 +389,6 @@ const cleanupSession = (wasExpected, statusText) => {
   loopIsTerminated = true;
 
   joinerConnection = new RTCPeerConnection(joinerConfig);
-  recentPings      = [];
 
   self.rxQueue.reset();
 
@@ -512,22 +408,6 @@ const cleanupSession = (wasExpected, statusText) => {
   if (statusText !== undefined) {
     setStatus(statusText);
   }
-
-};
-
-// () => Unit
-const switchToNLW = () => {
-
-  document.querySelector(".session-option").checked = false;
-  usePlaceholderPreview();
-
-  const formFrame = document.getElementById("server-browser-frame");
-  const galaFrame = document.getElementById(           "nlw-frame");
-  formFrame.classList.add(   "hidden");
-  galaFrame.classList.remove("hidden");
-
-  history.pushState({ name: "joined" }, "joined");
-  setPageState("logged in");
 
 };
 
