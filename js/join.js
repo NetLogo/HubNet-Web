@@ -7,6 +7,7 @@ import ChannelHandler        from "./channel-handler.js";
 import fakeModel             from "./fake-model.js";
 import genCHB                from "./gen-chan-han-bundle.js";
 import RxQueue               from "./rx-queue.js";
+import SessionData           from "./session-data.js";
 import SessionStream         from "./session-stream.js";
 import usePlaceholderPreview from "./use-placeholder-preview.js";
 
@@ -23,9 +24,7 @@ self.rxQueue        = undefined; // BurstQueue
 
 usePlaceholderPreview();
 
-// type Session = { modelName :: String, name :: String, oracleID :: String }
-
-let sessionData = []; // Array[Session]
+const sessionData = new SessionData();
 
 const channels = {}; // Object[Protocol.Channel]
 
@@ -33,7 +32,7 @@ let joinerConnection = new RTCPeerConnection(joinerConfig);
 
 const sessionStream = new SessionStream(
   ({ data }) => {
-    sessionData = JSON.parse(data);
+    sessionData.set(JSON.parse(data));
     self.filterSessionList();
   }
 );
@@ -59,9 +58,10 @@ const refreshSelection = (oldActiveUUID) => {
     }
   );
 
-  const activeElem  = document.querySelector(".active");
-  const isTarget    = (x) => x.oracleID === activeElem.dataset.uuid;
-  const activeEntry = activeElem !== null ? sessionData.find(isTarget) : null;
+  const activeElem = document.querySelector(".active");
+
+  const activeEntry =
+    activeElem !== null ? sessionData.lookup(activeElem.dataset.uuid) : null;
 
   const passwordInput    = document.getElementById("password");
   passwordInput.disabled = activeEntry !== null ? !activeEntry.hasPassword : true;
@@ -142,7 +142,7 @@ const populateSessionList = (sessions) => {
       usePlaceholderPreview();
     }
   } else {
-    if (sessionData.length > 0) {
+    if (sessionData.size() > 0) {
       setStatus("Session list received.  Please select a session.");
     } else {
       setStatus("Please wait until someone starts a session, and it will appear in the list below.");
@@ -164,7 +164,7 @@ const populateSessionList = (sessions) => {
         const hasUsername = username !== undefined;
         document.getElementById("username").value =
           hasUsername ? username : prompt("Please enter your login name");
-        if (sessionData.find((x) => x.oracleID === oracleID).hasPassword) {
+        if (sessionData.lookup(oracleID)?.hasPassword) {
           document.getElementById("password").value =
             prompt("Please enter the room's password");
         }
@@ -178,11 +178,12 @@ const populateSessionList = (sessions) => {
 
 // () => Unit
 self.filterSessionList = () => {
+  const data      = sessionData.get();
   const filterBox = document.getElementById("session-filter-box");
   const term      = filterBox.value.trim().toLowerCase();
   const matches   = (haystack, needle) => haystack.toLowerCase().includes(needle);
   const checkIt   = (s) => matches(s.name, term) || matches(s.modelName, term);
-  const filtered  = term === "" ? sessionData : sessionData.filter(checkIt);
+  const filtered  = term === "" ? data : data.filter(checkIt);
   populateSessionList(filtered);
 };
 
