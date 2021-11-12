@@ -78,27 +78,27 @@ export default class ChannelHandler {
       }
 
       case "login-successful": {
-        b.setStatus("Logged in!  Loading NetLogo and then asking for model....");
+        b.statusManager.loadingNLW();
         b.handleLogin();
         break;
       }
 
       case "incorrect-password": {
-        b.setStatus("Login rejected!  Use correct password.");
+        b.statusManager.rejectedOverPassword();
         b.notifyUser("Incorrect password");
         b.handleIncorrectPassword();
         break;
       }
 
       case "no-username-given": {
-        b.setStatus("Login rejected!  Please provide a username.");
+        b.statusManager.rejectedOverBlankName();
         b.notifyUser("You must provide a username.");
         b.handleMissingUsername();
         break;
       }
 
       case "username-already-taken": {
-        b.setStatus("Login rejected!  Choose a unique username.");
+        b.statusManager.rejectedOverDupeName();
         b.notifyUser("Username already in use.");
         b.handleUsernameIsTaken();
         break;

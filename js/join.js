@@ -2,10 +2,11 @@ import { uuidToRTCID    } from "./common.js";
 import { galapagos, hnw } from "./domain.js";
 import { joinerConfig   } from "./webrtc.js";
 
-import BurstQueue     from "./burst-queue.js";
-import ChannelHandler from "./channel-handler.js";
-import RxQueue        from "./rx-queue.js";
-import SessionList    from "./session-list.js";
+import AppStatusManager from "./app-status-manager.js";
+import BurstQueue       from "./burst-queue.js";
+import ChannelHandler   from "./channel-handler.js";
+import RxQueue          from "./rx-queue.js";
+import SessionList      from "./session-list.js";
 
 import fakeModel from "./fake-model.js";
 import genCHB    from "./gen-chan-han-bundle.js";
@@ -89,19 +90,16 @@ const notifyNewSelection = (seshData, activeElem, prevUUID) => {
 
 };
 
-// (String) => Unit
-const setStatus = (statusText) => {
-  document.getElementById("status-value").innerText = statusText;
-};
+const statusManager = new AppStatusManager(document.getElementById("status-value"));
 
 const sessionListParent = document.getElementById("session-browser-frame");
 
 const sessionList =
-  new SessionList(sessionListParent, processURLHash, setStatus, notifyNewSelection);
+  new SessionList(sessionListParent, processURLHash, statusManager, notifyNewSelection);
 
 // () => Unit
 self.join = () => {
-  setStatus("Attempting to connect...");
+  statusManager.connecting();
   document.getElementById("join-button").disabled = true;
   const hostID = document.querySelector(".active").dataset.uuid;
   if (channels[hostID] === undefined) {
@@ -185,12 +183,12 @@ const connectAndLogin = (hostID) => {
 
       const notifyFailedInit = () => {
         alert("Sorry.  Something went wrong when trying to load the model.  Please try again.");
-        cleanupSession(true, "NetLogo Web failed to load the host's model.  Try again.");
+        cleanupSession(true, statusManager.failedToLoadModel);
       };
 
       const bqBundle =
         { loop:              (f) => { requestAnimationFrame(f); }
-        , notifyDownloading: ()  => { setStatus("Downloading model from host..."); }
+        , notifyDownloading: statusManager.downloadingModel
         , notifyFailedInit
         };
 
@@ -204,7 +202,7 @@ const connectAndLogin = (hostID) => {
         , notifyLoggedIn:         self.burstQueue.setStateLoggedIn
         , closeSignaling:         () => { signalingW.terminate(); }
         , getConnectionStats:     () => joinerConnection.getStats()
-        , setStatus
+        , statusManager
         };
 
       const chanHanBundle = genCHB(bundleBundle);
@@ -212,12 +210,12 @@ const connectAndLogin = (hostID) => {
       self.rxQueue        = new RxQueue(chanHan, false);
 
       channel.onopen = () => {
-        setStatus("Connected!  Attempting to log in....");
+        statusManager.loggingIn();
         login(channel);
       };
 
       channel.onclose = (e) => {
-        cleanupSession(e.code === 1000, e.reason);
+        cleanupSession(e.code === 1000);
       };
 
       channel.onmessage = self.rxQueue.enqueue;
@@ -228,7 +226,7 @@ const connectAndLogin = (hostID) => {
 
       joinerConnection.oniceconnectionstatechange = () => {
         if (joinerConnection.iceConnectionState === "disconnected") {
-          cleanupSession(false, "ICE disconnected");
+          cleanupSession(false, statusManager.iceConnectionLost);
         }
       };
 
@@ -246,8 +244,8 @@ const login = (channel) => {
   sendRTC(channel)("login", { username, password });
 };
 
-// (Boolean, String) => Unit
-const cleanupSession = (warrantsExplanation, statusText) => {
+// (Boolean, () => Unit) => Unit
+const cleanupSession = (warrantsExplanation, updateStatus = () => {}) => {
 
   joinerConnection = new RTCPeerConnection(joinerConfig);
 
@@ -266,9 +264,7 @@ const cleanupSession = (warrantsExplanation, statusText) => {
     alert("Connection to host lost");
   }
 
-  if (statusText !== undefined) {
-    setStatus(statusText);
-  }
+  updateStatus();
 
 };
 
@@ -290,7 +286,7 @@ const burstBundle =
   { frame:       nlwFrame
   , getUsername: () => document.getElementById("username").value
   , postToNLW
-  , setStatus
+  , statusManager
   };
 
 // (MessageEvent) => Unit
@@ -313,8 +309,8 @@ self.addEventListener("message", (event) => {
           alert(`An unknown fatal error has occurred: ${event.data.subtype}`);
         }
       }
-      setStatus("You encountered an error and your session had to be closed.  Sorry about that.  Maybe your next session will treat you better.");
-      cleanupSession(true, undefined);
+      statusManager.closedFromError();
+      cleanupSession(true);
       break;
     }
 
@@ -340,7 +336,7 @@ self.addEventListener("popstate", (event) => {
     switch (event.state.name) {
       case "joined": {
         joinerConnection = new RTCPeerConnection(joinerConfig);
-        cleanupSession(true, undefined);
+        cleanupSession(true);
         break;
       }
       default: {

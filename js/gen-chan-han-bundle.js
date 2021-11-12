@@ -58,7 +58,7 @@ export default (bundle) => {
          , send:                    sendRTC(bundle.channel)
          , setConnectionType
          , setLatency
-         , setStatus:               bundle.setStatus
+         , statusManager:           bundle.statusManager
          };
 
 };

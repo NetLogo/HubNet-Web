@@ -18,18 +18,18 @@ export default class SessionList {
 
   #stream = undefined; // SessionStream
 
-  // (Element, SessionData, (String) => Unit, SelNotifier) => SessionList
-  constructor(parent, onStreamInit, setStatus, notifySel) {
+  // (Element, SessionData, AppStatusManager, SelNotifier) => SessionList
+  constructor(parent, onStreamInit, statusManager, notifySel) {
 
     const filterBox = descByID(parent, "session-filter-box");
     const data      = new SessionData();
 
-    this.#stream = this.#genSessionStream( filterBox, parent, data, setStatus
+    this.#stream = this.#genSessionStream( filterBox, parent, data, statusManager
                                          , notifySel, onStreamInit);
 
     usePlaceholderPreview();
 
-    this.#initListeners(filterBox, parent, data, setStatus, notifySel);
+    this.#initListeners(filterBox, parent, data, statusManager, notifySel);
 
   }
 
@@ -43,8 +43,8 @@ export default class SessionList {
     this.#stream.hibernate();
   };
 
-  // (Element, SessionData, (String) => Unit, SelNotifier) => (Object[Session]) => Node
-  #genSessionNode = (parent, seshData, setStatus, notifySel) =>
+  // (Element, SessionData, AppStatusManager, SelNotifier) => (Object[Session]) => Node
+  #genSessionNode = (parent, seshData, statusManager, notifySel) =>
                     ({ modelName, name, oracleID, roleInfo: [[ , numClients]] }) => {
 
     const node = descByID(parent, "session-option-template").content.cloneNode(true);
@@ -62,7 +62,7 @@ export default class SessionList {
         this.#refreshImage(parent, oracleID);
 
         this.#refreshSelection(parent, seshData, notifySel);
-        setStatus("Session selected.  Please enter a username, enter a password (if needed), and click 'Join'.");
+        statusManager.enterLoginInfo();
 
       } else {
         node.querySelector(".session-label").classList.remove("active");
@@ -74,8 +74,8 @@ export default class SessionList {
 
   };
 
-  // (Element, Element, SessionData, (String) => Unit, SelNotifier, (SessionData) => Unit) => SessionStream
-  #genSessionStream = ( filterBox, parent, seshData, setStatus, notifySel
+  // (Element, Element, SessionData, AppStatusManager, SelNotifier, (SessionData) => Unit) => SessionStream
+  #genSessionStream = ( filterBox, parent, seshData, statusManager, notifySel
                       , onStreamInit) => {
     return new SessionStream(
       ({ data }) => {
@@ -85,7 +85,7 @@ export default class SessionList {
         seshData.set(JSON.parse(data));
 
         this.#refilter( extractQuery(filterBox), parent, seshData
-                      , setStatus, notifySel);
+                      , statusManager, notifySel);
 
         if (!wasInited) {
           onStreamInit(seshData);
@@ -95,20 +95,21 @@ export default class SessionList {
     );
   };
 
-  // (Element, Element, SessionData, (String) => Unit, SelNotifier) => Unit
-  #initListeners = (filterBox, parent, data, setStatus, notifySel) => {
+  // (Element, Element, SessionData, AppStatusManager, SelNotifier) => Unit
+  #initListeners = (filterBox, parent, data, statusManager, notifySel) => {
     filterBox.addEventListener("input", () => {
-      this.#refilter(extractQuery(filterBox), parent, data, setStatus, notifySel);
+      const query = extractQuery(filterBox);
+      this.#refilter(query, parent, data, statusManager, notifySel);
     });
   };
 
-  // (Element, SessionData, (String) => Unit, SelNotifier) => Unit
-  #populate = (parent, seshData, setStatus, notifySel) => {
+  // (Element, SessionData, AppStatusManager, SelNotifier) => Unit
+  #populate = (parent, seshData, statusManager, notifySel) => {
 
-    const lower      = (x)    => x.name.toLowerCase();
-    const comparator = (a, b) => (lower(a) < lower(b)) ? -1 : 1;
-    const genNode    = this.#genSessionNode(parent, seshData, setStatus, notifySel);
-    const nodes      = seshData.get().sort(comparator).map(genNode);
+    const lower   = (x)    => x.name.toLowerCase();
+    const comp    = (a, b) => (lower(a) < lower(b)) ? -1 : 1;
+    const genNode = this.#genSessionNode(parent, seshData, statusManager, notifySel);
+    const nodes   = seshData.get().sort(comp).map(genNode);
 
     const container = descByID(parent, "session-option-container");
     const labels    = Array.from(container.querySelectorAll(".session-label"));
@@ -130,11 +131,11 @@ export default class SessionList {
 
     } else {
       if (!seshData.isEmpty()) {
-        setStatus("Session list received.  Please select a session.");
+        statusManager.awaitingSelection();
       } else if (!seshData.isEmptyUnfiltered()) {
-        setStatus("Session list received.  There are some sessions available, but they are hidden by your search filter.");
+        statusManager.allSessionsHidden();
       } else {
-        setStatus("Please wait until someone starts a session, and it will appear in the list below.");
+        statusManager.awaitingNewSessions();
       }
     }
 
@@ -145,8 +146,8 @@ export default class SessionList {
 
   };
 
-  // (String, Element, SessionData, (String) => Unit, SelNotifier) => Unit
-  #refilter = (term, parent, seshData, setStatus, notifySel) => {
+  // (String, Element, SessionData, AppStatusManager, SelNotifier) => Unit
+  #refilter = (term, parent, seshData, statusManager, notifySel) => {
 
     const matches = (haystack, needle) => haystack.toLowerCase().includes(needle);
     const checkIt = (s) => matches(s.name, term) || matches(s.modelName, term);
@@ -157,7 +158,7 @@ export default class SessionList {
       seshData.clearFilter();
     }
 
-    this.#populate(parent, seshData, setStatus, notifySel);
+    this.#populate(parent, seshData, statusManager, notifySel);
 
   };
 

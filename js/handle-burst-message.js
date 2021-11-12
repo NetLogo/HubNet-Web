@@ -3,11 +3,11 @@ import { awaitFrame, spamFrame } from "./await.js";
 // (Object[Any]) => (Object[Any]) => Unit
 const handleInitialModel = (bundle) => ({ role, token, view, state }) => {
 
-  bundle.setStatus("Model and world acquired!  Waiting for NetLogo Web to be ready...");
+  bundle.statusManager.waitingForNLWBoot();
 
   const postInitialInterface =
     () => {
-      bundle.setStatus("Loading up interface in NetLogo Web...");
+      bundle.statusManager.loadingNLWUI();
       const initialInterface =
         { username: bundle.getUsername()
         , role
@@ -19,7 +19,7 @@ const handleInitialModel = (bundle) => ({ role, token, view, state }) => {
 
   const postInitialState =
     () => {
-      bundle.setStatus("Model loaded and ready for you to use!");
+      bundle.statusManager.modelLoaded();
       bundle.notifyBootedUp();
       const parcel =
         { type:   "nlw-state-update"
