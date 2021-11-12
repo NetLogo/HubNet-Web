@@ -19,9 +19,8 @@ const sendRTC      = CompressJS.sendRTC     (false);
 
 const SigTerm = "signaling-terminated";
 
-self.hasCheckedHash = false;
-self.burstQueue     = undefined; // RxQueue
-self.rxQueue        = undefined; // BurstQueue
+self.burstQueue = undefined; // RxQueue
+self.rxQueue    = undefined; // BurstQueue
 
 usePlaceholderPreview();
 
@@ -33,8 +32,17 @@ let joinerConnection = new RTCPeerConnection(joinerConfig);
 
 const sessionStream = new SessionStream(
   ({ data }) => {
+
+    const wasInited = sessionData.hasBeenInitialized();
+
     sessionData.set(JSON.parse(data));
+
     self.filterSessionList();
+
+    if (!wasInited) {
+      processURLHash(sessionData);
+    }
+
   }
 );
 
@@ -44,6 +52,28 @@ const nlwFrame = // Window
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".nlw-iframe").src = `http://${galapagos}/hnw-join`;
 });
+
+const processURLHash = (seshData) => {
+
+  if (self.location.hash !== "") {
+    const trueHash             = self.location.hash.slice(1);
+    const [oracleID, username] = trueHash.split(",", 2);
+    const match                = document.querySelector(`.session-label[data-uuid="${oracleID}"] > .session-option`);
+    if (match !== null) {
+      match.click();
+      const hasUsername = username !== undefined;
+      document.getElementById("username").value =
+        hasUsername ? username : prompt("Please enter your login name");
+      if (seshData.lookupUnfiltered(oracleID)?.hasPassword) {
+        document.getElementById("password").value =
+          prompt("Please enter the room's password");
+      }
+      document.getElementById("join-button").click();
+    }
+  }
+
+};
+
 
 // (String, SessionData) => Unit
 const refreshSelection = (oldActiveUUID, seshData) => {
@@ -156,26 +186,6 @@ const populateSessionList = (seshData) => {
   nodes.forEach((node) => container.appendChild(node));
 
   refreshSelection(oldActiveUUID, seshData);
-
-  if (!self.hasCheckedHash) {
-    if (self.location.hash !== "") {
-      const trueHash             = self.location.hash.slice(1);
-      const [oracleID, username] = trueHash.split(",", 2);
-      const match                = document.querySelector(`.session-label[data-uuid="${oracleID}"] > .session-option`);
-      if (match !== null) {
-        match.click();
-        const hasUsername = username !== undefined;
-        document.getElementById("username").value =
-          hasUsername ? username : prompt("Please enter your login name");
-        if (sessionData.lookup(oracleID)?.hasPassword) {
-          document.getElementById("password").value =
-            prompt("Please enter the room's password");
-        }
-        document.getElementById("join-button").click();
-      }
-    }
-    self.hasCheckedHash = true;
-  }
 
 };
 

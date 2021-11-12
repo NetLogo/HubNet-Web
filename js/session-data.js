@@ -36,12 +36,17 @@ export default class SessionData {
 
   // () => Boolean
   isEmptyUnfiltered = () => {
-    return (this.#data !== null) ? (this.#data.length === 0) : false;
+    return this.#getUnfiltered().length === 0;
   };
 
   // (UUID) => Session?
   lookup = (id) => {
     return this.#get().find((s) => s.oracleID === id);
+  };
+
+  // (UUID) => Session?
+  lookupUnfiltered = (id) => {
+    return this.#getUnfiltered().find((s) => s.oracleID === id);
   };
 
   // (Array[Session]) => Unit
@@ -57,6 +62,11 @@ export default class SessionData {
   // () => Array[Session]
   #get = () => {
     return (this.#data !== null) ? this.#data.filter(this.#filter) : [];
+  };
+
+  // () => Array[Session]
+  #getUnfiltered = () => {
+    return (this.#data !== null) ? this.#data : [];
   };
 
 }
