@@ -34,12 +34,12 @@
       </div>
 
       <div id="session-list-container" class="flex-column session-list-container">
-        <input id="session-filter-box" type="search" placeholder="Filter..." oninput="filterSessionList()">
+        <input id="session-filter-box" type="search" placeholder="Filter...">
         <div id="session-option-container" class="flex-column"></div>
         <template id="session-option-template">
           <label class="session-label">
             <span class="session-name"></span> | <span class="session-model-name"></span> | <span class="session-info"></span> connected
-            <input class="session-option" name="sessionOption" type="radio" onclick="selectSession()">
+            <input class="session-option" name="sessionOption" type="radio">
           </label>
         </template>
       </div>

@@ -5,12 +5,10 @@ import { joinerConfig   } from "./webrtc.js";
 import BurstQueue     from "./burst-queue.js";
 import ChannelHandler from "./channel-handler.js";
 import RxQueue        from "./rx-queue.js";
-import SessionData    from "./session-data.js";
-import SessionStream  from "./session-stream.js";
+import SessionList    from "./session-list.js";
 
-import fakeModel             from "./fake-model.js";
-import genCHB                from "./gen-chan-han-bundle.js";
-import usePlaceholderPreview from "./use-placeholder-preview.js";
+import fakeModel from "./fake-model.js";
+import genCHB    from "./gen-chan-han-bundle.js";
 
 import * as CompressJS from "./compress.js";
 
@@ -22,29 +20,9 @@ const SigTerm = "signaling-terminated";
 self.burstQueue = undefined; // RxQueue
 self.rxQueue    = undefined; // BurstQueue
 
-usePlaceholderPreview();
-
-const sessionData = new SessionData();
-
 const channels = {}; // Object[Protocol.Channel]
 
 let joinerConnection = new RTCPeerConnection(joinerConfig);
-
-const sessionStream = new SessionStream(
-  ({ data }) => {
-
-    const wasInited = sessionData.hasBeenInitialized();
-
-    sessionData.set(JSON.parse(data));
-
-    self.filterSessionList();
-
-    if (!wasInited) {
-      processURLHash(sessionData);
-    }
-
-  }
-);
 
 const nlwFrame = // Window
   document.querySelector("#nlw-frame > iframe").contentWindow;
@@ -74,38 +52,25 @@ const processURLHash = (seshData) => {
 
 };
 
+// (SessionData, Element, UUID) => Unit
+const notifyNewSelection = (seshData, activeElem, prevUUID) => {
 
-// (String, SessionData) => Unit
-const refreshSelection = (oldActiveUUID, seshData) => {
-
-  const container = document.getElementById("session-option-container");
-  Array.from(container.querySelectorAll(".session-label")).forEach(
-    (label) => {
-      if (label.querySelector(".session-option").checked) {
-        label.classList.add("active");
-      } else {
-        label.classList.remove("active");
-      }
-    }
-  );
-
-  const activeElem = document.querySelector(".active");
-
-  const activeEntry =
-    activeElem !== null ? seshData.lookup(activeElem.dataset.uuid) : null;
+  const activeUUID  = (activeElem !== null) ? activeElem.dataset.uuid     : null;
+  const activeEntry = (activeElem !== null) ? seshData.lookup(activeUUID) : null;
+  const hasActive   = activeEntry !== null;
 
   const passwordInput    = document.getElementById("password");
-  passwordInput.disabled = activeEntry !== null ? !activeEntry.hasPassword : true;
+  passwordInput.disabled = hasActive ? !activeEntry.hasPassword : true;
 
-  if (activeElem === null || oldActiveUUID !== activeElem.dataset.uuid) {
+  if (activeElem === null || prevUUID !== activeUUID) {
     passwordInput.value = "";
   }
 
   const roleSelect     = document.getElementById("role-select");
-  roleSelect.disabled  = activeEntry === null;
+  roleSelect.disabled  = !hasActive;
   roleSelect.innerHTML = "";
 
-  if (activeEntry !== null) {
+  if (hasActive) {
     activeEntry.roleInfo.forEach(
       ([roleName, current, max]) => {
         const node        = document.createElement("option");
@@ -120,100 +85,19 @@ const refreshSelection = (oldActiveUUID, seshData) => {
 
   // TODO: Better criteria later (especially the # of slots open in session)
   // --Jason B. (6/12/19)
-  document.getElementById("join-button").disabled = activeEntry === null;
+  document.getElementById("join-button").disabled = !hasActive;
 
 };
 
-// (SessionData) => Unit
-const populateSessionList = (seshData) => {
-
-  const activeElem    = document.querySelector(".active");
-  const oldActiveUUID = activeElem !== null ? activeElem.dataset.uuid : null;
-
-  const template = document.getElementById("session-option-template");
-
-  const comparator = (a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1;
-  const nodes      = seshData.get().sort(comparator).map(
-    (session) => {
-
-      const numClients = session.roleInfo[0][1];
-
-      const node = template.content.cloneNode(true);
-
-      node.querySelector(".session-name").textContent       = session.name;
-      node.querySelector(".session-model-name").textContent = session.modelName;
-      node.querySelector(".session-info").textContent       = `${numClients} people`;
-      node.querySelector(".session-label").dataset.uuid     = session.oracleID;
-
-      node.querySelector(".session-option").onchange =
-        (event) => {
-          if (event.target.checked) {
-            event.target.parentNode.classList.add("active");
-            refreshImage(session.oracleID);
-          } else {
-            node.querySelector(".session-label").classList.remove("active");
-          }
-        };
-
-      return node;
-
-    }
-  );
-
-  const container = document.getElementById("session-option-container");
-  const labels    = Array.from(container.querySelectorAll(".session-label"));
-  const selected  = labels.find((label) => label.querySelector(".session-option").checked);
-
-  if (selected !== undefined) {
-    const match = nodes.find((node) => node.querySelector(".session-label").dataset.uuid === selected.dataset.uuid);
-    if (match !== undefined) {
-      match.querySelector(".session-option").checked = true;
-      refreshImage(selected.dataset.uuid);
-    } else {
-      usePlaceholderPreview();
-    }
-  } else {
-    if (!seshData.isEmpty()) {
-      setStatus("Session list received.  Please select a session.");
-    } else if (!seshData.isEmptyUnfiltered()) {
-      setStatus("Session list received.  There are some sessions available, but they are hidden by your search filter.");
-    } else {
-      setStatus("Please wait until someone starts a session, and it will appear in the list below.");
-    }
-  }
-
-  container.innerHTML = "";
-  nodes.forEach((node) => container.appendChild(node));
-
-  refreshSelection(oldActiveUUID, seshData);
-
+// (String) => Unit
+const setStatus = (statusText) => {
+  document.getElementById("status-value").innerText = statusText;
 };
 
-// () => Unit
-self.filterSessionList = () => {
+const sessionListParent = document.getElementById("session-browser-frame");
 
-  const filterBox = document.getElementById("session-filter-box");
-  const term      = filterBox.value.trim().toLowerCase();
-  const matches   = (haystack, needle) => haystack.toLowerCase().includes(needle);
-  const checkIt   = (s) => matches(s.name, term) || matches(s.modelName, term);
-
-  if (term !== "") {
-    sessionData.applyFilter(checkIt);
-  } else {
-    sessionData.clearFilter();
-  }
-
-  populateSessionList(sessionData);
-
-};
-
-// () => Unit
-self.selectSession = () => {
-  const activeElem = document.querySelector(".active");
-  const activeID   = activeElem !== null ? activeElem.dataset.uuid : null;
-  refreshSelection(activeID, sessionData);
-  setStatus("Session selected.  Please enter a username, enter a password (if needed), and click 'Join'.");
-};
+const sessionList =
+  new SessionList(sessionListParent, processURLHash, setStatus, notifyNewSelection);
 
 // () => Unit
 self.join = () => {
@@ -315,7 +199,7 @@ const connectAndLogin = (hostID) => {
       const bundleBundle =
         { channel
         , disconnectChannels
-        , closeSessionListSocket: sessionStream.hibernate
+        , closeSessionListSocket: sessionList.hibernate
         , enqueue:                self.burstQueue.enqueue
         , notifyLoggedIn:         self.burstQueue.setStateLoggedIn
         , closeSignaling:         () => { signalingW.terminate(); }
@@ -362,18 +246,6 @@ const login = (channel) => {
   sendRTC(channel)("login", { username, password });
 };
 
-// (String) => Unit
-const refreshImage = (oracleID) => {
-  const image = document.getElementById("session-preview-image");
-  fetch(`/preview/${oracleID}`).then((response) => {
-    if (response.ok) {
-      response.text().then((base64) => { image.src = base64; });
-    } else {
-      usePlaceholderPreview();
-    }
-  }).catch(() => { usePlaceholderPreview(); });
-};
-
 // (Boolean, String) => Unit
 const cleanupSession = (warrantsExplanation, statusText) => {
 
@@ -386,7 +258,7 @@ const cleanupSession = (warrantsExplanation, statusText) => {
   const galaFrame = document.getElementById(            "nlw-frame");
   galaFrame.classList.add(   "hidden");
   formFrame.classList.remove("hidden");
-  sessionStream.connect();
+  sessionList.enable();
   postToNLW(fakeModel);
   document.getElementById("join-button").disabled = false;
 
@@ -398,11 +270,6 @@ const cleanupSession = (warrantsExplanation, statusText) => {
     setStatus(statusText);
   }
 
-};
-
-// (String) => Unit
-const setStatus = (statusText) => {
-  document.getElementById("status-value").innerText = statusText;
 };
 
 // (String) => Unit
