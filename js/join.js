@@ -36,18 +36,18 @@ document.addEventListener("DOMContentLoaded", () => {
 // (String) => Element?
 const byEID = (eid) => document.getElementById(eid);
 
-const processURLHash = (seshData) => {
+// ((UUID) => Session?) => Unit
+const processURLHash = (clickAndGetByUUID) => {
 
   if (self.location.hash !== "") {
     const trueHash             = self.location.hash.slice(1);
     const [oracleID, username] = trueHash.split(",", 2);
-    const match                = document.querySelector(`.session-label[data-uuid="${oracleID}"] > .session-option`);
-    if (match !== null) {
-      match.click();
+    const session              = clickAndGetByUUID(oracleID);
+    if (session !== undefined) {
       const hasUsername = username !== undefined;
       byEID("username").value =
         hasUsername ? username : prompt("Please enter your login name");
-      if (seshData.lookupUnfiltered(oracleID)?.hasPassword) {
+      if (session.hasPassword) {
         byEID("password").value =
           prompt("Please enter the room's password");
       }
@@ -105,7 +105,7 @@ const sessionList =
 byEID("join-form").addEventListener("submit", () => {
   statusManager.connecting();
   byEID("join-button").disabled = true;
-  const hostID = document.querySelector(".active").dataset.uuid;
+  const hostID = sessionList.getSelectedUUID();
   if (channels[hostID] === undefined) {
     channels[hostID] = null;
     connectAndLogin(hostID);

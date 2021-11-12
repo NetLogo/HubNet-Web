@@ -14,14 +14,16 @@ const getID = (elem) => elem.dataset.uuid;
 
 export default class SessionList {
 
+  #parent = undefined; // Element
   #stream = undefined; // SessionStream
 
-  // (Element, SessionData, AppStatusManager, PreviewManager, SelNotifier) => SessionList
+  // (Element, (UUID) => Session?, AppStatusManager, PreviewManager, SelNotifier) => SessionList
   constructor(parent, onStreamInit, statusManager, previewManager, notifySel) {
 
     const filterBox = descByID(parent, "session-filter-box");
     const data      = new SessionData();
 
+    this.#parent = parent;
     this.#stream = this.#genSessionStream( filterBox, parent, data, statusManager
                                          , previewManager, notifySel, onStreamInit);
 
@@ -32,6 +34,11 @@ export default class SessionList {
 
   }
 
+  // () => UUID?
+  getSelectedUUID = () => {
+    return this.#parent.querySelector(".active").dataset.uuid;
+  };
+
   // () => Unit
   enable = () => {
     this.#stream.connect();
@@ -40,6 +47,18 @@ export default class SessionList {
   // () => Unit
   hibernate = () => {
     this.#stream.hibernate();
+  };
+
+  // (Element, SessionData) => (UUID) => Session?
+  #clickAndGetByUUID = (parent, seshData) => (uuid) => {
+    const selector = `.session-label[data-uuid="${uuid}"] > .session-option`;
+    const match    = parent.querySelector(selector);
+    if (match !== null) {
+      match.click();
+      return seshData.lookupUnfiltered(uuid);
+    } else {
+      return undefined;
+    }
   };
 
   // (Element, SessionData, AppStatusManager, PreviewManager, SelNotifier) => (Object[Session]) => Node
@@ -73,7 +92,7 @@ export default class SessionList {
 
   };
 
-  // (Element, Element, SessionData, AppStatusManager, PreviewManager, SelNotifier, (SessionData) => Unit) => SessionStream
+  // (Element, Element, SessionData, AppStatusManager, PreviewManager, SelNotifier, (UUID) => Session?) => SessionStream
   #genSessionStream = ( filterBox, parent, seshData, statusManager
                       , previewManager, notifySel, onStreamInit) => {
     return new SessionStream(
@@ -87,7 +106,7 @@ export default class SessionList {
                       , statusManager, previewManager, notifySel);
 
         if (!wasInited) {
-          onStreamInit(seshData);
+          onStreamInit(this.#clickAndGetByUUID(parent, seshData));
         }
 
       }
