@@ -187,7 +187,7 @@ const connectAndLogin = (hostID) => {
 
       const notifyFailedInit = () => {
         alert("Sorry.  Something went wrong when trying to load the model.  Please try again.");
-        cleanupSession(true, statusManager.failedToLoadModel);
+        cleanupSession(false, statusManager.failedToLoadModel);
       };
 
       const bqBundle =
@@ -220,7 +220,7 @@ const connectAndLogin = (hostID) => {
       };
 
       channel.onclose = (e) => {
-        cleanupSession(e.code === 1000);
+        cleanupSession(e.code !== 1000);
       };
 
       channel.onmessage = self.rxQueue.enqueue;
@@ -231,7 +231,7 @@ const connectAndLogin = (hostID) => {
 
       joinerConnection.oniceconnectionstatechange = () => {
         if (joinerConnection.iceConnectionState === "disconnected") {
-          cleanupSession(false, statusManager.iceConnectionLost);
+          cleanupSession(true, statusManager.iceConnectionLost);
         }
       };
 
@@ -265,7 +265,7 @@ const cleanupSession = (warrantsExplanation, updateStatus = () => {}) => {
   postToNLW(fakeModel);
   byEID("join-button").disabled = false;
 
-  if (!warrantsExplanation) {
+  if (warrantsExplanation) {
     alert("Connection to host lost");
   }
 
@@ -315,7 +315,7 @@ self.addEventListener("message", (event) => {
         }
       }
       statusManager.closedFromError();
-      cleanupSession(true);
+      cleanupSession(false);
       break;
     }
 
@@ -341,7 +341,7 @@ self.addEventListener("popstate", (event) => {
     switch (event.state.name) {
       case "joined": {
         joinerConnection = new RTCPeerConnection(joinerConfig);
-        cleanupSession(true);
+        cleanupSession(false);
         break;
       }
       default: {
