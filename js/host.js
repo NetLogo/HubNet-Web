@@ -40,10 +40,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".nlw-iframe").src = `http://${galapagos}/hnw-host`;
 });
 
-// (DOMElement) => Boolean
-self.submitLaunchForm = (elem) => {
+document.getElementById("launch-form").addEventListener("submit", (e) => {
 
-  const formData = new FormData(elem);
+  const formData = new FormData(e.target);
   const lm       = formData.get("libraryModel").slice(4);
 
   launchModel({ "modelType":   "library"
@@ -54,7 +53,7 @@ self.submitLaunchForm = (elem) => {
 
   return true;
 
-};
+});
 
 // (Object[String]) => Unit
 const launchModel = (formDataPlus) => {

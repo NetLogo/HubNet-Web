@@ -102,8 +102,7 @@ const sessionList =
   new SessionList(byEID("session-list-container"), processURLHash, statusManager
                  , previewManager, notifyNewSelection);
 
-// () => Unit
-self.join = () => {
+byEID("join-form").addEventListener("submit", () => {
   statusManager.connecting();
   byEID("join-button").disabled = true;
   const hostID = document.querySelector(".active").dataset.uuid;
@@ -113,7 +112,7 @@ self.join = () => {
   } else if (channels[hostID] !== null) {
     login(channels[hostID]);
   }
-};
+});
 
 // (String) => Unit
 const connectAndLogin = (hostID) => {
