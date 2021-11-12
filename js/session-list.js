@@ -1,8 +1,6 @@
 import SessionData   from "./session-data.js";
 import SessionStream from "./session-stream.js";
 
-import usePlaceholderPreview from "./use-placeholder-preview.js";
-
 // type SelNotifier = (SessionData, Element, UUID) => Unit
 
 // (Element, String) => Element?
@@ -18,18 +16,19 @@ export default class SessionList {
 
   #stream = undefined; // SessionStream
 
-  // (Element, SessionData, AppStatusManager, SelNotifier) => SessionList
-  constructor(parent, onStreamInit, statusManager, notifySel) {
+  // (Element, SessionData, AppStatusManager, PreviewManager, SelNotifier) => SessionList
+  constructor(parent, onStreamInit, statusManager, previewManager, notifySel) {
 
     const filterBox = descByID(parent, "session-filter-box");
     const data      = new SessionData();
 
     this.#stream = this.#genSessionStream( filterBox, parent, data, statusManager
-                                         , notifySel, onStreamInit);
+                                         , previewManager, notifySel, onStreamInit);
 
-    usePlaceholderPreview();
+    previewManager.useDefault();
 
-    this.#initListeners(filterBox, parent, data, statusManager, notifySel);
+    this.#initListeners( filterBox, parent, data, statusManager
+                       , previewManager, notifySel);
 
   }
 
@@ -43,8 +42,8 @@ export default class SessionList {
     this.#stream.hibernate();
   };
 
-  // (Element, SessionData, AppStatusManager, SelNotifier) => (Object[Session]) => Node
-  #genSessionNode = (parent, seshData, statusManager, notifySel) =>
+  // (Element, SessionData, AppStatusManager, PreviewManager, SelNotifier) => (Object[Session]) => Node
+  #genSessionNode = (parent, seshData, statusManager, previewManager, notifySel) =>
                     ({ modelName, name, oracleID, roleInfo: [[ , numClients]] }) => {
 
     const node = descByID(parent, "session-option-template").content.cloneNode(true);
@@ -59,7 +58,7 @@ export default class SessionList {
       if (event.target.checked) {
 
         event.target.parentNode.classList.add("active");
-        this.#refreshImage(parent, oracleID);
+        previewManager.fetch(oracleID);
 
         this.#refreshSelection(parent, seshData, notifySel);
         statusManager.enterLoginInfo();
@@ -74,9 +73,9 @@ export default class SessionList {
 
   };
 
-  // (Element, Element, SessionData, AppStatusManager, SelNotifier, (SessionData) => Unit) => SessionStream
-  #genSessionStream = ( filterBox, parent, seshData, statusManager, notifySel
-                      , onStreamInit) => {
+  // (Element, Element, SessionData, AppStatusManager, PreviewManager, SelNotifier, (SessionData) => Unit) => SessionStream
+  #genSessionStream = ( filterBox, parent, seshData, statusManager
+                      , previewManager, notifySel, onStreamInit) => {
     return new SessionStream(
       ({ data }) => {
 
@@ -85,7 +84,7 @@ export default class SessionList {
         seshData.set(JSON.parse(data));
 
         this.#refilter( extractQuery(filterBox), parent, seshData
-                      , statusManager, notifySel);
+                      , statusManager, previewManager, notifySel);
 
         if (!wasInited) {
           onStreamInit(seshData);
@@ -95,20 +94,21 @@ export default class SessionList {
     );
   };
 
-  // (Element, Element, SessionData, AppStatusManager, SelNotifier) => Unit
-  #initListeners = (filterBox, parent, data, statusManager, notifySel) => {
+  // (Element, Element, SessionData, AppStatusManager, PreviewManager, SelNotifier) => Unit
+  #initListeners = ( filterBox, parent, data, statusManager, previewManager
+                   , notifySel) => {
     filterBox.addEventListener("input", () => {
       const query = extractQuery(filterBox);
-      this.#refilter(query, parent, data, statusManager, notifySel);
+      this.#refilter(query, parent, data, statusManager, previewManager, notifySel);
     });
   };
 
-  // (Element, SessionData, AppStatusManager, SelNotifier) => Unit
-  #populate = (parent, seshData, statusManager, notifySel) => {
+  // (Element, SessionData, AppStatusManager, PreviewManager, SelNotifier) => Unit
+  #populate = (parent, seshData, statusManager, previewManager, notifySel) => {
 
     const lower   = (x)    => x.name.toLowerCase();
     const comp    = (a, b) => (lower(a) < lower(b)) ? -1 : 1;
-    const genNode = this.#genSessionNode(parent, seshData, statusManager, notifySel);
+    const genNode = this.#genSessionNode(parent, seshData, statusManager, previewManager, notifySel);
     const nodes   = seshData.get().sort(comp).map(genNode);
 
     const container = descByID(parent, "session-option-container");
@@ -124,9 +124,9 @@ export default class SessionList {
 
       if (match !== undefined) {
         match.querySelector(".session-option").checked = true;
-        this.#refreshImage(parent, getID(selected));
+        previewManager.fetch(getID(selected));
       } else {
-        usePlaceholderPreview();
+        previewManager.useDefault();
       }
 
     } else {
@@ -146,8 +146,8 @@ export default class SessionList {
 
   };
 
-  // (String, Element, SessionData, AppStatusManager, SelNotifier) => Unit
-  #refilter = (term, parent, seshData, statusManager, notifySel) => {
+  // (String, Element, SessionData, AppStatusManager, PreviewManager, SelNotifier) => Unit
+  #refilter = (term, parent, seshData, statusManager, previewManager, notifySel) => {
 
     const matches = (haystack, needle) => haystack.toLowerCase().includes(needle);
     const checkIt = (s) => matches(s.name, term) || matches(s.modelName, term);
@@ -158,20 +158,8 @@ export default class SessionList {
       seshData.clearFilter();
     }
 
-    this.#populate(parent, seshData, statusManager, notifySel);
+    this.#populate(parent, seshData, statusManager, previewManager, notifySel);
 
-  };
-
-  // (Element, UUID) => Unit
-  #refreshImage = (parent, oracleID) => {
-    const image = descByID(parent, "session-preview-image");
-    fetch(`/preview/${oracleID}`).then((response) => {
-      if (response.ok) {
-        response.text().then((base64) => { image.src = base64; });
-      } else {
-        usePlaceholderPreview();
-      }
-    }).catch(() => { usePlaceholderPreview(); });
   };
 
   // (Element, SessionData, SelNotifier) => Unit

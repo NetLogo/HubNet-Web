@@ -6,6 +6,7 @@ import AppStatusManager from "./app-status-manager.js";
 import BurstQueue       from "./burst-queue.js";
 import ChannelHandler   from "./channel-handler.js";
 import RxQueue          from "./rx-queue.js";
+import PreviewManager   from "./preview-manager.js";
 import SessionList      from "./session-list.js";
 
 import fakeModel from "./fake-model.js";
@@ -93,12 +94,15 @@ const notifyNewSelection = (seshData, activeElem, prevUUID) => {
 
 };
 
+const previewManager = new PreviewManager(byEID("session-preview-image"));
+
 const statusManager = new AppStatusManager(byEID("status-value"));
 
 const sessionListParent = byEID("session-list-container");
 
 const sessionList =
-  new SessionList(sessionListParent, processURLHash, statusManager, notifyNewSelection);
+  new SessionList(sessionListParent, processURLHash, statusManager
+                 , previewManager, notifyNewSelection);
 
 // () => Unit
 self.join = () => {
@@ -203,6 +207,7 @@ const connectAndLogin = (hostID) => {
         , closeSessionListSocket: sessionList.hibernate
         , enqueue:                self.burstQueue.enqueue
         , notifyLoggedIn:         self.burstQueue.setStateLoggedIn
+        , useDefaultPreview:      previewManager.useDefault
         , closeSignaling:         () => { signalingW.terminate(); }
         , getConnectionStats:     () => joinerConnection.getStats()
         , statusManager

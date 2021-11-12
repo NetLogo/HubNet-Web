@@ -1,14 +1,12 @@
-import usePlaceholderPreview from "./use-placeholder-preview.js";
-
 import * as CompressJS from "./compress.js";
 
 const sendRTC = CompressJS.sendRTC(false);
 
-// (() => Unit) => Unit
-const switchToNLW = (notifyLoggedIn) => {
+// (() => Unit, () => Unit) => Unit
+const switchToNLW = (notifyLoggedIn, useDefaultPreview) => {
 
   document.querySelector(".session-option").checked = false;
-  usePlaceholderPreview();
+  useDefaultPreview();
 
   const formFrame = document.getElementById("session-browser-frame");
   const galaFrame = document.getElementById(            "nlw-frame");
@@ -35,7 +33,7 @@ export default (bundle) => {
   const handleLogin = () => {
     bundle.closeSignaling();
     bundle.closeSessionListSocket();
-    switchToNLW(bundle.notifyLoggedIn);
+    switchToNLW(bundle.notifyLoggedIn, bundle.useDefaultPreview);
   };
 
   const setConnectionType = (ct) => {
