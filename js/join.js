@@ -98,10 +98,8 @@ const previewManager = new PreviewManager(byEID("session-preview-image"));
 
 const statusManager = new AppStatusManager(byEID("status-value"));
 
-const sessionListParent = byEID("session-list-container");
-
 const sessionList =
-  new SessionList(sessionListParent, processURLHash, statusManager
+  new SessionList(byEID("session-list-container"), processURLHash, statusManager
                  , previewManager, notifyNewSelection);
 
 // () => Unit
