@@ -32,6 +32,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".nlw-iframe").src = `http://${galapagos}/hnw-join`;
 });
 
+// (String) => Element?
+const byEID = (eid) => document.getElementById(eid);
+
 const processURLHash = (seshData) => {
 
   if (self.location.hash !== "") {
@@ -41,13 +44,13 @@ const processURLHash = (seshData) => {
     if (match !== null) {
       match.click();
       const hasUsername = username !== undefined;
-      document.getElementById("username").value =
+      byEID("username").value =
         hasUsername ? username : prompt("Please enter your login name");
       if (seshData.lookupUnfiltered(oracleID)?.hasPassword) {
-        document.getElementById("password").value =
+        byEID("password").value =
           prompt("Please enter the room's password");
       }
-      document.getElementById("join-button").click();
+      byEID("join-button").click();
     }
   }
 
@@ -60,14 +63,14 @@ const notifyNewSelection = (seshData, activeElem, prevUUID) => {
   const activeEntry = (activeElem !== null) ? seshData.lookup(activeUUID) : null;
   const hasActive   = activeEntry !== null;
 
-  const passwordInput    = document.getElementById("password");
+  const passwordInput    = byEID("password");
   passwordInput.disabled = hasActive ? !activeEntry.hasPassword : true;
 
   if (activeElem === null || prevUUID !== activeUUID) {
     passwordInput.value = "";
   }
 
-  const roleSelect     = document.getElementById("role-select");
+  const roleSelect     = byEID("role-select");
   roleSelect.disabled  = !hasActive;
   roleSelect.innerHTML = "";
 
@@ -86,13 +89,13 @@ const notifyNewSelection = (seshData, activeElem, prevUUID) => {
 
   // TODO: Better criteria later (especially the # of slots open in session)
   // --Jason B. (6/12/19)
-  document.getElementById("join-button").disabled = !hasActive;
+  byEID("join-button").disabled = !hasActive;
 
 };
 
-const statusManager = new AppStatusManager(document.getElementById("status-value"));
+const statusManager = new AppStatusManager(byEID("status-value"));
 
-const sessionListParent = document.getElementById("session-browser-frame");
+const sessionListParent = byEID("session-list-container");
 
 const sessionList =
   new SessionList(sessionListParent, processURLHash, statusManager, notifyNewSelection);
@@ -100,7 +103,7 @@ const sessionList =
 // () => Unit
 self.join = () => {
   statusManager.connecting();
-  document.getElementById("join-button").disabled = true;
+  byEID("join-button").disabled = true;
   const hostID = document.querySelector(".active").dataset.uuid;
   if (channels[hostID] === undefined) {
     channels[hostID] = null;
@@ -238,8 +241,8 @@ const connectAndLogin = (hostID) => {
 
 // (Protocol.Channel) => Unit
 const login = (channel) => {
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
+  const username = byEID("username").value;
+  const password = byEID("password").value;
   sendGreeting(channel);
   sendRTC(channel)("login", { username, password });
 };
@@ -252,13 +255,13 @@ const cleanupSession = (warrantsExplanation, updateStatus = () => {}) => {
   self.burstQueue.halt();
   self.rxQueue.reset();
 
-  const formFrame = document.getElementById("session-browser-frame");
-  const galaFrame = document.getElementById(            "nlw-frame");
+  const formFrame = byEID("session-browser-frame");
+  const galaFrame = byEID(            "nlw-frame");
   galaFrame.classList.add(   "hidden");
   formFrame.classList.remove("hidden");
   sessionList.enable();
   postToNLW(fakeModel);
-  document.getElementById("join-button").disabled = false;
+  byEID("join-button").disabled = false;
 
   if (!warrantsExplanation) {
     alert("Connection to host lost");
@@ -284,7 +287,7 @@ const postToNLW = (msg) => {
 
 const burstBundle =
   { frame:       nlwFrame
-  , getUsername: () => document.getElementById("username").value
+  , getUsername: () => byEID("username").value
   , postToNLW
   , statusManager
   };
@@ -346,6 +349,6 @@ self.addEventListener("popstate", (event) => {
   }
 });
 
-document.getElementById("disconnect-button").addEventListener("click", () => {
+byEID("disconnect-button").addEventListener("click", () => {
   disconnectChannels("You disconnected from your last session.  Awaiting new selection.");
 });
