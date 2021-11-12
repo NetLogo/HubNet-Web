@@ -2,15 +2,41 @@
 
 export default class SessionData {
 
-  #data = null; // Array[Session]
+  #data   = null;      // Array[Session]
+  #filter = undefined; // (Session) => Boolean
 
   // () => SessionData
   constructor() {
   }
 
+  // ((Session) => Boolean) => Unit
+  applyFilter = (f) => {
+    this.#filter = f;
+  };
+
+  // () => Unit
+  clearFilter = () => {
+    this.#filter = () => true;
+  };
+
   // () => Array[Session]
   get = () => {
     return this.#get().slice(0);
+  };
+
+  // () => Boolean
+  hasBeenInitialized = () => {
+    return this.#data !== null;
+  };
+
+  // () => Boolean
+  isEmpty = () => {
+    return this.size() === 0;
+  };
+
+  // () => Boolean
+  isEmptyUnfiltered = () => {
+    return (this.#data !== null) ? (this.#data.length === 0) : false;
   };
 
   // (UUID) => Session?
@@ -30,7 +56,7 @@ export default class SessionData {
 
   // () => Array[Session]
   #get = () => {
-    return (this.#data !== null) ? this.#data : [];
+    return (this.#data !== null) ? this.#data.filter(this.#filter) : [];
   };
 
 }

@@ -2,13 +2,14 @@ import { uuidToRTCID    } from "./common.js";
 import { galapagos, hnw } from "./domain.js";
 import { joinerConfig   } from "./webrtc.js";
 
-import BurstQueue            from "./burst-queue.js";
-import ChannelHandler        from "./channel-handler.js";
+import BurstQueue     from "./burst-queue.js";
+import ChannelHandler from "./channel-handler.js";
+import RxQueue        from "./rx-queue.js";
+import SessionData    from "./session-data.js";
+import SessionStream  from "./session-stream.js";
+
 import fakeModel             from "./fake-model.js";
 import genCHB                from "./gen-chan-han-bundle.js";
-import RxQueue               from "./rx-queue.js";
-import SessionData           from "./session-data.js";
-import SessionStream         from "./session-stream.js";
 import usePlaceholderPreview from "./use-placeholder-preview.js";
 
 import * as CompressJS from "./compress.js";
@@ -44,8 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".nlw-iframe").src = `http://${galapagos}/hnw-join`;
 });
 
-// (String) => Unit
-const refreshSelection = (oldActiveUUID) => {
+// (String, SessionData) => Unit
+const refreshSelection = (oldActiveUUID, seshData) => {
 
   const container = document.getElementById("session-option-container");
   Array.from(container.querySelectorAll(".session-label")).forEach(
@@ -61,7 +62,7 @@ const refreshSelection = (oldActiveUUID) => {
   const activeElem = document.querySelector(".active");
 
   const activeEntry =
-    activeElem !== null ? sessionData.lookup(activeElem.dataset.uuid) : null;
+    activeElem !== null ? seshData.lookup(activeElem.dataset.uuid) : null;
 
   const passwordInput    = document.getElementById("password");
   passwordInput.disabled = activeEntry !== null ? !activeEntry.hasPassword : true;
@@ -93,8 +94,8 @@ const refreshSelection = (oldActiveUUID) => {
 
 };
 
-// (Array[Session]) => Unit
-const populateSessionList = (sessions) => {
+// (SessionData) => Unit
+const populateSessionList = (seshData) => {
 
   const activeElem    = document.querySelector(".active");
   const oldActiveUUID = activeElem !== null ? activeElem.dataset.uuid : null;
@@ -102,7 +103,7 @@ const populateSessionList = (sessions) => {
   const template = document.getElementById("session-option-template");
 
   const comparator = (a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1;
-  const nodes      = sessions.sort(comparator).map(
+  const nodes      = seshData.get().sort(comparator).map(
     (session) => {
 
       const numClients = session.roleInfo[0][1];
@@ -142,8 +143,10 @@ const populateSessionList = (sessions) => {
       usePlaceholderPreview();
     }
   } else {
-    if (sessionData.size() > 0) {
+    if (!seshData.isEmpty()) {
       setStatus("Session list received.  Please select a session.");
+    } else if (!seshData.isEmptyUnfiltered()) {
+      setStatus("Session list received.  There are some sessions available, but they are hidden by your search filter.");
     } else {
       setStatus("Please wait until someone starts a session, and it will appear in the list below.");
     }
@@ -152,7 +155,7 @@ const populateSessionList = (sessions) => {
   container.innerHTML = "";
   nodes.forEach((node) => container.appendChild(node));
 
-  refreshSelection(oldActiveUUID);
+  refreshSelection(oldActiveUUID, seshData);
 
   if (!self.hasCheckedHash) {
     if (self.location.hash !== "") {
@@ -178,19 +181,27 @@ const populateSessionList = (sessions) => {
 
 // () => Unit
 self.filterSessionList = () => {
-  const data      = sessionData.get();
+
   const filterBox = document.getElementById("session-filter-box");
   const term      = filterBox.value.trim().toLowerCase();
   const matches   = (haystack, needle) => haystack.toLowerCase().includes(needle);
   const checkIt   = (s) => matches(s.name, term) || matches(s.modelName, term);
-  const filtered  = term === "" ? data : data.filter(checkIt);
-  populateSessionList(filtered);
+
+  if (term !== "") {
+    sessionData.applyFilter(checkIt);
+  } else {
+    sessionData.clearFilter();
+  }
+
+  populateSessionList(sessionData);
+
 };
 
 // () => Unit
 self.selectSession = () => {
   const activeElem = document.querySelector(".active");
-  refreshSelection(activeElem !== null ? activeElem.dataset.uuid : null);
+  const activeID   = activeElem !== null ? activeElem.dataset.uuid : null;
+  refreshSelection(activeID, sessionData);
   setStatus("Session selected.  Please enter a username, enter a password (if needed), and click 'Join'.");
 };
 
