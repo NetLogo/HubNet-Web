@@ -34,14 +34,14 @@ export default class SessionList {
 
   }
 
-  // () => UUID?
-  getSelectedUUID = () => {
-    return this.#parent.querySelector(".active").dataset.uuid;
-  };
-
   // () => Unit
   enable = () => {
     this.#stream.connect();
+  };
+
+  // () => UUID?
+  getSelectedUUID = () => {
+    return this.#parent.querySelector(".active").dataset.uuid;
   };
 
   // () => Unit
