@@ -1,20 +1,11 @@
-import { galapagos } from "./domain.js";
-
 import AppStatusManager  from "./app-status-manager.js";
 import BurstQueue        from "./burst-queue.js";
 import ConnectionManager from "./connection-manager.js";
+import NLWManager        from "./nlw-manager.js";
 import PreviewManager    from "./preview-manager.js";
 import SessionList       from "./session-list.js";
 
-import fakeModel from "./fake-model.js";
-import genCHB    from "./gen-chan-han-bundle.js";
-
-const nlwFrame = // Window
-  document.querySelector("#nlw-frame > iframe").contentWindow;
-
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelector(".nlw-iframe").src = `http://${galapagos}/hnw-join`;
-});
+import genCHB from "./gen-chan-han-bundle.js";
 
 // (String) => Element?
 const byEID = (eid) => document.getElementById(eid);
@@ -104,6 +95,7 @@ byEID("join-form").addEventListener("submit", () => {
     { closeSessionListSocket: sessionList.hibernate
     , enqueue:                burstQueue.enqueue
     , notifyLoggedIn:         burstQueue.setStateLoggedIn
+    , showNLW:                nlwManager.show
     , statusManager
     , useDefaultPreview:      previewManager.useDefault
     };
@@ -127,9 +119,10 @@ const genBurstQueue = () => {
   };
 
   const burstBundle =
-    { frame:       nlwFrame
+    { awaitNLW:    nlwManager.await
     , getUsername: () => byEID("username").value
-    , postToNLW
+    , postToNLW:   nlwManager.post
+    , spamNLW:     nlwManager.spam
     , statusManager
     };
 
@@ -151,9 +144,8 @@ const cleanupSession = (warrantsExplanation, updateStatus = () => {}) => {
   burstQueue?.halt();
 
   byEID("session-browser-frame").classList.remove("hidden");
-  byEID(            "nlw-frame").classList.add(   "hidden");
+  nlwManager.hide();
   sessionList.enable();
-  postToNLW(fakeModel);
   byEID("join-button").disabled = false;
 
   if (warrantsExplanation) {
@@ -164,12 +156,11 @@ const cleanupSession = (warrantsExplanation, updateStatus = () => {}) => {
 
 };
 
-// (Object[Any]) => Unit
-const postToNLW = (msg) => {
-  nlwFrame.postMessage(msg, `http://${galapagos}`);
-};
-
 const connMan = new ConnectionManager();
+
+const nlwManager = new NLWManager(byEID("nlw-frame"), connMan.disconnect);
+
+document.addEventListener("DOMContentLoaded", nlwManager.init);
 
 // (MessageEvent) => Unit
 self.addEventListener("message", (event) => {
@@ -225,8 +216,4 @@ self.addEventListener("popstate", (event) => {
       }
     }
   }
-});
-
-byEID("disconnect-button").addEventListener("click", () => {
-  connMan.disconnect();
 });

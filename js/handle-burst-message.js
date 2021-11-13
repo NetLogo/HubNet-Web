@@ -1,5 +1,3 @@
-import { awaitFrame, spamFrame } from "./await.js";
-
 // (Object[Any]) => (Object[Any]) => Unit
 const handleInitialModel = (bundle) => ({ role, token, view, state }) => {
 
@@ -14,7 +12,7 @@ const handleInitialModel = (bundle) => ({ role, token, view, state }) => {
         , token
         , view
         };
-      return awaitFrame(bundle.frame)("hnw-load-interface", initialInterface);
+      return bundle.awaitNLW("hnw-load-interface", initialInterface);
     };
 
   const postInitialState =
@@ -28,7 +26,7 @@ const handleInitialModel = (bundle) => ({ role, token, view, state }) => {
       bundle.postToNLW(parcel);
     };
 
-  spamFrame(bundle.frame)("hnw-are-you-ready-for-interface").
+  bundle.spamNLW("hnw-are-you-ready-for-interface").
     then(postInitialInterface).
     then(postInitialState);
 

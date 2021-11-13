@@ -17,8 +17,8 @@ export default (rootBundle) => (connBundle) => {
     const options = Array.from(document.querySelectorAll(".session-option"));
     options.forEach((o) => { o.checked = false; });
 
-    byEID("session-browser-frame").classList.add(   "hidden");
-    byEID(            "nlw-frame").classList.remove("hidden");
+    byEID("session-browser-frame").classList.add("hidden");
+    rootBundle.showNLW();
 
     self.history.pushState({ name: "joined" }, "joined");
     rootBundle.notifyLoggedIn();

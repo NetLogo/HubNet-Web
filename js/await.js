@@ -1,5 +1,3 @@
-import { galapagos } from "./domain.js";
-
 // [T] @ ((T, Object[Any], MessagePort) => Unit) => (T) => (String, Object[Any]?) => Promise[Any]
 const awaitResponse = (postMessage) => (target) => (type, msg = {}) => {
 
@@ -21,11 +19,11 @@ const awaitResponse = (postMessage) => (target) => (type, msg = {}) => {
 
 };
 
-// (Window) => (String, Object[Any]?) => Promise[Any]
-const awaitFrame =
+// (String?) => (Window) => (String, Object[Any]?) => Promise[Any]
+const awaitFrame = (domain = "*") =>
   awaitResponse(
     (frame, msg, port) => {
-      frame.postMessage(msg, `http://${galapagos}`, [port]);
+      frame.postMessage(msg, domain, [port]);
     }
   );
 
@@ -37,8 +35,8 @@ const awaitWorker =
     }
   );
 
-// (Window) => (String, Object[Any]?) => Promise[Any]
-const spamFrame = (frame) => (type, msg = {}) => {
+// (String?) => (Window) => (String, Object[Any]?) => Promise[Any]
+const spamFrame = (domain = "*") => (frame) => (type, msg = {}) => {
 
   let resolution = null;
 
@@ -52,7 +50,7 @@ const spamFrame = (frame) => (type, msg = {}) => {
         resolution = data;
       };
 
-      frame.postMessage({ ...msg, type }, `http://${galapagos}`, [channel.port2]);
+      frame.postMessage({ ...msg, type }, domain, [channel.port2]);
 
     };
 
