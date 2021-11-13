@@ -1,30 +1,12 @@
-import { uuidToRTCID    } from "./common.js";
-import { galapagos, hnw } from "./domain.js";
-import { joinerConfig   } from "./webrtc.js";
+import { galapagos } from "./domain.js";
 
-import AppStatusManager from "./app-status-manager.js";
-import BurstQueue       from "./burst-queue.js";
-import ChannelHandler   from "./channel-handler.js";
-import RxQueue          from "./rx-queue.js";
-import PreviewManager   from "./preview-manager.js";
-import SessionList      from "./session-list.js";
+import AppStatusManager  from "./app-status-manager.js";
+import ConnectionManager from "./connection-manager.js";
+import PreviewManager    from "./preview-manager.js";
+import SessionList       from "./session-list.js";
 
 import fakeModel from "./fake-model.js";
 import genCHB    from "./gen-chan-han-bundle.js";
-
-import * as CompressJS from "./compress.js";
-
-const sendGreeting = CompressJS.sendGreeting(false);
-const sendRTC      = CompressJS.sendRTC     (false);
-
-const SigTerm = "signaling-terminated";
-
-self.burstQueue = undefined; // RxQueue
-self.rxQueue    = undefined; // BurstQueue
-
-const channels = {}; // Object[Protocol.Channel]
-
-let joinerConnection = new RTCPeerConnection(joinerConfig);
 
 const nlwFrame = // Window
   document.querySelector("#nlw-frame > iframe").contentWindow;
@@ -103,164 +85,60 @@ const sessionList =
                  , previewManager, notifyNewSelection);
 
 byEID("join-form").addEventListener("submit", () => {
+
   statusManager.connecting();
+
   byEID("join-button").disabled = true;
-  const hostID = sessionList.getSelectedUUID();
-  if (channels[hostID] === undefined) {
-    channels[hostID] = null;
-    connectAndLogin(hostID);
-  } else if (channels[hostID] !== null) {
-    login(channels[hostID]);
-  }
-});
 
-// (String) => Unit
-const connectAndLogin = (hostID) => {
-
-  fetch(`/rtc/join/${hostID}`).then((response) => response.text()).then(
-    (joinerID) => {
-      if (joinerID !== "No more hashes") {
-        const rtcID   = uuidToRTCID(joinerID);
-        const channel = joinerConnection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
-        return joinerConnection.createOffer().then(
-          (ofr) => {
-            // For Safari 15- --Jason B. (11/1/21)
-            const isntSafari = ofr instanceof RTCSessionDescription;
-            const offer      = isntSafari ? ofr.toJSON() : ofr;
-            return [joinerID, channel, offer];
-          }
-        );
-      } else {
-        throw new Error("Session is full");
-      }
-    }
-  ).then(
-    ([joinerID, channel, offer]) => {
-
-      const signalingW   = new Worker("js/joiner-signaling-socket.js", { type: "module" });
-      const signalingURL = `ws://${hnw}/rtc/${hostID}/${joinerID}/join`;
-      signalingW.postMessage({ type: "connect", url: signalingURL, offer });
-
-      signalingW.onmessage = ({ data }) => {
-        const datum = JSON.parse(data);
-        switch (datum.type) {
-          case "host-answer": {
-            if (joinerConnection.remoteDescription === null) {
-              joinerConnection.setRemoteDescription(datum.answer);
-            }
-            break;
-          }
-          case "host-ice-candidate": {
-            joinerConnection.addIceCandidate(datum.candidate);
-            break;
-          }
-          case "bye-bye": {
-            console.warn("Central server disconnected from signaling");
-            break;
-          }
-          case "keep-alive": {
-            break;
-          }
-          default: {
-            console.warn(`Unknown signaling message type: ${datum.type}`);
-          }
-        }
-      };
-
-      let knownCandies = new Set([]);
-
-      joinerConnection.onicecandidate =
-        ({ candidate }) => {
-          if (candidate !== undefined && candidate !== null) {
-            const candy    = candidate.toJSON();
-            const candyStr = JSON.stringify(candy);
-            if (!knownCandies.has(candyStr)) {
-              knownCandies = knownCandies.add(candyStr);
-              if (signalingW !== SigTerm) {
-                signalingW.postMessage({ type: "ice-candidate", candidate: candy });
-              }
-            }
-          }
-        };
-
-      joinerConnection.setLocalDescription(offer);
-
-      const notifyFailedInit = () => {
-        alert("Sorry.  Something went wrong when trying to load the model.  Please try again.");
-        cleanupSession(false, statusManager.failedToLoadModel);
-      };
-
-      const bqBundle =
-        { loop:              (f) => { requestAnimationFrame(f); }
-        , notifyDownloading: statusManager.downloadingModel
-        , notifyFailedInit
-        };
-
-      self.burstQueue = new BurstQueue(burstBundle, bqBundle);
-
-      const bundleBundle =
-        { channel
-        , disconnectChannels
-        , closeSessionListSocket: sessionList.hibernate
-        , enqueue:                self.burstQueue.enqueue
-        , notifyLoggedIn:         self.burstQueue.setStateLoggedIn
-        , useDefaultPreview:      previewManager.useDefault
-        , closeSignaling:         () => { signalingW.terminate(); }
-        , getConnectionStats:     () => joinerConnection.getStats()
-        , statusManager
-        };
-
-      const chanHanBundle = genCHB(bundleBundle);
-      const chanHan       = new ChannelHandler(chanHanBundle);
-      self.rxQueue        = new RxQueue(chanHan, false);
-
-      channel.onopen = () => {
-        statusManager.loggingIn();
-        login(channel);
-      };
-
-      channel.onclose = (e) => {
-        cleanupSession(e.code !== 1000);
-      };
-
-      channel.onmessage = self.rxQueue.enqueue;
-
-      channels[hostID] = channel;
-
-      requestAnimationFrame(self.burstQueue.run);
-
-      joinerConnection.oniceconnectionstatechange = () => {
-        if (joinerConnection.iceConnectionState === "disconnected") {
-          cleanupSession(true, statusManager.iceConnectionLost);
-        }
-      };
-
-    }
-  ).catch(
-    error => alert(`Cannot join session: ${error.message}`)
-  );
-};
-
-// (Protocol.Channel) => Unit
-const login = (channel) => {
   const username = byEID("username").value;
   const password = byEID("password").value;
-  sendGreeting(channel);
-  sendRTC(channel)("login", { username, password });
-};
+
+  const hostID = sessionList.getSelectedUUID();
+
+  const onFail = () => {
+    alert("Sorry.  Something went wrong when trying to load the model.  Please try again.");
+    cleanupSession(false, statusManager.failedToLoadModel);
+  };
+
+  const burstBundle =
+    { frame:       nlwFrame
+    , getUsername: () => byEID("username").value
+    , postToNLW
+    , statusManager
+    };
+
+  const loop = (f) => { requestAnimationFrame(f); };
+
+  const bqBundle =
+    { loop
+    , notifyDownloading: statusManager.downloadingModel
+    , notifyFailedInit:  onFail
+    };
+
+  const rootCHBundle =
+    { closeSessionListSocket: sessionList.hibernate
+    , statusManager
+    , useDefaultPreview:      previewManager.useDefault
+    };
+
+  const genCHBundle = genCHB(rootCHBundle);
+
+  fetch(`/rtc/join/${hostID}`).
+    then((response) => response.text()).
+    then(connMan.logIn( hostID, username, password, burstBundle, bqBundle
+                      , genCHBundle, statusManager.loggingIn
+                      , statusManager.iceConnectionLost, alert
+                      , cleanupSession, loop));
+
+});
 
 // (Boolean, () => Unit) => Unit
 const cleanupSession = (warrantsExplanation, updateStatus = () => {}) => {
 
-  joinerConnection = new RTCPeerConnection(joinerConfig);
+  connMan.reset();
 
-  self.burstQueue.halt();
-  self.rxQueue.reset();
-
-  const formFrame = byEID("session-browser-frame");
-  const galaFrame = byEID(            "nlw-frame");
-  galaFrame.classList.add(   "hidden");
-  formFrame.classList.remove("hidden");
+  byEID("session-browser-frame").classList.remove("hidden");
+  byEID(            "nlw-frame").classList.add(   "hidden");
   sessionList.enable();
   postToNLW(fakeModel);
   byEID("join-button").disabled = false;
@@ -273,34 +151,19 @@ const cleanupSession = (warrantsExplanation, updateStatus = () => {}) => {
 
 };
 
-// (String) => Unit
-const disconnectChannels = (reason) => {
-  Object.entries(channels).forEach(([hostID, channel]) => {
-    sendRTC(channel)("bye-bye");
-    channel.close(1000, reason);
-    delete channels[hostID];
-  });
-};
-
 // (Object[Any]) => Unit
 const postToNLW = (msg) => {
   nlwFrame.postMessage(msg, `http://${galapagos}`);
 };
 
-const burstBundle =
-  { frame:       nlwFrame
-  , getUsername: () => byEID("username").value
-  , postToNLW
-  , statusManager
-  };
+const connMan = new ConnectionManager();
 
 // (MessageEvent) => Unit
 self.addEventListener("message", (event) => {
   switch (event.data.type) {
 
     case "relay": {
-      const hostID = document.querySelector(".active").dataset.uuid;
-      sendRTC(channels[hostID])("relay", event.data);
+      connMan.send("relay", event.data);
       break;
     }
 
@@ -333,14 +196,14 @@ self.addEventListener("message", (event) => {
 self.addEventListener("beforeunload", () => {
   // Honestly, this will probably not run before the tab closes.
   // Not much I can do about that.  --Jason B. (8/21/20)
-  disconnectChannels("");
+  connMan.disconnect();
 });
 
 self.addEventListener("popstate", (event) => {
   if (event.state !== null && event.state !== undefined) {
     switch (event.state.name) {
       case "joined": {
-        joinerConnection = new RTCPeerConnection(joinerConfig);
+        connMan.reset();
         cleanupSession(false);
         break;
       }
@@ -352,5 +215,5 @@ self.addEventListener("popstate", (event) => {
 });
 
 byEID("disconnect-button").addEventListener("click", () => {
-  disconnectChannels("You disconnected from your last session.  Awaiting new selection.");
+  connMan.disconnect();
 });

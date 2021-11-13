@@ -26,7 +26,7 @@ const handleConnEst = (bundle) => ({ protocolVersion }) => {
 
   if (protocolVersion !== HNWProtocolVersionNumber) {
     bundle.notifyUser(`HubNet protocol version mismatch!  You are using protocol version '${HNWProtocolVersionNumber}', while the host is using version '${protocolVersion}'.  To ensure that you and the host are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  Your connection will now close.`);
-    bundle.disconnectChannels("Protocol version number mismatch");
+    bundle.disconnect();
   }
 
   bundle.getConnectionStats().then(
@@ -116,7 +116,7 @@ export default class ChannelHandler {
       }
 
       case "bye-bye": {
-        b.disconnect();
+        b.terminate();
         b.notifyUser("The host disconnected from the activity");
         break;
       }

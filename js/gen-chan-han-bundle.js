@@ -1,62 +1,51 @@
-import * as CompressJS from "./compress.js";
+// (String) => Element?
+const byEID = (eid) => document.getElementById(eid);
 
-const sendRTC = CompressJS.sendRTC(false);
-
-// (() => Unit, () => Unit) => Unit
-const switchToNLW = (notifyLoggedIn, useDefaultPreview) => {
-
-  document.querySelector(".session-option").checked = false;
-  useDefaultPreview();
-
-  const formFrame = document.getElementById("session-browser-frame");
-  const galaFrame = document.getElementById(            "nlw-frame");
-  formFrame.classList.add(   "hidden");
-  galaFrame.classList.remove("hidden");
-
-  self.history.pushState({ name: "joined" }, "joined");
-  notifyLoggedIn();
-
-};
-
-// ( () => Promise[RTCStatsReport], Protocol.Channel, () => Unit
-// , () => Unit, () => Unit) => Object[Any]
-export default (bundle) => {
+// (Object[Any]) => (Object[Any]) => Object[Any]
+export default (rootBundle) => (connBundle) => {
 
   const unlockUI = () => {
-    document.getElementById("join-button").disabled = false;
-  };
-
-  const disconnect = () => {
-    bundle.channel.close(1000, "The host disconnected.  Awaiting new selection.");
+    byEID("join-button").disabled = false;
   };
 
   const handleLogin = () => {
-    bundle.closeSignaling();
-    bundle.closeSessionListSocket();
-    switchToNLW(bundle.notifyLoggedIn, bundle.useDefaultPreview);
+
+    connBundle.closeSignaling();
+    rootBundle.closeSessionListSocket();
+    rootBundle.useDefaultPreview();
+
+    const options = Array.from(document.querySelectorAll(".session-option"));
+    options.forEach((o) => { o.checked = false; });
+
+    byEID("session-browser-frame").classList.add(   "hidden");
+    byEID(            "nlw-frame").classList.remove("hidden");
+
+    self.history.pushState({ name: "joined" }, "joined");
+    connBundle.notifyLoggedIn();
+
   };
 
   const setConnectionType = (ct) => {
-    document.getElementById("connection-type-span").innerText = ct;
+    byEID("connection-type-span").innerText = ct;
   };
 
   const setLatency = (lat) => {
-    document.getElementById("latency-span").innerText = lat;
+    byEID("latency-span").innerText = lat;
   };
 
-  return { disconnect
-         , disconnectChannels:      bundle.disconnectChannels
-         , enqueue:                 bundle.enqueue
-         , getConnectionStats:      bundle.getConnectionStats
+  return { disconnect:              connBundle.disconnect
+         , enqueue:                 connBundle.enqueue
+         , getConnectionStats:      connBundle.getConnectionStats
          , handleIncorrectPassword: unlockUI
          , handleLogin
          , handleMissingUsername:   unlockUI
          , handleUsernameIsTaken:   unlockUI
          , notifyUser:              alert
-         , send:                    sendRTC(bundle.channel)
+         , send:                    connBundle.send
          , setConnectionType
          , setLatency
-         , statusManager:           bundle.statusManager
+         , statusManager:           rootBundle.statusManager
+         , terminate:               connBundle.terminate
          };
 
 };
