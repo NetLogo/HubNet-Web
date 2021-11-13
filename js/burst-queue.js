@@ -12,13 +12,13 @@ export default class BurstQueue {
   #messageQueue      = undefined; // Array[Object[Any]]
   #notifyDownloading = undefined; // () => Unit
   #notifyFailedInit  = undefined; // () => Unit
-  #pageState         = undefined; // PageState
-  #pageStateTS       = undefined; // Number
+  #activityState     = undefined; // ActivityState
+  #activityStateTS   = undefined; // Number
 
   // (Object[Any], (() => Unit) => Unit, () => Unit, () => Unit) => BurstQueue
   constructor(bundle, loop, notifyDownloading, notifyFailedInit) {
 
-    const obj = { notifyBootedUp: () => { this.#setPageState(BootedUp); } };
+    const obj = { notifyBootedUp: () => { this.#setActivityState(BootedUp); } };
 
     this.#handleBurst       = handleBurstMessage({ ...bundle, ...obj });
     this.#loop              = loop;
@@ -26,8 +26,8 @@ export default class BurstQueue {
     this.#messageQueue      = [];
     this.#notifyDownloading = notifyDownloading;
     this.#notifyFailedInit  = notifyFailedInit;
-    this.#pageState         = Uninitialized;
-    this.#pageStateTS       = -1;
+    this.#activityState     = Uninitialized;
+    this.#activityStateTS   = -1;
 
   }
 
@@ -49,9 +49,9 @@ export default class BurstQueue {
 
     const innerLoop = () => {
 
-      if (this.#pageState === LoggedIn) {
+      if (this.#activityState === LoggedIn) {
 
-        if ((this.#pageStateTS + 60000) >= (new Date).getTime()) {
+        if ((this.#activityStateTS + 60000) >= (new Date).getTime()) {
 
           let   stillGoing = true;
           const deferred   = [];
@@ -76,13 +76,13 @@ export default class BurstQueue {
           this.#notifyFailedInit();
         }
 
-      } else if (this.#pageState === BootedUp) {
+      } else if (this.#activityState === BootedUp) {
         while (this.#messageQueue.length > 0) {
           const message = this.#messageQueue.shift();
           this.#handleBurst(message);
         }
       } else {
-        console.log("Skipping while in state:", this.#pageStateAsString());
+        console.log("Skipping while in state:", this.#activityStateAsString());
       }
 
       if (!this.#loopIsTerminated) {
@@ -97,17 +97,17 @@ export default class BurstQueue {
 
   // () => Unit
   setStateLoggedIn = () => {
-    this.#setPageState(LoggedIn);
+    this.#setActivityState(LoggedIn);
   };
 
   // () => Unit
   setStateUninitialized = () => {
-    this.#setPageState(Uninitialized);
+    this.#setActivityState(Uninitialized);
   };
 
   // () => String
-  #pageStateAsString = () => {
-    switch (this.#pageState) {
+  #activityStateAsString = () => {
+    switch (this.#activityState) {
       case Uninitialized: {
         return "uninitialized";
       }
@@ -123,10 +123,10 @@ export default class BurstQueue {
     }
   };
 
-  // (PageState) => Unit
-  #setPageState = (state) => {
-    this.#pageState   = state;
-    this.#pageStateTS = (new Date).getTime();
+  // (ActivityState) => Unit
+  #setActivityState = (state) => {
+    this.#activityState   = state;
+    this.#activityStateTS = (new Date).getTime();
   };
 
 }
