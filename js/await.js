@@ -1,6 +1,6 @@
 import { galapagos } from "./domain.js";
 
-// [T] @ ((T, Object[Any], MessagePort) => Unit) => (T) => (String, Object[Any]) => Promise[Any]
+// [T] @ ((T, Object[Any], MessagePort) => Unit) => (T) => (String, Object[Any]?) => Promise[Any]
 const awaitResponse = (postMessage) => (target) => (type, msg = {}) => {
 
   const f =
@@ -21,7 +21,7 @@ const awaitResponse = (postMessage) => (target) => (type, msg = {}) => {
 
 };
 
-// (Window) => (String, Object[Any]) => Promise[Any]
+// (Window) => (String, Object[Any]?) => Promise[Any]
 const awaitFrame =
   awaitResponse(
     (frame, msg, port) => {
@@ -29,7 +29,7 @@ const awaitFrame =
     }
   );
 
-// (WebWorker) => (String, Object[Any]) => Promise[Any]
+// (WebWorker) => (String, Object[Any]?) => Promise[Any]
 const awaitWorker =
   awaitResponse(
     (worker, msg, port) => {
@@ -37,7 +37,7 @@ const awaitWorker =
     }
   );
 
-// (Window) => (String, Object[Any]) => Promise[Any]
+// (Window) => (String, Object[Any]?) => Promise[Any]
 const spamFrame = (frame) => (type, msg = {}) => {
 
   let resolution = null;
