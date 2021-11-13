@@ -11,8 +11,6 @@ import genCHB from "./gen-chan-han-bundle.js";
 // (String) => Element?
 const byEID = (eid) => document.getElementById(eid);
 
-let burstQueue = undefined; // BurstQueue
-
 // (String, String) => Unit
 const onLogIn = (username, password) => {
 
@@ -20,7 +18,7 @@ const onLogIn = (username, password) => {
 
   const hostID = sessionList.getSelectedUUID();
 
-  burstQueue = genBurstQueue();
+  requestAnimationFrame(burstQueue.run);
 
   const rootCHBundle =
     { closeSessionListSocket: sessionList.hibernate
@@ -41,8 +39,6 @@ const onLogIn = (username, password) => {
                       , alert, cleanupSession));
 
 };
-
-const loginControls = new LoginControlsManager(byEID("join-form"), onLogIn);
 
 // ((UUID) => Session?) => Unit
 const processURLHash = (clickAndGetByUUID) => {
@@ -74,16 +70,6 @@ const processURLHash = (clickAndGetByUUID) => {
 
 };
 
-
-const previewManager = new PreviewManager(byEID("session-preview-image"));
-
-const statusManager = new AppStatusManager(byEID("status-value"));
-
-const sessionList =
-  new SessionList(byEID("session-list-container"), processURLHash, statusManager
-                 , previewManager
-                 , loginControls.onNewSelection(() => document.createElement("option")));
-
 // () => BurstQueue
 const genBurstQueue = () => {
 
@@ -102,12 +88,7 @@ const genBurstQueue = () => {
 
   const loop = (f) => { requestAnimationFrame(f); };
 
-  const bq = new BurstQueue( burstBundle, loop, statusManager.downloadingModel
-                           , onFail);
-
-  loop(bq.run);
-
-  return bq;
+  return new BurstQueue(burstBundle, loop, statusManager.downloadingModel, onFail);
 
 };
 
@@ -130,9 +111,18 @@ const cleanupSession = (warrantsExplanation, updateStatus = () => {}) => {
 
 };
 
-const connMan = new ConnectionManager();
+const loginControls  = new LoginControlsManager(byEID("join-form"), onLogIn);
+const previewManager = new       PreviewManager(byEID("session-preview-image"));
+const statusManager  = new     AppStatusManager(byEID("status-value"));
 
+const sessionList =
+  new SessionList(byEID("session-list-container"), processURLHash, statusManager
+                 , previewManager
+                 , loginControls.onNewSelection(() => document.createElement("option")));
+
+const connMan    = new ConnectionManager();
 const nlwManager = new NLWManager(byEID("nlw-frame"), connMan.disconnect);
+const burstQueue = genBurstQueue(); // BurstQueue
 
 document.addEventListener("DOMContentLoaded", nlwManager.init);
 
