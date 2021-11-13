@@ -124,20 +124,15 @@ export default class ConnectionManager {
   #joinSession = ( hostID, joinerID, username, password, offer, channel
                  , genCHBundle, notifyLoggingIn, notifyICEConnLost, onTeardown) => {
 
-    const signalingStream =
-      this.#genSignalingStream(hostID, joinerID, offer);
-
-    this.#registerICEListeners(signalingStream, onTeardown, notifyICEConnLost);
+    const signalingStream = this.#genSignalingStream(hostID, joinerID, offer);
+    this.#rxQueue         = this.#genRxQueue(genCHBundle, signalingStream.terminate);
+    this.#channel         = channel;
 
     this.#conn.setLocalDescription(offer);
-
-    this.#rxQueue =
-      this.#genRxQueue(genCHBundle, signalingStream.terminate);
-
+    this.#registerICEListeners(signalingStream, onTeardown, notifyICEConnLost);
     this.#registerChannelListeners( channel, username, password, notifyLoggingIn
                                   , this.#rxQueue, onTeardown);
 
-    this.#channel = channel;
 
   };
 
