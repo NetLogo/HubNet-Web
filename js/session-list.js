@@ -184,9 +184,6 @@ export default class SessionList {
   // (Element, SessionData, SelNotifier) => Unit
   #refreshSelection = (parent, seshData, notifyNewSelection) => {
 
-    const oldActiveElem = parent.querySelector(".active");
-    const oldActiveUUID = (oldActiveElem !== null) ? getID(oldActiveElem) : null;
-
     const container = descByID(parent, "session-option-container");
     Array.from(container.querySelectorAll(".session-label")).forEach(
       (label) => {
@@ -198,9 +195,11 @@ export default class SessionList {
       }
     );
 
-    const activeElem = parent.querySelector(".active");
+    const activeElem      = parent.querySelector(".active");
+    const uuid            = (activeElem !== null) ? activeElem.dataset.uuid : null;
+    const selectedSession = (activeElem !== null) ? seshData.lookup(uuid)   : null;
 
-    notifyNewSelection(seshData, activeElem, oldActiveUUID);
+    notifyNewSelection(selectedSession);
 
   };
 

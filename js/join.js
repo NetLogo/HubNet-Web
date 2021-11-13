@@ -1,9 +1,10 @@
-import AppStatusManager  from "./app-status-manager.js";
-import BurstQueue        from "./burst-queue.js";
-import ConnectionManager from "./connection-manager.js";
-import NLWManager        from "./nlw-manager.js";
-import PreviewManager    from "./preview-manager.js";
-import SessionList       from "./session-list.js";
+import AppStatusManager     from "./app-status-manager.js";
+import BurstQueue           from "./burst-queue.js";
+import ConnectionManager    from "./connection-manager.js";
+import LoginControlsManager from "./login-controls-manager.js";
+import NLWManager           from "./nlw-manager.js";
+import PreviewManager       from "./preview-manager.js";
+import SessionList          from "./session-list.js";
 
 import genCHB from "./gen-chan-han-bundle.js";
 
@@ -12,80 +13,10 @@ const byEID = (eid) => document.getElementById(eid);
 
 let burstQueue = undefined; // BurstQueue
 
-// ((UUID) => Session?) => Unit
-const processURLHash = (clickAndGetByUUID) => {
-
-  if (self.location.hash !== "") {
-    const trueHash             = self.location.hash.slice(1);
-    const [oracleID, username] = trueHash.split(",", 2);
-    const session              = clickAndGetByUUID(oracleID);
-    if (session !== undefined) {
-      const hasUsername = username !== undefined;
-      byEID("username").value =
-        hasUsername ? username : prompt("Please enter your login name");
-      if (session.hasPassword) {
-        byEID("password").value =
-          prompt("Please enter the room's password");
-      }
-      byEID("join-button").click();
-    }
-  }
-
-};
-
-// (SessionData, Element, UUID) => Unit
-const notifyNewSelection = (seshData, activeElem, prevUUID) => {
-
-  const activeUUID  = (activeElem !== null) ? activeElem.dataset.uuid     : null;
-  const activeEntry = (activeElem !== null) ? seshData.lookup(activeUUID) : null;
-  const hasActive   = activeEntry !== null;
-
-  const passwordInput    = byEID("password");
-  passwordInput.disabled = hasActive ? !activeEntry.hasPassword : true;
-
-  if (activeElem === null || prevUUID !== activeUUID) {
-    passwordInput.value = "";
-  }
-
-  const roleSelect     = byEID("role-select");
-  roleSelect.disabled  = !hasActive;
-  roleSelect.innerHTML = "";
-
-  if (hasActive) {
-    activeEntry.roleInfo.forEach(
-      ([roleName, current, max]) => {
-        const node        = document.createElement("option");
-        const isUnlimited = max === 0;
-        node.disabled     = !isUnlimited && current >= max;
-        node.innerText    = isUnlimited ? `${roleName} | ${current}` : `${roleName} | ${current}/${max}`;
-        node.value        = roleName;
-        roleSelect.appendChild(node);
-      }
-    );
-  }
-
-  // TODO: Better criteria later (especially the # of slots open in session)
-  // --Jason B. (6/12/19)
-  byEID("join-button").disabled = !hasActive;
-
-};
-
-const previewManager = new PreviewManager(byEID("session-preview-image"));
-
-const statusManager = new AppStatusManager(byEID("status-value"));
-
-const sessionList =
-  new SessionList(byEID("session-list-container"), processURLHash, statusManager
-                 , previewManager, notifyNewSelection);
-
-byEID("join-form").addEventListener("submit", () => {
+// (String, String) => Unit
+const onLogIn = (username, password) => {
 
   statusManager.connecting();
-
-  byEID("join-button").disabled = true;
-
-  const username = byEID("username").value;
-  const password = byEID("password").value;
 
   const hostID = sessionList.getSelectedUUID();
 
@@ -97,6 +28,7 @@ byEID("join-form").addEventListener("submit", () => {
     , notifyLoggedIn:         burstQueue.setStateLoggedIn
     , showNLW:                nlwManager.show
     , statusManager
+    , unlockUI:               loginControls.reset
     , useDefaultPreview:      previewManager.useDefault
     };
 
@@ -108,7 +40,49 @@ byEID("join-form").addEventListener("submit", () => {
                       , statusManager.loggingIn, statusManager.iceConnectionLost
                       , alert, cleanupSession));
 
-});
+};
+
+const loginControls = new LoginControlsManager(byEID("join-form"), onLogIn);
+
+// ((UUID) => Session?) => Unit
+const processURLHash = (clickAndGetByUUID) => {
+
+  if (self.location.hash !== "") {
+
+    const trueHash             = self.location.hash.slice(1);
+    const [oracleID, username] = trueHash.split(",", 2);
+    const session              = clickAndGetByUUID(oracleID);
+
+    if (session !== undefined) {
+
+      const hasUsername = username !== undefined;
+
+      const finalUsername =
+        hasUsername ? username : prompt("Please enter your login name");
+
+      loginControls.setUsername(finalUsername);
+
+      if (session.hasPassword) {
+        loginControls.setPassword(prompt("Please enter the room's password"));
+      }
+
+      loginControls.join();
+
+    }
+
+  }
+
+};
+
+
+const previewManager = new PreviewManager(byEID("session-preview-image"));
+
+const statusManager = new AppStatusManager(byEID("status-value"));
+
+const sessionList =
+  new SessionList(byEID("session-list-container"), processURLHash, statusManager
+                 , previewManager
+                 , loginControls.onNewSelection(() => document.createElement("option")));
 
 // () => BurstQueue
 const genBurstQueue = () => {
@@ -120,7 +94,7 @@ const genBurstQueue = () => {
 
   const burstBundle =
     { awaitNLW:    nlwManager.await
-    , getUsername: () => byEID("username").value
+    , getUsername: loginControls.getUsername
     , postToNLW:   nlwManager.post
     , spamNLW:     nlwManager.spam
     , statusManager
@@ -146,7 +120,7 @@ const cleanupSession = (warrantsExplanation, updateStatus = () => {}) => {
   byEID("session-browser-frame").classList.remove("hidden");
   nlwManager.hide();
   sessionList.enable();
-  byEID("join-button").disabled = false;
+  loginControls.reset();
 
   if (warrantsExplanation) {
     alert("Connection to host lost");

@@ -4,10 +4,6 @@ const byEID = (eid) => document.getElementById(eid);
 // (Object[Any]) => (Object[Any]) => Object[Any]
 export default (rootBundle) => (connBundle) => {
 
-  const unlockUI = () => {
-    byEID("join-button").disabled = false;
-  };
-
   const handleLogin = () => {
 
     connBundle.closeSignaling();
@@ -36,10 +32,10 @@ export default (rootBundle) => (connBundle) => {
   return { disconnect:              connBundle.disconnect
          , enqueue:                 rootBundle.enqueue
          , getConnectionStats:      connBundle.getConnectionStats
-         , handleIncorrectPassword: unlockUI
+         , handleIncorrectPassword: rootBundle.unlockUI
          , handleLogin
-         , handleMissingUsername:   unlockUI
-         , handleUsernameIsTaken:   unlockUI
+         , handleMissingUsername:   rootBundle.unlockUI
+         , handleUsernameIsTaken:   rootBundle.unlockUI
          , notifyUser:              alert
          , send:                    connBundle.send
          , setConnectionType
