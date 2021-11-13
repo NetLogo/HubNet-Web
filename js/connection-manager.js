@@ -1,7 +1,6 @@
 import { uuidToRTCID  } from "./common.js";
 import { joinerConfig } from "./webrtc.js";
 
-import BurstQueue      from "./burst-queue.js";
 import ChannelHandler  from "./channel-handler.js";
 import SignalingStream from "./signaling-stream.js";
 import RxQueue         from "./rx-queue.js";
@@ -15,11 +14,9 @@ const sendRTC      = CompressJS.sendRTC     (false);
 
 export default class ConnectionManager {
 
-  #burstBundle = undefined; // Object[Any]
-  #burstQueue  = undefined; // BurstQueue
-  #channel     = undefined; // RTCDataChannel
-  #conn        = undefined; // RTCPeerConnection
-  #rxQueue     = undefined; // RxQueue
+  #channel = undefined; // RTCDataChannel
+  #conn    = undefined; // RTCPeerConnection
+  #rxQueue = undefined; // RxQueue
 
   // () => ConnectionManager
   constructor() {
@@ -35,17 +32,15 @@ export default class ConnectionManager {
     }
   };
 
-  // ( UUID, String, String, Object[Any], Object[Any], (Object[Any]) => Object[Any]
-  // , () => Unit, () => Unit, (String) => Unit, (Boolean, () => Unit) => Unit, (() => Unit) => Unit
-  // ) => (UUID) => Unit
-  logIn = ( hostID, username, password, burstBundle, bqBundle, genCHBundle
-          , notifyLoggingIn, notifyICEConnLost, notifyUser, onTeardown, raf
-          ) => (joinerID) => {
+  // ( UUID, String, String, Object[Any], Object[Any], (Object[Any]) => Object[Any], () => Unit
+  // , () => Unit, (String) => Unit, (Boolean, () => Unit) => Unit, (() => Unit) => Unit) => (UUID) => Unit
+  logIn = ( hostID, username, password, genCHBundle, notifyLoggingIn
+          , notifyICEConnLost, notifyUser, onTeardown) => (joinerID) => {
     this.#initiateRTC(joinerID).
       then(([channel, offer]) => {
         this.#joinSession( hostID, joinerID, username, password, offer, channel
-                         , burstBundle, bqBundle, genCHBundle, notifyLoggingIn
-                         , notifyICEConnLost, onTeardown, raf);
+                         , genCHBundle, notifyLoggingIn, notifyICEConnLost
+                         , onTeardown);
       }).catch(
         error => notifyUser(`Cannot join session: ${error.message}`)
       );
@@ -55,7 +50,6 @@ export default class ConnectionManager {
   reset = () => {
     this.#conn    = new RTCPeerConnection(joinerConfig);
     this.#channel = null;
-    this.#burstQueue?.halt();
     this.#rxQueue?.reset();
   };
 
@@ -71,15 +65,13 @@ export default class ConnectionManager {
     this.#channel.close(1000, "Connection closed by host");
   };
 
-  // (BurstQueue, (Object[Any]) => Object[Any], () => Unit) => RxQueue
-  #genRxQueue = (burstQueue, genCHBundle, closeSignaling) => {
+  // ((Object[Any]) => Object[Any], () => Unit) => RxQueue
+  #genRxQueue = (genCHBundle, closeSignaling) => {
 
     const connCHBundle =
       { disconnect:             this.disconnect
       , closeSignaling
-      , enqueue:                burstQueue.enqueue
       , getConnectionStats:     () => this.#conn.getStats()
-      , notifyLoggedIn:         burstQueue.setStateLoggedIn
       , send:                   this.send
       , terminate:              this.terminate
       };
@@ -128,13 +120,9 @@ export default class ConnectionManager {
   };
 
   // ( UUID, UUID, String, String, RTCSessionDescriptionInit, RTCDataChannel
-  // , Object[Any], Object[Any], (Object[Any]) => Object[Any]
-  // , () => Unit, () => Unit, (Boolean, () => Unit) => Unit
-  // , (() => Unit) => Unit) => Unit
+  // , (Object[Any]) => Object[Any], () => Unit, () => Unit, (Boolean, () => Unit) => Unit) => Unit
   #joinSession = ( hostID, joinerID, username, password, offer, channel
-                 , burstBundle, bqBundle, genCHBundle
-                 , notifyLoggingIn, notifyICEConnLost, onTeardown
-                 , raf) => {
+                 , genCHBundle, notifyLoggingIn, notifyICEConnLost, onTeardown) => {
 
     const signalingStream =
       this.#genSignalingStream(hostID, joinerID, offer);
@@ -143,17 +131,13 @@ export default class ConnectionManager {
 
     this.#conn.setLocalDescription(offer);
 
-    this.#burstQueue = new BurstQueue(burstBundle, bqBundle);
-
     this.#rxQueue =
-      this.#genRxQueue(this.#burstQueue, genCHBundle, signalingStream.terminate);
+      this.#genRxQueue(genCHBundle, signalingStream.terminate);
 
     this.#registerChannelListeners( channel, username, password, notifyLoggingIn
                                   , this.#rxQueue, onTeardown);
 
     this.#channel = channel;
-
-    raf(this.#burstQueue.run);
 
   };
 

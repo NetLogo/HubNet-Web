@@ -6,24 +6,28 @@ const BootedUp      = 3000;
 
 export default class BurstQueue {
 
-  #bundle           = undefined; // Object[Any]
-  #handleBurst      = undefined; // (Object[Any]) => Unit
-  #loopIsTerminated = undefined; // Boolean
-  #messageQueue     = undefined; // Array[Object[Any]]
-  #pageState        = undefined; // PageState
-  #pageStateTS      = undefined; // Number
+  #handleBurst       = undefined; // (Object[Any]) => Unit
+  #loop              = undefined; // (() => Unit) => Unit
+  #loopIsTerminated  = undefined; // Boolean
+  #messageQueue      = undefined; // Array[Object[Any]]
+  #notifyDownloading = undefined; // () => Unit
+  #notifyFailedInit  = undefined; // () => Unit
+  #pageState         = undefined; // PageState
+  #pageStateTS       = undefined; // Number
 
-  // () => BurstQueue
-  constructor(burstBundle, myBundle) {
+  // (Object[Any], (() => Unit) => Unit, () => Unit, () => Unit) => BurstQueue
+  constructor(bundle, loop, notifyDownloading, notifyFailedInit) {
 
-    const obj = { notifyBootedUp: this.setStateBootedUp };
+    const obj = { notifyBootedUp: () => { this.#setPageState(BootedUp); } };
 
-    this.#bundle           = myBundle;
-    this.#handleBurst      = handleBurstMessage({ ...burstBundle, ...obj });
-    this.#loopIsTerminated = false;
-    this.#messageQueue     = [];
-    this.#pageState        = Uninitialized;
-    this.#pageStateTS      = -1;
+    this.#handleBurst       = handleBurstMessage({ ...bundle, ...obj });
+    this.#loop              = loop;
+    this.#loopIsTerminated  = false;
+    this.#messageQueue      = [];
+    this.#notifyDownloading = notifyDownloading;
+    this.#notifyFailedInit  = notifyFailedInit;
+    this.#pageState         = Uninitialized;
+    this.#pageStateTS       = -1;
 
   }
 
@@ -57,7 +61,7 @@ export default class BurstQueue {
             const message = this.#messageQueue.shift();
 
             if (message.type === "initial-model") {
-              this.#bundle.notifyDownloading();
+              this.#notifyDownloading();
               this.#handleBurst(message);
               stillGoing = false;
             } else {
@@ -69,7 +73,7 @@ export default class BurstQueue {
           deferred.forEach((d) => this.#messageQueue.push(d));
 
         } else {
-          this.#bundle.notifyFailedInit();
+          this.#notifyFailedInit();
         }
 
       } else if (this.#pageState === BootedUp) {
@@ -82,18 +86,13 @@ export default class BurstQueue {
       }
 
       if (!this.#loopIsTerminated) {
-        this.#bundle.loop(innerLoop);
+        this.#loop(innerLoop);
       }
 
     };
 
     innerLoop();
 
-  };
-
-  // () => Unit
-  setStateBootedUp = () => {
-    this.#setPageState(BootedUp);
   };
 
   // () => Unit

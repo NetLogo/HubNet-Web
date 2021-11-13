@@ -1,6 +1,7 @@
 import { galapagos } from "./domain.js";
 
 import AppStatusManager  from "./app-status-manager.js";
+import BurstQueue        from "./burst-queue.js";
 import ConnectionManager from "./connection-manager.js";
 import PreviewManager    from "./preview-manager.js";
 import SessionList       from "./session-list.js";
@@ -17,6 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // (String) => Element?
 const byEID = (eid) => document.getElementById(eid);
+
+let burstQueue = undefined; // BurstQueue
 
 // ((UUID) => Session?) => Unit
 const processURLHash = (clickAndGetByUUID) => {
@@ -95,6 +98,29 @@ byEID("join-form").addEventListener("submit", () => {
 
   const hostID = sessionList.getSelectedUUID();
 
+  burstQueue = genBurstQueue();
+
+  const rootCHBundle =
+    { closeSessionListSocket: sessionList.hibernate
+    , enqueue:                burstQueue.enqueue
+    , notifyLoggedIn:         burstQueue.setStateLoggedIn
+    , statusManager
+    , useDefaultPreview:      previewManager.useDefault
+    };
+
+  const genCHBundle = genCHB(rootCHBundle);
+
+  fetch(`/rtc/join/${hostID}`).
+    then((response) => response.text()).
+    then(connMan.logIn( hostID, username, password, genCHBundle
+                      , statusManager.loggingIn, statusManager.iceConnectionLost
+                      , alert, cleanupSession));
+
+});
+
+// () => BurstQueue
+const genBurstQueue = () => {
+
   const onFail = () => {
     alert("Sorry.  Something went wrong when trying to load the model.  Please try again.");
     cleanupSession(false, statusManager.failedToLoadModel);
@@ -109,33 +135,20 @@ byEID("join-form").addEventListener("submit", () => {
 
   const loop = (f) => { requestAnimationFrame(f); };
 
-  const bqBundle =
-    { loop
-    , notifyDownloading: statusManager.downloadingModel
-    , notifyFailedInit:  onFail
-    };
+  const bq = new BurstQueue( burstBundle, loop, statusManager.downloadingModel
+                           , onFail);
 
-  const rootCHBundle =
-    { closeSessionListSocket: sessionList.hibernate
-    , statusManager
-    , useDefaultPreview:      previewManager.useDefault
-    };
+  loop(bq.run);
 
-  const genCHBundle = genCHB(rootCHBundle);
+  return bq;
 
-  fetch(`/rtc/join/${hostID}`).
-    then((response) => response.text()).
-    then(connMan.logIn( hostID, username, password, burstBundle, bqBundle
-                      , genCHBundle, statusManager.loggingIn
-                      , statusManager.iceConnectionLost, alert
-                      , cleanupSession, loop));
-
-});
+};
 
 // (Boolean, () => Unit) => Unit
 const cleanupSession = (warrantsExplanation, updateStatus = () => {}) => {
 
   connMan.reset();
+  burstQueue?.halt();
 
   byEID("session-browser-frame").classList.remove("hidden");
   byEID(            "nlw-frame").classList.add(   "hidden");

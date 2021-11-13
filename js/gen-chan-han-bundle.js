@@ -21,7 +21,7 @@ export default (rootBundle) => (connBundle) => {
     byEID(            "nlw-frame").classList.remove("hidden");
 
     self.history.pushState({ name: "joined" }, "joined");
-    connBundle.notifyLoggedIn();
+    rootBundle.notifyLoggedIn();
 
   };
 
@@ -34,7 +34,7 @@ export default (rootBundle) => (connBundle) => {
   };
 
   return { disconnect:              connBundle.disconnect
-         , enqueue:                 connBundle.enqueue
+         , enqueue:                 rootBundle.enqueue
          , getConnectionStats:      connBundle.getConnectionStats
          , handleIncorrectPassword: unlockUI
          , handleLogin
