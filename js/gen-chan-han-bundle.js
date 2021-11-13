@@ -7,11 +7,8 @@ export default (rootBundle) => (connBundle) => {
   const handleLogin = () => {
 
     connBundle.closeSignaling();
-    rootBundle.closeSessionListSocket();
+    rootBundle.hibernateSessionList();
     rootBundle.useDefaultPreview();
-
-    const options = Array.from(document.querySelectorAll(".session-option"));
-    options.forEach((o) => { o.checked = false; });
 
     byEID("session-browser-frame").classList.add("hidden");
     rootBundle.showNLW();

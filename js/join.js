@@ -21,8 +21,8 @@ const onLogIn = (username, password) => {
   requestAnimationFrame(burstQueue.run);
 
   const rootCHBundle =
-    { closeSessionListSocket: sessionList.hibernate
-    , enqueue:                burstQueue.enqueue
+    { enqueue:                burstQueue.enqueue
+    , hibernateSessionList:   sessionList.hibernate
     , notifyLoggedIn:         burstQueue.setStateLoggedIn
     , showNLW:                nlwManager.show
     , statusManager

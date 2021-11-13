@@ -46,7 +46,12 @@ export default class SessionList {
 
   // () => Unit
   hibernate = () => {
+
+    const options = Array.from(this.#parent.querySelectorAll(".session-option"));
+    options.forEach((o) => { o.checked = false; });
+
     this.#stream.hibernate();
+
   };
 
   // (Element, SessionData) => (UUID) => Session?
