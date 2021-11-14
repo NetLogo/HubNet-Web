@@ -34,8 +34,23 @@ const broadSocketW = new Worker("js/host/ws/broadsocket.js", { type: "module" })
 
 const statusSocketW = new Worker("js/host/ws/status-socket.js", { type: "module" });
 
+const babyMonitorChannel = new MessageChannel();
+const babyMonitor        = babyMonitorChannel.port1;
+
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelector(".nlw-iframe").src = `http://${galapagos}/hnw-host`;
+
+  babyMonitor.onmessage = onBabyMonitorMessage;
+
+  const iframe = document.querySelector(".nlw-iframe");
+
+  iframe.onload = () => {
+    const msg     = { type: "hnw-set-up-baby-monitor" };
+    const conWind = iframe.contentWindow;
+    conWind.postMessage(msg, `http://${galapagos}`, [babyMonitorChannel.port2]);
+  };
+
+  iframe.src = `http://${galapagos}/hnw-host`;
+
 });
 
 document.getElementById("launch-form").addEventListener("submit", (e) => {
@@ -109,15 +124,8 @@ const launchModel = (formDataPlus) => {
         nlwFrame .classList.remove("invis");
         history.pushState({ name: "hosting" }, "hosting");
 
-        const babyMonitor = new MessageChannel();
-        babyMonitor.port1.onmessage = onBabyMonitorMessage;
-
-        postToNLW( { ...json, type: "hnw-become-oracle", nlogo }
-                 , [babyMonitor.port2]);
-
-        const cWindow     = nlwFrame.querySelector("iframe").contentWindow;
-        const msg         = { type: "nlw-subscribe-to-updates", uuid: hostID };
-        cWindow.postMessage(msg, `http://${galapagos}`);
+        babyMonitor.postMessage({ ...json, type: "hnw-become-oracle", nlogo });
+        babyMonitor.postMessage({ type: "nlw-subscribe-to-updates", uuid: hostID });
 
         broadSocketW.onmessage = ({ data }) => {
           switch (data.type) {
@@ -197,7 +205,7 @@ const launchModel = (formDataPlus) => {
         }, 2000);
 
         setInterval(() => {
-          postToNLW({ type: "nlw-request-view" });
+          babyMonitor.postMessage({ type: "nlw-request-view" });
         }, 8000);
 
       });
@@ -327,14 +335,14 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
           , joinerID
           };
 
-        postToNLW(latestPing);
+        babyMonitor.postMessage(latestPing);
 
         break;
 
       }
 
       case "relay": {
-        postToNLW(datum.payload);
+        babyMonitor.postMessage(datum.payload);
         break;
       }
 
@@ -355,7 +363,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
 // (String) => () => Unit
 const cleanUpJoiner = (joinerID) => {
-  postToNLW({ type: "hnw-notify-disconnect", joinerID });
+  babyMonitor.postMessage({ type: "hnw-notify-disconnect", joinerID });
   notifySerializer  ("client-disconnect");
   notifyDeserializer("client-disconnect");
   delete sessions[joinerID];
@@ -392,7 +400,7 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
           , username: sessions[joinerID].username
           };
 
-        postToNLW(requestInitState);
+        babyMonitor.postMessage(requestInitState);
 
       } else {
         sendRTC(channel)("incorrect-password", {});
@@ -459,7 +467,7 @@ const onBabyMonitorMessage = ({ data }) => {
       break;
     }
     default: {
-      console.warn(`Unknown baby monitor message type: ${data.type}`);
+      console.warn("Unknown baby monitor message type:", data);
     }
   }
 };
@@ -573,11 +581,11 @@ const updateCongestionStats = () => {
                               majorCongestionStatus;
 
   if (connectionIsCongested) {
-    postToNLW({ type: "hnw-notify-congested" });
+    babyMonitor.postMessage({ type: "hnw-notify-congested" });
     congestionDuration++;
   } else {
     if (congestionDuration > 0) {
-      postToNLW({ type: "hnw-notify-uncongested" });
+      babyMonitor.postMessage({ type: "hnw-notify-uncongested" });
     }
     congestionDuration = 0;
   }
@@ -591,10 +599,4 @@ const updateCongestionStats = () => {
   setText("num-congested-span"  , numCongested);
   setText("activity-status-span",       status);
 
-};
-
-// (Object[Any], Array[Any]?) => Unit
-const postToNLW = (msg, transfers = []) => {
-  const frame = document.querySelector("#nlw-frame > iframe").contentWindow;
-  frame.postMessage(msg, `http://${galapagos}`, transfers);
 };
