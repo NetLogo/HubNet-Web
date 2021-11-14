@@ -1,4 +1,4 @@
-import { uuidToRTCID  } from "/js/common/common.js";
+import { uuidToRTCID  } from "/js/common/util.js";
 import { joinerConfig } from "/js/common/webrtc.js";
 
 import ChannelHandler  from "./channel-handler.js";

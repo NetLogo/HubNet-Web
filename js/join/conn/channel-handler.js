@@ -1,4 +1,4 @@
-import { ProtoVersion } from "/js/common/common.js";
+import { ProtoVersion } from "/js/common/util.js";
 
 // (Object[Any], Array[Number]) => (Object[Any]) => Unit
 const handlePing = (bundle, pings) => ({ id, lastPing }) => {

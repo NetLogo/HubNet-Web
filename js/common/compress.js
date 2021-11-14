@@ -1,7 +1,6 @@
-import { ProtoVersion, typeIsOOB } from "./common.js";
-
-import { logEntry  } from "./bandwidth-monitor.js";
-import { genNextID } from "./id-manager.js";
+import { logEntry                } from "./bandwidth-monitor.js";
+import { genNextID               } from "./id-manager.js";
+import { ProtoVersion, typeIsOOB } from "./util.js";
 
 import { awaitSerializer } from "/js/serialize/pool-party.js";
 

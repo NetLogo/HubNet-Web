@@ -1,6 +1,6 @@
 import { logEntry  } from "./bandwidth-monitor.js";
-import { typeIsOOB } from "./common.js";
 import { genNextID } from "./id-manager.js";
+import { typeIsOOB } from "./util.js";
 
 let socket = null; // WebSocket
 
