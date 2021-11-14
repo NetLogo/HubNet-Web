@@ -1,4 +1,4 @@
-import { byteSizeLabel, HNWProtocolVersionNumber, uuidToRTCID } from "/js/common/common.js";
+import { byteSizeLabel, ProtoVersion, uuidToRTCID } from "/js/common/common.js";
 
 import { awaitDeserializer, notifyDeserializer, notifySerializer } from "/js/serialize/pool-party.js";
 
@@ -295,9 +295,9 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
       case "connection-established": {
 
-        if (datum.protocolVersion !== HNWProtocolVersionNumber) {
+        if (datum.protocolVersion !== ProtoVersion) {
           const id = sessions[joinerID] && sessions[joinerID].username || joinerID;
-          alert(`HubNet protocol version mismatch!  You are using protocol version '${HNWProtocolVersionNumber}', while client '${id}' is using version '${datum.v}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  The offending client has been disconnected.`);
+          alert(`HubNet protocol version mismatch!  You are using protocol version '${ProtoVersion}', while client '${id}' is using version '${datum.v}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  The offending client has been disconnected.`);
           sessions[joinerID].networking.channel.close();
           delete sessions[joinerID];
         }

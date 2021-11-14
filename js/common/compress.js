@@ -1,4 +1,4 @@
-import { HNWProtocolVersionNumber, typeIsOOB } from "./common.js";
+import { ProtoVersion, typeIsOOB } from "./common.js";
 
 import { logEntry  } from "./bandwidth-monitor.js";
 import { genNextID } from "./id-manager.js";
@@ -35,7 +35,7 @@ const sendRTC = (isHost) => (...channels) => (type, obj) => {
 
 // (Boolean) => (RTCDataChannel) => Unit
 const sendGreeting = (isHost) => (channel) => {
-  const baseMsg = { protocolVersion: HNWProtocolVersionNumber };
+  const baseMsg = { protocolVersion: ProtoVersion };
   sendRTC(isHost)(channel)("connection-established", baseMsg);
 };
 

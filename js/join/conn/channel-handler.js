@@ -1,4 +1,4 @@
-import { HNWProtocolVersionNumber } from "/js/common/common.js";
+import { ProtoVersion } from "/js/common/common.js";
 
 // (Object[Any], Array[Number]) => (Object[Any]) => Unit
 const handlePing = (bundle, pings) => ({ id, lastPing }) => {
@@ -24,8 +24,8 @@ const handlePing = (bundle, pings) => ({ id, lastPing }) => {
 // (Object[Any]) => (Object[Any]) => Unit
 const handleConnEst = (bundle) => ({ protocolVersion }) => {
 
-  if (protocolVersion !== HNWProtocolVersionNumber) {
-    bundle.notifyUser(`HubNet protocol version mismatch!  You are using protocol version '${HNWProtocolVersionNumber}', while the host is using version '${protocolVersion}'.  To ensure that you and the host are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  Your connection will now close.`);
+  if (protocolVersion !== ProtoVersion) {
+    bundle.notifyUser(`HubNet protocol version mismatch!  You are using protocol version '${ProtoVersion}', while the host is using version '${protocolVersion}'.  To ensure that you and the host are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  Your connection will now close.`);
     bundle.disconnect();
   }
 
