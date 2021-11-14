@@ -5,10 +5,10 @@ import ChannelHandler  from "./channel-handler.js";
 import SignalingStream from "./signaling-stream.js";
 import RxQueue         from "./rx-queue.js";
 
-import * as CompressJS from "/js/common/compress.js";
+import * as WebRTCJS from "/js/common/webrtc.js";
 
-const sendGreeting = CompressJS.sendGreeting(false);
-const sendRTC      = CompressJS.sendRTC     (false);
+const sendGreeting = WebRTCJS.sendGreeting(false);
+const sendRTC      = WebRTCJS.sendRTC     (false);
 
 // type SendRTC = (RTCDataChannel) => (String, Object[Any]?) => Unit
 

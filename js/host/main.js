@@ -2,16 +2,15 @@ import { awaitDeserializer, notifyDeserializer, notifySerializer } from "/js/ser
 
 import { awaitWorker                              } from "/js/common/await.js";
 import { reportBandwidth, reportNewSend           } from "/js/common/bandwidth-monitor.js";
-import { sendBurst                                } from "/js/common/compress.js";
 import { galapagos, hnw                           } from "/js/common/domain.js";
 import { genNextID                                } from "/js/common/id-manager.js";
 import { byteSizeLabel, ProtoVersion, uuidToRTCID } from "/js/common/util.js";
-import { hostConfig                               } from "/js/common/webrtc.js";
+import { hostConfig, sendBurst                    } from "/js/common/webrtc.js";
 
-import * as CompressJS from "/js/common/compress.js";
+import * as WebRTCJS from "/js/common/webrtc.js";
 
-const sendGreeting = CompressJS.sendGreeting(true);
-const sendRTC      = CompressJS.sendRTC     (true);
+const sendGreeting = WebRTCJS.sendGreeting(true);
+const sendRTC      = WebRTCJS.sendRTC     (true);
 
 // type Session = {
 //   networking :: { socket     :: WebSocket
