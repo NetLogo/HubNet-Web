@@ -2,8 +2,7 @@
 ;; Variable and Breed declarations ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-globals
-[
+globals [
   run-number
 
   ;; variables used to assign unique color and shape to clients
@@ -20,10 +19,19 @@ globals
 
   num-infected-last-plotted ;; used in plotting only
                             ;; number of turtles that had infected? = true the last time we plotted.
+
+  __hnw_supervisor_android-delay
+  __hnw_supervisor_infection-chance
+  __hnw_supervisor_initial-number-sick
+  __hnw_supervisor_number
+
+  __hnw_supervisor_show-sick?
+  __hnw_supervisor_show-sick-on-clients?
+  __hnw_supervisor_wander?
+
 ]
 
-turtles-own
-[
+turtles-own [
   infected?    ;; if a turtle is sick, infected? is true, otherwise, it is false
   base-shape   ;; original shape of a turtle
   step-size    ;; the amount that a turtle will go forward in the current direction
@@ -31,10 +39,11 @@ turtles-own
 
 breed [ androids android ]  ;; created by the CREATE ANDROIDS button; not controlled by anyone, but can become sick and spread sickness
 breed [ students student ]  ;; created and controlled by the clients
+breed [ supervisors supervisor ]  ;; the overlord of this activity
 
-students-own
-[
-  user-id  ;; unique id, input by the client when they log in, to identify each student turtle
+students-own [
+  description
+  located-at
 ]
 
 
@@ -43,7 +52,6 @@ students-own
 ;;;;;;;;;;;;;;;;;;;;;;
 
 to startup
-  hubnet-reset
   setup-vars
   setup-quick-start
   reset-ticks
@@ -51,6 +59,9 @@ end
 
 to setup
   ask androids [ die ]
+  set __hnw_supervisor_number 10
+  make-androids
+
   cure-all
   reset-ticks
 end
@@ -61,8 +72,6 @@ to cure-all
   ask turtles
   [
     set infected? false
-    if breed = students
-    [ update-sick?-monitor ]
     set shape base-shape
   ]
   set run-number run-number + 1
@@ -91,7 +100,7 @@ end
 
 ;; creates turtles that wander at random
 to make-androids
-  create-androids number
+  create-androids __hnw_supervisor_number
   [
     move-to one-of patches
     face one-of neighbors4
@@ -108,13 +117,11 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
 to go
-  ;; get commands and data from the clients
-  listen-clients
 
   every 0.1
   [
     ;;allow the androids to wander around the view
-    if wander? [ androids-wander ]
+    if __hnw_supervisor_wander? [ androids-wander ]
 
     ask turtles with [ infected? ]
     [ spread-disease ]
@@ -130,7 +137,7 @@ end
 
 ;; controls the motion of the androids
 to androids-wander
-  every android-delay
+  every __hnw_supervisor_android-delay
   [
     ask androids
     [
@@ -159,7 +166,7 @@ end
 ;; turtle procedure -- roll the dice and maybe get sick
 to maybe-get-sick
   if not infected? [
-    if ((random 100) + 1) <= infection-chance
+    if ((random 100) + 1) <= __hnw_supervisor_infection-chance
     [ get-sick ] ]
 end
 
@@ -167,15 +174,13 @@ end
 to get-sick
   set infected? true
   set-sick-shape
-  if breed = students
-  [ update-sick?-monitor ]
 end
 
 ;; turtle procedure -- change the shape of turtles to its sick shape
 ;; if show-sick? is true and change the shape to the base-shape if
 ;; show-sick? is false
 to set-sick-shape
-  ifelse show-sick?
+  ifelse __hnw_supervisor_show-sick?
   [
     ;; we want to check if the turtles shape is already a sick shape
     ;; to prevent flickering in the turtles
@@ -196,7 +201,7 @@ end
 to infect-turtles
   let healthy-turtles turtles with [ not infected? ]
 
-  ifelse count healthy-turtles < initial-number-sick
+  ifelse count healthy-turtles < __hnw_supervisor_initial-number-sick
   [
     ask healthy-turtles
     [
@@ -207,7 +212,7 @@ to infect-turtles
     stop
   ]
   [
-    ask n-of initial-number-sick healthy-turtles
+    ask n-of __hnw_supervisor_initial-number-sick healthy-turtles
     [
       get-sick
       set-sick-shape
@@ -219,56 +224,10 @@ end
 ;; HubNet Procedures ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
-;; determines which client sent a command, and what the command was
-to listen-clients
-  while [ hubnet-message-waiting? ]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-new-student ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-student ]
-      [
-        ask students with [ user-id = hubnet-message-source ]
-          [ execute-command hubnet-message-tag ]
-      ]
-    ]
-  ]
-
-  ask students
-    [ update-sick?-monitor ]
-end
-
-;; NetLogo knows what each student turtle is supposed to be
-;; doing based on the tag sent by the node:
-;; step-size - set the turtle's step-size
-;; Up    - make the turtle move up by step-size
-;; Down  - make the turtle move down by step-size
-;; Right - make the turtle move right by step-size
-;; Left  - make the turtle move left by step-size
-;; Get a Different Turtle - change the turtle's shape and color
-to execute-command [command]
-  if command = "step-size"
-  [
-    set step-size hubnet-message
-    stop
-  ]
-  if command = "Up"
-  [ execute-move 0 stop ]
-  if command = "Down"
-  [ execute-move 180 stop ]
-  if command = "Right"
-  [ execute-move 90 stop ]
-  if command = "Left"
-  [ execute-move 270 stop ]
-  if command = "Change Appearance"
-  [ execute-change-turtle stop ]
-end
-
 ;; Create a turtle, set its shape, color, and position
 ;; and tell the node what its turtle looks like and where it is
-to create-new-student
+to-report create-new-student
+  let out -1
   create-students 1
   [
     setup-student-vars
@@ -278,12 +237,13 @@ to create-new-student
     ;; everybody will have the same size plots.
     set-plot-y-range plot-y-min plot-y-max
     set-plot-x-range plot-x-min plot-x-max
+    set out who
   ]
+  report out
 end
 
 ;; sets the turtle variables to appropriate initial values
-to setup-student-vars  ;; turtle procedure
-  set user-id hubnet-message-source
+to setup-student-vars
   set-unique-shape-and-color
   move-to one-of patches
   face one-of neighbors4
@@ -311,25 +271,14 @@ end
 
 ;; sends the appropriate monitor information back to the client
 to send-info-to-clients
-  hubnet-send user-id "You are a:" (word (color-string color) " " base-shape)
-  hubnet-send user-id "Located at:" (word "(" pxcor "," pycor ")")
-  update-sick?-monitor
-end
-
-to update-sick?-monitor
-  ifelse show-sick-on-clients?
-  [ hubnet-send user-id "Sick?" infected? ]
-  [ hubnet-send user-id "Sick?" "N/A" ]
+  set description (word (color-string color) " " base-shape)
+  set located-at (word "(" pxcor "," pycor ")")
 end
 
 ;; Kill the turtle, set its shape, color, and position
 ;; and tell the node what its turtle looks like and where it is
 to remove-student
-  ask students with [user-id = hubnet-message-source]
-  [
-    set used-shape-colors remove my-code used-shape-colors
-    die
-  ]
+  set used-shape-colors remove my-code used-shape-colors
 end
 
 ;; translates a student turtle's shape and color into a code
@@ -341,22 +290,10 @@ end
 to execute-move [new-heading]
   set heading new-heading
   fd step-size
-  hubnet-send user-id "Located at:" (word "(" pxcor "," pycor ")")
+  set located-at (word "(" pxcor "," pycor ")")
 
   ;; maybe infect or get infected by turtles on the patch student moved to
   student-move-check-infect
-end
-
-to execute-change-turtle
-  ask students with [user-id = hubnet-message-source]
-  [
-    set used-shape-colors remove my-code used-shape-colors
-    show-turtle
-    set-unique-shape-and-color
-    hubnet-send user-id "You are a:" (word (color-string color) " " base-shape)
-    if infected?
-    [ set-sick-shape ]
-  ]
 end
 
 ;;; this procedure is handy for testing out additional shapes and colors;
@@ -443,6 +380,62 @@ to view-prev
 end
 
 
+
+;; Begin new additions
+
+;; Student role
+
+to move-up
+  execute-move 0
+end
+
+to move-down
+  execute-move 180
+end
+
+to move-left
+  execute-move 270
+end
+
+to move-right
+  execute-move 90
+end
+
+to change-appearance
+  set used-shape-colors remove my-code used-shape-colors
+  show-turtle
+  set-unique-shape-and-color
+  set description (word (color-string color) " " base-shape)
+  if infected? [ set-sick-shape ]
+end
+
+to-report sick?-str
+  report (ifelse-value __hnw_supervisor_show-sick-on-clients? [ infected? ] [ "N/A" ])
+end
+
+to-report num-players
+  report count students
+end
+
+to-report num-androids
+  report count androids
+end
+
+;; Supervisor role
+
+to clear-the-plot
+  clear-all-plots
+  set run-number 0
+end
+
+to-report num-turtles
+  report count turtles
+end
+
+to-report num-infected
+  report count turtles with [infected?]
+end
+
 ; Copyright 1999 Uri Wilensky and Walter Stroup.
 ; See Info tab for full copyright and license.
 @#$#@#$#@
@@ -490,55 +483,6 @@ NIL
 NIL
 1
 
-SLIDER
-31
-181
-226
-214
-infection-chance
-infection-chance
-0
-100
-100.0
-1
-1
-%
-HORIZONTAL
-
-BUTTON
-131
-44
-208
-77
-infect
-infect-turtles
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-9
-215
-122
-248
-create androids
-make-androids
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 PLOT
 14
 367
@@ -557,95 +501,6 @@ false
 PENS
 "not-used" 1.0 0 -16777216 false "" ""
 
-SLIDER
-123
-249
-270
-282
-android-delay
-android-delay
-0
-10
-0.0
-0.1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-123
-215
-270
-248
-number
-number
-1
-200
-5.0
-1
-1
-androids
-HORIZONTAL
-
-SWITCH
-66
-147
-192
-180
-show-sick?
-show-sick?
-0
-1
--1000
-
-SWITCH
-10
-249
-122
-282
-wander?
-wander?
-0
-1
--1000
-
-MONITOR
-38
-283
-128
-328
-Turtles
-count turtles
-0
-1
-11
-
-MONITOR
-129
-283
-219
-328
-Number Sick
-count turtles with [infected?]
-0
-1
-11
-
-SLIDER
-36
-79
-231
-112
-initial-number-sick
-initial-number-sick
-1
-20
-1.0
-1
-1
-NIL
-HORIZONTAL
-
 BUTTON
 53
 10
@@ -653,113 +508,6 @@ BUTTON
 43
 NIL
 setup
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-SWITCH
-48
-113
-218
-146
-show-sick-on-clients?
-show-sick-on-clients?
-0
-1
--1000
-
-BUTTON
-87
-333
-180
-366
-clear-plot
-clear-all-plots\nset run-number 0
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-273
-60
-391
-93
-Reset Instructions
-setup-quick-start
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-609
-60
-693
-93
-NEXT >>>
-view-next
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-532
-60
-610
-93
-<<< PREV
-view-prev
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-MONITOR
-273
-10
-693
-55
-Quick Start Instructions- More in Info Window
-quick-start
-0
-1
-11
-
-BUTTON
-53
-44
-130
-77
-NIL
-cure-all
 NIL
 1
 T
@@ -1297,7 +1045,7 @@ Line -7500403 true 40 216 269 79
 Line -7500403 true 84 40 221 269
 Circle -2674135 true false 156 156 108
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.0
 @#$#@#$#@
 need-to-manually-make-preview-for-this-model
 @#$#@#$#@
@@ -1439,6 +1187,43 @@ T
 OBSERVER
 NIL
 NIL
+
+PLOT
+23
+262
+223
+412
+Number Sick
+time
+sick
+0.0
+25.0
+0.0
+6.0
+true
+false
+"" ""
+PENS
+
+MONITOR
+741
+11
+866
+60
+# Players
+NIL
+1
+1
+
+MONITOR
+741
+71
+866
+120
+# Androids
+NIL
+1
+1
 
 @#$#@#$#@
 default

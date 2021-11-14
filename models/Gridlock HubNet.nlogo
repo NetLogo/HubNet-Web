@@ -39,6 +39,11 @@ patches-own
   my-phase  ; this holds the phase for the intersection.  it is -1 for patches that are not intersections.
 ]
 
+breed [players player]
+
+players-own [
+  my-intersection
+]
 
 ;;;;;;;;;;;;;;;;;;;
 ; Setup Functions ;
@@ -47,7 +52,6 @@ patches-own
 to startup
   setup
   setup-quick-start
-  hubnet-reset
 end
 
 ; Initialize the display by giving the global and patch variables initial values.
@@ -197,8 +201,6 @@ end
 
 ; receives information from the clients and runs the simulation
 to go
-  ; get commands and data from the clients
-  listen-clients
 
   every delay
   [
@@ -446,36 +448,10 @@ end
 ; Code for interacting with the clients ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; when a command is sent, find out which client sent it and then execute the command
-to listen-clients
-  while [hubnet-message-waiting?]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [
-      give-intersection-coords
-      wait 1  ; we want to give some time for other clients to log in on this round
-    ]
-    [
-      ifelse hubnet-exit-message?
-      [
-        abandon-intersection
-      ]
-      [
-        ifelse hubnet-message-tag = "Change Light"
-          [ manual hubnet-message-source ]
-        [
-          if hubnet-message-tag = "Phase"
-            [ auto hubnet-message-source ]
-        ]
-      ]
-    ]
-  ]
-end
-
 ; when a new client logs in, if there are free intersections,
 ; assign one of them to that client
 ; if this current-id already has an intersection, give the client that intersection.
+TODO: On join
 to give-intersection-coords
   let current-id hubnet-message-source
   ifelse not any? intersections with [user-id = current-id]
@@ -493,6 +469,7 @@ to give-intersection-coords
 end
 
 ; when a client disconnects, free up its intersection
+TODO: On quit
 to abandon-intersection
   ask intersections with [user-id = hubnet-message-source]
   [
@@ -505,6 +482,7 @@ end
 ; if there are any free intersections, pick one of them at random and give it to the current-id.
 ; if there are not any free intersections, toss an error and put error values into the list
 to get-free-intersection [current-id]
+TODO
   ifelse any? intersections with [user-id = -1]
   [
     ; pick a random intersection that hasn't been taken yet
@@ -526,6 +504,7 @@ to get-free-intersection [current-id]
 end
 
 ; switch the traffic lights at the intersection for the client with user-id
+TODO: "Change Light"
 to manual [current-id]
   if not auto?
   [
@@ -539,6 +518,7 @@ end
 
 ; change the value of the phase for the intersection at (xc,yc) to
 ; the value passed by the client
+TODO: "Phase"
 to auto [current-id]
   ask intersections with [user-id = current-id]
   [
@@ -593,7 +573,7 @@ BUTTON
 176
 270
 login
-listen-clients
+listen-clients TODO
 T
 1
 T

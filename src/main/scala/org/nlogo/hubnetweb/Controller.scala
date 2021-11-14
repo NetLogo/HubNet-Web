@@ -355,7 +355,7 @@ object Controller {
 
   private def slurpXModelSource(modelName: String): Either[String, (String, String, String)] = {
     import scala.collection.JavaConverters.asScalaIteratorConverter
-    val pathStr     = s"./assets/testland/$modelName HubNet.nlogo"
+    val pathStr     = s"./models/$modelName HubNet.nlogo"
     val modelPath   = Paths.get(pathStr)
     val jsonPath    = Paths.get(s"$pathStr.json")
     val modelSource = { val src = SISource.fromURI(modelPath.toUri); val text = src.mkString; src.close(); text }

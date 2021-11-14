@@ -31,6 +31,7 @@ globals
 turtles-own
 [
   score          ;; each turtle's score
+  last-choice
   choice         ;; each turtle's current choice either 1 or 0
 ]
 
@@ -38,7 +39,6 @@ turtles-own
 breed [ players player ]
 players-own
 [
-  user-id        ;; name entered by the user in the client
   chosen-sides?  ;; true/false to tell if player has made current choice we don't move to the next round until everyone has chosen
   choices-made   ;; the number of choices each turtle has made
 ]
@@ -60,7 +60,6 @@ androids-own
 to startup
   clear-all
   setup
-  hubnet-reset
 end
 
 ;; setup for the overall program, will require clients to re-login
@@ -164,6 +163,7 @@ to initialize-androids
     assign-strategies
     set current-strategy random strategies-per-android
     set choice item android-history (item current-strategy strategies)
+    set last-choice choice
     set score 0
     set strategies-scores n-values strategies-per-android [0]
   ]
@@ -199,11 +199,10 @@ end
 to clear-my-data  ;; players procedure
   set xcor random-xcor
   set choice random 2
+  set last-choice choice
   set score 0
   set chosen-sides? false
   set choices-made 0
-  send-info-to-clients
-  update-client
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -213,8 +212,6 @@ end
 to go
   every 0.1
   [
-     ;; get commands and data from the clients
-     listen-clients
      ;; determine if the system should be updated (advanced in time)
      ;; that is, if every player has chosen a side for this round
      if any? turtles and not any? players with [ not chosen-sides? ]
@@ -231,7 +228,6 @@ to go
        ask players
        [
          set chosen-sides? false
-         update-client
        ]
        tick
     ]
@@ -302,15 +298,11 @@ to advance-system
   ;; remove the oldest entry in the memories and place the new one on the end
   set player-history decimal (lput minority but-first full-history player-history player-memory)
   set android-history decimal (lput minority but-first full-history android-history android-memory)
-  ;; send the updated info to the clients
-  ask players
-  [ hubnet-send user-id "history" full-history player-history player-memory ]
 end
 
 ;; ask all participants to update their choice
 to update-choices
   update-androids-choices
-  ask players [ update-client ]
 end
 
 ;; ask the androids to pick a new choice
@@ -320,9 +312,9 @@ to update-androids-choices
 end
 
 ;; move turtles according to their success (a visual aid to see their collective behavior)
-to move [low-score high-score]
-  if low-score != high-score
-  [ set ycor (((score - low-score) / (high-score - low-score )) * (world-height - 1) ) + min-pycor ]
+to move [l-score h-score]
+  if l-score != h-score
+  [ set ycor (((score - l-score) / (h-score - l-score )) * (world-height - 1) ) + min-pycor ]
   ifelse choice = 0
   [
     if xcor > 0
@@ -338,44 +330,8 @@ end
 ;; HubNet Procedures
 ;;;;;;;;;;;;;;;;;;;;;;
 
-;; listen for hubnet client activity
-to listen-clients
-  while [hubnet-message-waiting?]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-     [ execute-create ]
-     [ ifelse hubnet-exit-message?
-       [
-         ;; when players log out we don't kill off the turtles
-         ;; instead we just turn them into androids since it's
-         ;; important to have an odd number of players. This keeps
-         ;; the total population constant
-         ask players with [user-id = hubnet-message-source]
-         [
-           set breed androids
-           set color gray
-           assign-strategies
-           set current-strategy random strategies-per-android
-           set choice item android-history (item current-strategy strategies)
-           set strategies-scores n-values strategies-per-android [0]
-           set score 0
-           set size 1
-           display
-         ]
-       ]
-       [
-         if hubnet-message-tag = "0"
-           [ choose-value 0 ]
-         if hubnet-message-tag = "1"
-           [ choose-value 1 ]
-       ]
-     ]
-   ]
-end
-
 ;; create a client player upon login
-to execute-create
+to-report execute-create
   ;; to make sure that we always have an odd number of
   ;; participants so there is always a true minority
   ;; so just change one of the androids into a player
@@ -391,15 +347,30 @@ to execute-create
     ]
     set number-of-participants number-of-participants + 2
   ]
-  ask one-of androids
+  let biggest-who (max [who] of androids)
+  ask android biggest-who
   [
     set breed players
-    set user-id hubnet-message-source
     set size 2
     set-unique-shape-and-color
     clear-my-data
   ]
-  display
+  report biggest-who
+end
+
+to handle-quit
+  ;; when players log out turn them into androids since it's
+  ;; important to have an odd number of players. This keeps
+  ;; the total population constant
+  hatch-androids 1 [
+    set color gray
+    assign-strategies
+    set current-strategy random strategies-per-android
+    set choice item android-history (item current-strategy strategies)
+    set strategies-scores n-values strategies-per-android [0]
+    set score 0
+    set size 1
+  ]
 end
 
 ;; assigns a shape that is not currently in use to
@@ -414,11 +385,6 @@ to set-unique-shape-and-color  ;; player procedure
   set color item (code / length shape-names) colors
 end
 
-;; to tell the clients what they look like
-to send-info-to-clients  ;; player procedure
-  hubnet-send user-id "You are a:" identity
-end
-
 ;; report the string version of the turtle's identity (color + shape)
 to-report identity  ;; turtle procedure
   report (word (color-string color) " " shape)
@@ -429,29 +395,27 @@ to-report color-string [color-value]
   report item (position color-value colors) color-names
 end
 
-;; send information to the clients
-to update-client  ;; player procedure
-  hubnet-send user-id "chosen-sides?" chosen-sides?
-  hubnet-send user-id "last choice" choice
-  hubnet-send user-id "current choice" choice
-  hubnet-send user-id "history" full-history player-history player-memory
-  hubnet-send user-id "score" score
-  hubnet-send user-id "success rate" precision ifelse-value choices-made > 0 [ score / choices-made ] [ 0 ] 2
+to-report success-rate
+  report precision ifelse-value choices-made > 0 [ score / choices-made ] [ 0 ] 2
 end
 
 ;; the client chooses 0 or 1
+to choose-0
+  choose-value 0
+end
+
+to choose-1
+  choose-value 1
+end
+
 to choose-value [ value-chosen ]
-  ask players with [user-id = hubnet-message-source]
-  [ if not chosen-sides?
+  if not chosen-sides?
     [
-      hubnet-send user-id "last choice" choice
+      set last-choice choice
       set choice value-chosen
       set chosen-sides? true
       set choices-made choices-made + 1
-      hubnet-send user-id "current choice" choice
-      hubnet-send user-id "chosen-sides?" chosen-sides?
     ]
-  ]
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -505,6 +469,17 @@ to view-previous
   set quick-start (item qs-item qs-items)
 end
 
+to-report full-player-history
+  report full-history player-history player-memory
+end
+
+to-report high-score
+  report max [score] of turtles
+end
+
+to-report low-score
+  report min [score] of turtles
+end
 
 ; Copyright 2004 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -659,7 +634,7 @@ MONITOR
 303
 202
 history
-full-history player-history player-memory
+full-player-history
 3
 1
 11
@@ -785,7 +760,7 @@ MONITOR
 218
 256
 high score
-max [score] of turtles
+high-score
 3
 1
 11
@@ -796,27 +771,10 @@ MONITOR
 391
 256
 low score
-min [score] of turtles
+low-score
 3
 1
 11
-
-BUTTON
-177
-118
-255
-151
-Login
-listen-clients
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 @#$#@#$#@
 ## WHAT IS IT?

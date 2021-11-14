@@ -4,6 +4,8 @@ globals [
   pair-outcomes          ;; list of all the sums from rolling pairs of dice
   top-row                ;; agentset of just the top row of patches
   rolls                  ;; the total number of rolls performed either by clients or random rolls
+
+  __hnw_supervisor_colored-dice?
 ]
 
 breed [paired-dice paired-die]   ;; dice that are paired (go to the right)
@@ -26,10 +28,16 @@ single-dice-own [
 
 clients-own
 [
+
   user-id     ;; hubnet identifier
   user-color  ;; color assigned to this user (though colors may be reused)
   die1        ;; values currently entered in the
   die2        ;; client choosers
+
+  message
+  die-A
+  die-B
+
 ]
 
 ;;
@@ -39,7 +47,7 @@ clients-own
 to startup
   clear-all
   setup
-  hubnet-reset
+  reset-ticks
 end
 
 to setup
@@ -91,9 +99,6 @@ to go
     move-single-dice
     display    ;; force the view to update, so we see the dice move smoothly
   ]
-
-  ;; check to see if clients have sent any messages
-  listen-clients
 
   display ;; force the view to update, so we see the dice move smoothly
 end
@@ -218,6 +223,11 @@ end
 ;; Procedures for generating sample outputs
 ;;
 
+
+to random-roll-full
+  if not any? generators with [ any? single-dice-here ] [ random-roll ]
+end
+
 to random-roll
   ;; generates a random pair
   generate-roll (1 + random 6) (1 + random 6) white
@@ -244,72 +254,51 @@ end
 ;; HubNet Procedures
 ;;
 
-to listen-clients
-  if hubnet-message-waiting?
-  [
-    hubnet-fetch-message
-    ;;creates a new client turtle if new HubNet client joining
-    ifelse hubnet-enter-message?
-    [ create-client ]
-    [
-      ;;if a HubNet client quit, kill client turtle
-      ifelse hubnet-exit-message?
-      [
-         ask clients with [ user-id = hubnet-message-source ]
-          [ die ]
-      ]
-      ;;if just a message from the client, execute appropriately
-      [
-        ask clients with [ user-id = hubnet-message-source ]
-          [ exe-cmd hubnet-message ]
-      ]
-    ]
-  ]
+to kill-client
+  die
 end
 
-to create-client
+to-report create-client
+  let out -1
   ;; makes a turtle to store the data specific to this particular
   ;; client , sets the values of dice to a default and sets
-  ;; the user-id variable to the hubnet-source
   create-clients 1
   [
     hide-turtle
-    set user-id hubnet-message-source
     set user-color item (count clients mod length base-colors) base-colors
     set die1 "--"
     set die2 "--"
+    set out who
+  ]
+  report out
+end
+
+to client-submit
+  ;; if one of the choices is not a number
+  ;; report an error
+  ifelse die1 = "--" or die2 = "--"
+  [
+    set message "Please select values for both dice."
+  ]
+  [
+
+    ;; generate the pair and the singles
+    generate-roll die1 die2 ifelse-value __hnw_supervisor_colored-dice? [ user-color ][ white ]
+    ;; send confirmation message to user
+    set message (word "Thank you. Your input was " die1 "-" die2 ".")
+
+    ;; reset the client-turtle's variables
+    set die1 "--"
+    set die2 "--"
+    update-plots
   ]
 end
 
-to exe-cmd [ message ] ;; client procedure
-  if hubnet-message-tag = "Die_A"
-  [ set die1 message stop ]
-  if hubnet-message-tag = "Die_B"
-  [ set die2 message stop ]
-  if hubnet-message-tag = "Submit"
-  [
-    ;; if one of the choices is not a number
-    ;; report an error
-    ifelse die1 = "--" or die2 = "--"
-    [
-      hubnet-send user-id "Message:" "Please select values for both dice."
-    ]
-    [
-      ;; clear the user's interface
-      hubnet-send user-id "Die_A" "--"
-      hubnet-send user-id "Die_B" "--"
-
-      ;; generate the pair and the singles
-      generate-roll die1 die2 ifelse-value colored-dice? [ user-color ][ white ]
-      ;; send confirmation message to user
-      hubnet-send user-id "Message:" (word "Thank you. Your input was " die1 "-" die2 ".")
-
-      ;; reset the client-turtle's variables
-      set die1 "--"
-      set die2 "--"
-      update-plots
-    ]
-  ]
+to exe-cmd [ msg ] ;; client procedure
+  ;if hubnet-message-tag = "Die_A"
+  ;[ set die1 message stop ]
+  ;if hubnet-message-tag = "Die_B"
+  ;[ set die2 message stop ]
 end
 
 
@@ -429,17 +418,6 @@ NIL
 NIL
 NIL
 1
-
-SWITCH
-624
-16
-752
-49
-colored-dice?
-colored-dice?
-1
-1
--1000
 
 BUTTON
 335

@@ -9,10 +9,9 @@ patches-own [ true-color ] ;; value of the color of each patch is either green o
                            ;; the displayed color is gray keep track of the real color here
 
 ;; client turtles keep state information about the clients
-breed [ clients client ]
+breed [ students student ]
 clients-own
 [
-  user-id                 ;; uniquely identifies each client
   my-sample-size          ;; current value of the my-sample-size slider on the client
   my-sampling-allowance   ;; starts at SAMPLING-ALLOWANCE and is deduced with each client sample
   my-guess                ;; current value of the MY-GUESS slider in the client
@@ -28,7 +27,6 @@ clients-own
 ;;
 
 to startup
-  hubnet-reset
   setup
 end
 
@@ -101,6 +99,7 @@ end
 
 to go
   ;; let the teacher sample at any time
+TODO: Mouse
   if mouse-down?
   [
     ;; if we're not keeping samples cover up the old one first
@@ -110,9 +109,6 @@ to go
     ask sample-patches mouse-xcor mouse-ycor sample-size
     [ set pcolor true-color ]
   ]
-
-  ;; process messages from the client
-  listen-clients
 
   every 0.1 [ display ]
 end
@@ -157,6 +153,7 @@ end
 to replenish-$$
   ask clients
   [ set my-$$ max-$$ ]
+  TODO
   hubnet-broadcast "$$" max-$$
 end
 
@@ -172,6 +169,7 @@ to update-$$ [guess-mean]
     if err > margin-of-error
     [ set my-$$ my-$$ - ( err - margin-of-error) ]
     ;; update the client monitor
+    TODO
     hubnet-send user-id "$$" my-$$
   ]
 end
@@ -243,20 +241,7 @@ end
 ;; HubNet Procedures
 ;;
 
-to listen-clients
-  while [ hubnet-message-waiting? ]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-client ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-client ]
-      [ ask clients with [user-id = hubnet-message-source] [ execute-command hubnet-message-tag ] ]
-    ]
-  ]
-end
-
+TODO: On join
 to create-client
   create-clients 1
   [
@@ -285,11 +270,13 @@ to setup-client
   hubnet-clear-overrides user-id
 end
 
+TODO: On quit
 to remove-client
  ask clients with [user-id = hubnet-message-source]
    [ die ]
 end
 
+TODO: ???
 to execute-command [cmd] ;; client procedure
   if cmd = "View" and student-sampling?
   [
@@ -337,6 +324,7 @@ to replenish-sampling-allowance
   ask clients
   [
     set my-sampling-allowance sampling-allowance
+    TODO
     hubnet-send user-id "Sampling Allowance" my-sampling-allowance
   ]
 end

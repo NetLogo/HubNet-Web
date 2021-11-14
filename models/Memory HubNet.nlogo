@@ -3,18 +3,21 @@
 ;; them up.  To reveal a card-front, we hide the card-back turtle on top of it.
 breed [card-backs card-back]
 breed [cards card]
+cards-own [ tick-shown ]
 
 ;; Players are invisible turtles that we use to store information about
 ;; the participants in the game.
 breed [players player]
 players-own [
-  user-name   ;; a string
+  user-id
   matches     ;; a number, how many successful matches so far
   attempts    ;; a number, how may total tries so far
 ]
 
 globals [
   current-player  ;; holds a player turtle
+  __hnw_supervisor_pair-up-delay
+  __hnw_supervisor_pairs-in-deck
 ]
 
 ;;
@@ -24,11 +27,13 @@ globals [
 to startup
   clear-all
   setup
-  hubnet-reset
 end
 
 to setup
   ask patches [ set pcolor gray + 3 ]  ;; light gray
+  set __hnw_supervisor_pair-up-delay 20
+  set __hnw_supervisor_pairs-in-deck 26
+  reset-ticks
   deal
 end
 
@@ -54,6 +59,7 @@ to deal
       set shape one-of card-shapes
       set card-shapes remove shape card-shapes
       set size 0.5
+      set tick-shown -1
     ]
   ]
   ask cards
@@ -67,14 +73,6 @@ to deal
     ]
     hide-turtle
   ]
-  if any? players
-  [ hubnet-broadcast "Whose turn?" [user-name] of item current-player sort players ]
-  hubnet-broadcast "Your matches" 0
-  hubnet-broadcast "Your turns" 0
-  hubnet-broadcast "Success %" 0
-  hubnet-broadcast "Cards remaining" 0
-  hubnet-broadcast "Leader" ""
-  hubnet-broadcast "Leader's matches" 0
 end
 
 ;;
@@ -82,68 +80,54 @@ end
 ;;
 
 to go
+
   if not any? cards [
-    __hubnet-broadcast-user-message winner-message
     user-message winner-message
     stop
   ]
-  listen-clients
+
+  ask cards with [not hidden? and
+                  tick-shown != -1 and
+                  (ticks - tick-shown) > __hnw_supervisor_pair-up-delay ] [
+    hide-turtle
+    set tick-shown -1
+  ]
+
+  tick
+
+end
+
+to handle-cards-up
 end
 
 to-report winner-message
   let winners players with-max [matches]
   ifelse count winners > 1
   [ report (word "It's a " count winners "-way tie." ) ]
-  [ report (word [user-name] of one-of winners " wins!") ]
+  [ report (word [user-id] of one-of winners " wins!") ]
 end
 
 ;;
 ;; HubNet Procedures
 ;;
 
-to listen-clients
-  while [hubnet-message-waiting?]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ add-player hubnet-message-source ][
-      ifelse hubnet-exit-message?
-      [ remove-player hubnet-message-source ]
-      [
-        let p item current-player sort players
-        if hubnet-message-tag = "View" and [user-name] of p = hubnet-message-source
-        [ ask p [ select-card first hubnet-message last hubnet-message ] ]
-      ]
-    ]
-  ]
-end
-
-to add-player [name]
+to-report add-player [username]
+  let out -1
   create-players 1
   [
+    set user-id username
     hide-turtle
-    set user-name name
     set matches 0
     set attempts 0
-    hubnet-send user-name "Your name" user-name
-    hubnet-send user-name "Whose turn?" [user-name] of item current-player sort players
-    hubnet-send user-name "Your matches" matches
-    hubnet-send user-name "Your turns" attempts
-    hubnet-send user-name "Success %" 0
+    set out who
   ]
+  report out
 end
 
-to remove-player [name]
-  let p one-of players with [user-name = name]
-  if p != nobody
-  [
-    ifelse position p sort players <= current-player
-    [
-      ask p [ die ]
-      increment-current-player
-    ]
-    [ ask p [ die ] ]
-  ]
+to remove-player
+  let lower? (position self sort players <= current-player)
+  die
+  if lower? [ increment-current-player ]
 end
 
 to select-card [x y]
@@ -153,28 +137,19 @@ to select-card [x y]
     if my-card != nobody
     [
       ask my-card [ show-turtle ]
-      display
       let selected-cards cards with [not hidden?]
       if count selected-cards = 2
       [
         set attempts attempts + 1
-        hubnet-send user-name "Your turns" attempts
-        wait pair-up-delay
         ifelse 1 = length (remove-duplicates [shape] of selected-cards)
         [
           ask selected-cards [ ask card-backs-here [ die ] die ]
           set matches matches + 1
-          hubnet-send user-name "Your matches" matches
-          hubnet-broadcast "Cards remaining" count cards
-          hubnet-broadcast "Leader" leader
-          hubnet-broadcast "Leader's matches" max [matches] of players
         ]
         [
-          ask selected-cards [ hide-turtle ]
+          ask selected-cards [ set tick-shown ticks ]
           increment-current-player
         ]
-        hubnet-send user-name "Success %" precision (matches / attempts) 3
-        display
       ]
     ]
   ]
@@ -182,10 +157,8 @@ end
 
 to increment-current-player
   ifelse count players = 0
-  [ set current-player 0
-    hubnet-broadcast "Whose turn?" "" ]
-  [ set current-player (current-player + 1) mod count players
-    hubnet-broadcast "Whose turn?" [user-name] of item current-player sort players ]
+  [ set current-player 0 ]
+  [ set current-player (current-player + 1) mod count players ]
 end
 
 to-report leader
@@ -193,12 +166,51 @@ to-report leader
   ifelse any? leaders
   [
     ifelse count leaders = 1
-    [ report [user-name] of one-of leaders ]
+    [ report [user-id] of one-of leaders ]
     [ report (word count leaders "-way tie") ]
   ]
   [ report "nobody" ]
 end
 
+to-report leaders-matches
+  report max [matches] of players
+end
+
+to-report cards-remaining
+  report count cards
+end
+
+to-report success-percentage
+  report ifelse-value attempts != 0 [ precision (matches / attempts) 3 ] [ 0 ]
+end
+
+to-report whose-turn
+  report ifelse-value current-player = 0 [ [user-id] of item current-player sort players ] [ "" ]
+end
+
+to-report player-count
+  report count players
+end
+
+to-report current-player-name
+  report [user-id] of item current-player sort players
+end
+
+to show-all
+  ask cards [ show-turtle ]
+end
+
+to hide-all
+  ask cards [ hide-turtle ]
+end
+
+to-report card-count
+  report count cards
+end
+
+to-report half-the-patches
+  report floor (count patches / 2)
+end
 
 ; Copyright 2009 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -272,7 +284,7 @@ SLIDER
 pairs-in-deck
 pairs-in-deck
 2
-floor (count patches / 2)
+half-the-patches
 26.0
 1
 1
@@ -285,7 +297,7 @@ MONITOR
 144
 260
 Cards remaining
-count cards
+card-count
 0
 1
 11
@@ -296,7 +308,7 @@ BUTTON
 282
 236
 show all cards
-ask cards [ show-turtle ]\n
+show-all
 NIL
 1
 T
@@ -313,7 +325,7 @@ BUTTON
 282
 273
 hide all cards
-ask cards [ hide-turtle ]\n
+hide-all
 NIL
 1
 T
@@ -345,7 +357,7 @@ MONITOR
 281
 324
 number of players
-count players
+player-count
 0
 1
 11
@@ -356,7 +368,7 @@ MONITOR
 160
 324
 current-player
-[user-name] of item current-player sort players
+current-player-name
 0
 1
 11

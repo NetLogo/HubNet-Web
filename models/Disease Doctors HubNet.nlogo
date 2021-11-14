@@ -34,7 +34,6 @@ breed [ doctors  doctor ]   ;; created by the CREATE-DOCTORS button, controlled 
 
 students-own
 [
-  user-id  ;; unique id, input by the students when they log in, to identify each student turtle
 ]
 
 
@@ -43,7 +42,6 @@ students-own
 ;;;;;;;;;;;;;;;;;;;;;;
 
 to startup
-  hubnet-reset
   setup-vars
   setup-plot
   setup-quick-start
@@ -61,8 +59,6 @@ to cure-all
   ask turtles
   [
     set infected? false
-    if breed = students
-      [ update-sick?-monitor ]
     set shape base-shape
   ]
 
@@ -135,8 +131,6 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
 to go
-  ;; get commands and data from the clients
-  listen-clients
 
   every 0.1
   [
@@ -207,8 +201,6 @@ end
 to get-sick ;; turtle procedure
   set infected? true
   set-sick-shape
-  if (breed = students)
-  [ update-sick?-monitor ]
 end
 
 ;; change the shape of turtles to its sick shape
@@ -269,64 +261,35 @@ end
 ;; HubNet Procedures ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
-;; determines which client sent a command, and what the command was
-to listen-clients
-  while [ hubnet-message-waiting? ]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-new-student ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-student ]
-      [ execute-command hubnet-message-tag ]
-    ]
-  ]
-
-  ask students
-    [ update-sick?-monitor ]
+to move-up
+  execute-move 0
 end
 
-;; NetLogo knows what each student turtle is supposed to be
-;; doing based on the tag sent by the node:
-;; step-size - set the turtle's step-size
-;; Up    - make the turtle move up by step-size
-;; Down  - make the turtle move down by step-size
-;; Right - make the turtle move right by step-size
-;; Left  - make the turtle move left by step-size
-;; Get a Different Turtle - change the turtle's shape and color
-to execute-command [command]
-  if command = "step-size"
-  [
-    ask students with [user-id = hubnet-message-source]
-    [ set step-size hubnet-message ]
-    stop
-  ]
-  if command = "Up"
-  [ execute-move 0 stop ]
-  if command = "Down"
-  [ execute-move 180 stop ]
-  if command = "Right"
-  [ execute-move 90 stop ]
-  if command = "Left"
-  [ execute-move 270 stop ]
-  if command = "Change Appearance"
-  [ execute-change-turtle stop ]
+to move-down
+  execute-move 180
+end
+
+to move-right
+  execute-move 90
+end
+
+to move-left
+  execute-move 270
 end
 
 ;; Create a turtle, set its shape, color, and position
 ;; and tell the node what its turtle looks like and where it is
-to create-new-student
-  create-students 1
-  [
+to-report create-new-student
+  let out -1
+  create-students 1 [
     setup-student-vars
-    send-info-to-clients
+    set out who
   ]
+  report out
 end
 
 ;; sets the turtle variables to appropriate initial values
 to setup-student-vars  ;; turtle procedure
-  set user-id hubnet-message-source
   set-unique-shape-and-color
   move-to one-of patches
   face one-of neighbors4
@@ -352,24 +315,17 @@ to-report color-string [color-value]
   report item (position color-value colors) color-names
 end
 
-to update-sick?-monitor ;; turtle procedure
-  hubnet-send user-id "Sick?" infected?
+to-report my-description
+  report (word (color-string color) " " base-shape)
 end
 
-;; sends the appropriate monitor information back to the client
-to send-info-to-clients ;; turtle procedure
-  hubnet-send user-id "You are a:" (word (color-string color) " " base-shape)
-  hubnet-send user-id "Located at:" (word "(" pxcor "," pycor ")")
-  update-sick?-monitor
+to-report my-location
+  report (word "(" pxcor "," pycor ")")
 end
 
-;; Kill the turtle, and remove it's shape-color combo from the used list
 to remove-student
-  ask students with [user-id = hubnet-message-source]
-  [
-    set used-shape-colors remove my-code used-shape-colors
-    die
-  ]
+  set used-shape-colors remove my-code used-shape-colors
+  die
 end
 
 ;; translates a student turtle's shape and color into a code
@@ -379,27 +335,18 @@ end
 
 ;; Cause the students to move forward step-size in new-heading's heading
 to execute-move [new-heading]
-  ask students with [user-id = hubnet-message-source]
-  [
-    set heading new-heading
-    fd step-size
-    hubnet-send user-id "Located at:" (word "(" pxcor "," pycor ")")
-
-    ;; maybe infect or get infected by turtles on the patch student moved to
-    student-move-check-infect
-  ]
+  set heading new-heading
+  fd step-size
+  ;; maybe infect or get infected by turtles on the patch student moved to
+  student-move-check-infect
 end
 
 to execute-change-turtle
-  ask students with [user-id = hubnet-message-source]
-  [
-    set used-shape-colors remove my-code used-shape-colors
-    show-turtle
-    set-unique-shape-and-color
-    hubnet-send user-id "You are a:" (word (color-string color) " " base-shape)
-    if infected?
-    [ set-sick-shape ]
-  ]
+  set used-shape-colors remove my-code used-shape-colors
+  show-turtle
+  set-unique-shape-and-color
+  if infected?
+  [ set-sick-shape ]
 end
 
 ;;; this procedure is handy for testing out additional shapes and colors;
@@ -484,6 +431,19 @@ to view-prev
   set quick-start (item qs-item qs-items)
 end
 
+to clear-model-plot
+  clear-all-plots
+  set run-number 1
+  setup-plot
+end
+
+to-report num-sick
+  report count turtles with [ infected? ]
+end
+
+to-report infectable-turtle-count
+  report count students + count androids
+end
 
 ; Copyright 2006 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -657,7 +617,7 @@ MONITOR
 199
 608
 Infectable Turtles
-count students + count androids
+infectable-turtle-count
 0
 1
 11
@@ -668,7 +628,7 @@ MONITOR
 312
 608
 Number Sick
-count turtles with [ infected? ]
+num-sick
 0
 1
 11
@@ -820,7 +780,7 @@ BUTTON
 238
 365
 clear-plot
-clear-all-plots\nset run-number 1\nsetup-plot
+clear-model-plot
 NIL
 1
 T
@@ -1535,6 +1495,23 @@ T
 OBSERVER
 NIL
 NIL
+
+PLOT
+23
+262
+223
+412
+Number Sick
+time
+sick
+0.0
+25.0
+0.0
+6.0
+true
+false
+"" ""
+PENS
 
 @#$#@#$#@
 default

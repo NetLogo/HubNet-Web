@@ -1,21 +1,34 @@
+extensions [fetch import-a]
+
 globals
 [
   leader            ;; a string expressing the player who has caught the most bugs (or a tie if appropriate)
   leader-caught     ;; the number of bugs the leader has caught
   total-caught      ;; running total of the total number of bugs caught by everyone
   adult-age         ;; the number of ticks before bugs are full grown
+
+  last-flash-tick
+
+
+  __hnw_supervisor_carrying-capacity
+  __hnw_supervisor_offspring-distance
+  __hnw_supervisor_environment
+  __hnw_supervisor_show-genotype?
+  __hnw_supervisor_bug-size
+  __hnw_supervisor_max-mutation-step
+
 ]
 
 ;; each client controls one player turtle
 ;; players are always hidden in the view
-breed [players player]
+breed [students student]
 
-players-own
+students-own
 [
-  user-name    ;; the unique name users enter on their clients
   caught       ;; the number of bugs this user as caught
   attempts     ;; times the user has clicked in the view trying to catch a bug
   percent      ;; percent of catches relative to the leader
+  user-id      ;; the unique name users enter on their clients
 ]
 
 breed [bugs bug]
@@ -34,7 +47,6 @@ bugs-own
 ;;;;;;;;;;;;;;;;;;;
 
 to startup
-  hubnet-reset
   setup-clear
 end
 
@@ -44,6 +56,13 @@ to setup-clear
   clear-all
   set-default-shape bugs "moth"
   set adult-age 50
+  set last-flash-tick -1
+  set __hnw_supervisor_carrying-capacity  20
+  set __hnw_supervisor_offspring-distance  5
+  set __hnw_supervisor_environment        "poppyfield.jpg"
+  set __hnw_supervisor_show-genotype?     false
+  set __hnw_supervisor_bug-size           1.5
+  set __hnw_supervisor_max-mutation-step  25
   setup
 end
 
@@ -62,13 +81,13 @@ to setup
   change-environment
   make-initial-bugs
   ;; make sure to return players to initial conditions
-  ask players [ initialize-player ]
+  ask students [ initialize-player ]
 end
 
 to make-initial-bugs
-  create-bugs carrying-capacity
+  create-bugs __hnw_supervisor_carrying-capacity
   [
-    set size bug-size
+    set size __hnw_supervisor_bug-size
     ;; assign gene frequencies from 0 to 255, where 0 represents 0% expression of the gene
     ;; and 255 represent 100% expression of the gene for that pigment
     set red-gene random 255
@@ -87,10 +106,25 @@ end
 to go
   grow-bugs
   reproduce-bugs
-  listen-clients
-  every 0.01
-  [ tick ]
+  every 0.01 [ tick ]
+  handle-flash
   do-plots
+end
+
+to handle-flash
+  let num-flashes 3
+  let color-duration 3
+  ifelse last-flash-tick >= 0 and last-flash-tick > (ticks - (num-flashes * color-duration * 2)) [
+    let diff (last-flash-tick - ticks)
+    ifelse ((floor (diff / color-duration)) mod 2) = 0 [
+      ask bugs [ set color black ]
+    ] [
+      ask bugs [ set color white ]
+    ]
+  ] [
+    set last-flash-tick -1
+    ask bugs [ set-phenotype-color ]
+  ]
 end
 
 to grow-bugs
@@ -98,14 +132,14 @@ to grow-bugs
   [
     ;; show genotypes if appropriate, hide otherwise
     assign-genotype-labels
-    ;; if the bug is smaller than bug-size then it's not full
+    ;; if the bug is smaller than __hnw_supervisor_bug-size then it's not full
     ;; grown and it should get a little bigger
     ;; so that bugs don't just appear full grown in the view
     ;; but instead slowly come into existence. as it's easier
     ;; to see the new bugs when they simply appear
-    ifelse size < bug-size
-    [ set size size + (bug-size / adult-age) ]
-    [ set size bug-size ]
+    ifelse size < __hnw_supervisor_bug-size
+    [ set size size + (__hnw_supervisor_bug-size / adult-age) ]
+    [ set size __hnw_supervisor_bug-size ]
   ]
 end
 
@@ -118,17 +152,21 @@ to reproduce-bugs
 
   ;; otherwise reproduce random other bugs  until
   ;; you've reached the carrying capacity
-  if count bugs < carrying-capacity
-  [ ask one-of bugs [ make-one-offspring ] ]
+  if count bugs < __hnw_supervisor_carrying-capacity
+  [
+    let room-to-grow (__hnw_supervisor_carrying-capacity - (count bugs))
+    let num-new-bugs (1 + (floor ((max (list 0 room-to-grow)) * 0.2)))
+    ask n-of num-new-bugs bugs [ make-one-offspring ]
+  ]
 end
 
 to make-one-offspring ;; turtle procedure
   ;; three possible random mutations can occur, one in each frequency of gene expression
-  ;; the max-mutation-step determines the maximum amount the gene frequency can drift up
+  ;; the __hnw_supervisor_max-mutation-step determines the maximum amount the gene frequency can drift up
   ;; or down in this offspring
-  let red-mutation   random (max-mutation-step + 1) - random (max-mutation-step + 1)
-  let green-mutation random (max-mutation-step + 1) - random (max-mutation-step + 1)
-  let blue-mutation  random (max-mutation-step + 1) - random (max-mutation-step + 1)
+  let red-mutation   random (__hnw_supervisor_max-mutation-step + 1) - random (__hnw_supervisor_max-mutation-step + 1)
+  let green-mutation random (__hnw_supervisor_max-mutation-step + 1) - random (__hnw_supervisor_max-mutation-step + 1)
+  let blue-mutation  random (__hnw_supervisor_max-mutation-step + 1) - random (__hnw_supervisor_max-mutation-step + 1)
   hatch 1
   [
      set size 0
@@ -148,32 +186,25 @@ end
 
 ;; used to move bugs slightly away from their parent
 to wander ;; turtle procedure
-   rt random 360
-   fd random-float offspring-distance + 1
+  rt random 360
+  fd random-float __hnw_supervisor_offspring-distance + 1
 end
 
 ;; loads an image as a background among the images listed in the environment chooser
 to change-environment
-    import-drawing environment
+  let base-url "/assets/modelslib/HubNet%20Activities"
+  let url (word base-url "/" __hnw_supervisor_environment)
+  fetch:url-async url import-a:drawing
 end
 
 ;; a visualization technique to find bugs if you are convinced they are not there anymore
 ;; it allows flashing without actually changing and recalculating the color attribute of the bugs
 to flash-bugs
-  repeat 3
-  [
-    ask bugs [ set color black ]
-    wait 0.1
-    display
-    ask bugs [ set color white ]
-    wait 0.1
-    display
-  ]
-  ask bugs [ set-phenotype-color ]
+  set last-flash-tick ticks
 end
 
 to assign-genotype-labels  ;; turtle procedure
-  ifelse show-genotype?
+  ifelse __hnw_supervisor_show-genotype?
   ;; we display the genotype without decimal digits, to make
   ;; the data display of this information less cluttered
   [ set label color ]
@@ -201,34 +232,16 @@ end
 ;; HubNet Procedures
 ;;;;;;;;;;;;;;;;;;;;;;
 
-to listen-clients
-  while [hubnet-message-waiting?]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ add-player ]
-    [
-      ifelse hubnet-exit-message?
-     [ remove-player ]
-     [
-        if hubnet-message-tag = "View"
-        [
-          ask players with [ user-name = hubnet-message-source ]
-            [ eat-bugs ]
-        ]
-      ]
-    ]
-  ]
-end
-
 ;; when a client logs in make a new player
 ;; and give it the default attributes
-to add-player
-  create-players 1
-  [
-    set user-name hubnet-message-source
+to-report add-player [username]
+  let out -1
+  create-students 1 [
+    set user-id username
     initialize-player
+    set out who
   ]
+  report out
 end
 
 to initialize-player ;; player procedure
@@ -236,57 +249,45 @@ to initialize-player ;; player procedure
   set attempts 0
   set caught 0
   set-percent
-  send-student-info
 end
 
-;; when clients log out simply
-;; get rid of the player turtle
-to remove-player
-  ask players with [ user-name = hubnet-message-source ]
-    [ die ]
+to make-gen
+  make-generation
+  ask bugs [assign-genotype-labels]
 end
 
-to eat-bugs
-  ;; extract the coords from the hubnet message
-  let clicked-xcor  (item 0 hubnet-message)
-  let clicked-ycor  (item 1 hubnet-message)
+to eat-bugs [clicked-xcor clicked-ycor]
 
-  ask players with [ user-name = hubnet-message-source ]
+  set xcor clicked-xcor      ;; go to the location of the click
+  set ycor clicked-ycor
+  set attempts attempts + 1  ;; each mouse click is recorded as an attempt
+                             ;; for that player
+
+  ;;  if the players clicks close enough to a bug's location, they catch it
+  ;;  the in-radius (__hnw_supervisor_bug-size / 2) calculation helps make sure the user catches the bug
+  ;;  if they click within one shape radius (approximately since the shape of the bug isn't
+  ;;  a perfect circle, even if the size of the bug is other than 1)
+  let candidates bugs in-radius (__hnw_supervisor_bug-size / 2)
+  if any? candidates
   [
-    set xcor clicked-xcor      ;; go to the location of the click
-    set ycor clicked-ycor
-    set attempts attempts + 1  ;; each mouse click is recorded as an attempt
-                               ;; for that player
+    let doomed-bug one-of candidates
+    set caught caught + 1
+    set total-caught total-caught + 1
+    ask doomed-bug
+      [ die ]
 
-    ;;  if the players clicks close enough to a bug's location, they catch it
-    ;;  the in-radius (bug-size / 2) calculation helps make sure the user catches the bug
-    ;;  if they click within one shape radius (approximately since the shape of the bug isn't
-    ;;  a perfect circle, even if the size of the bug is other than 1)
-    let candidates bugs in-radius (bug-size / 2)
-    ifelse any? candidates
-    [
-      let doomed-bug one-of candidates
-      set caught caught + 1
-      set total-caught total-caught + 1
-      ask doomed-bug
-        [ die ]
-
-      ;; if a bug is caught update the leader
-      ;; as it may have changed
-      update-leader-stats
-      ;; all the players have monitors
-      ;; displaying information about the leader
-      ;; so we need to make sure that gets updated
-      ;; when the leader changed
-      ask players
-      [
-        set-percent
-        send-student-info
-      ]
+    ;; if a bug is caught update the leader
+    ;; as it may have changed
+    update-leader-stats
+    ;; all the players have monitors
+    ;; displaying information about the leader
+    ;; so we need to make sure that gets updated
+    ;; when the leader changed
+    ask students [
+      set-percent
     ]
-    ;; even if we didn't catch a bug we need to update the attempts monitor
-    [ send-student-info ]
   ]
+
 end
 
 ;; calculate the percentage that this player caught to the leader
@@ -297,30 +298,32 @@ to set-percent ;; player procedure
   [ set percent 0 ]
 end
 
-;; update the monitors on the client
-to send-student-info ;; player procedure
-  hubnet-send user-name  "Your name" user-name
-  hubnet-send user-name "You have caught" caught
-  hubnet-send user-name "# Attempts"  attempts
-  hubnet-send user-name "Relative %"  (precision percent 2) ;; just show 2 decimal places
-  hubnet-send user-name "Top hunter" leader
-  hubnet-send user-name "Top hunter's catches" leader-caught
-end
-
 ;; do the bookkeeping to display the proper leader and score
 to update-leader-stats
-  if any? players
+  if any? students
   [
-    let leaders players with-max [ caught ]
+    let leaders students with-max [ caught ]
     let number-leaders count leaders
 
     ;; if there is more than one leader just report
     ;; a tie otherwise report the name
     ifelse number-leaders > 1
     [ set leader word number-leaders "-way tie" ]
-    [ ask one-of leaders [ set leader user-name ] ]
+    [ ask one-of leaders [ set leader user-id ] ]
     set leader-caught [caught] of one-of leaders
   ]
+end
+
+to-report num-hunters
+  report count students
+end
+
+to-report num-bugs
+  report count bugs
+end
+
+to clear-background
+  clear-drawing
 end
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -549,7 +552,7 @@ BUTTON
 425
 95
 clear background
-clear-drawing
+clear-background
 NIL
 1
 T
@@ -1034,7 +1037,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.0-RC1
 @#$#@#$#@
 need-to-manually-make-preview-for-this-model
 @#$#@#$#@
@@ -1128,6 +1131,26 @@ MONITOR
 133
 449
 Relative %
+NIL
+1
+1
+
+MONITOR
+600
+10
+725
+60
+# Hunters
+NIL
+1
+1
+
+MONITOR
+600
+70
+725
+120
+# Living Prey
 NIL
 1
 1

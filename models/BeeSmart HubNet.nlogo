@@ -1,4 +1,4 @@
-extensions [ csv ]         ; export clients history
+;extensions [ csv ]         ; export clients history
 
 breed [ sites site ]
 breed [ robots robot ]
@@ -14,15 +14,21 @@ sites-own [
 ]
 
 students-own [
+
+  user-id
+  perspective
+
   dance-length            ; the number of ticks a student-controlled bee will dance
   dances-made             ; the rounds of dances a student have finished
-  user-id
   supported-site
   bee-timer               ; keep track of ticks elapsed at a certain state, usually the dance length.
                           ;   the higher the target quality, the longer the dance
   recruited               ; the number of other bees recruited (influenced by its dance)
   destination             ; where the bee is headed
   message-content
+  interest-in-target
+  target-quality
+  summary
 
   state                   ; There are 4 states a student could be in:
                           ; 1. exploring: the initial state of a student. It can be
@@ -55,10 +61,8 @@ robots-own [              ; variables below are the same as students'. See stude
 ;;;;;;;;;;;;;SETUP;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 to startup
-  hubnet-reset
   set-default-shape students "bee"
   set-default-shape robots "beebot"
-  listen-clients
 end
 
 to setup
@@ -72,10 +76,8 @@ to setup
   setup-sites
   ask robots [ die ]
   make-robots
-  listen-clients
   ask students [
     reset-students
-    send-info-to-clients
   ]
   set history []
   reset-ticks
@@ -105,7 +107,7 @@ to-report dance-floor? ; patch and turtle reporter
 end
 
 to reset-students
-  hubnet-send-follow user-id self student-vision-radius    ; apply field of vision constrains
+  set perspective (list "follow" self student-vision-radius)    ; apply field of vision constrains
   setxy random-float 5 random-float 5
   set state "exploring"
   set supported-site nobody
@@ -165,12 +167,10 @@ end
 ;;;;;;;;;;;;;;;;RUN TIME ;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 to go
-  listen-clients
 
   ask students with [ state = "exploring" ] [explore]
   ask students with [ state = "visiting" ] [ visit ]
   ask students with [ state = "returning" ] [ return ]
-  ask students [ show-message ]
 
   dance
 
@@ -197,8 +197,8 @@ to explore; student procedure
       set bee-timer [ quality ] of supported-site
       set color [ color ] of supported-site
       set dance-length 0
-      hubnet-send user-id "target-quality" [ quality ] of supported-site
-      hubnet-send user-id "interest-in-target" bee-timer
+      set target-quality [ quality ] of supported-site
+      set interest-in-target bee-timer
     ] [
       ; if the bee's color is not gray, which means it has a commitment
       set message-content "Dance before you can discover another site"
@@ -222,10 +222,8 @@ to visit ; bee procedure
     set state "returning"
     set destination one-of patches with [dance-floor?]
     if is-student? self [
-      hubnet-send user-id "target-quality" [ quality ] of supported-site
-      hubnet-send user-id "interest-in-target" bee-timer
-      hubnet-send user-id "dance-length" 0
-      hubnet-send user-id "bees-recruited" 0
+      set target-quality [ quality ] of supported-site
+      set interest-in-target bee-timer
     ]
   ] [
     fd 1
@@ -291,20 +289,16 @@ to dance ; bee procedure
     set bee-timer bee-timer - 1
     if breed = students [
       set dance-length dance-length + 1
-      hubnet-send user-id "interest-in-target" bee-timer
-      hubnet-send user-id "dance-length" dance-length
-      hubnet-send user-id "bees-recruited" recruited
-      hubnet-send user-id "ticks" ticks
+      set target-quality [ quality ] of supported-site
+      set interest-in-target bee-timer
     ]
   ]
   ask students with [ done-dancing? ] [
     set state "exploring"
     set dances-made dances-made + 1
-    hubnet-send user-id "dances-made" dances-made
-    hubnet-send user-id "ticks" ticks
     let summary-list (list ticks [ quality ] of supported-site recruited)
-    hubnet-send user-id "summary" summary-list
-    set summary-list fput user-id summary-list         ; adding user id to the list
+    set summary summary-list
+    set summary-list fput user-id summary-list  ; adding user id to the list
     set history lput summary-list history              ; adding personal history to the global history
     set recruited 0
     set color grey
@@ -324,57 +318,55 @@ to-report done-dancing?
   report state = "dancing" and bee-timer = 0
 end
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;HubNet Procedures;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-to listen-clients
-  while [ hubnet-message-waiting? ] [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message? [
-      create-new-student
-    ] [
-      ifelse hubnet-exit-message? [
-        remove-student
-      ] [
-        ask students with [ user-id = hubnet-message-source ] [
-          execute-command hubnet-message-tag
-        ]
-      ]
-    ]
-  ]
+to-report the-ticks
+  report ticks
 end
 
-to create-new-student
+to-report create-new-student [username]
+  let out -1
   create-students 1 [
-    set user-id hubnet-message-source
-    hubnet-send-follow user-id self student-vision-radius
+    set user-id username
+    set perspective (list "follow" self student-vision-radius)
     set state "exploring"
     set color gray
+    set out who
   ]
+  report out
 end
 
 to remove-student
-  ask students with [ user-id = hubnet-message-source ] [ die ]
+  die
 end
 
-to execute-command [ command ]
-  if command = "dance" [ command-dance ]
-  if command = "revisit" [ command-revisit ]
-  if command = "give-up" [ command-give-up ]
-  if command = "View" [ command-click ]
+to command-move-up
+  handle-move 0
+end
 
-  if member? command [ "up" "down" "left" "right" ] [
-    if state = "dancing" [ set message-content "Move after dance" ]
-    if state = "visiting" or state = "returning" [
-      set message-content "Move after returning to the swarm"
-    ]
-    if state = "exploring" [
-      if command = "up"   [ execute-move   0 stop ]
-      if command = "down" [ execute-move 180 stop ]
-      if command = "right"[ execute-move  90 stop ]
-      if command = "left" [ execute-move 270 stop ]
-    ]
+to command-move-down
+  handle-move 180
+end
+
+to command-move-right
+  handle-move 90
+end
+
+to command-move-left
+  handle-move 270
+end
+
+to handle-move [ dir ]
+
+  if state = "dancing" [ set message-content "Move after dance" ]
+  if state = "visiting" or state = "returning" [
+    set message-content "Move after returning to the swarm"
   ]
+  if state = "exploring" [
+    execute-move dir stop
+    execute-move dir stop
+    execute-move dir stop
+    execute-move dir stop
+  ]
+
 end
 
 to execute-move [ new-heading ]
@@ -438,8 +430,8 @@ to command-give-up
         ifelse [ quality ] of supported-site < 50 [
           set supported-site nobody
           set color grey
-          hubnet-send user-id "target-quality" 0
-          hubnet-send user-id "interest-in-target" 0
+          set target-quality 0
+          set interest-in-target 0
         ] [
           set message-content "You can't give up a good site"
         ]
@@ -452,7 +444,7 @@ to command-give-up
   ]
 end
 
-to command-click
+to command-click [x y]
   if state = "dancing" [
     set message-content "Click a dancer after dancing to follow it"
   ]
@@ -465,21 +457,19 @@ to command-click
     ] [
       let close-enough? false
       let bees (turtle-set students robots)
-      let choice min-one-of bees [
-        distancexy item 0 hubnet-message item 1 hubnet-message
-      ]
+      let choice min-one-of bees [ distancexy x y ]
       ask choice [
         ;; click is close enough to the chosen bee, but a student
         ;; should only be able to click a dancer nearby.
-        if distancexy item 0 hubnet-message item 1 hubnet-message < 0.5 [
+        if distancexy x y < 0.5 [
           set close-enough? true ;; clicking anywhere gives a message asking to click on a dancer
         ]
       ]
       if close-enough? [
         ifelse [ state ] of choice =  "dancing" [
           set destination [ supported-site ] of choice
-          hubnet-send user-id "target-quality" "figuring out..."
-          hubnet-send user-id "interest-in-target" "figuring out..."
+          set target-quality "figuring out..."
+          set interest-in-target "figuring out..."
           set state "visiting"
           set color [color] of destination
         ] [
@@ -490,25 +480,15 @@ to command-click
   ]
 end
 
-to send-info-to-clients ;; turtle procedure
-  hubnet-send user-id "target-quality" 0
-  hubnet-send user-id "dances-made" 0
-  hubnet-send user-id "dance-length" 0
-  hubnet-send user-id "interest-in-target" 0
-  hubnet-send user-id "summary" ""
-  hubnet-send user-id "ticks" 0
-  hubnet-send user-id "bees-recruited" 0
-end
-
-to show-message
-  hubnet-send user-id "Message" message-content
+to-report best-site-discovered
+  report [ color = true-color ] of max-one-of sites [ quality ]
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;SAVE FILE;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 to save-history
-  csv:to-file filename history
+  ;csv:to-file filename history
 end
 
 
@@ -612,7 +592,7 @@ MONITOR
 195
 310
 Best site discovered?
-[ color = true-color ] of max-one-of sites [ quality ]
+best-site-discovered
 17
 1
 11

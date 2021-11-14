@@ -1,4 +1,4 @@
-extensions [bitmap]
+;extensions [bitmap]
 globals
 [
   predator-leader               ;; a string expressing the player who has found the most bug (or a tie if appropriate)
@@ -18,23 +18,27 @@ globals
   image5                        ;; default image
   number-of-predators           ;; keeps track of the number of predators (clients that are assigned this role) in the competition
   number-of-mates               ;; keeps track of the number of mates     (clients that are assigned this role) in the competition
-  host-mouse-down-released?     ;; keeps track of mouse-button release event to prevent host from holding down button and moving mouse to vacuum up bugs
   host-role                     ;; keeps track of the role the host is assigned (mate or predator)
+  host-player
 ]
 
 ;; each client controls one player turtle
 ;; players are always hidden in the view
 breed [players player]
+breed [students student]
 breed [found-spots found-spot]
 breed [edges edge]
 breed [bugs bug]
 
 found-spots-own [countdown]
 
+students-own [
+  my-player
+  user-id
+]
+
 players-own
 [
-  user-name    ;; the unique name users enter on their clients
-  host?        ;; all clients have this set to false...but the host is also a player, in which case this is set to true.
   role         ;; set as predator or mate
   found        ;; the number of bugs this user as found
   attempts     ;; times the user has clicked in the view trying to catch a bug
@@ -59,7 +63,6 @@ patches-own [type-of-patch region]
 
 to startup
   clear-all
-  hubnet-reset
   setup-clear
 end
 
@@ -82,7 +85,6 @@ to setup
   reset-ticks
   ask bugs [ die ]
   ask found-spots [ die ]
-  set host-mouse-down-released? false
   set total-found 0
   set leader ""
   set host-role ""
@@ -93,8 +95,8 @@ to setup
   make-initial-bugs carrying-capacity-environment-left  1
   make-initial-bugs carrying-capacity-environment-right 2
   ;; make sure to return players to initial conditions
-  ask players with [ not host? ] [ initialize-player ]
-  ask players with [ host? ] [ initialize-host ]
+  ask players with [ self != host-player ] [ initialize-player ]
+  ask host-player [ initialize-host ]
 end
 
 to setup-regions
@@ -166,8 +168,6 @@ to go
   grow-bugs
   reproduce-bugs
   cull-extra-bugs
-  listen-host
-  listen-clients
   visualize-found-spots
   tick
 end
@@ -315,58 +315,41 @@ to set-phenotype-color  ;; turtle procedure
   set color rgb red-gene green-gene blue-gene
 end
 
-to listen-host
-  if mouse-inside? and mouse-down? and host-mouse-down-released? [
-    ask players with [ host? ] [
-      set host-mouse-down-released? false
-      check-found-bugs (list mouse-xcor mouse-ycor)
-    ]
-  ]
-  set host-mouse-down-released? not mouse-down?
-end
-
-;;;;;;;;;;;;;;;;;;;;;;
-;; HubNet Procedures
-;;;;;;;;;;;;;;;;;;;;;;
-to listen-clients
-  while [ hubnet-message-waiting? ] [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message? [
-      add-player
-    ]
-    [
-      ifelse hubnet-exit-message? [
-        remove-player
-      ]
-      [
-        if hubnet-message-tag = "View" [
-          ask players with [ user-name = hubnet-message-source ] [
-            check-found-bugs hubnet-message
-          ]
-        ]
-      ]
-    ]
-  ]
-end
-
-;; when a client logs in make a new player
-;; and give it the default attributes
-to add-player
-  create-players 1 [
-    set user-name hubnet-message-source
-    initialize-player
-  ]
-end
-
 to add-host
-  create-players 1 [ initialize-host ]
+  create-players 1 [
+    set host-player self
+    initialize-host
+  ]
 end
 
 to initialize-host
-  set user-name "host"
   initialize-player
-  set host? true ;;changes this back to true after initial-player sets it to false by default
   set host-role role
+end
+
+to-report initialize-student [username]
+  let me nobody
+  create-students 1 [
+    set user-id username
+    set me self
+  ]
+  create-players 1 [ ; Create a player and stuff it into the student's variables
+    ask me [ set my-player myself ]
+    initialize-player
+  ]
+  report [who] of me
+end
+
+to-report student-found
+  report [found] of my-player
+end
+
+to-report student-attempts
+  report [attempts] of my-player
+end
+
+to-report student-role
+  report [role] of my-player
 end
 
 to initialize-player ;; player procedure
@@ -382,15 +365,18 @@ to initialize-player ;; player procedure
   ]
   set attempts 0
   set found 0
-  set host? false
   set-percent
-  send-player-info
 end
 
-to check-found-bugs [ msg ]
-  ;; extract the coords from the hubnet message
-  let clicked-xcor (item 0 msg)
-  let clicked-ycor (item 1 msg)
+to check-found-bugs-host [x y]
+  ask host-player [ check-found-bugs x y ]
+end
+
+to check-found-bugs-student [x y]
+  ask my-player [ check-found-bugs x y ]
+end
+
+to check-found-bugs [ clicked-xcor clicked-ycor ]
   let this-region 0
   if clicked-ycor > 0 [ set this-region 1 ]
   if clicked-ycor < 0 [ set this-region 2 ]
@@ -407,7 +393,7 @@ to check-found-bugs [ msg ]
   ;;  a perfect circle, even if the size of the bug is other than 1)
   let candidates bugs with [ distance myself < size / 2 and region = this-region ]
   let num-region-bugs count bugs with [ region = this-region ]
-  ifelse any? candidates and num-region-bugs >= 2 [ ;; must have at least 2 bugs in the region
+  if any? candidates and num-region-bugs >= 2 [ ;; must have at least 2 bugs in the region
     ;; randomly select one of the bugs you clicked on
     let found-bug one-of candidates
     set found found + 1
@@ -430,63 +416,13 @@ to check-found-bugs [ msg ]
         visualize-death
       ]
     ]
-    ask players [ send-player-info ]
   ]
-  [ ;; even if we didn't catch a bug we need to update the attempts monitor
-    send-player-info
-  ]
-end
-
-to broadcast-competition-info
-  hubnet-broadcast "# of predators" count players with [ role = "predator" ]
-  hubnet-broadcast "Top predator" predator-leader
-  hubnet-broadcast "Top predator's catches" predator-leader-found
-  hubnet-broadcast "# of mates" count players with [ role = "mate" ]
-  hubnet-broadcast "Top mate" mate-leader
-  hubnet-broadcast "Top mate's matings" mate-leader-found
 end
 
 ;; when clients log out simply get rid of the player turtle
-to remove-player
-  ask players with [ user-name = hubnet-message-source and not host? ] [
-    die
-  ]
-end
-
-to eat-bugs
-  ;; extract the coords from the hubnet message
-  let clicked-xcor (item 0 hubnet-message)
-  let clicked-ycor (item 1 hubnet-message)
-
-  ask players with [ user-name = hubnet-message-source ] [
-    set xcor clicked-xcor      ;; go to the location of the click
-    set ycor clicked-ycor
-    set attempts attempts + 1  ;; each mouse click is recorded as an attempt
-                               ;; for that player
-
-    ;;  if the players clicks close enough to a bug's location, they catch it
-    ;;  the in-radius (adult-bug-size / 2) calculation helps make sure the user catches the bug
-    ;;  if they click within one shape radius (approximately since the shape of the bug isn't
-    ;;  a perfect circle, even if the size of the bug is other than 1)
-    let candidates bugs in-radius (adult-bug-size / 2)
-    ifelse any? candidates [
-      let doomed-bug one-of candidates
-      set found found + 1
-      set total-found total-found + 1
-      ask doomed-bug [ visualize-death ]
-      ;; all the players have monitors
-      ;; displaying information about the leader
-      ;; so we need to make sure that gets updated
-      ;; when the leader changed
-      ask players [
-        set-percent
-        send-player-info
-      ]
-    ]
-    [ ;; even if we didn't catch a bug we need to update the attempts monitor
-      send-player-info
-    ]
-  ]
+to remove-student
+  ask my-player [ die ]
+  die
 end
 
 ;; calculate the percentage that this player found to the leader
@@ -495,14 +431,6 @@ to set-percent ;; player procedure
   ifelse leader-found > 0
     [ set percent (found / leader-found) * 100]
     [ set percent 0 ]
-end
-
-;; update the monitors on the client
-to send-player-info ;; player procedure
-  hubnet-send user-name "Your name" user-name
-  hubnet-send user-name "Your role" role
-  hubnet-send user-name "You have found" found
-  hubnet-send user-name "# Attempts"  attempts
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -516,11 +444,11 @@ to set-default-image-filenames
 end
 
 to upload-image1
-  set image1 user-file
+  ;set image1 user-file
 end
 
 to upload-image2
-  set image2 user-file
+  ;set image2 user-file
 end
 
 ;; loads a single or combined image as environment
@@ -542,17 +470,17 @@ to change-environment
   ]
   ask bugs [ set hidden? true ]
   let image-file-name "stitched-image.png"
-  bitmap:export bitmap:from-view image-file-name
-  import-drawing image-file-name
-  carefully [ file-delete image-file-name ] []
+  ;bitmap:export bitmap:from-view image-file-name
+  ;import-drawing image-file-name
+  ;carefully [ file-delete image-file-name ] []
   ask bugs [ set hidden? false ]
 end
 
 to set-environment [image-name region-name]
   let xcor-image 0 ;;if region is 1 this will stay as 0, if 2 it will be 400
   if region-name = 2 [ set xcor-image 400 ]
-  let image-name-scaled bitmap:scaled (bitmap:import image-name) 410 410
-  bitmap:copy-to-drawing image-name-scaled xcor-image 0
+  ;let image-name-scaled bitmap:scaled (bitmap:import image-name) 410 410
+  ;bitmap:copy-to-drawing image-name-scaled xcor-image 0
 end
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -578,6 +506,13 @@ to-report limit-gene [ gene ]
   report gene
 end
 
+to-report host-found
+  report [found] of host-player
+end
+
+to-report num-attempts
+  report [attempts] of host-player
+end
 
 ; Copyright 2006 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -881,7 +816,7 @@ MONITOR
 95
 395
 host found
-item 0 [found] of players with [host?]
+host-found
 17
 1
 11
@@ -892,7 +827,7 @@ MONITOR
 175
 395
 # attempts
-item 0 [attempts] of players with [host?]
+num-attempts
 17
 1
 11
