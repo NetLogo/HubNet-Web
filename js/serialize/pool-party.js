@@ -1,4 +1,4 @@
-import { awaitWorker } from "./await.js";
+import { awaitWorker } from "/js/common/await.js";
 
 // (String) => (Object[Any]) => Unit
 const handleMessage = (descriptor) => (msg) => {
@@ -12,10 +12,10 @@ const handleMessage = (descriptor) => (msg) => {
   }
 };
 
-const encoderPool = new Worker("js/common/encoder-pool.js", { type: "module" });
+const encoderPool = new Worker("js/serialize/encoder-pool.js", { type: "module" });
 encoderPool.onmessage = handleMessage("encoder");
 
-const decoderPool = new Worker("js/common/decoder-pool.js", { type: "module" });
+const decoderPool = new Worker("js/serialize/decoder-pool.js", { type: "module" });
 decoderPool.onmessage = handleMessage("decoder");
 
 // (String, Object[Any]) => Promise[Any]

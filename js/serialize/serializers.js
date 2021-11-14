@@ -2,11 +2,11 @@ import { protobuf } from "/assets/js/protobuf.min.js";
 
 import { inflate, deflate } from "/depend/js/pako.esm.mjs";
 
-import * as FromHostJP   from "./from-host-jiggery-pokery.js";
-import * as FromJoinerJP from "./from-joiner-jiggery-pokery.js";
+import * as FromHostJP   from "./jigpoke/from-host-jiggery-pokery.js";
+import * as FromJoinerJP from "./jigpoke/from-joiner-jiggery-pokery.js";
 
-import * as FromHostFurler   from "./from-host-furling.js";
-import * as FromJoinerFurler from "./from-joiner-furling.js";
+import * as FromHostFurler   from "./furl/from-host-furling.js";
+import * as FromJoinerFurler from "./furl/from-joiner-furling.js";
 
 const cMask = 0b10000000; // Number
 

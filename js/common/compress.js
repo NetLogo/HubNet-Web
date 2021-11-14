@@ -1,8 +1,9 @@
 import { HNWProtocolVersionNumber, typeIsOOB } from "./common.js";
 
-import { logEntry     } from "./bandwidth-monitor.js";
-import { genNextID    } from "./id-manager.js";
-import { awaitEncoder } from "./pool-party.js";
+import { logEntry  } from "./bandwidth-monitor.js";
+import { genNextID } from "./id-manager.js";
+
+import { awaitEncoder } from "/js/serialize/pool-party.js";
 
 // (Boolean) => (RTCDataChannel*) => (String, Object[Any]) => Unit
 const sendRTC = (isHost) => (...channels) => (type, obj) => {

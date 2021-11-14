@@ -1,4 +1,4 @@
-import { FromHostRoot } from "./from-host-root.js";
+import { FromHostRoot } from "./protobuf/from-host-root.js";
 
 import * as Furling from "./common-furling.js";
 

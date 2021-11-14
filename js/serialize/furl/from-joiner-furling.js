@@ -1,4 +1,4 @@
-import { FromJoinerRoot } from "./from-joiner-root.js";
+import { FromJoinerRoot } from "./protobuf/from-joiner-root.js";
 
 import * as Furling from "./common-furling.js";
 

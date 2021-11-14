@@ -1,5 +1,4 @@
-import { deepClone, recombobulateToken
-       , rejiggerToken } from "./common-jiggery-pokery.js";
+import { deepClone, recombobulateToken, rejiggerToken } from "./common-jiggery-pokery.js";
 
 // (Object[Any]) => Object[Any]
 const rejiggerConnEst = (obj) => {
