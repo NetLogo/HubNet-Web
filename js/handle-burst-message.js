@@ -3,7 +3,7 @@ const handleInitialModel = (bundle) => ({ role, token, view, state }) => {
 
   bundle.statusManager.waitingForNLWBoot();
 
-  const postInitialInterface =
+  const awaitInitialInterface =
     () => {
       bundle.statusManager.loadingNLWUI();
       const initialInterface =
@@ -26,9 +26,7 @@ const handleInitialModel = (bundle) => ({ role, token, view, state }) => {
       bundle.postToNLW(parcel);
     };
 
-  bundle.spamNLW("hnw-are-you-ready-for-interface").
-    then(postInitialInterface).
-    then(postInitialState);
+  awaitInitialInterface().then(postInitialState);
 
 };
 

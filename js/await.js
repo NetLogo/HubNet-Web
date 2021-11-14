@@ -27,6 +27,14 @@ const awaitFrame = (domain = "*") =>
     }
   );
 
+// (MessagePort) => (String, Object[Any]?) => Promise[Any]
+const awaitPort =
+  awaitResponse(
+    (sendPort, msg, receivePort) => {
+      sendPort.postMessage(msg, [receivePort]);
+    }
+  );
+
 // (WebWorker) => (String, Object[Any]?) => Promise[Any]
 const awaitWorker =
   awaitResponse(
@@ -35,33 +43,17 @@ const awaitWorker =
     }
   );
 
-// (String?) => (Window) => (String, Object[Any]?) => Promise[Any]
-const spamFrame = (domain = "*") => (frame) => (type, msg = {}) => {
-
-  let resolution = null;
-
-  const postMsg =
-    () => {
-
-      const channel = new MessageChannel();
-
-      channel.port1.onmessage = ({ data }) => {
-        channel.port1.close();
-        resolution = data;
-      };
-
-      frame.postMessage({ ...msg, type }, domain, [channel.port2]);
-
-    };
+// (() => Boolean, () => T) => (() => Unit) => Promise[T]
+const retryUntil = (cond, getValue) => (f) => {
 
   const wrapper =
     (resolve) => {
       const innerF =
         () => {
-          if (resolution !== null) {
-            resolve(resolution);
+          if (cond()) {
+            resolve(getValue());
           } else {
-            postMsg();
+            f();
             setTimeout(innerF, 1000 / 60);
           }
         };
@@ -72,4 +64,27 @@ const spamFrame = (domain = "*") => (frame) => (type, msg = {}) => {
 
 };
 
-export { awaitFrame, awaitWorker, spamFrame };
+// (String?) => (Window) => (String, Object[Any]?) => Promise[MessagePort]
+const spamFrameForPort = (domain = "*") => (frame) => (type, msg = {}) => {
+
+  let resolution = null;
+
+  const postMsg =
+    () => {
+
+      const channel = new MessageChannel();
+
+      channel.port1.onmessage = () => {
+        channel.port1.onmessage = undefined;
+        resolution = channel.port1;
+      };
+
+      frame.postMessage({ ...msg, type }, domain, [channel.port2]);
+
+    };
+
+  return retryUntil((() => resolution !== null), () => resolution)(postMsg);
+
+};
+
+export { awaitFrame, awaitPort, awaitWorker, spamFrameForPort };

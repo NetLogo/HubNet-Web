@@ -79,10 +79,9 @@ const genBurstQueue = () => {
   };
 
   const burstBundle =
-    { awaitNLW:    nlwManager.await
-    , getUsername: loginControls.getUsername
-    , postToNLW:   nlwManager.post
-    , spamNLW:     nlwManager.spam
+    { awaitNLW:      nlwManager.await
+    , getUsername:   loginControls.getUsername
+    , postToNLW:     nlwManager.post
     , statusManager
     };
 
@@ -111,6 +110,21 @@ const cleanupSession = (warrantsExplanation, updateStatus = () => {}) => {
 
 };
 
+// (String) => Unit
+const onHNWError = (type) => {
+  switch (type) {
+    case "unknown-agent": {
+      alert(`We received an update for an agent that we have never heard of (${event.data.agentType} #${event.data.agentID}).\n\nIn a later version, we will add the ability to resynchronize with the server to get around this issue.  However, the only solution right now is for the activity to close.\n\nYou might have better success if you reconnect.`);
+      break;
+    }
+    default: {
+      alert(`A fatal error occurred: ${event.data.subtype}`);
+    }
+  }
+  statusManager.closedFromError();
+  cleanupSession(false);
+};
+
 const loginControls  = new LoginControlsManager(byEID("join-form"), onLogIn);
 const previewManager = new       PreviewManager(byEID("session-preview-image"));
 const statusManager  = new     AppStatusManager(byEID("status-value"));
@@ -121,45 +135,11 @@ const sessionList =
                  , loginControls.onNewSelection(() => document.createElement("option")));
 
 const connMan    = new ConnectionManager();
-const nlwManager = new NLWManager(byEID("nlw-frame"), connMan.disconnect);
+const nlwManager = new NLWManager( byEID("nlw-frame"), connMan.send
+                                 , connMan.disconnect, onHNWError);
 const burstQueue = genBurstQueue(); // BurstQueue
 
 document.addEventListener("DOMContentLoaded", nlwManager.init);
-
-// (MessageEvent) => Unit
-self.addEventListener("message", (event) => {
-  switch (event.data.type) {
-
-    case "relay": {
-      connMan.send("relay", event.data);
-      break;
-    }
-
-    case "hnw-fatal-error": {
-      switch (event.data.subtype) {
-        case "unknown-agent": {
-          alert(`We received an update for an agent that we have never heard of (${event.data.agentType} #${event.data.agentID}).\n\nIn a later version, we will add the ability to resynchronize with the server to get around this issue.  However, the only solution right now is for the activity to close.\n\nYou might have better success if you reconnect.`);
-          break;
-        }
-        default: {
-          alert(`An unknown fatal error has occurred: ${event.data.subtype}`);
-        }
-      }
-      statusManager.closedFromError();
-      cleanupSession(false);
-      break;
-    }
-
-    case "hnw-resize": {
-      break;
-    }
-
-    default: {
-      console.warn(`Unknown message type: ${event.data.type}`);
-    }
-
-  }
-});
 
 self.addEventListener("beforeunload", () => {
   // Honestly, this will probably not run before the tab closes.
