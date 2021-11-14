@@ -389,8 +389,7 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
         session.networking.signaling.terminate();
         session.networking.signaling = SigTerm;
 
-        session.username      = datum.username;
-        session.isInitialized = false;
+        session.username = datum.username;
         sendRTC(channel)("login-successful", {});
 
         const requestInitState =
