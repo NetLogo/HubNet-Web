@@ -1,11 +1,11 @@
 import ConnectionManager    from "./conn/connection-manager.js";
 
-import AppStatusManager     from "./app-status-manager.js";
 import BurstQueue           from "./burst-queue.js";
-import LoginControlsManager from "./login-controls-manager.js";
-import NLWManager           from "./nlw-manager.js";
-import PreviewManager       from "./preview-manager.js";
-import SessionList          from "./session-list.js";
+import AppStatusManager     from "./ui/app-status-manager.js";
+import LoginControlsManager from "./ui/login-controls-manager.js";
+import NLWManager           from "./ui/nlw-manager.js";
+import PreviewManager       from "./ui/preview-manager.js";
+import SessionList          from "./ui/session/session-list.js";
 
 import genCHB from "./gen-chan-han-bundle.js";
 
