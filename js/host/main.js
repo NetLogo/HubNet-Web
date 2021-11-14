@@ -274,6 +274,10 @@ const handleConnectionMessage = (connection, nlogo, sessionName, joinerID) => ({
       connection.addIceCandidate(datum.candidate);
       break;
     }
+    case "bye-bye":
+    case "keep-alive": {
+      break;
+    }
     default: {
       console.warn(`Unknown narrow event type: ${datum.type}`);
     }
