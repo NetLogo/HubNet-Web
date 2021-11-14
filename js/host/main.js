@@ -30,9 +30,9 @@ let password = null; // String
 
 const SigTerm = "signaling-terminated"; // String
 
-const broadSocketW = new Worker("js/host/broadsocket.js", { type: "module" });
+const broadSocketW = new Worker("js/host/ws/broadsocket.js", { type: "module" });
 
-const statusSocketW = new Worker("js/host/status-socket.js", { type: "module" });
+const statusSocketW = new Worker("js/host/ws/status-socket.js", { type: "module" });
 
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".nlw-iframe").src = `http://${galapagos}/hnw-host`;
@@ -127,7 +127,7 @@ const launchModel = (formDataPlus) => {
               const joinerID   = data.joinerID;
               const connection = new RTCPeerConnection(hostConfig);
 
-              const signaling     = new Worker("js/host/signaling-socket.js", { type: "module" });
+              const signaling     = new Worker("js/host/ws/signaling-socket.js", { type: "module" });
               signaling.onmessage = handleConnectionMessage(connection, nlogo, sessionName, joinerID);
 
               const signalingURL = `ws://${hnw}/rtc/${hostID}/${joinerID}/host`;
