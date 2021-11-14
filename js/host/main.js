@@ -109,15 +109,15 @@ const launchModel = (formDataPlus) => {
         nlwFrame .classList.remove("invis");
         history.pushState({ name: "hosting" }, "hosting");
 
+        const babyMonitor = new MessageChannel();
+        babyMonitor.port1.onmessage = onBabyMonitorMessage;
 
-        postToNLW({ ...json, type: "hnw-become-oracle", nlogo });
+        postToNLW( { ...json, type: "hnw-become-oracle", nlogo }
+                 , [babyMonitor.port2]);
 
         const cWindow     = nlwFrame.querySelector("iframe").contentWindow;
         const msg         = { type: "nlw-subscribe-to-updates", uuid: hostID };
-        const babyMonitor = new MessageChannel();
-        cWindow.postMessage(msg, `http://${galapagos}`, [babyMonitor.port2]);
-
-        babyMonitor.port1.onmessage = onBabyMonitorMessage;
+        cWindow.postMessage(msg, `http://${galapagos}`);
 
         broadSocketW.onmessage = ({ data }) => {
           switch (data.type) {
@@ -422,36 +422,6 @@ const onBabyMonitorMessage = ({ data }) => {
         broadcast("state-update", { update: data.update });
       break;
     }
-    default: {
-      console.warn(`Unknown baby monitor message type: ${data.type}`);
-    }
-  }
-};
-
-// (String, Object[Any], UUID) => Unit
-const narrowcast = (type, message, recipientUUID) => {
-  if (sessions[recipientUUID]?.networking.channel?.readyState === "open") {
-    sendBurst(true, sessions[recipientUUID].networking.channel)(type, message);
-  }
-};
-
-// (String, Object[Any]) => Unit
-const broadcast = (type, message) => {
-  const checkIsEligible = (s) => {
-    const nw         = s.networking;
-    const hasChannel = nw.channel !== undefined;
-    return hasChannel && nw.channel.readyState === "open" && s.hasInitialized;
-  };
-  const toChannel = (s) => s.networking.channel;
-  const channels  = Object.values(sessions).filter(checkIsEligible).map(toChannel);
-  sendBurst(true, ...channels)(type, message);
-};
-
-
-// (MessageEvent) => Unit
-self.addEventListener("message", ({ data }) => {
-
-  switch (data.type) {
     case "nlw-view": {
       statusSocketW.postMessage({ type: "image-update", blob: data.blob });
       break;
@@ -488,15 +458,30 @@ self.addEventListener("message", ({ data }) => {
       self.location.reload();
       break;
     }
-    case "nlw-resize": {
-      break;
-    }
     default: {
-      console.warn(`Unknown postMessage type: ${data.type}`);
+      console.warn(`Unknown baby monitor message type: ${data.type}`);
     }
   }
+};
 
-});
+// (String, Object[Any], UUID) => Unit
+const narrowcast = (type, message, recipientUUID) => {
+  if (sessions[recipientUUID]?.networking.channel?.readyState === "open") {
+    sendBurst(true, sessions[recipientUUID].networking.channel)(type, message);
+  }
+};
+
+// (String, Object[Any]) => Unit
+const broadcast = (type, message) => {
+  const checkIsEligible = (s) => {
+    const nw         = s.networking;
+    const hasChannel = nw.channel !== undefined;
+    return hasChannel && nw.channel.readyState === "open" && s.hasInitialized;
+  };
+  const toChannel = (s) => s.networking.channel;
+  const channels  = Object.values(sessions).filter(checkIsEligible).map(toChannel);
+  sendBurst(true, ...channels)(type, message);
+};
 
 self.addEventListener("beforeunload", () => {
   // Honestly, this will probably not run before the tab closes.
@@ -608,8 +593,8 @@ const updateCongestionStats = () => {
 
 };
 
-// (Object[Any]) => Unit
-const postToNLW = (msg) => {
+// (Object[Any], Array[Any]?) => Unit
+const postToNLW = (msg, transfers = []) => {
   const frame = document.querySelector("#nlw-frame > iframe").contentWindow;
-  frame.postMessage(msg, `http://${galapagos}`);
+  frame.postMessage(msg, `http://${galapagos}`, transfers);
 };
