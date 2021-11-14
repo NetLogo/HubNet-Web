@@ -1,6 +1,7 @@
+import ConnectionManager    from "./conn/connection-manager.js";
+
 import AppStatusManager     from "./app-status-manager.js";
 import BurstQueue           from "./burst-queue.js";
-import ConnectionManager    from "./connection-manager.js";
 import LoginControlsManager from "./login-controls-manager.js";
 import NLWManager           from "./nlw-manager.js";
 import PreviewManager       from "./preview-manager.js";
