@@ -1,7 +1,7 @@
-import { typeIsOOB                             } from "./common.js";
-import { MinID, prevID, SentinelID, succeedsID } from "./id-manager.js";
+import { typeIsOOB                             } from "/js/common/common.js";
+import { MinID, prevID, SentinelID, succeedsID } from "/js/common/id-manager.js";
 
-import { decodePBuf } from "./protobuf/converters-common.js";
+import { decodePBuf } from "/js/common/converters.js";
 
 // type MessageHandler = { reset :: () => Unit, run :: (Object[Any]) => Unit }
 

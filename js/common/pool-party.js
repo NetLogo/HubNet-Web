@@ -12,10 +12,10 @@ const handleMessage = (descriptor) => (msg) => {
   }
 };
 
-const encoderPool = new Worker("js/protobuf/encoder-pool.js", { type: "module" });
+const encoderPool = new Worker("js/common/encoder-pool.js", { type: "module" });
 encoderPool.onmessage = handleMessage("encoder");
 
-const decoderPool = new Worker("js/protobuf/decoder-pool.js", { type: "module" });
+const decoderPool = new Worker("js/common/decoder-pool.js", { type: "module" });
 decoderPool.onmessage = handleMessage("decoder");
 
 // (String, Object[Any]) => Promise[Any]

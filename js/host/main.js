@@ -1,15 +1,15 @@
-import { byteSizeLabel, HNWProtocolVersionNumber, uuidToRTCID } from "./common.js";
+import { byteSizeLabel, HNWProtocolVersionNumber, uuidToRTCID } from "/js/common/common.js";
 
-import { reportBandwidth, reportNewSend             } from "./bandwidth-monitor.js";
-import { awaitDecoder, notifyDecoder, notifyEncoder } from "./pool-party.js";
+import { reportBandwidth, reportNewSend             } from "/js/common/bandwidth-monitor.js";
+import { awaitDecoder, notifyDecoder, notifyEncoder } from "/js/common/pool-party.js";
 
-import { awaitWorker    } from "./await.js";
-import { sendBurst      } from "./compress.js";
-import { galapagos, hnw } from "./domain.js";
-import { genNextID      } from "./id-manager.js";
-import { hostConfig     } from "./webrtc.js";
+import { awaitWorker    } from "/js/common/await.js";
+import { sendBurst      } from "/js/common/compress.js";
+import { galapagos, hnw } from "/js/common/domain.js";
+import { hostConfig     } from "/js/common/webrtc.js";
+import { genNextID      } from "/js/common/id-manager.js";
 
-import * as CompressJS from "./compress.js";
+import * as CompressJS from "/js/common/compress.js";
 
 const sendGreeting = CompressJS.sendGreeting(true);
 const sendRTC      = CompressJS.sendRTC     (true);
@@ -32,9 +32,9 @@ let password = null; // String
 
 const SigTerm = "signaling-terminated"; // String
 
-const broadSocketW = new Worker("js/broadsocket.js", { type: "module" });
+const broadSocketW = new Worker("js/host/broadsocket.js", { type: "module" });
 
-const statusSocketW = new Worker("js/status-socket.js", { type: "module" });
+const statusSocketW = new Worker("js/host/status-socket.js", { type: "module" });
 
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".nlw-iframe").src = `http://${galapagos}/hnw-host`;
@@ -129,7 +129,7 @@ const launchModel = (formDataPlus) => {
               const joinerID   = data.joinerID;
               const connection = new RTCPeerConnection(hostConfig);
 
-              const signaling     = new Worker("js/host-signaling-socket.js", { type: "module" });
+              const signaling     = new Worker("js/host/signaling-socket.js", { type: "module" });
               signaling.onmessage = handleConnectionMessage(connection, nlogo, sessionName, joinerID);
 
               const signalingURL = `ws://${hnw}/rtc/${hostID}/${joinerID}/host`;

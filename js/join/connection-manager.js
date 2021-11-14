@@ -1,11 +1,11 @@
-import { uuidToRTCID  } from "./common.js";
-import { joinerConfig } from "./webrtc.js";
+import { uuidToRTCID  } from "/js/common/common.js";
+import { joinerConfig } from "/js/common/webrtc.js";
 
 import ChannelHandler  from "./channel-handler.js";
 import SignalingStream from "./signaling-stream.js";
 import RxQueue         from "./rx-queue.js";
 
-import * as CompressJS from "./compress.js";
+import * as CompressJS from "/js/common/compress.js";
 
 const sendGreeting = CompressJS.sendGreeting(false);
 const sendRTC      = CompressJS.sendRTC     (false);

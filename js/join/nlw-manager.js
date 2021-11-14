@@ -1,5 +1,5 @@
-import { awaitPort, spamFrameForPort } from "./await.js";
-import { galapagos, galaProto        } from "./domain.js";
+import { awaitPort, spamFrameForPort } from "/js/common/await.js";
+import { galapagos, galaProto        } from "/js/common/domain.js";
 
 import fakeModel from "./fake-model.js";
 

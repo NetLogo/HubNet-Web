@@ -1,5 +1,5 @@
-import { hnw                  } from "./domain.js";
-import { getSocket, setSocket } from "./websocket-common.js";
+import { hnw                  } from "/js/common/domain.js";
+import { getSocket, setSocket } from "/js/common/websocket.js";
 
 // (MessageEvent) => Unit
 onmessage = (e) => {

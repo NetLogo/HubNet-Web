@@ -1,4 +1,4 @@
-import { decodePBuf    } from "./converters-common.js";
+import { decodePBuf    } from "./converters.js";
 import { handleMessage } from "./coder.js";
 
 // (MessageEvent) => Unit

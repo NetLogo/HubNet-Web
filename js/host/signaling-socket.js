@@ -1,5 +1,5 @@
-import { reportBandwidth, reportNewSend } from "./bandwidth-monitor.js";
-import { sendObj, setSocket } from "./websocket-common.js";
+import { reportBandwidth, reportNewSend } from "/js/common/bandwidth-monitor.js";
+import { sendObj, setSocket             } from "/js/common/websocket.js";
 
 // (MessageEvent) => Unit
 onmessage = (e) => {

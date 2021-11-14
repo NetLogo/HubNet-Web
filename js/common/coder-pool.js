@@ -1,4 +1,4 @@
-import { awaitWorker } from "../await.js";
+import { awaitWorker } from "/js/common/await.js";
 
 // Number
 const maxNumWorkers = Math.max(1, navigator.hardwareConcurrency);

@@ -1,4 +1,4 @@
-import { HNWProtocolVersionNumber } from "./common.js";
+import { HNWProtocolVersionNumber } from "/js/common/common.js";
 
 // (Object[Any], Array[Number]) => (Object[Any]) => Unit
 const handlePing = (bundle, pings) => ({ id, lastPing }) => {
