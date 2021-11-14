@@ -17,7 +17,7 @@ const sendRTC = (isHost) => (...channels) => (type, obj) => {
   channels.forEach((channel) => {
     switch (channel.readyState) {
       case "connecting": {
-        setTimeout(() => { sendRTC(isHost)(channel)(type, obj); }, 50);
+        setTimeout(() => { sendRTC(isHost)(channel)(type, obj); }, 5);
         break;
       }
       case "closing":

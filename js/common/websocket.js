@@ -37,7 +37,7 @@ const sendOOB = (type, obj) => {
 const sendObj = (type, obj) => {
   switch (socket.readyState) {
     case WebSocket.CONNECTING: {
-      setTimeout(() => { sendObj(type, obj); }, 50);
+      setTimeout(() => { sendObj(type, obj); }, 5);
       break;
     }
     case WebSocket.CLOSING:
