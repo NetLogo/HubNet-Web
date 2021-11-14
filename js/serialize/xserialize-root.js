@@ -20,7 +20,7 @@ const trace = (type) => (f) => {
 
 // (Boolean) => (Object[Any]) => Uint8Array
 /* eslint-disable no-bitwise */
-const encodePBuf = (isHost) => (msg) => {
+const serialize = (isHost) => (msg) => {
 
   trace(msg.type)(() => console.log("About to rejigger", msg));
   const rejiggered = (isHost ? FromHostJP : FromJoinerJP).rejigger(msg);
@@ -56,7 +56,7 @@ const encodePBuf = (isHost) => (msg) => {
 };
 
 // (Boolean) => (Uint8Array) => Object[Any]
-const decodePBuf = (isHost) => (byteStream) => {
+const deserialize = (isHost) => (byteStream) => {
 
   const furler        = isHost ? FromJoinerFurler : FromHostFurler;
   const jiggeryPokery = isHost ? FromJoinerJP     : FromHostJP;
@@ -84,4 +84,4 @@ const decodePBuf = (isHost) => (byteStream) => {
 };
 /* eslint-enable no-bitwise */
 
-export { decodePBuf, encodePBuf };
+export { deserialize, serialize };

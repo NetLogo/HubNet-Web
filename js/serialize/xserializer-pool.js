@@ -13,7 +13,7 @@ const initWorker = (workerPath) => {
 };
 
 // (Object[Any], Boolean, MessagePort, String) => Unit
-const code = (parcel, isHost, port, type) => {
+const xserialize = (parcel, isHost, port, type) => {
 
   const workerBundle = workerPool.find((bundle) => bundle.isIdle);
 
@@ -24,14 +24,14 @@ const code = (parcel, isHost, port, type) => {
     const message = { parcel, isHost };
 
     awaitWorker(workerBundle.worker)(type, message).then(
-      (coded) => {
+      (xserialized) => {
         workerBundle.isIdle = true;
-        port.postMessage(coded);
+        port.postMessage(xserialized);
       }
     );
 
   } else {
-    setTimeout((() => code(parcel, isHost, port, type)), 5);
+    setTimeout((() => xserialize(parcel, isHost, port, type)), 5);
   }
 
 };
@@ -51,7 +51,7 @@ const handleMessage = (reqMsgType, innerMsgType, workerPath, poolDesc) => {
         break;
       }
       case reqMsgType: {
-        code(e.data.parcel, e.data.isHost, e.ports[0], innerMsgType);
+        xserialize(e.data.parcel, e.data.isHost, e.ports[0], innerMsgType);
         break;
       }
       case "shutdown": {

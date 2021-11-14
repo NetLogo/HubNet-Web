@@ -12,22 +12,24 @@ const handleMessage = (descriptor) => (msg) => {
   }
 };
 
-const encoderPool = new Worker("js/serialize/encoder-pool.js", { type: "module" });
-encoderPool.onmessage = handleMessage("encoder");
+const serializerURL      = "js/serialize/serializer-pool.js";
+const serializerPool     = new Worker(serializerURL, { type: "module" });
+serializerPool.onmessage = handleMessage("serializer");
 
-const decoderPool = new Worker("js/serialize/decoder-pool.js", { type: "module" });
-decoderPool.onmessage = handleMessage("decoder");
+const deserializerURL      = "js/serialize/deserializer-pool.js";
+const deserializerPool     = new Worker(deserializerURL, { type: "module" });
+deserializerPool.onmessage = handleMessage("deserializer");
 
 // (String, Object[Any]) => Promise[Any]
-const awaitDecoder = awaitWorker(decoderPool);
-const awaitEncoder = awaitWorker(encoderPool);
+const awaitDeserializer = awaitWorker(deserializerPool);
+const awaitSerializer   = awaitWorker(  serializerPool);
 
 // (Worker) => (Object[Any]) => Unit
 const notify = (pool) => (type, msg = {}) => {
   pool.postMessage({ ...msg, type });
 };
 
-const notifyDecoder = notify(decoderPool); // (Object[Any]) => Unit
-const notifyEncoder = notify(encoderPool); // (Object[Any]) => Unit
+const notifyDeserializer = notify(deserializerPool); // (Object[Any]) => Unit
+const notifySerializer   = notify(  serializerPool); // (Object[Any]) => Unit
 
-export { awaitDecoder, awaitEncoder, notifyDecoder, notifyEncoder };
+export { awaitDeserializer, awaitSerializer, notifyDeserializer, notifySerializer };

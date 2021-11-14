@@ -1,6 +1,6 @@
 import { byteSizeLabel, HNWProtocolVersionNumber, uuidToRTCID } from "/js/common/common.js";
 
-import { awaitDecoder, notifyDecoder, notifyEncoder } from "/js/serialize/pool-party.js";
+import { awaitDeserializer, notifyDeserializer, notifySerializer } from "/js/serialize/pool-party.js";
 
 import { awaitWorker                    } from "/js/common/await.js";
 import { reportBandwidth, reportNewSend } from "/js/common/bandwidth-monitor.js";
@@ -142,8 +142,8 @@ const launchModel = (formDataPlus) => {
                                    , recentBuffer:   []
                                    };
 
-              notifyEncoder("client-connect");
-              notifyDecoder("client-connect");
+              notifySerializer  ("client-connect");
+              notifyDeserializer("client-connect");
 
               break;
 
@@ -289,7 +289,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
   const message = { parcel: new Uint8Array(data) };
 
-  awaitDecoder("decode", message).then((datum) => {
+  awaitDeserializer("deserialize", message).then((datum) => {
 
     switch (datum.type) {
 
@@ -358,8 +358,8 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 // (String) => () => Unit
 const cleanUpJoiner = (joinerID) => {
   postToNLW({ type: "hnw-notify-disconnect", joinerID });
-  notifyEncoder("client-disconnect");
-  notifyDecoder("client-disconnect");
+  notifySerializer  ("client-disconnect");
+  notifyDeserializer("client-disconnect");
   delete sessions[joinerID];
 };
 

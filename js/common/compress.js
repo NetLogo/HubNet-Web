@@ -3,7 +3,7 @@ import { HNWProtocolVersionNumber, typeIsOOB } from "./common.js";
 import { logEntry  } from "./bandwidth-monitor.js";
 import { genNextID } from "./id-manager.js";
 
-import { awaitEncoder } from "/js/serialize/pool-party.js";
+import { awaitSerializer } from "/js/serialize/pool-party.js";
 
 // (Boolean) => (RTCDataChannel*) => (String, Object[Any]) => Unit
 const sendRTC = (isHost) => (...channels) => (type, obj) => {
@@ -46,10 +46,10 @@ const sendBurst = (isHost, ...channels) => (type, msg) => {
   // out of order. --Jason B. (10/16/21)
   const idMap = new Map(channels.map((channel) => [channel, genChanID(channel)]));
 
-  asyncEncode({ type, ...msg }, isHost).then(
-    (encoded) => {
+  asyncSerialize({ type, ...msg }, isHost).then(
+    (serialized) => {
 
-      const chunks = chunkForSending(encoded);
+      const chunks = chunkForSending(serialized);
 
       const objs =
         chunks.map(
@@ -71,14 +71,16 @@ const sendBurst = (isHost, ...channels) => (type, msg) => {
 // (Boolean, RTCDataChannel) => (String, Any, UUID) => Unit
 const send = (isHost, channel) => (type, obj, id = genChanID(channel)) => {
   const parcel = { ...obj, id, type };
-  asyncEncode(parcel, isHost).then((encoded) => logAndSend(encoded, channel));
+  asyncSerialize(parcel, isHost).then(
+    (serialized) => logAndSend(serialized, channel)
+  );
 };
 
 // (Boolean, RTCDataChannel) => (String, Any) => Unit
 const sendOOB = (isHost, channel) => (type, obj) => {
-  asyncEncode({ type, ...obj }, isHost).then(
-    (encoded) => {
-      logAndSend(encoded, channel);
+  asyncSerialize({ type, ...obj }, isHost).then(
+    (serialized) => {
+      logAndSend(serialized, channel);
     }
   );
 };
@@ -106,8 +108,8 @@ const logAndSend = (data, channel) => {
 };
 
 // (Object[Any], Boolean) => Promise[Any]
-const asyncEncode = (parcel, isHost) => {
-  return awaitEncoder("encode", { parcel, isHost });
+const asyncSerialize = (parcel, isHost) => {
+  return awaitSerializer("serialize", { parcel, isHost });
 };
 
 // (Channel) => Number

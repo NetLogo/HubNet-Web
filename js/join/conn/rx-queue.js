@@ -1,7 +1,7 @@
 import { typeIsOOB                             } from "/js/common/common.js";
 import { MinID, prevID, SentinelID, succeedsID } from "/js/common/id-manager.js";
 
-import { decodePBuf } from "/js/serialize/serializers.js";
+import { deserialize } from "/js/serialize/xserialize-root.js";
 
 // type MessageHandler = { reset :: () => Unit, run :: (Object[Any]) => Unit }
 
@@ -35,7 +35,7 @@ export default class RxQueue {
 
   // (MessageHandler, Boolean) => RxQueue
   constructor(messageHandler, isHost) {
-    this.#decodeInput    = decodePBuf(isHost);
+    this.#decodeInput    = deserialize(isHost);
     this.#lastMsgID      = dummyID;
     this.#messageHandler = messageHandler;
     this.reset();
