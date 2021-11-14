@@ -9,9 +9,10 @@ onmessage = (e) => {
       socket.onmessage = ({ data }) => {
         const datum = JSON.parse(data);
         switch (datum.type) {
-          case "hello":
+          case "hello": {
             postMessage(datum);
             break;
+          }
           default:
             console.warn(`Unknown broad event type: ${datum.type}`);
         }
