@@ -120,8 +120,8 @@ const launchModel = (formDataPlus) => {
         const formFrame = document.getElementById("form-frame");
         const  nlwFrame = document.getElementById( "nlw-frame");
 
-        formFrame.classList.add(  "hidden");
-        nlwFrame .classList.remove("invis");
+        formFrame.classList.add(   "hidden");
+        nlwFrame .classList.remove("hidden");
         history.pushState({ name: "hosting" }, "hosting");
 
         babyMonitor.postMessage({ ...json, type: "hnw-become-oracle", nlogo });
