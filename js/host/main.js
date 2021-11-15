@@ -2,10 +2,12 @@ import { awaitDeserializer, notifyDeserializer, notifySerializer } from "/js/ser
 
 import { awaitWorker                              } from "/js/common/await.js";
 import { reportBandwidth, reportNewSend           } from "/js/common/bandwidth-monitor.js";
-import { galapagos, hnw                           } from "/js/common/domain.js";
+import { hnw                                      } from "/js/common/domain.js";
 import { genNextID                                } from "/js/common/id-manager.js";
 import { byteSizeLabel, ProtoVersion, uuidToRTCID } from "/js/common/util.js";
-import { hostConfig, sendBurst                    } from "/js/common/webrtc.js";
+import { hostConfig                               } from "/js/common/webrtc.js";
+
+import NLWManager from "./ui/nlw-manager.js";
 
 import * as WebRTCJS from "/js/common/webrtc.js";
 
@@ -34,25 +36,6 @@ const broadSocketW = new Worker("js/host/ws/broadsocket.js", { type: "module" })
 
 const statusSocketW = new Worker("js/host/ws/status-socket.js", { type: "module" });
 
-const babyMonitorChannel = new MessageChannel();
-const babyMonitor        = babyMonitorChannel.port1;
-
-document.addEventListener("DOMContentLoaded", () => {
-
-  babyMonitor.onmessage = onBabyMonitorMessage;
-
-  const iframe = document.querySelector(".nlw-iframe");
-
-  iframe.onload = () => {
-    const msg     = { type: "hnw-set-up-baby-monitor" };
-    const conWind = iframe.contentWindow;
-    conWind.postMessage(msg, `http://${galapagos}`, [babyMonitorChannel.port2]);
-  };
-
-  iframe.src = `http://${galapagos}/hnw-host`;
-
-});
-
 document.getElementById("launch-form").addEventListener("submit", (e) => {
 
   const formData = new FormData(e.target);
@@ -67,6 +50,42 @@ document.getElementById("launch-form").addEventListener("submit", (e) => {
   return true;
 
 });
+
+// (String) => Element?
+const byEID = (eid) => document.getElementById(eid);
+
+const onNLWManError = (subtype) => {
+  alert(`Fatal error received from client: ${subtype}`);
+  self.location.reload();
+};
+
+// (UUID, Boolean?) => RTCDataChannel?
+const getOpenChannelByID = (uuid, allowUninited = false) => {
+  const session = sessions[uuid];
+  if (session !== undefined && (allowUninited || session.hasInitialized) &&
+      session.networking.channel?.readyState === "open") {
+    return session.networking.channel;
+  } else {
+    return null;
+  }
+};
+
+// () => Array[RTCDataChannel]
+const getOpenChannels = () => {
+  return Object.keys(sessions).map(getOpenChannelByID).filter((c) => c !== null);
+};
+
+// (Blob) => Unit
+const postImageUpdate = (blob) => {
+  statusSocketW.postMessage({ type: "image-update", blob });
+};
+
+// (UUID) => Unit
+const initSesh = (uuid) => {
+  if (sessions[uuid] !== undefined) {
+    sessions[uuid].hasInitialized = true;
+  }
+};
 
 // (Object[String]) => Unit
 const launchModel = (formDataPlus) => {
@@ -118,14 +137,14 @@ const launchModel = (formDataPlus) => {
         const sessionName = formDataLike.sessionName;
 
         const formFrame = document.getElementById("form-frame");
-        const  nlwFrame = document.getElementById( "nlw-frame");
 
-        formFrame.classList.add(   "hidden");
-        nlwFrame .classList.remove("hidden");
         history.pushState({ name: "hosting" }, "hosting");
 
-        babyMonitor.postMessage({ ...json, type: "hnw-become-oracle", nlogo });
-        babyMonitor.postMessage({ type: "nlw-subscribe-to-updates", uuid: hostID });
+        formFrame.classList.add("hidden");
+
+        nlwManager.show();
+        nlwManager.post({ ...json, type: "hnw-become-oracle", nlogo });
+        nlwManager.post({ type: "nlw-subscribe-to-updates", uuid: hostID });
 
         broadSocketW.onmessage = ({ data }) => {
           switch (data.type) {
@@ -205,7 +224,7 @@ const launchModel = (formDataPlus) => {
         }, 2000);
 
         setInterval(() => {
-          babyMonitor.postMessage({ type: "nlw-request-view" });
+          nlwManager.post({ type: "nlw-request-view" });
         }, 8000);
 
       });
@@ -217,6 +236,12 @@ const launchModel = (formDataPlus) => {
   });
 
 };
+
+const nlwManager =
+  new NLWManager( byEID("nlw-frame"), launchModel, initSesh, getOpenChannelByID
+                , getOpenChannels, postImageUpdate, onNLWManError);
+
+document.addEventListener("DOMContentLoaded", nlwManager.init);
 
 // (RTCPeerConnection, String, String, String) => (RTCSessionDescription) => Unit
 const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
@@ -335,14 +360,14 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
           , joinerID
           };
 
-        babyMonitor.postMessage(latestPing);
+        nlwManager.post(latestPing);
 
         break;
 
       }
 
       case "relay": {
-        babyMonitor.postMessage(datum.payload);
+        nlwManager.post(datum.payload);
         break;
       }
 
@@ -363,7 +388,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
 // (String) => () => Unit
 const cleanUpJoiner = (joinerID) => {
-  babyMonitor.postMessage({ type: "hnw-notify-disconnect", joinerID });
+  nlwManager.post({ type: "hnw-notify-disconnect", joinerID });
   notifySerializer  ("client-disconnect");
   notifyDeserializer("client-disconnect");
   delete sessions[joinerID];
@@ -399,7 +424,7 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
           , username: sessions[joinerID].username
           };
 
-        babyMonitor.postMessage(requestInitState);
+        nlwManager.post(requestInitState);
 
       } else {
         sendRTC(channel)("incorrect-password", {});
@@ -419,76 +444,6 @@ const cleanupHostingSession = () => {
   location.reload();
 };
 
-// (Object[Any]) => Unit
-const onBabyMonitorMessage = ({ data }) => {
-  switch (data.type) {
-    case "nlw-state-update": {
-      if (data.isNarrowcast)
-        narrowcast("state-update", { update: data.update }, data.recipient);
-      else
-        broadcast("state-update", { update: data.update });
-      break;
-    }
-    case "nlw-view": {
-      statusSocketW.postMessage({ type: "image-update", blob: data.blob });
-      break;
-    }
-    case "galapagos-direct-launch": {
-      const { nlogo, config, sessionName, password: pw } = data;
-      launchModel({ modelType:  "upload"
-                  , model:       nlogo
-                  , sessionName
-                  , password:    pw
-                  , config
-                  });
-      break;
-    }
-    case "hnw-initial-state": {
-      const { token, role, state, viewState } = data;
-      narrowcast("initial-model", { role, token, state, view: viewState }, token);
-      sessions[token].hasInitialized = true;
-      break;
-    }
-    case "relay": {
-      if (data.isNarrowcast) {
-        const parcel = { ...data };
-        delete parcel.isNarrowcast;
-        delete parcel.recipient;
-        narrowcast("relay", parcel, data.recipient);
-      } else {
-        broadcast("relay", data);
-      }
-      break;
-    }
-    case "hnw-fatal-error": {
-      alert(`Fatal error received from client: ${data.subtype}`);
-      self.location.reload();
-      break;
-    }
-    default: {
-      console.warn("Unknown baby monitor message type:", data);
-    }
-  }
-};
-
-// (String, Object[Any], UUID) => Unit
-const narrowcast = (type, message, recipientUUID) => {
-  if (sessions[recipientUUID]?.networking.channel?.readyState === "open") {
-    sendBurst(true, sessions[recipientUUID].networking.channel)(type, message);
-  }
-};
-
-// (String, Object[Any]) => Unit
-const broadcast = (type, message) => {
-  const checkIsEligible = (s) => {
-    const nw         = s.networking;
-    const hasChannel = nw.channel !== undefined;
-    return hasChannel && nw.channel.readyState === "open" && s.hasInitialized;
-  };
-  const toChannel = (s) => s.networking.channel;
-  const channels  = Object.values(sessions).filter(checkIsEligible).map(toChannel);
-  sendBurst(true, ...channels)(type, message);
-};
 
 self.addEventListener("beforeunload", () => {
   // Honestly, this will probably not run before the tab closes.
@@ -580,11 +535,11 @@ const updateCongestionStats = () => {
                               majorCongestionStatus;
 
   if (connectionIsCongested) {
-    babyMonitor.postMessage({ type: "hnw-notify-congested" });
+    nlwManager.post({ type: "hnw-notify-congested" });
     congestionDuration++;
   } else {
     if (congestionDuration > 0) {
-      babyMonitor.postMessage({ type: "hnw-notify-uncongested" });
+      nlwManager.post({ type: "hnw-notify-uncongested" });
     }
     congestionDuration = 0;
   }
