@@ -5,7 +5,7 @@ import fakeModel from "./fake-model.js";
 
 const galaURL = `${galaProto}://${galapagos}`;
 
-export default class NLWManager {
+export default class JoinerNLWManager {
 
   #babyMonitor   = null;      // MessagePort
   #onError       = undefined; // (String) => Unit
@@ -13,7 +13,7 @@ export default class NLWManager {
   #resolverQueue = undefined; // Array[() => Unit]
   #send          = undefined; // (String, Object[Any]) => Unit
 
-  // (Element, (String, Object[Any]) => Unit, () => Unit, (String) => Unit) => NLWManager
+  // (Element, (String, Object[Any]) => Unit, () => Unit, (String) => Unit) => JoinerNLWManager
   constructor(outerFrame, send, onDisconnect, onError) {
 
     this.#outerFrame    = outerFrame;
@@ -63,37 +63,33 @@ export default class NLWManager {
     const galaWindow = iframe.contentWindow;
 
     spamFrameForPort(galaURL)(galaWindow)("hnw-set-up-baby-monitor").
-      then(
-        (babyMonitor) => {
-
-          this.#setBabyMonitor(babyMonitor);
-
-          babyMonitor.onmessage = ({ data }) => {
-            switch (data.type) {
-              case "relay": {
-                this.#send("relay", data);
-                break;
-              }
-              case "hnw-fatal-error": {
-                this.#onError(data.subtype);
-                break;
-              }
-              default: {
-                console.warn(`Unknown baby monitor type: ${data.type}`);
-              }
-            }
-          };
-
-        }
-      );
+      then(this.#setBabyMonitor);
 
   };
 
   // (MessagePort) => Unit
   #setBabyMonitor = (bm) => {
+
     this.#babyMonitor = bm;
     this.#resolverQueue.forEach((f) => f());
     this.#resolverQueue = [];
+
+    bm.onmessage = ({ data }) => {
+      switch (data.type) {
+        case "relay": {
+          this.#send("relay", data);
+          break;
+        }
+        case "hnw-fatal-error": {
+          this.#onError(data.subtype);
+          break;
+        }
+        default: {
+          console.warn(`Unknown baby monitor type: ${data.type}`);
+        }
+      }
+    };
+
   };
 
   // ((MessagePort) => Promise[T]) => Promise[T]
