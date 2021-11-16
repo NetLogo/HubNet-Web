@@ -1,13 +1,13 @@
 import { awaitDeserializer, notifyDeserializer, notifySerializer } from "/js/serialize/pool-party.js";
 
-import { awaitWorker                              } from "/js/common/await.js";
-import { reportBandwidth, reportNewSend           } from "/js/common/bandwidth-monitor.js";
-import { hnw                                      } from "/js/common/domain.js";
-import { genNextID                                } from "/js/common/id-manager.js";
-import { byteSizeLabel, ProtoVersion, uuidToRTCID } from "/js/common/util.js";
-import { hostConfig                               } from "/js/common/webrtc.js";
+import { awaitWorker               } from "/js/common/await.js";
+import { hnw                       } from "/js/common/domain.js";
+import { genNextID                 } from "/js/common/id-manager.js";
+import { ProtoVersion, uuidToRTCID } from "/js/common/util.js";
+import { hostConfig                } from "/js/common/webrtc.js";
 
-import NLWManager from "./ui/nlw-manager.js";
+import BandwidthManager from "./ui/bandwidth-manager.js";
+import NLWManager       from "./ui/nlw-manager.js";
 
 import * as WebRTCJS from "/js/common/webrtc.js";
 
@@ -23,7 +23,6 @@ const sendRTC      = WebRTCJS.sendRTC     (true);
 // , username       :: String
 // , pingData       :: { [pingID] :: Number }
 // , recentPings    :: Array[Number]
-// , recentBuffer   :: Array[Number]
 // }
 
 const sessions = {}; // Object[Session]
@@ -164,7 +163,6 @@ const launchModel = (formDataPlus) => {
                                    , hasInitialized: false
                                    , pingData:       {}
                                    , recentPings:    []
-                                   , recentBuffer:   []
                                    };
 
               notifySerializer  ("client-connect");
@@ -187,6 +185,15 @@ const launchModel = (formDataPlus) => {
         const statusSocketURL = `ws://${hnw}/hnw/my-status/${hostID}`;
         statusSocketW.postMessage({ type: "connect", url: statusSocketURL });
 
+        const awaitSenders = (msg) => {
+          const seshes        = Object.values(sessions);
+          const signalers     = seshes.map((s) => s.networking.signaling);
+          const trueSignalers = signalers.filter((x) => x !== SigTerm);
+          const workers       = [broadSocketW, statusSocketW].concat(trueSignalers);
+          const promises      = workers.map((w) => awaitWorker(w)(msg));
+          return Promise.all(promises);
+        };
+
         setInterval(() => {
 
           const channels =
@@ -205,9 +212,15 @@ const launchModel = (formDataPlus) => {
           statusSocketW.postMessage({ type: "members-update", numPeers });
         }, 1000);
 
-        setInterval(updateCongestionStats, 1000);
+        setInterval(() => {
+          const pairs    = Object.entries(sessions);
+          const nada     = undefined;
+          const filtered = pairs.filter(([  , s]) => s.networking.channel !== nada);
+          const entries  = filtered.map(([id, s]) => [id, s.networking.channel]);
+          bandwidthManager.updateCongestionStats(Object.fromEntries(entries));
+        }, 1000);
 
-        setInterval(updateBandwidthLabel, 500);
+        setInterval(() => { bandwidthManager.updateBandwidth(awaitSenders); }, 500);
 
         setInterval(() => {
           Object.values(sessions).forEach((session) => {
@@ -444,6 +457,22 @@ const cleanupHostingSession = () => {
   location.reload();
 };
 
+// (String) => (String) => Unit
+const setIT = (id) => (text) => {
+  byEID(id).innerText = text;
+};
+
+// (String) => () => Unit
+const genNotifyNLW = (type) => () => {
+  nlwManager.post({ type });
+};
+
+const bandwidthManager =
+    new BandwidthManager( setIT("bandwidth-span"), setIT("new-send-span")
+                        , setIT("num-clients-span"), setIT("num-congested-span")
+                        , setIT("activity-status-span")
+                        , genNotifyNLW("hnw-notify-congested")
+                        , genNotifyNLW("hnw-notify-uncongested"));
 
 self.addEventListener("beforeunload", () => {
   // Honestly, this will probably not run before the tab closes.
@@ -465,92 +494,3 @@ self.addEventListener("popstate", (event) => {
     }
   }
 });
-
-// () => Unit
-const updateBandwidthLabel = () => {
-
-  const syncNewSend = reportNewSend();
-
-  const syncBandwidth = reportBandwidth();
-
-  const signalers     = Object.values(sessions).map((s) => s.networking.signaling);
-  const trueSignalers = signalers.filter((x) => x !== SigTerm);
-
-  const rbrType  = "request-bandwidth-report";
-  const workers  = [broadSocketW, statusSocketW].concat(trueSignalers);
-  const promises = workers.map((w) => awaitWorker(w)(rbrType));
-
-  Promise.all(promises).then(
-    (results) => {
-      const asyncBandwidth = results.reduce(((acc, x) => acc + x), 0);
-      const newText        = byteSizeLabel(syncBandwidth + asyncBandwidth, 2);
-      document.getElementById("bandwidth-span").innerText = newText;
-    }
-  );
-
-  const rnsType         = "request-new-send";
-  const newSendPromises = workers.map((w) => awaitWorker(w)(rnsType));
-
-  Promise.all(newSendPromises).then(
-    (results) => {
-      const asyncNewSend = results.reduce(((acc, x) => acc + x), 0);
-      const newText      = byteSizeLabel(syncNewSend + asyncNewSend, 2);
-      document.getElementById("new-send-span").innerText = newText;
-    }
-  );
-
-};
-
-let congestionDuration = 0; // Number
-
-// () => Unit
-const updateCongestionStats = () => {
-
-  Object.values(sessions).filter((s) => s.channel !== undefined).forEach(
-    (s) => {
-      const bufferLog = s.recentBuffer;
-      bufferLog.push(s.networking.channel.bufferedAmount);
-      if (bufferLog.length > 8) {
-        bufferLog.shift();
-      }
-    }
-  );
-
-  const numClients = Object.keys(sessions).length;
-
-  const numCongested =
-    Object.values(sessions).filter(
-      (s) => s.recentBuffer.filter((x) => x > 20000).length >= 5
-    ).length;
-
-  const allGoodStatus         = "All connections are uncongested";
-  const minorCongestionStatus = `There is congestion for ${numCongested} client(s)`;
-  const majorCongestionStatus = `There is congestion for ${numCongested} client(s); slowing simulation so they can catch up`;
-
-  const connectionIsCongested = numCongested >= Math.max(1, numClients / 3);
-
-  const status =
-    (numCongested === 0)    ? allGoodStatus :
-      connectionIsCongested ? minorCongestionStatus :
-                              majorCongestionStatus;
-
-  if (connectionIsCongested) {
-    nlwManager.post({ type: "hnw-notify-congested" });
-    congestionDuration++;
-  } else {
-    if (congestionDuration > 0) {
-      nlwManager.post({ type: "hnw-notify-uncongested" });
-    }
-    congestionDuration = 0;
-  }
-
-  const setText =
-    (id, text) => {
-      document.getElementById(id).innerText = text;
-    };
-
-  setText("num-clients-span"    ,   numClients);
-  setText("num-congested-span"  , numCongested);
-  setText("activity-status-span",       status);
-
-};
