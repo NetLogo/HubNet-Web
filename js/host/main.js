@@ -1,16 +1,14 @@
-import { rtcConfig } from "./webrtc.js";
-
 import { awaitWorker } from "/js/common/await.js";
 import { uuidToRTCID } from "/js/common/util.js";
 
 import { awaitDeserializer, notifyDeserializer, notifySerializer } from "/js/serialize/pool-party.js";
 
-import { hnw     } from "/js/static/domain.js";
 import { version } from "/js/static/version.js";
 
 import BandwidthManager from "./ui/bandwidth-manager.js";
 import NLWManager       from "./ui/nlw-manager.js";
 
+import BroadSocket  from "./ws/broadsocket.js";
 import StatusSocket from "./ws/status-socket.js";
 
 import IDManager  from "/js/common/id-manager.js";
@@ -35,8 +33,7 @@ let password = null; // String
 
 const SigTerm = "signaling-terminated"; // String
 
-const broadSocketW = new Worker("js/host/ws/broadsocket.js", { type: "module" });
-
+const broadSocket  = new BroadSocket();
 const statusSocket = new StatusSocket();
 
 document.getElementById("launch-form").addEventListener("submit", (e) => {
@@ -144,52 +141,31 @@ const launchModel = (formDataPlus) => {
         nlwManager.post({ ...json, type: "hnw-become-oracle", nlogo });
         nlwManager.post({ type: "nlw-subscribe-to-updates", uuid: hostID });
 
-        broadSocketW.onmessage = ({ data }) => {
-          switch (data.type) {
+        const hcm = (c, id) => handleConnectionMessage(c, nlogo, sessionName, id);
 
-            case "hello": {
+        const registerSignaling = (signaling, joinerID) => {
 
-              const joinerID   = data.joinerID;
-              const connection = new RTCPeerConnection(rtcConfig);
+          sessions[joinerID] = { networking:     { signaling }
+                               , hasInitialized: false
+                               , pingData:       {}
+                               , recentPings:    []
+                               };
 
-              const signaling     = new Worker("js/host/ws/signaling-socket.js", { type: "module" });
-              signaling.onmessage = handleConnectionMessage(connection, nlogo, sessionName, joinerID);
+          notifySerializer  ("client-connect");
+          notifyDeserializer("client-connect");
 
-              const signalingURL = `ws://${hnw}/rtc/${hostID}/${joinerID}/host`;
-              signaling.postMessage({ type: "connect", url: signalingURL });
-
-              sessions[joinerID] = { networking:     { signaling }
-                                   , hasInitialized: false
-                                   , pingData:       {}
-                                   , recentPings:    []
-                                   };
-
-              notifySerializer  ("client-connect");
-              notifyDeserializer("client-connect");
-
-              break;
-
-            }
-
-            default: {
-              console.warn(`Unknown broad event type: ${data.type}`);
-            }
-
-          }
         };
 
-        const broadSocketURL = `ws://${hnw}/rtc/${hostID}`;
-        broadSocketW.postMessage({ type: "connect", url: broadSocketURL });
-
+         broadSocket.connect(hostID, hcm, registerSignaling);
         statusSocket.connect(hostID);
 
         const awaitSenders = (msg) => {
           const seshes        = Object.values(sessions);
           const signalers     = seshes.map((s) => s.networking.signaling);
-          const trueSignalers = signalers.filter((x) => x !== SigTerm);
-          const workers       = [broadSocketW].concat(trueSignalers);
-          const promises      = workers.map((w) => awaitWorker(w)(msg));
-          return Promise.all([statusSocket.await(msg)].concat(promises));
+          const workers       = signalers.filter((x) => x !== SigTerm);
+          const sockPromises  = [broadSocket, statusSocket].map((s) => s.await(msg));
+          const workPromises  = workers.map((w) => awaitWorker(w)(msg));
+          return Promise.all(sockPromises.concat(workPromises));
         };
 
         setInterval(() => {

@@ -1,39 +1,53 @@
-import WebSocketManager from "/js/common/websocket.js";
+import { rtcConfig } from "./webrtc.js";
 
-let socket = null; // WebSocketManager
+import { awaitWorker } from "/js/common/await.js";
 
-// (MessageEvent) => Unit
-onmessage = (e) => {
-  switch (e.data.type) {
-    case "connect": {
+import { hnw } from "/js/static/domain.js";
 
-      const onMsg = ({ data }) => {
-        const datum = JSON.parse(data);
-        switch (datum.type) {
-          case "hello": {
-            postMessage(datum);
-            break;
-          }
-          default:
-            console.warn(`Unknown broad event type: ${datum.type}`);
-        }
-      };
+export default class BroadSocket {
 
-      socket = new WebSocketManager(e.data.url, onMsg);
+  #worker = undefined; // Worker[StatusSocketWorker]
 
-      break;
-
-    }
-    case "request-new-send": {
-      e.ports[0].postMessage(socket.getNewSend());
-      break;
-    }
-    case "request-bandwidth-report": {
-      e.ports[0].postMessage(socket.getBandwidth());
-      break;
-    }
-    default: {
-      console.warn("Unknown broadSocket message type:", e.data.type, e);
-    }
+  // () => BroadSocket
+  constructor() {
+    const url = "js/host/ws/broadsocket-worker.js";
+    this.#worker = new Worker(url, { type: "module" });
   }
+
+  // (String) => Promise[_]
+  "await" = (msg) => {
+    return awaitWorker(this.#worker)(msg);
+  };
+
+  // (UUID, (RTCPeerConnection, UUID) => (Object[Any]) => Unit, (Worker) => Unit) => Unit
+  connect = (hostID, handleConnectionMessage, registerSignaling) => {
+
+    const mc = new MessageChannel();
+
+    mc.port1.onmessage =
+      handleSocketMessage(hostID, handleConnectionMessage, registerSignaling);
+
+    const url = `ws://${hnw}/rtc/${hostID}`;
+    this.#worker.postMessage({ type: "connect", url }, [mc.port2]);
+
+  };
+
+}
+
+// (UUID, (RTCPeerConnection, UUID) => (Object[Any]) => Unit, (Worker) => Unit) =>
+// (Object[{ data :: UUID }]) => Unit
+const handleSocketMessage = (hostID, handleConnectionMessage, registerSignaling) =>
+                            ({ data: joinerID }) => {
+
+  const signalingURL = "js/host/ws/signaling-socket.js";
+  const signaling    = new Worker(signalingURL, { type: "module" });
+
+  const connection    = new RTCPeerConnection(rtcConfig);
+  signaling.onmessage = handleConnectionMessage(connection, joinerID);
+
+  const url = `ws://${hnw}/rtc/${hostID}/${joinerID}/host`;
+  signaling.postMessage({ type: "connect", url });
+
+  registerSignaling(signaling, joinerID);
+
 };
