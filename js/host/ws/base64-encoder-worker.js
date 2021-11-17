@@ -38,7 +38,7 @@ onmessage = (e) => {
               const reader = new FileReader();
               reader.onloadend = () => {
                 lastBlob = e.data.blob;
-                postMessage(reader.result);
+                e.ports[0].postMessage(reader.result);
               };
               reader.readAsDataURL(e.data.blob);
             }

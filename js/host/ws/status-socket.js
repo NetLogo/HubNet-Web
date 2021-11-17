@@ -1,13 +1,11 @@
 import { reportBandwidth, reportNewSend } from "/js/common/bandwidth-monitor.js";
 import { sendObj, setSocket             } from "/js/common/websocket.js";
 
+import Base64Encoder from "./base64-encoder.js";
+
 let lastMemberCount = null; // Number
 
-const base64EncoderW = new Worker("base64-encoder-worker.js", { type: "module" });
-
-base64EncoderW.onmessage = ({ data }) => {
-  sendObj("image-update", { base64: data });
-};
+const encoder = new Base64Encoder();
 
 // (MessageEvent) => Unit
 onmessage = (e) => {
@@ -17,7 +15,11 @@ onmessage = (e) => {
       break;
     }
     case "image-update": {
-      base64EncoderW.postMessage({ type: "encode-blob", blob: e.data.blob });
+      encoder.encode(e.data.blob).then(
+        (base64) => {
+          sendObj("image-update", { base64 });
+        }
+      );
       break;
     }
     case "members-update": {
