@@ -1,4 +1,4 @@
-import { MinID, prevID, SentinelID, succeedsID } from "/js/common/id-manager.js";
+import { MinID, prevID, SentinelID, succeedsID } from "/js/common/id.js";
 import { typeIsOOB                             } from "/js/common/util.js";
 
 import { deserialize } from "/js/serialize/xserialize-root.js";
