@@ -5,8 +5,9 @@ import { awaitDeserializer, notifyDeserializer, notifySerializer } from "/js/ser
 
 import { version } from "/js/static/version.js";
 
-import BandwidthManager from "./ui/bandwidth-manager.js";
-import NLWManager       from "./ui/nlw-manager.js";
+import BandwidthManager     from "./ui/bandwidth-manager.js";
+import LaunchControlManager from "./ui/launch-control-manager.js";
+import NLWManager           from "./ui/nlw-manager.js";
 
 import BroadSocket  from "./ws/broadsocket.js";
 import StatusSocket from "./ws/status-socket.js";
@@ -29,27 +30,10 @@ const rtcManager = new RTCManager(true);
 
 const sessions = {}; // Object[Session]
 
-let password = null; // String
-
 const SigTerm = "signaling-terminated"; // String
 
 const broadSocket  = new BroadSocket();
 const statusSocket = new StatusSocket();
-
-document.getElementById("launch-form").addEventListener("submit", (e) => {
-
-  const formData = new FormData(e.target);
-  const lm       = formData.get("libraryModel").slice(4);
-
-  launchModel({ "modelType":   "library"
-              , "sessionName": formData.get("sessionName")
-              , "password":    formData.get("password")
-              , "model":       lm
-              });
-
-  return true;
-
-});
 
 // (String) => Element?
 const byEID = (eid) => document.getElementById(eid);
@@ -82,154 +66,116 @@ const initSesh = (uuid) => {
   }
 };
 
-// (Object[String]) => Unit
-const launchModel = (formDataPlus) => {
+// (Object[Any]) => Unit
+const finishLaunch = ({ isSuccess, data }) => {
 
-  if (formDataPlus.password === "")
-    delete formDataPlus.password;
-  else
-    password = formDataPlus.password;
+  if (isSuccess) {
 
-  new Promise(
-    (resolve) => {
+    const { hostID, json, nlogo, sessionName } = data;
 
-      if (formDataPlus.model instanceof File) {
-        const reader = new FileReader();
-        reader.onloadend = (event) => {
-          resolve([formDataPlus, event.target]);
-        };
-        reader.readAsText(formDataPlus.model);
-      } else {
-        resolve([formDataPlus, formDataPlus.model]);
-      }
+    document.getElementById("id-display").innerText = hostID;
 
-    }
-  ).then(([fdp, fileEvent]) => {
-    const modelUpdate =
-      fileEvent.result !== undefined ? { model: fileEvent.result } : {};
-    return { ...fdp, ...modelUpdate };
-  }).then((fddp) => {
+    history.pushState({ name: "hosting" }, "hosting");
 
-    const data =
-      { method:  "POST"
-      , headers: { "Content-Type": "application/json" }
-      , body:    JSON.stringify(fddp)
-      };
+    nlwManager.show();
+    nlwManager.becomeOracle(hostID, json, nlogo);
 
-    return fetch("/launch-session", data).then((response) => [fddp, response]);
+    const hcm = (c, id) => handleConnectionMessage(c, nlogo, sessionName, id);
 
-  }).then(([formDataLike, response]) => {
+    const registerSignaling = (signaling, joinerID) => {
 
-    if (response.status === 200) {
+      sessions[joinerID] = { networking:     { signaling }
+                           , hasInitialized: false
+                           , pingData:       {}
+                           , recentPings:    []
+                           };
 
-      response.json().then(({ id: hostID, type, nlogoMaybe, jsonMaybe }) => {
+      notifySerializer  ("client-connect");
+      notifyDeserializer("client-connect");
 
-        document.getElementById("id-display").innerText = hostID;
+    };
 
-        const canDealWith = type === "from-library" || type === "from-upload";
-        const nlogo       = canDealWith ? nlogoMaybe            : "what is this model type?!";
-        const json        = canDealWith ? JSON.parse(jsonMaybe) : "get wrecked";
-        const sessionName = formDataLike.sessionName;
+     broadSocket.connect(hostID, hcm, registerSignaling);
+    statusSocket.connect(hostID);
 
-        const formFrame = document.getElementById("form-frame");
+    const awaitSenders = (msg) => {
+      const seshes        = Object.values(sessions);
+      const signalers     = seshes.map((s) => s.networking.signaling);
+      const workers       = signalers.filter((x) => x !== SigTerm);
+      const sockPromises  = [broadSocket, statusSocket].map((s) => s.await(msg));
+      const workPromises  = workers.map((w) => awaitWorker(w)(msg));
+      return Promise.all(sockPromises.concat(workPromises));
+    };
 
-        history.pushState({ name: "hosting" }, "hosting");
+    setInterval(() => {
 
-        formFrame.classList.add("hidden");
+      const channels =
+        Object.
+          values(sessions).
+          map((session) => session.networking.channel).
+          filter((channel) => channel !== undefined);
 
-        nlwManager.show();
-        nlwManager.becomeOracle(hostID, json, nlogo);
+      channels.forEach((channel) => rtcManager.send(channel)("keep-alive", {}));
 
-        const hcm = (c, id) => handleConnectionMessage(c, nlogo, sessionName, id);
+    }, 30000);
 
-        const registerSignaling = (signaling, joinerID) => {
+    setInterval(() => {
+      const nameIsDefined = (s) => s.username !== undefined;
+      const numPeers      = Object.values(sessions).filter(nameIsDefined).length;
+      statusSocket.updateNumPeers(numPeers);
+    }, 1000);
 
-          sessions[joinerID] = { networking:     { signaling }
-                               , hasInitialized: false
-                               , pingData:       {}
-                               , recentPings:    []
-                               };
+    setInterval(() => {
+      const pairs    = Object.entries(sessions);
+      const nada     = undefined;
+      const filtered = pairs.filter(([  , s]) => s.networking.channel !== nada);
+      const entries  = filtered.map(([id, s]) => [id, s.networking.channel]);
+      bandwidthManager.updateCongestionStats(Object.fromEntries(entries));
+    }, 1000);
 
-          notifySerializer  ("client-connect");
-          notifyDeserializer("client-connect");
+    setInterval(() => {
+      const bandwidth = rtcManager.getBandwidth();
+      const newSend   = rtcManager.getNewSend();
+      bandwidthManager.updateBandwidth(awaitSenders, bandwidth, newSend);
+    }, 500);
 
-        };
+    setInterval(() => {
 
-         broadSocket.connect(hostID, hcm, registerSignaling);
-        statusSocket.connect(hostID);
+      const idManager = new IDManager();
 
-        const awaitSenders = (msg) => {
-          const seshes        = Object.values(sessions);
-          const signalers     = seshes.map((s) => s.networking.signaling);
-          const workers       = signalers.filter((x) => x !== SigTerm);
-          const sockPromises  = [broadSocket, statusSocket].map((s) => s.await(msg));
-          const workPromises  = workers.map((w) => awaitWorker(w)(msg));
-          return Promise.all(sockPromises.concat(workPromises));
-        };
-
-        setInterval(() => {
-
-          const channels =
-            Object.
-              values(sessions).
-              map((session) => session.networking.channel).
-              filter((channel) => channel !== undefined);
-
-          channels.forEach((channel) => rtcManager.send(channel)("keep-alive", {}));
-
-        }, 30000);
-
-        setInterval(() => {
-          const nameIsDefined = (s) => s.username !== undefined;
-          const numPeers      = Object.values(sessions).filter(nameIsDefined).length;
-          statusSocket.updateNumPeers(numPeers);
-        }, 1000);
-
-        setInterval(() => {
-          const pairs    = Object.entries(sessions);
-          const nada     = undefined;
-          const filtered = pairs.filter(([  , s]) => s.networking.channel !== nada);
-          const entries  = filtered.map(([id, s]) => [id, s.networking.channel]);
-          bandwidthManager.updateCongestionStats(Object.fromEntries(entries));
-        }, 1000);
-
-        setInterval(() => {
-          const bandwidth = rtcManager.getBandwidth();
-          const newSend   = rtcManager.getNewSend();
-          bandwidthManager.updateBandwidth(awaitSenders, bandwidth, newSend);
-        }, 500);
-
-        setInterval(() => {
-
-          const idManager = new IDManager();
-
-          Object.values(sessions).forEach((session) => {
-            const channel = session.networking.channel;
-            if (channel !== undefined) {
-              const idType         = `${channel.label}-${channel.id}-ping`;
-              const id             = idManager.next(idType);
-              session.pingData[id] = performance.now();
-              const lastIndex      = session.recentPings.length - 1;
-              const lastPing       = session.recentPings[lastIndex];
-              rtcManager.send(channel)("ping", { id, lastPing });
-            }
-          });
-
-        }, 2000);
-
-        setInterval(() => {
-          nlwManager.updatePreview();
-        }, 8000);
-
+      Object.values(sessions).forEach((session) => {
+        const channel = session.networking.channel;
+        if (channel !== undefined) {
+          const idType         = `${channel.label}-${channel.id}-ping`;
+          const id             = idManager.next(idType);
+          session.pingData[id] = performance.now();
+          const lastIndex      = session.recentPings.length - 1;
+          const lastPing       = session.recentPings[lastIndex];
+          rtcManager.send(channel)("ping", { id, lastPing });
+        }
       });
 
-    } else {
-      response.text().then((body) => { alert(JSON.stringify(body)); });
-    }
+    }, 2000);
 
-  });
+    setInterval(() => {
+      nlwManager.updatePreview();
+    }, 8000);
+
+  }
 
 };
+
+const launchModel = (model) => {
+  launchControlManager.launch(model).
+    then(finishLaunch);
+};
+
+const awaitLaunchHTTP = (data) => fetch("/launch-session", data);
+const notifyUser      = (s) => { alert(s); };
+
+const launchControlManager =
+  new LaunchControlManager( byEID("form-frame"), awaitLaunchHTTP, notifyUser
+                          , finishLaunch);
 
 const nlwManager =
   new NLWManager( byEID("nlw-frame"), rtcManager, launchModel, initSesh
@@ -396,7 +342,7 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
     const usernameIsTaken = relevantPairs.some(isTaken);
 
     if (!usernameIsTaken) {
-      if (password === null || password === datum.password) {
+      if (launchControlManager.passwordMatches(datum.password)) {
 
         const session = sessions[joinerID];
 
