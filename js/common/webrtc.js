@@ -1,13 +1,16 @@
 import { logEntry                } from "./bandwidth-monitor.js";
-import { genNextID               } from "./id-manager.js";
 import { ProtoVersion, typeIsOOB } from "./util.js";
 
 import { awaitSerializer } from "/js/serialize/pool-party.js";
+
+import IDManager from "./id-manager.js";
 
 // type Protocol = { connection :: RTCPeerConnection, channel :: RTCDataChannel, socket :: WebSocket }
 // type Channel  = RTCDataChannel
 
 const commonConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+
+const idMan = new IDManager();
 
 // (Boolean) => (RTCDataChannel*) => (String, Object[Any]) => Unit
 const sendRTC = (isHost) => (...channels) => (type, obj) => {
@@ -118,7 +121,7 @@ const asyncSerialize = (parcel, isHost) => {
 
 // (Channel) => Number
 const genChanID = (channel) => {
-  return genNextID(`${channel.label}-${channel.id}`);
+  return idMan.next(`${channel.label}-${channel.id}`);
 };
 
 export { commonConfig, sendBurst, sendGreeting, sendOOB, sendRTC };

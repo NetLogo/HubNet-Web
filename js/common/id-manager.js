@@ -1,13 +1,19 @@
 import { MinID, nextID } from "./id.js";
 
-const lastSentIDMap = {}; // Object[String, Number]
+export default class IDManager {
 
-// (Number) => Number
-const genNextID = (channelID) => {
-  const lsid = lastSentIDMap[channelID];
-  const next = (lsid !== undefined) ? nextID(lsid) : MinID;
-  lastSentIDMap[channelID] = next;
-  return next;
-};
+  #lastIDMap = undefined; // Object[String, Number]
 
-export { genNextID };
+  constructor() {
+    this.#lastIDMap = {};
+  }
+
+  // (String) => Number
+  next = (ident) => {
+    const lid  = this.#lastIDMap[ident];
+    const next = (lid !== undefined) ? nextID(lid) : MinID;
+    this.#lastIDMap[ident] = next;
+    return next;
+  };
+
+}

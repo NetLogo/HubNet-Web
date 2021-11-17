@@ -2,13 +2,14 @@ import { awaitDeserializer, notifyDeserializer, notifySerializer } from "/js/ser
 
 import { awaitWorker               } from "/js/common/await.js";
 import { hnw                       } from "/js/common/domain.js";
-import { genNextID                 } from "/js/common/id-manager.js";
 import { ProtoVersion, uuidToRTCID } from "/js/common/util.js";
 
 import { rtcConfig } from "./webrtc.js";
 
 import BandwidthManager from "./ui/bandwidth-manager.js";
 import NLWManager       from "./ui/nlw-manager.js";
+
+import IDManager from "/js/common/id-manager.js";
 
 import * as WebRTCJS from "/js/common/webrtc.js";
 
@@ -224,17 +225,21 @@ const launchModel = (formDataPlus) => {
         setInterval(() => { bandwidthManager.updateBandwidth(awaitSenders); }, 500);
 
         setInterval(() => {
+
+          const idManager = new IDManager();
+
           Object.values(sessions).forEach((session) => {
             const channel = session.networking.channel;
             if (channel !== undefined) {
               const idType         = `${channel.label}-${channel.id}-ping`;
-              const id             = genNextID(idType);
+              const id             = idManager.next(idType);
               session.pingData[id] = performance.now();
               const lastIndex      = session.recentPings.length - 1;
               const lastPing       = session.recentPings[lastIndex];
               sendRTC(channel)("ping", { id, lastPing });
             }
           });
+
         }, 2000);
 
         setInterval(() => {

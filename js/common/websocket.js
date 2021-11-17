@@ -1,6 +1,9 @@
 import { logEntry  } from "./bandwidth-monitor.js";
-import { genNextID } from "./id-manager.js";
 import { typeIsOOB } from "./util.js";
+
+import IDManager from "./id-manager.js";
+
+const idMan = new IDManager();
 
 let socket = null; // WebSocket
 
@@ -17,7 +20,7 @@ const logAndSend = (data) => {
 };
 
 // (String, Any, UUID) => Unit
-const send = (type, obj, id = genNextID(socket.url)) => {
+const send = (type, obj, id = idMan.next(socket.url)) => {
 
   const parcel = { ...obj };
   parcel.id    = id;
