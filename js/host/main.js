@@ -9,6 +9,8 @@ import { rtcConfig } from "./webrtc.js";
 import BandwidthManager from "./ui/bandwidth-manager.js";
 import NLWManager       from "./ui/nlw-manager.js";
 
+import StatusSocket from "./ws/status-socket.js";
+
 import IDManager from "/js/common/id-manager.js";
 
 import * as WebRTCJS from "/js/common/webrtc.js";
@@ -35,7 +37,7 @@ const SigTerm = "signaling-terminated"; // String
 
 const broadSocketW = new Worker("js/host/ws/broadsocket.js", { type: "module" });
 
-const statusSocketW = new Worker("js/host/ws/status-socket.js", { type: "module" });
+const statusSocket = new StatusSocket();
 
 document.getElementById("launch-form").addEventListener("submit", (e) => {
 
@@ -74,11 +76,6 @@ const getOpenChannelByID = (uuid, allowUninited = false) => {
 // () => Array[RTCDataChannel]
 const getOpenChannels = () => {
   return Object.keys(sessions).map(getOpenChannelByID).filter((c) => c !== null);
-};
-
-// (Blob) => Unit
-const postImageUpdate = (blob) => {
-  statusSocketW.postMessage({ type: "image-update", blob });
 };
 
 // (UUID) => Unit
@@ -184,16 +181,15 @@ const launchModel = (formDataPlus) => {
         const broadSocketURL = `ws://${hnw}/rtc/${hostID}`;
         broadSocketW.postMessage({ type: "connect", url: broadSocketURL });
 
-        const statusSocketURL = `ws://${hnw}/hnw/my-status/${hostID}`;
-        statusSocketW.postMessage({ type: "connect", url: statusSocketURL });
+        statusSocket.connect(hostID);
 
         const awaitSenders = (msg) => {
           const seshes        = Object.values(sessions);
           const signalers     = seshes.map((s) => s.networking.signaling);
           const trueSignalers = signalers.filter((x) => x !== SigTerm);
-          const workers       = [broadSocketW, statusSocketW].concat(trueSignalers);
+          const workers       = [broadSocketW].concat(trueSignalers);
           const promises      = workers.map((w) => awaitWorker(w)(msg));
-          return Promise.all(promises);
+          return Promise.all([statusSocket.await(msg)].concat(promises));
         };
 
         setInterval(() => {
@@ -211,7 +207,7 @@ const launchModel = (formDataPlus) => {
         setInterval(() => {
           const nameIsDefined = (s) => s.username !== undefined;
           const numPeers      = Object.values(sessions).filter(nameIsDefined).length;
-          statusSocketW.postMessage({ type: "members-update", numPeers });
+          statusSocket.updateNumPeers(numPeers);
         }, 1000);
 
         setInterval(() => {
@@ -258,7 +254,7 @@ const launchModel = (formDataPlus) => {
 
 const nlwManager =
   new NLWManager( byEID("nlw-frame"), launchModel, initSesh, getOpenChannelByID
-                , getOpenChannels, postImageUpdate, onNLWManError);
+                , getOpenChannels, statusSocket.postImageUpdate, onNLWManError);
 
 document.addEventListener("DOMContentLoaded", nlwManager.init);
 

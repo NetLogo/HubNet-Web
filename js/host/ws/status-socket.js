@@ -1,53 +1,35 @@
-import Base64Encoder from "./base64-encoder.js";
+import { awaitWorker } from "/js/common/await.js";
+import { hnw         } from "/js/common/domain.js";
 
-import WebSocketManager from "/js/common/websocket.js";
+export default class StatusSocket {
 
-let lastMemberCount = null; // Number
-let socket          = null; // WebSocketManager
+  #worker = undefined; // Worker[StatusSocketWorker]
 
-const encoder = new Base64Encoder();
-
-// (MessageEvent) => Unit
-onmessage = (e) => {
-
-  switch (e.data.type) {
-
-    case "connect": {
-      socket = new WebSocketManager(e.data.url);
-      break;
-    }
-
-    case "image-update": {
-      encoder.encode(e.data.blob).then(
-        (base64) => {
-          socket.send("image-update", { base64 });
-        }
-      );
-      break;
-    }
-
-    case "members-update": {
-      if (lastMemberCount !== e.data.numPeers) {
-        lastMemberCount = e.data.numPeers;
-        socket.send("members-update", { numPeers: e.data.numPeers });
-      }
-      break;
-    }
-
-    case "request-new-send": {
-      e.ports[0].postMessage(socket.getNewSend());
-      break;
-    }
-
-    case "request-bandwidth-report": {
-      e.ports[0].postMessage(socket.getBandwidth());
-      break;
-    }
-
-    default: {
-      console.warn("Unknown status socket message type:", e.data.type, e);
-    }
-
+  // () => StatusSocket
+  constructor() {
+    const url = "js/host/ws/status-socket-worker.js";
+    this.#worker = new Worker(url, { type: "module" });
   }
 
-};
+  // (String) => Promise[_]
+  "await" = (msg) => {
+    return awaitWorker(this.#worker)(msg);
+  };
+
+  // (UUID) => Unit
+  connect = (hostID) => {
+    const url = `ws://${hnw}/hnw/my-status/${hostID}`;
+    this.#worker.postMessage({ type: "connect", url });
+  };
+
+  // (Blob) => Unit
+  postImageUpdate = (blob) => {
+    this.#worker.postMessage({ type: "image-update", blob });
+  };
+
+  // (Number) => Unit
+  updateNumPeers = (numPeers) => {
+    this.#worker.postMessage({ type: "members-update", numPeers });
+  };
+
+}
