@@ -11,7 +11,7 @@ onmessage = (e) => {
     }
     case "connect": {
       const onMsg = ({ data }) => {
-        postMessage(data);
+        e.ports[0].postMessage(data);
       };
       socket = new WebSocketManager(e.data.url, onMsg);
       break;

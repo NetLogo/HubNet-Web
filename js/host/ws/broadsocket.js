@@ -4,6 +4,8 @@ import { awaitWorker } from "/js/common/await.js";
 
 import { hnw } from "/js/static/domain.js";
 
+import SignalingSocket from "./signaling-socket.js";
+
 export default class BroadSocket {
 
   #worker = undefined; // Worker[StatusSocketWorker]
@@ -39,14 +41,12 @@ export default class BroadSocket {
 const handleSocketMessage = (hostID, handleConnectionMessage, registerSignaling) =>
                             ({ data: joinerID }) => {
 
-  const signalingURL = "js/host/ws/signaling-socket-worker.js";
-  const signaling    = new Worker(signalingURL, { type: "module" });
+  const signaling  = new SignalingSocket();
 
-  const connection    = new RTCPeerConnection(rtcConfig);
-  signaling.onmessage = handleConnectionMessage(connection, joinerID);
+  const connection = new RTCPeerConnection(rtcConfig);
+  const onMsg      = handleConnectionMessage(connection, joinerID);
 
-  const url = `ws://${hnw}/rtc/${hostID}/${joinerID}/host`;
-  signaling.postMessage({ type: "connect", url });
+  signaling.connect(hostID, joinerID, onMsg);
 
   registerSignaling(signaling, joinerID);
 

@@ -1,4 +1,3 @@
-import { awaitWorker } from "/js/common/await.js";
 import { uuidToRTCID } from "/js/common/util.js";
 
 import { awaitDeserializer, notifyDeserializer, notifySerializer } from "/js/serialize/pool-party.js";
@@ -29,8 +28,6 @@ const rtcManager = new RTCManager(true);
 // }
 
 const sessions = {}; // Object[Session]
-
-const SigTerm = "signaling-terminated"; // String
 
 const broadSocket  = new BroadSocket();
 const statusSocket = new StatusSocket();
@@ -101,10 +98,10 @@ const finishLaunch = ({ isSuccess, data }) => {
     const awaitSenders = (msg) => {
       const seshes        = Object.values(sessions);
       const signalers     = seshes.map((s) => s.networking.signaling);
-      const workers       = signalers.filter((x) => x !== SigTerm);
-      const sockPromises  = [broadSocket, statusSocket].map((s) => s.await(msg));
-      const workPromises  = workers.map((w) => awaitWorker(w)(msg));
-      return Promise.all(sockPromises.concat(workPromises));
+      const unterminateds = signalers.filter((s) => !s.isTerminated());
+      const awaitables    = [broadSocket, statusSocket].concat(unterminateds);
+      const promises      = awaitables.map((s) => s.await(msg));
+      return Promise.all(promises);
     };
 
     setInterval(() => {
@@ -198,15 +195,6 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
   session.networking.connection = connection;
   session.networking.channel    = channel;
 
-  // (String, Object[Any]) => Unit
-  const signal =
-    (type, parcel) => {
-      const signaling = session.networking.signaling;
-      if (signaling !== SigTerm) {
-        signaling.postMessage({ type, ...parcel });
-      }
-    };
-
   let knownCandies = new Set([]);
 
   connection.onicecandidate =
@@ -215,8 +203,14 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
         const candy    = candidate.toJSON();
         const candyStr = JSON.stringify(candy);
         if (!knownCandies.has(candyStr)) {
+
           knownCandies = knownCandies.add(candyStr);
-          signal("ice-candidate", { candidate: candy });
+
+          const signaling = session.networking.signaling;
+          if (!signaling.isTerminated()) {
+            signaling.sendICECandidate(candy);
+          }
+
         }
       }
     };
@@ -230,7 +224,13 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
   connection.setRemoteDescription(offer).
     then(()     => connection.createAnswer()).
     then(answer => connection.setLocalDescription(answer)).
-    then(()     => signal("answer", { answer: connection.localDescription.toJSON() }));
+    then(()     => {
+      const signaling = session.networking.signaling;
+      if (!signaling.isTerminated()) {
+        signaling.sendAnswer(connection.localDescription.toJSON());
+      }
+    });
+
 
 };
 
@@ -347,7 +347,6 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
         const session = sessions[joinerID];
 
         session.networking.signaling.terminate();
-        session.networking.signaling = SigTerm;
 
         session.username = datum.username;
         rtcManager.send(channel)("login-successful", {});
