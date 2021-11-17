@@ -1,5 +1,3 @@
-import { sendBurst } from "/js/common/webrtc.js";
-
 import NLWManager from "/js/common/ui/nlw-manager.js";
 
 export default class HostNLWManager extends NLWManager {
@@ -10,11 +8,12 @@ export default class HostNLWManager extends NLWManager {
   #launchModel        = undefined; // (Object[Any]) => Unit
   #onError            = undefined; // (String) => Unit
   #postImageUpdate    = undefined; // (Blob) => Unit
+  #rtcMan             = undefined; // RTCManager
 
   // ( Element, (Object[Any]) => Unit, (UUID) => Unit, (UUID, Boolean?) => RTCDataChannel?, () => Array[RTCDataChannel]
   // , (Blob) => Unit, (String) => Unit) => HostNLWManager
-  constructor( outerFrame, launchModel, initSesh, getOpenChannelByID, getOpenChannels
-             , postImage, onError) {
+  constructor( outerFrame, rtcManager, launchModel, initSesh, getOpenChannelByID
+             , getOpenChannels, postImage, onError) {
 
     super(outerFrame);
 
@@ -24,6 +23,7 @@ export default class HostNLWManager extends NLWManager {
     this.#launchModel        = launchModel;
     this.#onError            = onError;
     this.#postImageUpdate    = postImage;
+    this.#rtcMan             = rtcManager;
 
   }
 
@@ -47,14 +47,14 @@ export default class HostNLWManager extends NLWManager {
 
   // (String, Object[Any]) => Unit
   #broadcast = (type, message) => {
-    sendBurst(true, ...this.#getOpenChannels())(type, message);
+    this.#rtcMan.sendBurst(...this.#getOpenChannels())(type, message);
   };
 
   // (String, Object[Any], UUID) => Unit
   #narrowcast = (type, message, recipientUUID) => {
     const channel = this.#getOpenChannelByID(recipientUUID, true);
     if (channel !== null) {
-      sendBurst(true, channel)(type, message);
+      this.#rtcMan.sendBurst(channel)(type, message);
     }
   };
 

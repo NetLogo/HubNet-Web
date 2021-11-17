@@ -11,12 +11,10 @@ import NLWManager       from "./ui/nlw-manager.js";
 
 import StatusSocket from "./ws/status-socket.js";
 
-import IDManager from "/js/common/id-manager.js";
+import IDManager  from "/js/common/id-manager.js";
+import RTCManager from "/js/common/rtc-manager.js";
 
-import * as WebRTCJS from "/js/common/webrtc.js";
-
-const sendGreeting = WebRTCJS.sendGreeting(true);
-const sendRTC      = WebRTCJS.sendRTC     (true);
+const rtcManager = new RTCManager(true);
 
 // type Session = {
 //   networking :: { socket     :: WebSocket
@@ -200,7 +198,7 @@ const launchModel = (formDataPlus) => {
               map((session) => session.networking.channel).
               filter((channel) => channel !== undefined);
 
-          channels.forEach((channel) => sendRTC(channel)("keep-alive", {}));
+          channels.forEach((channel) => rtcManager.send(channel)("keep-alive", {}));
 
         }, 30000);
 
@@ -232,7 +230,7 @@ const launchModel = (formDataPlus) => {
               session.pingData[id] = performance.now();
               const lastIndex      = session.recentPings.length - 1;
               const lastPing       = session.recentPings[lastIndex];
-              sendRTC(channel)("ping", { id, lastPing });
+              rtcManager.send(channel)("ping", { id, lastPing });
             }
           });
 
@@ -253,8 +251,9 @@ const launchModel = (formDataPlus) => {
 };
 
 const nlwManager =
-  new NLWManager( byEID("nlw-frame"), launchModel, initSesh, getOpenChannelByID
-                , getOpenChannels, statusSocket.postImageUpdate, onNLWManError);
+  new NLWManager( byEID("nlw-frame"), rtcManager, launchModel, initSesh
+                , getOpenChannelByID, getOpenChannels, statusSocket.postImageUpdate
+                , onNLWManError);
 
 document.addEventListener("DOMContentLoaded", nlwManager.init);
 
@@ -263,7 +262,7 @@ const processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
 
   const rtcID       = uuidToRTCID(joinerID);
   const channel     = connection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
-  channel.onopen    = () => { sendGreeting(channel); };
+  channel.onopen    = () => { rtcManager.sendGreeting(channel); };
   channel.onmessage = handleChannelMessages(channel, nlogo, sessionName, joinerID);
   channel.onclose   = () => { cleanUpJoiner(joinerID); };
 
@@ -430,7 +429,7 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
         session.networking.signaling = SigTerm;
 
         session.username = datum.username;
-        sendRTC(channel)("login-successful", {});
+        rtcManager.send(channel)("login-successful", {});
 
         const requestInitState =
           { type:     "hnw-request-initial-state"
@@ -442,14 +441,14 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
         nlwManager.post(requestInitState);
 
       } else {
-        sendRTC(channel)("incorrect-password", {});
+        rtcManager.send(channel)("incorrect-password", {});
       }
     } else {
-      sendRTC(channel)("username-already-taken", {});
+      rtcManager.send(channel)("username-already-taken", {});
     }
 
   } else {
-    sendRTC(channel)("no-username-given", {});
+    rtcManager.send(channel)("no-username-given", {});
   }
 
 };
@@ -480,7 +479,7 @@ self.addEventListener("beforeunload", () => {
   // Honestly, this will probably not run before the tab closes.
   // Not much I can do about that.  --Jason B. (8/21/20)
   Object.entries(sessions).forEach(([ , { networking: { channel } }]) => {
-    sendRTC(channel)("bye-bye");
+    rtcManager.send(channel)("bye-bye");
     channel.close(1000, "Terminating unneeded sockets...");
   });
 });

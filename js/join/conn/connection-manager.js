@@ -6,17 +6,13 @@ import ChannelHandler  from "./channel-handler.js";
 import SignalingStream from "./signaling-stream.js";
 import RxQueue         from "./rx-queue.js";
 
-import * as WebRTCJS from "/js/common/webrtc.js";
-
-const sendGreeting = WebRTCJS.sendGreeting(false);
-const sendRTC      = WebRTCJS.sendRTC     (false);
-
-// type SendRTC = (RTCDataChannel) => (String, Object[Any]?) => Unit
+import RTCManager from "/js/common/rtc-manager.js";
 
 export default class ConnectionManager {
 
   #channel = undefined; // RTCDataChannel
   #conn    = undefined; // RTCPeerConnection
+  #rtcMan  = undefined; // RTCManager
   #rxQueue = undefined; // RxQueue
 
   // () => ConnectionManager
@@ -51,13 +47,14 @@ export default class ConnectionManager {
   reset = () => {
     this.#conn    = new RTCPeerConnection(rtcConfig);
     this.#channel = null;
+    this.#rtcMan  = new RTCManager(false);
     this.#rxQueue?.reset();
   };
 
   // (String, Object[Any]?) => Unit
   send = (type, msg = {}) => {
     if (this.#channel !== null) {
-      sendRTC(this.#channel)(type, msg);
+      this.#rtcMan.send(this.#channel)(type, msg);
     }
   };
 
@@ -143,7 +140,7 @@ export default class ConnectionManager {
 
     channel.onopen = () => {
       notifyLoggingIn();
-      sendGreeting(this.#channel);
+      this.#rtcMan.sendGreeting(this.#channel);
       this.send("login", { username, password });
     };
 
