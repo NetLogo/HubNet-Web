@@ -39,7 +39,7 @@ export default class BroadSocket {
 const handleSocketMessage = (hostID, handleConnectionMessage, registerSignaling) =>
                             ({ data: joinerID }) => {
 
-  const signalingURL = "js/host/ws/signaling-socket.js";
+  const signalingURL = "js/host/ws/signaling-socket-worker.js";
   const signaling    = new Worker(signalingURL, { type: "module" });
 
   const connection    = new RTCPeerConnection(rtcConfig);
