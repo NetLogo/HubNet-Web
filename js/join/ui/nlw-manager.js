@@ -22,9 +22,24 @@ export default class JoinerNLWManager extends NLWManager {
 
   }
 
+  // (Object[Any]) => Unit
+  awaitLoadInterface = (interfaceObj) => {
+    return this._await("hnw-load-interface", interfaceObj);
+  };
+
   // () => Unit
   init = () => {
     this._getFrame().src = `${this._galaURL}/hnw-join`;
+  };
+
+  // (Object[Any]) => Unit
+  postUpdate = (update) => {
+    this._post({ type: "nlw-apply-update", update });
+  };
+
+  // (Object[Any]) => Unit
+  relay = (payload) => {
+    this._post(payload);
   };
 
   // (Object[Any]) => Unit
@@ -46,7 +61,7 @@ export default class JoinerNLWManager extends NLWManager {
 
   // () => Unit
   _hide = () => {
-    this.post(fakeModel);
+    this._post(fakeModel);
   };
 
   // () => Unit

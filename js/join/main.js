@@ -80,10 +80,11 @@ const genBurstQueue = () => {
   };
 
   const burstBundle =
-    { awaitNLW:      nlwManager.await
-    , getUsername:   loginControls.getUsername
-    , postToNLW:     nlwManager.post
+    { awaitLoadInterface: nlwManager.awaitLoadInterface
+    , getUsername:        loginControls.getUsername
+    , relayToNLW:         nlwManager.relay
     , statusManager
+    , updateNLW:          nlwManager.postUpdate
     };
 
   const loop = (f) => { requestAnimationFrame(f); };

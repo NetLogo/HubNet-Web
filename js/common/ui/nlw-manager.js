@@ -14,11 +14,6 @@ export default class NLWManager {
     this.#resolverQueue = [];
   }
 
-  // (String, Object[Any]?) => Promise[Any]
-  "await" = (type, msg = {}) => {
-    return this.#withBabyMonitor((bm) => awaitPort(bm)(type, msg));
-  };
-
   // () => Unit
   hide = () => {
     this.#babyMonitor?.close();
@@ -31,20 +26,25 @@ export default class NLWManager {
   // () => Unit
   init = () => {};
 
+  // () => Unit
+  show = () => {
+    this.#outerFrame.classList.remove("hidden");
+    this._show();
+  };
+
+  // (String, Object[Any]?) => Promise[Any]
+  _await = (type, msg = {}) => {
+    return this.#withBabyMonitor((bm) => awaitPort(bm)(type, msg));
+  };
+
   // (Object[Any]) => Unit
-  post = (msg) => {
+  _post = (msg) => {
     this.#withBabyMonitor((bm) =>
       new Promise((resolve) => {
         bm.postMessage(msg);
         resolve();
       })
     );
-  };
-
-  // () => Unit
-  show = () => {
-    this.#outerFrame.classList.remove("hidden");
-    this._show();
   };
 
   // ((MessagePort) => Promise[T]) => Promise[T]

@@ -27,6 +27,17 @@ export default class HostNLWManager extends NLWManager {
 
   }
 
+  // (UUID, Object[Any], String) => Unit
+  becomeOracle = (uuid, props, nlogo) => {
+    this._post({ ...props, type: "hnw-become-oracle", nlogo });
+    this._post({ type: "nlw-subscribe-to-updates", uuid });
+  };
+
+  // (UUID) => Unit
+  disown = (joinerID) => {
+    this._post({ type: "hnw-notify-disconnect", joinerID });
+  };
+
   // () => Unit
   init = () => {
 
@@ -43,6 +54,38 @@ export default class HostNLWManager extends NLWManager {
 
     iframe.src = `${this._galaURL}/hnw-host`;
 
+  };
+
+  // (UUID, String) => Unit
+  initializeJoiner = (token, username) => {
+    const type = "hnw-request-initial-state";
+    const msg  = { type, token, roleName: "student", username };
+    this._post(msg);
+  };
+
+  // () => Unit
+  notifyCongested = () => {
+    this._post({ type: "hnw-notify-congested" });
+  };
+
+  // () => Unit
+  notifyUncongested = () => {
+    this._post({ type: "hnw-notify-uncongested" });
+  };
+
+  // (Object[Any]) => Unit
+  relay = (payload) => {
+    this._post(payload);
+  };
+
+  // (UUID, Number) => Unit
+  registerPing = (joinerID, ping) => {
+    this._post({ type: "hnw-latest-ping", joinerID, ping });
+  };
+
+  // () => Unit
+  updatePreview = () => {
+    this._post({ type: "nlw-request-view" });
   };
 
   // (String, Object[Any]) => Unit

@@ -12,18 +12,14 @@ const handleInitialModel = (bundle) => ({ role, token, view, state }) => {
         , token
         , view
         };
-      return bundle.awaitNLW("hnw-load-interface", initialInterface);
+      return bundle.awaitLoadInterface(initialInterface);
     };
 
   const postInitialState =
     () => {
       bundle.statusManager.modelLoaded();
       bundle.notifyBootedUp();
-      const parcel =
-        { type:   "nlw-state-update"
-        , update: state
-        };
-      bundle.postToNLW(parcel);
+      bundle.updateNLW(state);
     };
 
   awaitInitialInterface().then(postInitialState);
@@ -41,15 +37,12 @@ export default (bundle) => (datum) => {
     }
 
     case "state-update": {
-      bundle.postToNLW({
-        update: datum.update
-      , type:   "nlw-apply-update"
-      });
+      bundle.updateNLW(datum.update);
       break;
     }
 
     case "relay": {
-      bundle.postToNLW(datum.payload);
+      bundle.relayToNLW(datum.payload);
       break;
     }
 

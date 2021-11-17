@@ -138,8 +138,7 @@ const launchModel = (formDataPlus) => {
         formFrame.classList.add("hidden");
 
         nlwManager.show();
-        nlwManager.post({ ...json, type: "hnw-become-oracle", nlogo });
-        nlwManager.post({ type: "nlw-subscribe-to-updates", uuid: hostID });
+        nlwManager.becomeOracle(hostID, json, nlogo);
 
         const hcm = (c, id) => handleConnectionMessage(c, nlogo, sessionName, id);
 
@@ -219,7 +218,7 @@ const launchModel = (formDataPlus) => {
         }, 2000);
 
         setInterval(() => {
-          nlwManager.post({ type: "nlw-request-view" });
+          nlwManager.updatePreview();
         }, 8000);
 
       });
@@ -350,20 +349,14 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
           sesh.recentPings.shift();
         }
 
-        const latestPing =
-          { type: "hnw-latest-ping"
-          , ping: pingTime
-          , joinerID
-          };
-
-        nlwManager.post(latestPing);
+        nlwManager.registerPing(joinerID, pingTime);
 
         break;
 
       }
 
       case "relay": {
-        nlwManager.post(datum.payload);
+        nlwManager.relay(datum.payload);
         break;
       }
 
@@ -384,7 +377,7 @@ const handleChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data
 
 // (String) => () => Unit
 const cleanUpJoiner = (joinerID) => {
-  nlwManager.post({ type: "hnw-notify-disconnect", joinerID });
+  nlwManager.disown(joinerID);
   notifySerializer  ("client-disconnect");
   notifyDeserializer("client-disconnect");
   delete sessions[joinerID];
@@ -413,14 +406,7 @@ const handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
         session.username = datum.username;
         rtcManager.send(channel)("login-successful", {});
 
-        const requestInitState =
-          { type:     "hnw-request-initial-state"
-          , token:    joinerID
-          , roleName: "student"
-          , username: sessions[joinerID].username
-          };
-
-        nlwManager.post(requestInitState);
+        nlwManager.initializeJoiner(joinerID, sessions[joinerID].username);
 
       } else {
         rtcManager.send(channel)("incorrect-password", {});
@@ -445,17 +431,11 @@ const setIT = (id) => (text) => {
   byEID(id).innerText = text;
 };
 
-// (String) => () => Unit
-const genNotifyNLW = (type) => () => {
-  nlwManager.post({ type });
-};
-
 const bandwidthManager =
     new BandwidthManager( setIT("bandwidth-span"), setIT("new-send-span")
                         , setIT("num-clients-span"), setIT("num-congested-span")
                         , setIT("activity-status-span")
-                        , genNotifyNLW("hnw-notify-congested")
-                        , genNotifyNLW("hnw-notify-uncongested"));
+                        , nlwManager.notifyCongested, nlwManager.notifyUncongested);
 
 self.addEventListener("beforeunload", () => {
   // Honestly, this will probably not run before the tab closes.
