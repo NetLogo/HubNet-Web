@@ -20,7 +20,7 @@ export default class NLWManager {
 
   // () => Unit
   hide = () => {
-    this.#babyMonitor.close();
+    this.#babyMonitor?.close();
     this.#babyMonitor = null;
     this.#outerFrame.classList.add("hidden");
     this.#resolverQueue = [];
