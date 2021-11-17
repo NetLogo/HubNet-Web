@@ -9,9 +9,6 @@ import { awaitSerializer } from "/js/serialize/pool-party.js";
 
 const commonConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 
-const   hostConfig = { ...commonConfig };
-const joinerConfig = { ...commonConfig };
-
 // (Boolean) => (RTCDataChannel*) => (String, Object[Any]) => Unit
 const sendRTC = (isHost) => (...channels) => (type, obj) => {
   channels.forEach((channel) => {
@@ -124,4 +121,4 @@ const genChanID = (channel) => {
   return genNextID(`${channel.label}-${channel.id}`);
 };
 
-export { hostConfig, joinerConfig, sendBurst, sendGreeting, sendOOB, sendRTC };
+export { commonConfig, sendBurst, sendGreeting, sendOOB, sendRTC };

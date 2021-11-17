@@ -4,7 +4,8 @@ import { awaitWorker               } from "/js/common/await.js";
 import { hnw                       } from "/js/common/domain.js";
 import { genNextID                 } from "/js/common/id-manager.js";
 import { ProtoVersion, uuidToRTCID } from "/js/common/util.js";
-import { hostConfig                } from "/js/common/webrtc.js";
+
+import { rtcConfig } from "./webrtc.js";
 
 import BandwidthManager from "./ui/bandwidth-manager.js";
 import NLWManager       from "./ui/nlw-manager.js";
@@ -151,7 +152,7 @@ const launchModel = (formDataPlus) => {
             case "hello": {
 
               const joinerID   = data.joinerID;
-              const connection = new RTCPeerConnection(hostConfig);
+              const connection = new RTCPeerConnection(rtcConfig);
 
               const signaling     = new Worker("js/host/ws/signaling-socket.js", { type: "module" });
               signaling.onmessage = handleConnectionMessage(connection, nlogo, sessionName, joinerID);

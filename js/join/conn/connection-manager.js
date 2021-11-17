@@ -1,5 +1,6 @@
 import { uuidToRTCID  } from "/js/common/util.js";
-import { joinerConfig } from "/js/common/webrtc.js";
+
+import { rtcConfig } from "./webrtc.js";
 
 import ChannelHandler  from "./channel-handler.js";
 import SignalingStream from "./signaling-stream.js";
@@ -48,7 +49,7 @@ export default class ConnectionManager {
 
   // () => Unit
   reset = () => {
-    this.#conn    = new RTCPeerConnection(joinerConfig);
+    this.#conn    = new RTCPeerConnection(rtcConfig);
     this.#channel = null;
     this.#rxQueue?.reset();
   };
