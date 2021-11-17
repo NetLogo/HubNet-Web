@@ -58,9 +58,16 @@ export default class HostNLWManager extends NLWManager {
 
   // (UUID, String) => Unit
   initializeJoiner = (token, username) => {
+
     const type = "hnw-request-initial-state";
-    const msg  = { type, token, roleName: "student", username };
-    this._post(msg);
+    const msg  = { token, roleName: "student", username };
+
+    this._await(type, msg).
+      then(({ role, state, viewState: view }) => {
+        this.#narrowcast("initial-model", { role, token, state, view }, token);
+        this.#initSesh(token);
+      });
+
   };
 
   // () => Unit
@@ -85,7 +92,8 @@ export default class HostNLWManager extends NLWManager {
 
   // () => Unit
   updatePreview = () => {
-    this._post({ type: "nlw-request-view" });
+    this._await("nlw-request-view").
+      then(({ blob }) => { this.#postImageUpdate(blob); });
   };
 
   // (String, Object[Any]) => Unit
@@ -113,11 +121,6 @@ export default class HostNLWManager extends NLWManager {
         break;
       }
 
-      case "nlw-view": {
-        this.#postImageUpdate(data.blob);
-        break;
-      }
-
       case "galapagos-direct-launch": {
         const { nlogo, config, sessionName, password } = data;
         this.#launchModel({ modelType:  "upload"
@@ -126,13 +129,6 @@ export default class HostNLWManager extends NLWManager {
                           , password
                           , config
                           });
-        break;
-      }
-
-      case "hnw-initial-state": {
-        const { token, role, state, viewState: view } = data;
-        this.#narrowcast("initial-model", { role, token, state, view }, token);
-        this.#initSesh(token);
         break;
       }
 
