@@ -1,5 +1,4 @@
-import { reportBandwidth, reportNewSend } from "/js/common/bandwidth-monitor.js";
-import { byteSizeLabel                  } from "/js/common/util.js";
+import { byteSizeLabel } from "/js/common/util.js";
 
 export default class BandwidthManager {
 
@@ -28,21 +27,21 @@ export default class BandwidthManager {
     this.#setStatusDOM       = setStatus;
   }
 
-  // ((String) => Promise[Array[Number]]) => Unit
-  updateBandwidth = (awaitSenders) => {
+  // ((String) => Promise[Array[Number]], Number) => Unit
+  updateBandwidth = (awaitSenders, baseBandwidth, baseNewSend) => {
 
-    const genStats = (msg, syncAmount, setDOM) => {
+    const genStats = (msg, base, setDOM) => {
       awaitSenders(msg).then(
         (results) => {
-          const asyncAmount = results.reduce(((acc, x) => acc + x), 0);
-          const newText     = byteSizeLabel(syncAmount + asyncAmount, 2);
+          const sum     = results.reduce(((acc, x) => acc + x), 0);
+          const newText = byteSizeLabel(base + sum, 2);
           setDOM(newText);
         }
       );
     };
 
-    genStats("request-bandwidth-report", reportBandwidth(), this.#setBandwidthDOM);
-    genStats("request-new-send"        , reportNewSend()  , this.#setNewSendDOM  );
+    genStats("request-bandwidth-report", baseBandwidth, this.#setBandwidthDOM);
+    genStats("request-new-send"        , baseNewSend  , this.#setNewSendDOM  );
 
   };
 

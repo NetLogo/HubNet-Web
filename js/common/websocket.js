@@ -1,14 +1,14 @@
-import { logEntry, reportBandwidth, reportNewSend } from "./bandwidth-monitor.js";
-
 import { typeIsOOB } from "./util.js";
 
-import IDManager from "./id-manager.js";
+import BandwidthMonitor from "./bandwidth-monitor.js";
+import IDManager        from "./id-manager.js";
 
 // (String, Object[Any]) => Unit
 const makeMessage = (type, obj) => JSON.stringify({ type, ...obj });
 
 export default class WebSocketManager {
 
+  #bandMon   = undefined; // BandwidthMonitor
   #genNextID = undefined; // () => Number
   #socket    = undefined; // WebSocket
   #timeoutID = undefined; // Number
@@ -16,6 +16,7 @@ export default class WebSocketManager {
   // (String, (Object[Any]) => Unit, ((WebSocketManager) => Unit)?) => WebSocketManager
   constructor(url, onmessage = () => {}, onopen = () => {}) {
 
+    this.#bandMon          = new BandwidthMonitor();
     this.#socket           = new WebSocket(url);
     this.#socket.onmessage = onmessage;
     this.#socket.onopen    = onopen(this);
@@ -37,12 +38,12 @@ export default class WebSocketManager {
 
   // () => Number
   getBandwidth = () => {
-    return reportBandwidth();
+    return this.#bandMon.getBandwidth();
   };
 
   // () => Number
   getNewSend = () => {
-    return reportNewSend();
+    return this.#bandMon.getNewSend();
   };
 
   // (String, Object[Any]) => Unit
@@ -83,7 +84,7 @@ export default class WebSocketManager {
 
   // (Sendable) => Unit
   #logAndSend = (data) => {
-    logEntry(data, this.#socket);
+    this.#bandMon.log(data, this.#socket);
     this.#socket.send(data);
     this.#refreshKeepAlive();
   };

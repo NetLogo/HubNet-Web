@@ -216,7 +216,11 @@ const launchModel = (formDataPlus) => {
           bandwidthManager.updateCongestionStats(Object.fromEntries(entries));
         }, 1000);
 
-        setInterval(() => { bandwidthManager.updateBandwidth(awaitSenders); }, 500);
+        setInterval(() => {
+          const bandwidth = rtcManager.getBandwidth();
+          const newSend   = rtcManager.getNewSend();
+          bandwidthManager.updateBandwidth(awaitSenders, bandwidth, newSend);
+        }, 500);
 
         setInterval(() => {
 

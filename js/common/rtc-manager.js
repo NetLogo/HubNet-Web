@@ -1,19 +1,31 @@
-import { logEntry                } from "./bandwidth-monitor.js";
 import { ProtoVersion, typeIsOOB } from "./util.js";
 
 import { awaitSerializer } from "/js/serialize/pool-party.js";
 
-import IDManager from "./id-manager.js";
+import BandwidthMonitor from "./bandwidth-monitor.js";
+import IDManager        from "./id-manager.js";
 
 export default class RTCManager {
 
-  #idMan  = undefined; // IDManager
-  #isHost = undefined; // Boolean
+  #bandMon = undefined; // BandwidthMonitor
+  #idMan   = undefined; // IDManager
+  #isHost  = undefined; // Boolean
 
   constructor(isHost) {
-    this.#idMan  = new IDManager();
-    this.#isHost = isHost;
+    this.#bandMon = new BandwidthMonitor();
+    this.#idMan   = new IDManager();
+    this.#isHost  = isHost;
   }
+
+  // () => Number
+  getBandwidth = () => {
+    return this.#bandMon.getBandwidth();
+  };
+
+  // () => Number
+  getNewSend = () => {
+    return this.#bandMon.getNewSend();
+  };
 
   // (RTCDataChannel*) => (String, Object[Any]) => Unit
   send = (...channels) => (type, obj) => {
@@ -102,7 +114,7 @@ export default class RTCManager {
 
   // (Sendable, RTCDataChannel) => Unit
   #logAndSend = (data, channel) => {
-    logEntry(data, channel);
+    this.#bandMon.log(data, channel);
     channel.send(data);
   };
 

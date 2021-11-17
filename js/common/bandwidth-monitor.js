@@ -4,101 +4,94 @@
 //              , timestamp      :: Number
 //              }
 
-// type Sendable = ArrayBuffer | Blob | String
+// type StatBlock = { xs          :: Array[Entry]
+//                  , startBuffer :: Number
+//                  , endBuffer   :: Number
+//                  }
 
-let entries = []; // Array[Entry]
+// type Sendable = ArrayBuffer | Blob | String
 
 // (Protocol.Channel) => Number
 const getBufferedSize = (channel) => {
   return channel.bufferedAmount;
 };
 
-// (Sendable, Protocol.Channel) => Unit
-const logEntry = (x, channel) => {
+// (StatBlock) => Number
+const sumBytesAdded = (sb) => sb.xs.reduce(((a, b) => a + b.bytesAdded), 0);
 
-  const bytesAdded =
-    (x instanceof Blob)          ? x.size       :
-    (x.byteLength !== undefined) ? x.byteLength :
-                                   (new TextEncoder()).encode(x).length;
+export default class BandwidthMonitor {
 
-  entries.push({ bytesAdded
-               , bufferSnapshot: getBufferedSize(channel)
-               , channel
-               , timestamp:      performance.now()
-               });
+  #entries = undefined; // Array[Entry]
 
-};
+  constructor() {
 
-// () => Number
-const reportNewSend = () => {
+    this.#entries = [];
 
-  const i  = entries.findIndex((e) => e.timestamp >= performance.now() - 1000);
-  const es = (i > 0) ? entries.slice(i) : ((i < 0) ? [] : entries);
+    setInterval(() => {
+      const es = this.#entries;
+      const i  = es.findIndex((e) => e.timestamp >= performance.now() - 10000);
+      this.#entries = (i > 0) ? es.slice(i) : ((i < 0) ? [] : es);
+    }, 10000);
 
-  const map =
-    es.reduce((
-      (acc, x) => {
-        if (acc.has(x.channel)) {
-          acc.get(x.channel).xs.push(x);
-          return acc;
-        } else {
-          const value = { xs: [x] };
-          return acc.set(x.channel, value);
-        }
-      }
-    ), new Map());
+  }
 
-  const sumBandwidth =
-    Array.from(map.values()).reduce((
-      (acc, x) => {
-        const sum = x.xs.reduce(((a, b) => a + b.bytesAdded), 0);
-        return acc + sum;
-      }
-    ), 0);
-
-  return sumBandwidth;
-
-};
-
-// () => Number
-const reportBandwidth = () => {
-
-  const i  = entries.findIndex((e) => e.timestamp >= performance.now() - 1000);
-  const es = (i > 0) ? entries.slice(i) : ((i < 0) ? [] : entries);
-
-  const map =
-    es.reduce((
-      (acc, x) => {
-        if (acc.has(x.channel)) {
-          acc.get(x.channel).xs.push(x);
-          return acc;
-        } else {
-          const value = { xs:          [x]
-                        , startBuffer: x.bufferSnapshot
-                        , endBuffer:   getBufferedSize(x.channel)
-                        };
-          return acc.set(x.channel, value);
-        }
-      }
-    ), new Map());
-
-  const sumBandwidth =
-    Array.from(map.values()).reduce((
-      (acc, x) => {
-        const sum            = x.xs.reduce(((a, b) => a + b.bytesAdded), 0);
+  // () => Number
+  getBandwidth = () => {
+    return this.#sumStatsBy(
+      (x) => {
+        const sum            = sumBytesAdded(x);
         const bufferIncrease = x.endBuffer - x.startBuffer;
-        const myBandwidth    = sum - bufferIncrease;
-        return acc + myBandwidth;
+        return sum - bufferIncrease;
       }
-    ), 0);
+    , 0);
+  };
 
-  return sumBandwidth;
+  // () => Number
+  getNewSend = () => {
+    return this.#sumStatsBy(sumBytesAdded);
+  };
 
-};
+  // (Sendable, Protocol.Channel) => Unit
+  log = (x, channel) => {
 
-setInterval(() => {
-  const i = entries.findIndex((e) => e.timestamp >= performance.now() - 10000);
-  entries = (i > 0) ? entries.slice(i) : ((i < 0) ? [] : entries);
-}, 10000);
+    const bytesAdded =
+      (x instanceof Blob)          ? x.size       :
+      (x.byteLength !== undefined) ? x.byteLength :
+                                     (new TextEncoder()).encode(x).length;
 
-export { logEntry, reportBandwidth, reportNewSend };
+    this.#entries.push({ bytesAdded
+                       , bufferSnapshot: getBufferedSize(channel)
+                       , channel
+                       , timestamp:      performance.now()
+                       });
+
+  };
+
+  // ((StatBlock) => Number) => Number
+  #sumStatsBy = (f) => {
+
+    const es    = this.#entries;
+    const i     = es.findIndex((e) => e.timestamp >= performance.now() - 1000);
+    const newEs = (i > 0) ? es.slice(i) : ((i < 0) ? [] : es);
+
+    const map =
+      newEs.reduce((
+        (acc, x) => {
+          if (acc.has(x.channel)) {
+            acc.get(x.channel).xs.push(x);
+            return acc;
+          } else {
+            const value = { xs:          [x]
+                          , startBuffer: x.bufferSnapshot
+                          , endBuffer:   getBufferedSize(x.channel)
+                          };
+            return acc.set(x.channel, value);
+          }
+        }
+      ), new Map());
+
+    return Array.from(map.values()).reduce(((acc, x) => acc + f(x)), 0);
+
+  };
+
+}
