@@ -1,5 +1,8 @@
-import { hnw                } from "/js/common/domain.js";
-import { sendObj, setSocket } from "/js/common/websocket.js";
+import { hnw } from "/js/common/domain.js";
+
+import WebSocketManager from "/js/common/websocket.js";
+
+let socket = null; // WebSocketManager
 
 // (MessageEvent) => Unit
 onmessage = (e) => {
@@ -9,22 +12,18 @@ onmessage = (e) => {
 
       const { hostID, joinerID, offer } = e.data;
 
-      const socket = new WebSocket(`ws://${hnw}/rtc/${hostID}/${joinerID}/join`);
+      const url    = `ws://${hnw}/rtc/${hostID}/${joinerID}/join`;
+      const onMsg  = ({ data }) => { postMessage(data); };
+      const onOpen = (self) => () => { self.send("joiner-offer", { offer }); };
 
-      socket.onopen = () => sendObj("joiner-offer", { offer });
-
-      socket.onmessage = ({ data }) => {
-        postMessage(data);
-      };
-
-      setSocket(socket);
+      socket = new WebSocketManager(url, onMsg, onOpen);
 
       break;
 
     }
 
     case "ice-candidate": {
-      sendObj("joiner-ice-candidate", { candidate: e.data.candidate });
+      socket.send("joiner-ice-candidate", { candidate: e.data.candidate });
       break;
     }
 

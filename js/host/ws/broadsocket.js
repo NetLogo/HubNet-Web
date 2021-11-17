@@ -1,12 +1,13 @@
-import { reportBandwidth, reportNewSend } from "/js/common/bandwidth-monitor.js";
-import { setSocket                      } from "/js/common/websocket.js";
+import WebSocketManager from "/js/common/websocket.js";
+
+let socket = null; // WebSocketManager
 
 // (MessageEvent) => Unit
 onmessage = (e) => {
   switch (e.data.type) {
     case "connect": {
-      const socket = new WebSocket(e.data.url);
-      socket.onmessage = ({ data }) => {
+
+      const onMsg = ({ data }) => {
         const datum = JSON.parse(data);
         switch (datum.type) {
           case "hello": {
@@ -17,15 +18,18 @@ onmessage = (e) => {
             console.warn(`Unknown broad event type: ${datum.type}`);
         }
       };
-      setSocket(socket);
+
+      socket = new WebSocketManager(e.data.url, onMsg);
+
       break;
+
     }
     case "request-new-send": {
-      e.ports[0].postMessage(reportNewSend());
+      e.ports[0].postMessage(socket.getNewSend());
       break;
     }
     case "request-bandwidth-report": {
-      e.ports[0].postMessage(reportBandwidth());
+      e.ports[0].postMessage(socket.getBandwidth());
       break;
     }
     default: {

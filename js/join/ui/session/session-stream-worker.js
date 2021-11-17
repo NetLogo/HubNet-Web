@@ -1,19 +1,21 @@
-import { hnw                  } from "/js/common/domain.js";
-import { getSocket, setSocket } from "/js/common/websocket.js";
+import { hnw } from "/js/common/domain.js";
+
+import WebSocketManager from "/js/common/websocket.js";
+
+let socket = null; // WebSocketManager
 
 // (MessageEvent) => Unit
 onmessage = (e) => {
   switch (e.data.type) {
     case "connect": {
-      const socket     = new WebSocket(`ws://${hnw}/hnw/session-stream`);
-      socket.onmessage = ({ data }) => {
+      const onMsg = ({ data }) => {
         postMessage(data);
       };
-      setSocket(socket);
+      socket = new WebSocketManager(`ws://${hnw}/hnw/session-stream`, onMsg);
       break;
     }
     case "hibernate": {
-      getSocket().close(1000, "Session list is not currently needed");
+      socket.close(1000, "Session list is not currently needed");
       break;
     }
     default: {

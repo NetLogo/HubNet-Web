@@ -1,91 +1,124 @@
-import { logEntry  } from "./bandwidth-monitor.js";
+import { logEntry, reportBandwidth, reportNewSend } from "./bandwidth-monitor.js";
+
 import { typeIsOOB } from "./util.js";
 
 import IDManager from "./id-manager.js";
 
-const idMan = new IDManager();
-
-let socket = null; // WebSocket
-
-let timeoutID = null; // Number
-
 // (String, Object[Any]) => Unit
 const makeMessage = (type, obj) => JSON.stringify({ type, ...obj });
 
-// (Sendable) => Unit
-const logAndSend = (data) => {
-  logEntry(data, socket);
-  socket.send(data);
-  refreshKeepAlive();
-};
+export default class WebSocketManager {
 
-// (String, Any, UUID) => Unit
-const send = (type, obj, id = idMan.next(socket.url)) => {
+  #genNextID = undefined; // () => Number
+  #socket    = undefined; // WebSocket
+  #timeoutID = undefined; // Number
 
-  const parcel = { ...obj };
-  parcel.id    = id;
+  // (String, (Object[Any]) => Unit, ((WebSocketManager) => Unit)?) => WebSocketManager
+  constructor(url, onmessage = () => {}, onopen = () => {}) {
 
-  const finalStr = makeMessage(type, parcel);
-  logAndSend(finalStr);
+    this.#socket           = new WebSocket(url);
+    this.#socket.onmessage = onmessage;
+    this.#socket.onopen    = onopen(this);
+    this.#refreshKeepAlive();
 
-};
-
-// (String, Any) => Unit
-const sendOOB = (type, obj) => {
-  const finalStr = makeMessage(type, obj);
-  logAndSend(finalStr);
-};
-
-// (String, Object[Any]) => Unit
-const sendObj = (type, obj) => {
-  switch (socket.readyState) {
-    case WebSocket.CONNECTING: {
-      setTimeout(() => { sendObj(type, obj); }, 5);
-      break;
-    }
-    case WebSocket.CLOSING:
-    case WebSocket.CLOSED: {
-      const s = `Cannot send '${type}' message over WebSocket, because it is already closed`;
-      console.warn(s, socket, obj);
-      break;
-    }
-    case WebSocket.OPEN: {
-      if (typeIsOOB(type)) {
-        sendOOB(type, obj);
-      } else {
-        send(type, obj);
+    this.#genNextID = (
+      () => {
+        const idMan = new IDManager();
+        return () => idMan.next(url);
       }
-      break;
-    }
-    default: {
-      console.warn(`Unknown WebSocket ready state: ${socket.readyState}`);
-    }
-  }
-};
+    )();
 
-// () => Unit
-const refreshKeepAlive = () => {
-
-  if (timeoutID !== null) {
-    clearTimeout(timeoutID);
   }
 
-  timeoutID =
-    setTimeout(() => {
-      if (socket?.readyState === WebSocket.OPEN) {
-        sendObj("keep-alive", {});
+  // (Number, String) => Unit
+  close = (exitCode, reason) => {
+    this.#socket.close(exitCode, reason);
+  };
+
+  // () => Number
+  getBandwidth = () => {
+    return reportBandwidth();
+  };
+
+  // () => Number
+  getNewSend = () => {
+    return reportNewSend();
+  };
+
+  // (String, Object[Any]) => Unit
+  send = (type, obj) => {
+
+    const socket = this.#socket;
+
+    switch (socket.readyState) {
+
+      case WebSocket.CONNECTING: {
+        setTimeout(() => { this.send(type, obj); }, 5);
+        break;
       }
-    }, 30000);
 
-};
+      case WebSocket.CLOSING:
+      case WebSocket.CLOSED: {
+        const s = `Cannot send '${type}' message over WebSocket, because it is already closed`;
+        console.warn(s, socket, obj);
+        break;
+      }
 
-// () => WebSocket
-const getSocket = () => socket;
+      case WebSocket.OPEN: {
+        if (typeIsOOB(type)) {
+          this.#sendOOB(type, obj);
+        } else {
+          this.#send(type, obj);
+        }
+        break;
+      }
 
-// (WebSocket) => Unit
-const setSocket = (s) => {
-  socket = s;
-  refreshKeepAlive();
-};
+      default: {
+        console.warn("Unknown WebSocket ready state:", socket.readyState);
+      }
 
-export { getSocket, sendObj, setSocket };
+    }
+
+  };
+
+  // (Sendable) => Unit
+  #logAndSend = (data) => {
+    logEntry(data, this.#socket);
+    this.#socket.send(data);
+    this.#refreshKeepAlive();
+  };
+
+  // () => Unit
+  #refreshKeepAlive = () => {
+
+    if (this.#timeoutID !== null) {
+      clearTimeout(this.#timeoutID);
+    }
+
+    this.#timeoutID =
+      setTimeout(() => {
+        if (this.#socket?.readyState === WebSocket.OPEN) {
+          this.send("keep-alive", {});
+        }
+      }, 30000);
+
+  };
+
+  // (String, Any, UUID) => Unit
+  #send = (type, obj, id = this.#genNextID()) => {
+
+    const parcel = { ...obj };
+    parcel.id    = id;
+
+    const finalStr = makeMessage(type, parcel);
+    this.#logAndSend(finalStr);
+
+  };
+
+  // (String, Any) => Unit
+  #sendOOB = (type, obj) => {
+    const finalStr = makeMessage(type, obj);
+    this.#logAndSend(finalStr);
+  };
+
+}

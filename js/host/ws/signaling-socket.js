@@ -1,31 +1,31 @@
-import { reportBandwidth, reportNewSend } from "/js/common/bandwidth-monitor.js";
-import { sendObj, setSocket             } from "/js/common/websocket.js";
+import WebSocketManager from "/js/common/websocket.js";
+
+let socket = null; // WebSocketManager
 
 // (MessageEvent) => Unit
 onmessage = (e) => {
   switch (e.data.type) {
     case "answer": {
-      sendObj("host-answer", { answer: e.data.answer });
+      socket.send("host-answer", { answer: e.data.answer });
       break;
     }
     case "connect": {
-      const socket = new WebSocket(e.data.url);
-      socket.onmessage = ({ data }) => {
+      const onMsg = ({ data }) => {
         postMessage(data);
       };
-      setSocket(socket);
+      socket = new WebSocketManager(e.data.url, onMsg);
       break;
     }
     case "ice-candidate": {
-      sendObj("host-ice-candidate", { candidate: e.data.candidate });
+      socket.send("host-ice-candidate", { candidate: e.data.candidate });
       break;
     }
     case "request-new-send": {
-      e.ports[0].postMessage(reportNewSend());
+      e.ports[0].postMessage(socket.getNewSend());
       break;
     }
     case "request-bandwidth-report": {
-      e.ports[0].postMessage(reportBandwidth());
+      e.ports[0].postMessage(socket.getBandwidth());
       break;
     }
     default: {
