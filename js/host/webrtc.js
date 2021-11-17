@@ -1,4 +1,4 @@
-import { commonConfig } from "/js/common/webrtc.js";
+import { commonConfig } from "/js/static/webrtc.js";
 
 const rtcConfig = { ...commonConfig };
 

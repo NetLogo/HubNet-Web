@@ -1,4 +1,4 @@
-import { hnw } from "/js/common/domain.js";
+import { hnw } from "/js/static/domain.js";
 
 import WebSocketManager from "/js/common/websocket.js";
 

@@ -1,5 +1,3 @@
-const ProtoVersion = "0.0.1"; // String
-
 // (Number, Number) => String
 const byteSizeLabel = (n, precision = 2) => {
   const trunc = (x) => parseFloat(x.toFixed(precision));
@@ -31,4 +29,4 @@ const typeIsOOB = (type) => {
   return ["keep-alive", "ping", "pong"].includes(type);
 };
 
-export { byteSizeLabel, ProtoVersion, typeIsOOB, uuidToRTCID };
+export { byteSizeLabel, typeIsOOB, uuidToRTCID };

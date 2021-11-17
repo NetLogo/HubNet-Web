@@ -1,5 +1,6 @@
 import { awaitWorker } from "/js/common/await.js";
-import { hnw         } from "/js/common/domain.js";
+
+import { hnw } from "/js/static/domain.js";
 
 export default class StatusSocket {
 

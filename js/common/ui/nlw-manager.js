@@ -1,5 +1,6 @@
-import { awaitPort            } from "/js/common/await.js";
-import { galapagos, galaProto } from "/js/common/domain.js";
+import { awaitPort } from "/js/common/await.js";
+
+import { galapagos, galaProto } from "/js/static/domain.js";
 
 export default class NLWManager {
 
