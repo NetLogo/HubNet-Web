@@ -1,4 +1,4 @@
-import { hnw } from "/js/static/domain.js";
+import { hnw, wsProto } from "/js/static/domain.js";
 
 import WebSocketManager from "/js/common/websocket.js";
 
@@ -11,7 +11,7 @@ onmessage = (e) => {
       const onMsg = ({ data }) => {
         postMessage(data);
       };
-      socket = new WebSocketManager(`ws://${hnw}/hnw/session-stream`, onMsg);
+      socket = new WebSocketManager(`${wsProto}://${hnw}/hnw/session-stream`, onMsg);
       break;
     }
     case "hibernate": {

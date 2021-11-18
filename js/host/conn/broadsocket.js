@@ -2,7 +2,7 @@ import { rtcConfig } from "./webrtc.js";
 
 import { awaitWorker } from "/js/common/await.js";
 
-import { hnw } from "/js/static/domain.js";
+import { hnw, wsProto } from "/js/static/domain.js";
 
 import SignalingSocket from "./signaling-socket.js";
 
@@ -29,7 +29,7 @@ export default class BroadSocket {
     mc.port1.onmessage =
       handleSocketMessage(hostID, handleConnectionMessage, registerSignaling);
 
-    const url = `ws://${hnw}/rtc/${hostID}`;
+    const url = `${wsProto}://${hnw}/rtc/${hostID}`;
     this.#worker.postMessage({ type: "connect", url }, [mc.port2]);
 
   };

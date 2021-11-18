@@ -1,6 +1,6 @@
 import { awaitWorker } from "/js/common/await.js";
 
-import { hnw } from "/js/static/domain.js";
+import { hnw, wsProto } from "/js/static/domain.js";
 
 export default class SignalingSocket {
 
@@ -26,7 +26,7 @@ export default class SignalingSocket {
 
     mc.port1.onmessage = onMsg;
 
-    const url = `ws://${hnw}/rtc/${hostID}/${joinerID}/host`;
+    const url = `${wsProto}://${hnw}/rtc/${hostID}/${joinerID}/host`;
     this.#worker.postMessage({ type: "connect", url }, [mc.port2]);
 
   };

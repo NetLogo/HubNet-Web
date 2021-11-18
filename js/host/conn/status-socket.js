@@ -1,6 +1,6 @@
 import { awaitWorker } from "/js/common/await.js";
 
-import { hnw } from "/js/static/domain.js";
+import { hnw, wsProto } from "/js/static/domain.js";
 
 export default class StatusSocket {
 
@@ -19,7 +19,7 @@ export default class StatusSocket {
 
   // (UUID) => Unit
   connect = (hostID) => {
-    const url = `ws://${hnw}/hnw/my-status/${hostID}`;
+    const url = `${wsProto}://${hnw}/hnw/my-status/${hostID}`;
     this.#worker.postMessage({ type: "connect", url });
   };
 

@@ -1,4 +1,4 @@
-import { hnw } from "/js/static/domain.js";
+import { hnw, wsProto } from "/js/static/domain.js";
 
 import WebSocketManager from "/js/common/websocket.js";
 
@@ -12,7 +12,7 @@ onmessage = (e) => {
 
       const { hostID, joinerID, offer } = e.data;
 
-      const url    = `ws://${hnw}/rtc/${hostID}/${joinerID}/join`;
+      const url    = `${wsProto}://${hnw}/rtc/${hostID}/${joinerID}/join`;
       const onMsg  = ({ data }) => { postMessage(data); };
       const onOpen = (self) => () => { self.send("joiner-offer", { offer }); };
 
