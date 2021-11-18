@@ -61,15 +61,15 @@ const launchControlManager =
                           , finishLaunch);
 
 const connMan =
-  new ConnectionManager( (jid, un)   => { nlwManager.initializeJoiner(jid, un); }
+  new ConnectionManager( (jid, un)   =>   nlwManager.awaitJoinerInit(jid, un)
                        , (jid, ping) => { nlwManager.registerPing(jid, ping);   }
                        , (pl)        => { nlwManager.relay(pl);                 }
                        , ()          => { nlwManager.disown();                  }
                        , launchControlManager.passwordMatches);
 
 const nlwManager =
-  new NLWManager( byEID("nlw-frame"), launchModel, connMan.primeSession
-                , connMan.broadcast, connMan.narrowcast, onNLWManError);
+  new NLWManager( byEID("nlw-frame"), launchModel, connMan.broadcast
+                , connMan.narrowcast, onNLWManError);
 
 document.addEventListener("DOMContentLoaded", nlwManager.init);
 

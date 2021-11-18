@@ -23,8 +23,8 @@ import StatusSocket from "./ws/status-socket.js";
 
 export default class ConnectionManager {
 
+  #awaitJoinerInit = undefined; // (UUID, String) => Promise[Object[Any]]
   #broadSocket     = undefined; // BroadSocket
-  #initJoiner      = undefined; // (UUID, String) => Unit
   #onDisconnect    = undefined; // (UUID) => Unit
   #passwordMatches = undefined; // (String) => Boolean
   #registerPing    = undefined; // (UUID, Number) => Unit
@@ -33,10 +33,10 @@ export default class ConnectionManager {
   #sessions        = undefined; // Object[Session]
   #statusSocket    = undefined; // StatusSocket
 
-  // ((UUID, String) => Unit, (UUID, Number) => Unit, (Object[Any]) => Unit, (UUID) => Unit, (String) => Boolean) => ConnectionManager
-  constructor(initJoiner, registerPing, relay, onDisconnect, passwordMatches) {
+  // ((UUID, String) => Promise[Object[Any]], (UUID, Number) => Unit, (Object[Any]) => Unit, (UUID) => Unit, (String) => Boolean) => ConnectionManager
+  constructor(awaitJoinerInit, registerPing, relay, onDisconnect, passwordMatches) {
+    this.#awaitJoinerInit = awaitJoinerInit;
     this.#broadSocket     = new BroadSocket();
-    this.#initJoiner      = initJoiner;
     this.#onDisconnect    = onDisconnect;
     this.#passwordMatches = passwordMatches;
     this.#registerPing    = registerPing;
@@ -145,13 +145,6 @@ export default class ConnectionManager {
   // (Blob) => Unit
   postImageUpdate = (blob) => {
     this.#statusSocket.postImageUpdate(blob);
-  };
-
-  // (UUID) => Unit
-  primeSession = (joinerID) => {
-    if (this.#sessions[joinerID] !== undefined) {
-      this.#sessions[joinerID].hasInitialized = true;
-    }
   };
 
   // () => Unit
@@ -368,7 +361,18 @@ export default class ConnectionManager {
           session.username = datum.username;
           this.#rtcManager.send(channel)("login-successful", {});
 
-          this.#initJoiner(joinerID, this.#sessions[joinerID].username);
+          this.#awaitJoinerInit(joinerID, this.#sessions[joinerID].username).
+            then(({ role, state, viewState: view }) => {
+
+              const token = joinerID;
+
+              this.narrowcast(token, "initial-model", { role, token, state, view });
+
+              if (this.#sessions[token] !== undefined) {
+                this.#sessions[token].hasInitialized = true;
+              }
+
+            });
 
         } else {
           this.#rtcManager.send(channel)("incorrect-password", {});

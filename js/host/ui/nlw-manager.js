@@ -2,26 +2,26 @@ import NLWManager from "/js/common/ui/nlw-manager.js";
 
 export default class HostNLWManager extends NLWManager {
 
-  #broadcast       = undefined; // (UUID, Boolean?) => RTCDataChannel?
-  #initSesh        = undefined; // (UUID) => Unit
-  #launchModel     = undefined; // (Object[Any]) => Unit
-  #narrowcast      = undefined; // () => Array[RTCDataChannel]
-  #onError         = undefined; // (String) => Unit
+  #broadcast   = undefined; // (UUID, Boolean?) => RTCDataChannel?
+  #launchModel = undefined; // (Object[Any]) => Unit
+  #narrowcast  = undefined; // () => Array[RTCDataChannel]
+  #onError     = undefined; // (String) => Unit
 
-  // ( Element, (Object[Any]) => Unit, (UUID) => Unit, (String, Object[Any]?) => Unit
-  // , () => Array[RTCDataChannel], (String) => Unit) => HostNLWManager
-  constructor( outerFrame, launchModel, initSesh, broadcast
-             , narrowcast, onError) {
-
+  // (Element, (Object[Any]) => Unit, (String, Object[Any]?) => Unit, () => Array[RTCDataChannel], (String) => Unit) => HostNLWManager
+  constructor(outerFrame, launchModel, broadcast, narrowcast, onError) {
     super(outerFrame);
-
-    this.#broadcast       = broadcast;
-    this.#initSesh        = initSesh;
-    this.#launchModel     = launchModel;
-    this.#narrowcast      = narrowcast;
-    this.#onError         = onError;
-
+    this.#broadcast   = broadcast;
+    this.#launchModel = launchModel;
+    this.#narrowcast  = narrowcast;
+    this.#onError     = onError;
   }
+
+  // (UUID, String) => Promise[Object[Any]]
+  awaitJoinerInit = (token, username) => {
+    const type = "hnw-request-initial-state";
+    const msg  = { token, roleName: "student", username };
+    return this._await(type, msg);
+  };
 
   // () => Promise[Blob]
   awaitPreview = () => {
@@ -54,20 +54,6 @@ export default class HostNLWManager extends NLWManager {
     };
 
     iframe.src = `${this._galaURL}/hnw-host`;
-
-  };
-
-  // (UUID, String) => Unit
-  initializeJoiner = (token, username) => {
-
-    const type = "hnw-request-initial-state";
-    const msg  = { token, roleName: "student", username };
-
-    this._await(type, msg).
-      then(({ role, state, viewState: view }) => {
-        this.#narrowcast(token, "initial-model", { role, token, state, view });
-        this.#initSesh(token);
-      });
 
   };
 
