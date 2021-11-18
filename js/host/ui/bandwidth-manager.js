@@ -27,22 +27,14 @@ export default class BandwidthManager {
     this.#setStatusDOM       = setStatus;
   }
 
-  // ((String) => Promise[Array[Number]], Number) => Unit
-  updateBandwidth = (awaitSenders, baseBandwidth, baseNewSend) => {
+  // (Promise[Array[Number]], Number) => Unit
+  updateBandwidth = (awaiter, base) => {
+    genStats(awaiter, base, this.#setBandwidthDOM);
+  };
 
-    const genStats = (msg, base, setDOM) => {
-      awaitSenders(msg).then(
-        (results) => {
-          const sum     = results.reduce(((acc, x) => acc + x), 0);
-          const newText = byteSizeLabel(base + sum, 2);
-          setDOM(newText);
-        }
-      );
-    };
-
-    genStats("request-bandwidth-report", baseBandwidth, this.#setBandwidthDOM);
-    genStats("request-new-send"        , baseNewSend  , this.#setNewSendDOM  );
-
+  // (Promise[Array[Number]], Number) => Unit
+  updateNewSend = (awaiter, base) => {
+    genStats(awaiter, base, this.#setNewSendDOM  );
   };
 
   // (Object[UUID, RTCDataChannel]) => Unit
@@ -100,3 +92,13 @@ export default class BandwidthManager {
   };
 
 }
+
+const genStats = (awaiter, base, setDOM) => {
+  awaiter.then(
+    (results) => {
+      const sum     = results.reduce(((acc, x) => acc + x), 0);
+      const newText = byteSizeLabel(base + sum, 2);
+      setDOM(newText);
+    }
+  );
+};

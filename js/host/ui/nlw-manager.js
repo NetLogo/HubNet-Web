@@ -2,28 +2,26 @@ import NLWManager from "/js/common/ui/nlw-manager.js";
 
 export default class HostNLWManager extends NLWManager {
 
-  #getOpenChannelByID = undefined; // (UUID, Boolean?) => RTCDataChannel?
-  #getOpenChannels    = undefined; // () => Array[RTCDataChannel]
-  #initSesh           = undefined; // (UUID) => Unit
-  #launchModel        = undefined; // (Object[Any]) => Unit
-  #onError            = undefined; // (String) => Unit
-  #postImageUpdate    = undefined; // (Blob) => Unit
-  #rtcMan             = undefined; // RTCManager
+  #broadcast       = undefined; // (UUID, Boolean?) => RTCDataChannel?
+  #initSesh        = undefined; // (UUID) => Unit
+  #launchModel     = undefined; // (Object[Any]) => Unit
+  #narrowcast      = undefined; // () => Array[RTCDataChannel]
+  #onError         = undefined; // (String) => Unit
+  #postImageUpdate = undefined; // (Blob) => Unit
 
-  // ( Element, (Object[Any]) => Unit, (UUID) => Unit, (UUID, Boolean?) => RTCDataChannel?, () => Array[RTCDataChannel]
-  // , (Blob) => Unit, (String) => Unit) => HostNLWManager
-  constructor( outerFrame, rtcManager, launchModel, initSesh, getOpenChannelByID
-             , getOpenChannels, postImage, onError) {
+  // ( Element, (Object[Any]) => Unit, (UUID) => Unit, (String, Object[Any]?) => Unit
+  // , () => Array[RTCDataChannel], (Blob) => Unit, (String) => Unit) => HostNLWManager
+  constructor( outerFrame, launchModel, initSesh, broadcast
+             , narrowcast, postImage, onError) {
 
     super(outerFrame);
 
-    this.#getOpenChannelByID = getOpenChannelByID;
-    this.#getOpenChannels    = getOpenChannels;
-    this.#initSesh           = initSesh;
-    this.#launchModel        = launchModel;
-    this.#onError            = onError;
-    this.#postImageUpdate    = postImage;
-    this.#rtcMan             = rtcManager;
+    this.#broadcast       = broadcast;
+    this.#initSesh        = initSesh;
+    this.#launchModel     = launchModel;
+    this.#narrowcast      = narrowcast;
+    this.#onError         = onError;
+    this.#postImageUpdate = postImage;
 
   }
 
@@ -64,7 +62,7 @@ export default class HostNLWManager extends NLWManager {
 
     this._await(type, msg).
       then(({ role, state, viewState: view }) => {
-        this.#narrowcast("initial-model", { role, token, state, view }, token);
+        this.#narrowcast(token, "initial-model", { role, token, state, view });
         this.#initSesh(token);
       });
 
@@ -96,26 +94,13 @@ export default class HostNLWManager extends NLWManager {
       then(({ blob }) => { this.#postImageUpdate(blob); });
   };
 
-  // (String, Object[Any]) => Unit
-  #broadcast = (type, message) => {
-    this.#rtcMan.sendBurst(...this.#getOpenChannels())(type, message);
-  };
-
-  // (String, Object[Any], UUID) => Unit
-  #narrowcast = (type, message, recipientUUID) => {
-    const channel = this.#getOpenChannelByID(recipientUUID, true);
-    if (channel !== null) {
-      this.#rtcMan.sendBurst(channel)(type, message);
-    }
-  };
-
   _onBabyMonitorMessage = ({ data }) => {
 
     switch (data.type) {
 
       case "nlw-state-update": {
         if (data.isNarrowcast)
-          this.#narrowcast("state-update", { update: data.update }, data.recipient);
+          this.#narrowcast(data.recipient, "state-update", { update: data.update });
         else
           this.#broadcast("state-update", { update: data.update });
         break;
@@ -137,7 +122,7 @@ export default class HostNLWManager extends NLWManager {
           const parcel = { ...data };
           delete parcel.isNarrowcast;
           delete parcel.recipient;
-          this.#narrowcast("relay", parcel, data.recipient);
+          this.#narrowcast(data.recipient, "relay", parcel);
         } else {
           this.#broadcast("relay", data);
         }
