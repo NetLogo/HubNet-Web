@@ -263,13 +263,15 @@ export default class ConnectionManager {
   // (RTCDataChannel, String, String, { username :: String, password :: String }, String) => Unit
   #handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
 
+    const reply = (msgType) => { this.#rtcManager.send(channel)(msgType); };
+
     if (datum.username !== undefined) {
 
       if (this.#sessionManager.usernameIsUnique(joinerID, datum.username)) {
         if (this.#passwordMatches(datum.password)) {
 
           this.#sessionManager.logIn(joinerID, datum.username);
-          this.#rtcManager.send(channel)("login-successful", {});
+          reply("login-successful");
 
           this.#awaitJoinerInit(joinerID, datum.username).
             then(({ role, state, viewState: view }) => {
@@ -279,14 +281,14 @@ export default class ConnectionManager {
             });
 
         } else {
-          this.#rtcManager.send(channel)("incorrect-password", {});
+          reply("incorrect-password");
         }
       } else {
-        this.#rtcManager.send(channel)("username-already-taken", {});
+        reply("username-already-taken");
       }
 
     } else {
-      this.#rtcManager.send(channel)("no-username-given", {});
+      reply("no-username-given");
     }
 
   };
