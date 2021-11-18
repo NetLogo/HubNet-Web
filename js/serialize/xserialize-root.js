@@ -33,8 +33,7 @@ const serialize = (isHost) => (msg) => {
   const errorMsg = protoType.verify(protoMsg);
 
   if (errorMsg !== null) {
-    const fullError = `Protobuf Error: ${errorMsg}`;
-    alert(fullError);
+    console.error(`Protobuf Error: ${errorMsg}`);
   }
 
   const writer     = protobuf.Writer.create();

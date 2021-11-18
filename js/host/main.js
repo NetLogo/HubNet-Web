@@ -65,7 +65,7 @@ const connMan =
                        , (jid, ping) => { nlwManager.registerPingStats(jid, ping); }
                        , (pl)        => { nlwManager.relay(pl);                    }
                        , ()          => { nlwManager.disown();                     }
-                       , launchControlManager.passwordMatches);
+                       , launchControlManager.passwordMatches, notifyUser);
 
 const nlwManager =
   new NLWManager( byEID("nlw-frame"), launchModel, connMan.broadcast

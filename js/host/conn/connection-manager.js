@@ -25,6 +25,7 @@ export default class ConnectionManager {
 
   #awaitJoinerInit  = undefined; // (UUID, String) => Promise[Object[Any]]
   #broadSocket      = undefined; // BroadSocket
+  #notifyUser       = undefined; // (String) => Unit
   #onDisconnect     = undefined; // (UUID) => Unit
   #passwordMatches  = undefined; // (String) => Boolean
   #registerPingTime = undefined; // (UUID, Number) => Unit
@@ -34,9 +35,11 @@ export default class ConnectionManager {
   #statusSocket     = undefined; // StatusSocket
 
   // ((UUID, String) => Promise[Object[Any]], (UUID, Number) => Unit, (Object[Any]) => Unit, (UUID) => Unit, (String) => Boolean) => ConnectionManager
-  constructor(awaitJoinerInit, registerPing, relay, onDisconnect, passwordMatches) {
+  constructor( awaitJoinerInit, registerPing, relay, onDisconnect, passwordMatches
+             , notifyUser) {
     this.#awaitJoinerInit  = awaitJoinerInit;
     this.#broadSocket      = new BroadSocket();
+    this.#notifyUser       = notifyUser;
     this.#onDisconnect     = onDisconnect;
     this.#passwordMatches  = passwordMatches;
     this.#registerPingTime = registerPing;
@@ -221,7 +224,7 @@ export default class ConnectionManager {
         case "connection-established": {
           if (datum.protocolVersion !== version) {
             const id = this.#sessionManager.invalidate(joinerID);
-            alert(`HubNet protocol version mismatch!  You are using protocol version '${version}', while client '${id}' is using version '${datum.v}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  The offending client has been disconnected.`);
+            this.#notifyUser(`HubNet protocol version mismatch!  You are using protocol version '${version}', while client '${id}' is using version '${datum.v}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  The offending client has been disconnected.`);
           }
           break;
         }
