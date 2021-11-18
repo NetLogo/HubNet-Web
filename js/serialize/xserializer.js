@@ -1,9 +1,9 @@
 // (String, String, (Boolean) => (Object[Any]) => Object[Any]) => (MessageEvent) => Unit
-const handleMessage = (name, msgType, f) => (e) => {
+const handleMessage = (name, msgType, xf) => (e) => {
   switch (e.data.type) {
     case msgType: {
-      const serialized = f(e.data.isHost)(e.data.parcel);
-      e.ports[0].postMessage(serialized);
+      const xserialized = xf(e.data.isHost)(e.data.parcel);
+      e.ports[0].postMessage(xserialized);
       break;
     }
     default: {
