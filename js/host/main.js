@@ -40,7 +40,8 @@ const finishLaunch = ({ isSuccess, data }) => {
     }, 500);
 
     setInterval(() => {
-      nlwManager.updatePreview();
+      nlwManager.awaitPreview().
+        then(({ blob }) => { connMan.postImageUpdate(blob); });
     }, 8000);
 
   }
@@ -68,8 +69,7 @@ const connMan =
 
 const nlwManager =
   new NLWManager( byEID("nlw-frame"), launchModel, connMan.primeSession
-                , connMan.broadcast, connMan.narrowcast
-                , connMan.postImageUpdate, onNLWManError);
+                , connMan.broadcast, connMan.narrowcast, onNLWManError);
 
 document.addEventListener("DOMContentLoaded", nlwManager.init);
 

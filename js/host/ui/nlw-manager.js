@@ -7,12 +7,11 @@ export default class HostNLWManager extends NLWManager {
   #launchModel     = undefined; // (Object[Any]) => Unit
   #narrowcast      = undefined; // () => Array[RTCDataChannel]
   #onError         = undefined; // (String) => Unit
-  #postImageUpdate = undefined; // (Blob) => Unit
 
   // ( Element, (Object[Any]) => Unit, (UUID) => Unit, (String, Object[Any]?) => Unit
-  // , () => Array[RTCDataChannel], (Blob) => Unit, (String) => Unit) => HostNLWManager
+  // , () => Array[RTCDataChannel], (String) => Unit) => HostNLWManager
   constructor( outerFrame, launchModel, initSesh, broadcast
-             , narrowcast, postImage, onError) {
+             , narrowcast, onError) {
 
     super(outerFrame);
 
@@ -21,9 +20,13 @@ export default class HostNLWManager extends NLWManager {
     this.#launchModel     = launchModel;
     this.#narrowcast      = narrowcast;
     this.#onError         = onError;
-    this.#postImageUpdate = postImage;
 
   }
+
+  // () => Promise[Blob]
+  awaitPreview = () => {
+    return this._await("nlw-request-view");
+  };
 
   // (UUID, Object[Any], String) => Unit
   becomeOracle = (uuid, props, nlogo) => {
@@ -86,12 +89,6 @@ export default class HostNLWManager extends NLWManager {
   // (UUID, Number) => Unit
   registerPing = (joinerID, ping) => {
     this._post({ type: "hnw-latest-ping", joinerID, ping });
-  };
-
-  // () => Unit
-  updatePreview = () => {
-    this._await("nlw-request-view").
-      then(({ blob }) => { this.#postImageUpdate(blob); });
   };
 
   _onBabyMonitorMessage = ({ data }) => {
