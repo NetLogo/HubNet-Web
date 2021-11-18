@@ -29,8 +29,8 @@ export default class RTCManager {
     return this.#bandMon.getNewSend();
   };
 
-  // (RTCDataChannel*) => (String, Object[Any]) => Unit
-  send = (...channels) => (type, obj) => {
+  // (RTCDataChannel*) => (String, Object[Any]?) => Unit
+  send = (...channels) => (type, obj = {}) => {
 
     channels.forEach((channel) => {
 
