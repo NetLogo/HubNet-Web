@@ -1,7 +1,5 @@
 import { uuidToRTCID } from "/js/common/util.js";
 
-import { awaitDeserializer, notifyDeserializer, notifySerializer } from "/js/serialize/pool-party.js";
-
 import { version } from "/js/static/version.js";
 
 import BroadSocket    from "./broadsocket.js";
@@ -9,6 +7,8 @@ import SessionManager from "./session-manager.js";
 import StatusSocket   from "./status-socket.js";
 
 import RTCManager from "/js/common/rtc-manager.js";
+
+import DeserializerPoolParty from "/js/serialize/deserializer-pool-party.js";
 
 // type Session = {
 //   networking :: { socket     :: WebSocket
@@ -25,6 +25,7 @@ export default class ConnectionManager {
 
   #awaitJoinerInit  = undefined; // (UUID, String) => Promise[Object[Any]]
   #broadSocket      = undefined; // BroadSocket
+  #deserializer     = undefined; // DeserializerPoolParty
   #notifyUser       = undefined; // (String) => Unit
   #onDisconnect     = undefined; // (UUID) => Unit
   #passwordMatches  = undefined; // (String) => Boolean
@@ -39,6 +40,7 @@ export default class ConnectionManager {
              , notifyUser) {
     this.#awaitJoinerInit  = awaitJoinerInit;
     this.#broadSocket      = new BroadSocket();
+    this.#deserializer     = new DeserializerPoolParty();
     this.#notifyUser       = notifyUser;
     this.#onDisconnect     = onDisconnect;
     this.#passwordMatches  = passwordMatches;
@@ -68,8 +70,8 @@ export default class ConnectionManager {
 
     const registerSignaling = (joinerID, signaling) => {
       this.#sessionManager.register(joinerID, signaling);
-      notifySerializer  ("client-connect");
-      notifyDeserializer("client-connect");
+      this.#rtcManager  .notifyClientConnect();
+      this.#deserializer.notifyClientConnect();
     };
 
     this. #broadSocket.connect(hostID, onCM, registerSignaling);
@@ -144,8 +146,8 @@ export default class ConnectionManager {
   // (UUID) => Unit
   #disown = (joinerID) => {
     this.#onDisconnect(joinerID);
-    notifySerializer  ("client-disconnect");
-    notifyDeserializer("client-disconnect");
+    this.#rtcManager  .notifyClientDisconnect();
+    this.#deserializer.notifyClientDisconnect();
     this.#sessionManager.unregister(joinerID);
   };
 
@@ -215,9 +217,9 @@ export default class ConnectionManager {
   // (Protocol.Channel, String, String, String) => (Any) => Unit
   #onChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data }) => {
 
-    const message = { parcel: new Uint8Array(data) };
+    const parcel = new Uint8Array(data);
 
-    awaitDeserializer("deserialize", message).then((datum) => {
+    this.#deserializer.await(true, parcel).then((datum) => {
 
       switch (datum.type) {
 

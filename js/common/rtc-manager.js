@@ -1,6 +1,6 @@
 import { typeIsOOB } from "./util.js";
 
-import { awaitSerializer } from "/js/serialize/pool-party.js";
+import SerializerPoolParty from "/js/serialize/serializer-pool-party.js";
 
 import { version } from "/js/static/version.js";
 
@@ -9,14 +9,16 @@ import IDManager        from "./id-manager.js";
 
 export default class RTCManager {
 
-  #bandMon = undefined; // BandwidthMonitor
-  #idMan   = undefined; // IDManager
-  #isHost  = undefined; // Boolean
+  #bandMon    = undefined; // BandwidthMonitor
+  #idMan      = undefined; // IDManager
+  #isHost     = undefined; // Boolean
+  #serializer = undefined; // SerializerPoolParty
 
   constructor(isHost) {
-    this.#bandMon = new BandwidthMonitor();
-    this.#idMan   = new IDManager();
-    this.#isHost  = isHost;
+    this.#bandMon    = new BandwidthMonitor();
+    this.#idMan      = new IDManager();
+    this.#isHost     = isHost;
+    this.#serializer = new SerializerPoolParty();
   }
 
   // () => Number
@@ -27,6 +29,16 @@ export default class RTCManager {
   // () => Number
   getNewSend = () => {
     return this.#bandMon.getNewSend();
+  };
+
+  // () => Unit
+  notifyClientConnect = () => {
+    this.#serializer.notifyClientConnect();
+  };
+
+  // () => Unit
+  notifyClientDisconnect = () => {
+    this.#serializer.notifyClientDisconnect();
   };
 
   // (RTCDataChannel*) => (String, Object[Any]?) => Unit
@@ -106,7 +118,7 @@ export default class RTCManager {
 
   // (Object[Any]) => Promise[Any]
   #asyncSerialize = (parcel) => {
-    return awaitSerializer("serialize", { parcel, isHost: this.#isHost });
+    return this.#serializer.await(this.#isHost, parcel);
   };
 
   // (Channel) => Number

@@ -1,5 +1,42 @@
 import { awaitWorker } from "/js/common/await.js";
 
+export default class PoolParty {
+
+  // abstract type InType
+  // abstract type OutType
+
+  #mainMsg = undefined; // String
+  #pool    = undefined; // Worker[SerializerPool]
+
+  // (String, String, String) => PoolParty
+  constructor(workerURL, mainMsg, desc) {
+    this.#mainMsg        = mainMsg;
+    this.#pool           = new Worker(workerURL, { type: "module" });
+    this.#pool.onmessage = handleMessage(desc);
+  }
+
+  // (Boolean, InType) => Promise[OutType]
+  "await" = (isHost, parcel) => {
+    return awaitWorker(this.#pool)(this.#mainMsg, { isHost, parcel });
+  };
+
+  // () => Unit
+  notifyClientConnect = () => {
+    this.#pool.postMessage({ type: "client-connect" });
+  };
+
+  // () => Unit
+  notifyClientDisconnect = () => {
+    this.#pool.postMessage({ type: "client-disconnect" });
+  };
+
+  // () => Unit
+  shutdown = () => {
+    this.#pool.postMessage({ type: "shutdown" });
+  };
+
+}
+
 // (String) => (Object[Any]) => Unit
 const handleMessage = (descriptor) => (msg) => {
   switch (msg.type) {
@@ -11,25 +48,3 @@ const handleMessage = (descriptor) => (msg) => {
     }
   }
 };
-
-const serializerURL      = "js/serialize/serializer-pool.js";
-const serializerPool     = new Worker(serializerURL, { type: "module" });
-serializerPool.onmessage = handleMessage("serializer");
-
-const deserializerURL      = "js/serialize/deserializer-pool.js";
-const deserializerPool     = new Worker(deserializerURL, { type: "module" });
-deserializerPool.onmessage = handleMessage("deserializer");
-
-// (String, Object[Any]) => Promise[Any]
-const awaitDeserializer = awaitWorker(deserializerPool);
-const awaitSerializer   = awaitWorker(  serializerPool);
-
-// (Worker) => (Object[Any]) => Unit
-const notify = (pool) => (type, msg = {}) => {
-  pool.postMessage({ ...msg, type });
-};
-
-const notifyDeserializer = notify(deserializerPool); // (Object[Any]) => Unit
-const notifySerializer   = notify(  serializerPool); // (Object[Any]) => Unit
-
-export { awaitDeserializer, awaitSerializer, notifyDeserializer, notifySerializer };
