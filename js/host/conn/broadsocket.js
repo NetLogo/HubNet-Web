@@ -36,7 +36,7 @@ export default class BroadSocket {
 
 }
 
-// (UUID, (RTCPeerConnection, UUID) => (Object[Any]) => Unit, (Worker) => Unit) =>
+// (UUID, (RTCPeerConnection, UUID) => (Object[Any]) => Unit, (UUID, SignalingSocket) => Unit) =>
 // (Object[{ data :: UUID }]) => Unit
 const handleSocketMessage = (hostID, handleConnectionMessage, registerSignaling) =>
                             ({ data: joinerID }) => {
@@ -48,6 +48,6 @@ const handleSocketMessage = (hostID, handleConnectionMessage, registerSignaling)
 
   signaling.connect(hostID, joinerID, onMsg);
 
-  registerSignaling(signaling, joinerID);
+  registerSignaling(joinerID, signaling);
 
 };

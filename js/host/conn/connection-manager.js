@@ -4,10 +4,10 @@ import { awaitDeserializer, notifyDeserializer, notifySerializer } from "/js/ser
 
 import { version } from "/js/static/version.js";
 
-import BroadSocket  from "./broadsocket.js";
-import StatusSocket from "./status-socket.js";
+import BroadSocket    from "./broadsocket.js";
+import SessionManager from "./session-manager.js";
+import StatusSocket   from "./status-socket.js";
 
-import IDManager  from "/js/common/id-manager.js";
 import RTCManager from "/js/common/rtc-manager.js";
 
 // type Session = {
@@ -23,27 +23,27 @@ import RTCManager from "/js/common/rtc-manager.js";
 
 export default class ConnectionManager {
 
-  #awaitJoinerInit = undefined; // (UUID, String) => Promise[Object[Any]]
-  #broadSocket     = undefined; // BroadSocket
-  #onDisconnect    = undefined; // (UUID) => Unit
-  #passwordMatches = undefined; // (String) => Boolean
-  #registerPing    = undefined; // (UUID, Number) => Unit
-  #relay           = undefined; // (Object[Any]) => Unit
-  #rtcManager      = undefined; // RTCManager
-  #sessions        = undefined; // Object[Session]
-  #statusSocket    = undefined; // StatusSocket
+  #awaitJoinerInit  = undefined; // (UUID, String) => Promise[Object[Any]]
+  #broadSocket      = undefined; // BroadSocket
+  #onDisconnect     = undefined; // (UUID) => Unit
+  #passwordMatches  = undefined; // (String) => Boolean
+  #registerPingTime = undefined; // (UUID, Number) => Unit
+  #relay            = undefined; // (Object[Any]) => Unit
+  #rtcManager       = undefined; // RTCManager
+  #sessionManager   = undefined; // SessionManager
+  #statusSocket     = undefined; // StatusSocket
 
   // ((UUID, String) => Promise[Object[Any]], (UUID, Number) => Unit, (Object[Any]) => Unit, (UUID) => Unit, (String) => Boolean) => ConnectionManager
   constructor(awaitJoinerInit, registerPing, relay, onDisconnect, passwordMatches) {
-    this.#awaitJoinerInit = awaitJoinerInit;
-    this.#broadSocket     = new BroadSocket();
-    this.#onDisconnect    = onDisconnect;
-    this.#passwordMatches = passwordMatches;
-    this.#registerPing    = registerPing;
-    this.#relay           = relay;
-    this.#rtcManager      = new RTCManager(true);
-    this.#sessions        = {};
-    this.#statusSocket    = new StatusSocket();
+    this.#awaitJoinerInit  = awaitJoinerInit;
+    this.#broadSocket      = new BroadSocket();
+    this.#onDisconnect     = onDisconnect;
+    this.#passwordMatches  = passwordMatches;
+    this.#registerPingTime = registerPing;
+    this.#relay            = relay;
+    this.#rtcManager       = new RTCManager(true);
+    this.#sessionManager   = new SessionManager();
+    this.#statusSocket     = new StatusSocket();
   }
 
   // () => Promise[Array[Number]]
@@ -54,64 +54,40 @@ export default class ConnectionManager {
 
   // (String, Object[Any]?) => Unit
   broadcast = (type, message = {}) => {
-    this.#rtcManager.sendBurst(...this.#getOpenChannels())(type, message);
+    const channels = this.#sessionManager.getOpenChannels();
+    this.#rtcManager.sendBurst(...channels)(type, message);
   };
 
   // (UUID, String, String) => Unit
   connect = (hostID, nlogo, sessionName) => {
 
-    const ocm = (c, id) => this.#onConnectionMessage(c, nlogo, sessionName, id);
+    const onCM = (c, id) => this.#onConnectionMessage(c, nlogo, sessionName, id);
 
-    const registerSignaling = (signaling, joinerID) => {
-
-      this.#sessions[joinerID] = { networking:     { signaling }
-                                 , hasInitialized: false
-                                 , pingData:       {}
-                                 , recentPings:    []
-                                 };
-
+    const registerSignaling = (joinerID, signaling) => {
+      this.#sessionManager.register(joinerID, signaling);
       notifySerializer  ("client-connect");
       notifyDeserializer("client-connect");
-
     };
 
-    this. #broadSocket.connect(hostID, ocm, registerSignaling);
+    this. #broadSocket.connect(hostID, onCM, registerSignaling);
     this.#statusSocket.connect(hostID);
 
     setInterval(() => {
-      const nameIsDefined = (s) => s.username !== undefined;
-      const numPeers      = Object.values(this.#sessions).filter(nameIsDefined).length;
+      const numPeers = this.#sessionManager.getNumActive();
       this.#statusSocket.updateNumPeers(numPeers);
     }, 1000);
 
     setInterval(() => {
-
-      const channels =
-        Object.
-          values(this.#sessions).
-          map((session) => session.networking.channel).
-          filter((channel) => channel !== undefined);
-
-      channels.forEach((channel) => this.#rtcManager.send(channel)("keep-alive", {}));
-
+      const channels = this.#sessionManager.getAllChannels();
+      channels.forEach((chan) => this.#rtcManager.send(chan)("keep-alive", {}));
     }, 30000);
 
     setInterval(() => {
-
-      const idManager = new IDManager();
-
-      Object.values(this.#sessions).forEach((session) => {
-        const channel = session.networking.channel;
-        if (channel !== undefined) {
-          const idType         = `${channel.label}-${channel.id}-ping`;
-          const id             = idManager.next(idType);
-          session.pingData[id] = performance.now();
-          const lastIndex      = session.recentPings.length - 1;
-          const lastPing       = session.recentPings[lastIndex];
+      this.#sessionManager.startNewPingWave().forEach(
+        ([channel, id, lastPing]) => {
           this.#rtcManager.send(channel)("ping", { id, lastPing });
         }
-      });
-
+      );
     }, 2000);
 
   };
@@ -123,10 +99,7 @@ export default class ConnectionManager {
 
   // () => Object[UUID, RTCDataChannel]
   getChannelObj = () => {
-    const pairs    = Object.entries(this.#sessions);
-    const filtered = pairs.filter(([  , s]) => s.networking.channel !== undefined);
-    const entries  = filtered.map(([id, s]) => [id, s.networking.channel]);
-    return Object.fromEntries(entries);
+    return this.#sessionManager.getChannelObj();
   };
 
   // () => Number
@@ -136,7 +109,7 @@ export default class ConnectionManager {
 
   // (UUID, String, Object[Any]?) => Unit
   narrowcast = (joinerID, type, message = {}) => {
-    const channel = this.#getOpenChannelByID(joinerID, true);
+    const channel = this.#sessionManager.getOpenChannelByID(joinerID, true);
     if (channel !== null) {
       this.#rtcManager.sendBurst(channel)(type, message);
     }
@@ -149,7 +122,7 @@ export default class ConnectionManager {
 
   // () => Unit
   teardown = () => {
-    Object.values(this.getChannelObj()).forEach(
+    this.#sessionManager.getAllChannels().forEach(
       (channel) => {
         this.#rtcManager.send(channel)("bye-bye");
         channel.close(1000, "Terminating unneeded sockets...");
@@ -159,10 +132,8 @@ export default class ConnectionManager {
 
   // (Object[Any]) => Unit
   #awaitSenders = (msg) => {
-    const seshes     = Object.values(this.#sessions);
-    const signalers  = seshes.map((s) => s.networking.signaling);
-    const untermies  = signalers.filter((s) => !s.isTerminated());
-    const awaitables = [this.#broadSocket, this.#statusSocket].concat(untermies);
+    const signalers  = this.#sessionManager.getSignalers();
+    const awaitables = [this.#broadSocket, this.#statusSocket].concat(signalers);
     const promises   = awaitables.map((s) => s.await(msg));
     return Promise.all(promises);
   };
@@ -172,7 +143,7 @@ export default class ConnectionManager {
     this.#onDisconnect(joinerID);
     notifySerializer  ("client-disconnect");
     notifyDeserializer("client-disconnect");
-    delete this.#sessions[joinerID];
+    this.#sessionManager.unregister(joinerID);
   };
 
   // (RTCPeerConnection, String, String, String) => (RTCSessionDescription) => Unit
@@ -184,10 +155,7 @@ export default class ConnectionManager {
     channel.onmessage = this.#onChannelMessages(channel, nlogo, sessionName, joinerID);
     channel.onclose   = () => { this.#disown(joinerID); };
 
-    const session = this.#sessions[joinerID];
-
-    session.networking.connection = connection;
-    session.networking.channel    = channel;
+    this.#sessionManager.setNetworking(joinerID, connection, channel);
 
     let knownCandies = new Set([]);
 
@@ -197,14 +165,8 @@ export default class ConnectionManager {
           const candy    = candidate.toJSON();
           const candyStr = JSON.stringify(candy);
           if (!knownCandies.has(candyStr)) {
-
             knownCandies = knownCandies.add(candyStr);
-
-            const signaling = session.networking.signaling;
-            if (!signaling.isTerminated()) {
-              signaling.sendICECandidate(candy);
-            }
-
+            this.#sessionManager.sendICECandidate(joinerID, candy);
           }
         }
       };
@@ -219,30 +181,10 @@ export default class ConnectionManager {
       then(()     => connection.createAnswer()).
       then(answer => connection.setLocalDescription(answer)).
       then(()     => {
-        const signaling = session.networking.signaling;
-        if (!signaling.isTerminated()) {
-          signaling.sendAnswer(connection.localDescription.toJSON());
-        }
+        const desc = connection.localDescription.toJSON();
+        this.#sessionManager.sendRTCAnswer(joinerID, desc);
       });
 
-  };
-
-  // () => Array[RTCDataChannel]
-  #getOpenChannels = () => {
-    return Object.keys(this.#sessions).
-      map(this.#getOpenChannelByID).
-      filter((c) => c !== null);
-  };
-
-  // (UUID, Boolean?) => RTCDataChannel?
-  #getOpenChannelByID = (uuid, allowUninited = false) => {
-    const session = this.#sessions[uuid];
-    if (session !== undefined && (allowUninited || session.hasInitialized) &&
-        session.networking.channel?.readyState === "open") {
-      return session.networking.channel;
-    } else {
-      return null;
-    }
   };
 
   // (RTCPeerConnection, String, String, String) => (Object[Any]) => Unit
@@ -277,23 +219,11 @@ export default class ConnectionManager {
       switch (datum.type) {
 
         case "connection-established": {
-
           if (datum.protocolVersion !== version) {
-
-            const sesh = this.#sessions[joinerID];
-            const id   = sesh?.username || joinerID;
-
+            const id = this.#sessionManager.invalidate(joinerID);
             alert(`HubNet protocol version mismatch!  You are using protocol version '${version}', while client '${id}' is using version '${datum.v}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  The offending client has been disconnected.`);
-
-            if (sesh !== undefined) {
-              sesh.networking.channel.close();
-              delete this.#sessions[joinerID];
-            }
-
           }
-
           break;
-
         }
 
         case "login": {
@@ -302,21 +232,9 @@ export default class ConnectionManager {
         }
 
         case "pong": {
-
-          const sesh       = this.#sessions[joinerID];
-          const pingBucket = sesh.pingData[datum.id];
-          const pingTime   = performance.now() - pingBucket;
-          delete pingBucket[datum.id];
-
-          sesh.recentPings.push(pingTime);
-          if (sesh.recentPings.length > 5) {
-            sesh.recentPings.shift();
-          }
-
-          this.#registerPing(joinerID, pingTime);
-
+          const pingTime = this.#sessionManager.pong(joinerID, datum.id);
+          this.#registerPingTime(joinerID, pingTime);
           break;
-
         }
 
         case "relay": {
@@ -344,34 +262,17 @@ export default class ConnectionManager {
 
     if (datum.username !== undefined) {
 
-      const isRelevant = ([k, s]) => k !== joinerID && s.username !== undefined;
-      const isTaken    = ([ , s]) => s.username.toLowerCase() === joinerUsername;
-
-      const joinerUsername  = datum.username.toLowerCase();
-      const relevantPairs   = Object.entries(this.#sessions).filter(isRelevant);
-      const usernameIsTaken = relevantPairs.some(isTaken);
-
-      if (!usernameIsTaken) {
+      if (this.#sessionManager.usernameIsUnique(joinerID, datum.username)) {
         if (this.#passwordMatches(datum.password)) {
 
-          const session = this.#sessions[joinerID];
-
-          session.networking.signaling.terminate();
-
-          session.username = datum.username;
+          this.#sessionManager.logIn(joinerID, datum.username);
           this.#rtcManager.send(channel)("login-successful", {});
 
-          this.#awaitJoinerInit(joinerID, this.#sessions[joinerID].username).
+          this.#awaitJoinerInit(joinerID, datum.username).
             then(({ role, state, viewState: view }) => {
-
               const token = joinerID;
-
               this.narrowcast(token, "initial-model", { role, token, state, view });
-
-              if (this.#sessions[token] !== undefined) {
-                this.#sessions[token].hasInitialized = true;
-              }
-
+              this.#sessionManager.setInitialized(token);
             });
 
         } else {
