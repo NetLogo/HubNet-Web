@@ -1,3 +1,5 @@
+import deepFreeze from "/js/static/deep-freeze.js";
+
 const fakeDimensions =
   { minPxcor:           0
   , maxPxcor:           0
@@ -43,5 +45,7 @@ const fakeModel =
   , username: "no username"
   , view:     fakeView
   };
+
+deepFreeze(fakeModel);
 
 export default fakeModel;

@@ -1,3 +1,5 @@
+import deepFreeze from "/js/static/deep-freeze.js";
+
 const RolePB = {
   fields: {
     name:            { type: "string", id:  1 }
@@ -230,5 +232,7 @@ const RolePB = {
     }
   }
 };
+
+deepFreeze(RolePB);
 
 export { RolePB };

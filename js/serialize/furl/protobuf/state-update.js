@@ -1,3 +1,5 @@
+import deepFreeze from "/js/static/deep-freeze.js";
+
 const ViewUpdateStuff = {
 
   Turtle: {
@@ -334,5 +336,7 @@ const StateUpdatePB = {
   }
 , nested: { ...PlotUpdateStuff, ...ViewUpdateStuff, ...WidgetUpdateStuff }
 };
+
+deepFreeze(StateUpdatePB);
 
 export { StateUpdatePB };

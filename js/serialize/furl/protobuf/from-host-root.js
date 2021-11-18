@@ -1,3 +1,5 @@
+import deepFreeze from "/js/static/deep-freeze.js";
+
 import { RolePB        } from "./role.js";
 import { StateUpdatePB } from "./state-update.js";
 
@@ -174,5 +176,7 @@ const FromHostRoot = {
   }
 
 };
+
+deepFreeze(FromHostRoot);
 
 export { FromHostRoot };

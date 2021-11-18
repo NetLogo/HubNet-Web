@@ -1,3 +1,5 @@
+import deepFreeze from "/js/static/deep-freeze.js";
+
 import { JoinerRelayPayloadPB, RelayUnfurls } from "./joiner-relay-payload.js";
 
 const FromJoinerRoot = {
@@ -77,5 +79,7 @@ const FromJoinerRoot = {
   }
 
 };
+
+deepFreeze(FromJoinerRoot);
 
 export { FromJoinerRoot };

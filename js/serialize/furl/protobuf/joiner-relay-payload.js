@@ -1,3 +1,5 @@
+import deepFreeze from "/js/static/deep-freeze.js";
+
 // (Object[Any]) => Object[Any]
 const fieldsFrom = (obj) => {
   const fields =
@@ -103,5 +105,8 @@ const RelayUnfurls = {
 , UnfurlRelaySlider:      unfurledFrom(     sliderFields)
 , UnfurlRelaySwitch:      unfurledFrom(     switchFields)
 };
+
+deepFreeze(JoinerRelayPayloadPB);
+deepFreeze(RelayUnfurls);
 
 export { JoinerRelayPayloadPB, RelayUnfurls };
