@@ -9,7 +9,7 @@ export default class SignalingSocket {
 
   // () => SignalingSocket
   constructor() {
-    const url    = "js/host/ws/signaling-socket-worker.js";
+    const url    = "js/host/conn/signaling-socket-worker.js";
     this.#worker = new Worker(url, { type: "module" });
     this.#isDead = false;
   }

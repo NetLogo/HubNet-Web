@@ -1,4 +1,4 @@
-import ConnectionManager from "./connection-manager.js";
+import ConnectionManager from "./conn/connection-manager.js";
 
 import BandwidthManager     from "./ui/bandwidth-manager.js";
 import LaunchControlManager from "./ui/launch-control-manager.js";

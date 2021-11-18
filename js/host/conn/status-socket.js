@@ -8,7 +8,7 @@ export default class StatusSocket {
 
   // () => StatusSocket
   constructor() {
-    const url = "js/host/ws/status-socket-worker.js";
+    const url = "js/host/conn/status-socket-worker.js";
     this.#worker = new Worker(url, { type: "module" });
   }
 

@@ -12,7 +12,7 @@ export default class BroadSocket {
 
   // () => BroadSocket
   constructor() {
-    const url = "js/host/ws/broadsocket-worker.js";
+    const url = "js/host/conn/broadsocket-worker.js";
     this.#worker = new Worker(url, { type: "module" });
   }
 

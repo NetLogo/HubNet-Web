@@ -4,11 +4,11 @@ import { awaitDeserializer, notifyDeserializer, notifySerializer } from "/js/ser
 
 import { version } from "/js/static/version.js";
 
+import BroadSocket  from "./broadsocket.js";
+import StatusSocket from "./status-socket.js";
+
 import IDManager  from "/js/common/id-manager.js";
 import RTCManager from "/js/common/rtc-manager.js";
-
-import BroadSocket  from "./ws/broadsocket.js";
-import StatusSocket from "./ws/status-socket.js";
 
 // type Session = {
 //   networking :: { socket     :: WebSocket
