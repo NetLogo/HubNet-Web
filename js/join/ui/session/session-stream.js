@@ -20,6 +20,7 @@ export default class SessionStream {
     this.#send("hibernate");
   };
 
+  // (String, Object[Any]?) => Unit
   #send = (type, msg = {}) => {
     this.#worker.postMessage({ type, ...msg });
   };
