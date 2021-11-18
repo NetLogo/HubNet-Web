@@ -31,7 +31,7 @@ export default class SignalingStream {
   // , (RTCSessionDescription) => Unit, (RTCIceCandidate) => Unit) => SignalingStream
   constructor(hostID, joinerID, offer, setRTCDesc, addRTCICE) {
     const buddyURL = "js/join/conn/signaling-worker.js";
-    this.#worker = new Worker(buddyURL, { type: "module" });
+    this.#worker   = new Worker(buddyURL, { type: "module" });
     this.#connect(hostID, joinerID, offer);
     this.#worker.onmessage = onSignalingMessage(setRTCDesc, addRTCICE);
   }

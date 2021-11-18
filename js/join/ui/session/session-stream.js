@@ -5,7 +5,7 @@ export default class SessionStream {
   // ((Object[Any]) => Unit) => SessionStream
   constructor(onmessage) {
     const buddyURL = "js/join/ui/session/session-stream-worker.js";
-    this.#worker = new Worker(buddyURL, { type: "module" });
+    this.#worker   = new Worker(buddyURL, { type: "module" });
     this.connect();
     this.#worker.onmessage = onmessage;
   }
