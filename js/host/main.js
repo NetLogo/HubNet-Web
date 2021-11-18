@@ -62,9 +62,9 @@ const launchControlManager =
 
 const connMan =
   new ConnectionManager( (jid, un)   =>   nlwManager.awaitJoinerInit(jid, un)
-                       , (jid, ping) => { nlwManager.registerPing(jid, ping);   }
-                       , (pl)        => { nlwManager.relay(pl);                 }
-                       , ()          => { nlwManager.disown();                  }
+                       , (jid, ping) => { nlwManager.registerPingStats(jid, ping); }
+                       , (pl)        => { nlwManager.relay(pl);                    }
+                       , ()          => { nlwManager.disown();                     }
                        , launchControlManager.passwordMatches);
 
 const nlwManager =

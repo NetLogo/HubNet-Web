@@ -73,7 +73,7 @@ export default class HostNLWManager extends NLWManager {
   };
 
   // (UUID, Number) => Unit
-  registerPing = (joinerID, ping) => {
+  registerPingStats = (joinerID, ping) => {
     this._post({ type: "hnw-latest-ping", joinerID, ping });
   };
 
