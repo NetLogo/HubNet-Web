@@ -160,6 +160,13 @@ export default class ConnectionManager {
 
     this.#sessionManager.setNetworking(joinerID, connection, channel);
 
+    this.#setUpConnection(connection, joinerID, offer);
+
+  };
+
+  // (RTCPeerConnection, UUID, RTCSessionDescription) => Unit
+  #setUpConnection = (connection, joinerID, offer) => {
+
     {
       const knownCandies = new Set();
       connection.onicecandidate =
