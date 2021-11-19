@@ -52,8 +52,7 @@ const finishLaunch = ({ isSuccess, data }) => {
 
 // (Object[Any]) => Unit
 const launchModel = (model) => {
-  launchControlManager.launch(model).
-    then(finishLaunch);
+  launchControlManager.launch(model).then(finishLaunch);
 };
 
 const awaitLaunchHTTP = (data) => fetch("/launch-session", data);
@@ -68,7 +67,8 @@ const connMan =
                        , (jid, ping) => { nlwManager.registerPingStats(jid, ping); }
                        , (pl)        => { nlwManager.relay(pl);                    }
                        , ()          => { nlwManager.disown();                     }
-                       , launchControlManager.passwordMatches, notifyUser);
+                       , launchControlManager.passwordMatches
+                       , notifyUser);
 
 const nlwManager =
   new NLWManager( byEID("nlw-frame"), launchModel, connMan.broadcast
