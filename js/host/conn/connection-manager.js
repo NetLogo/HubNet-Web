@@ -240,19 +240,19 @@ export default class ConnectionManager {
   };
 
   // (UUID, RTCDataChannel) => (Object[{ username :: String, password :: String }]) => Unit
-  #handleLogin = (joinerID, channel) => (datum) => {
+  #handleLogin = (joinerID, channel) => ({ username, password }) => {
 
     const reply = (msgType) => { this.#rtcManager.send(channel)(msgType); };
 
-    if (datum.username !== undefined) {
+    if (username !== undefined) {
 
-      if (this.#sessionManager.usernameIsUnique(joinerID, datum.username)) {
-        if (this.#passwordMatches(datum.password)) {
+      if (this.#sessionManager.usernameIsUnique(joinerID, username)) {
+        if (this.#passwordMatches(password)) {
 
-          this.#sessionManager.logIn(joinerID, datum.username);
+          this.#sessionManager.logIn(joinerID, username);
           reply("login-successful");
 
-          this.#awaitJoinerInit(joinerID, datum.username).
+          this.#awaitJoinerInit(joinerID, username).
             then(({ role, state, viewState: view }) => {
               const token = joinerID;
               this.narrowcast(token, "initial-model", { role, token, state, view });
