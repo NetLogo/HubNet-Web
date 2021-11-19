@@ -7,6 +7,7 @@ import NLWManager           from "./ui/nlw-manager.js";
 // (String) => Element?
 const byEID = (eid) => document.getElementById(eid);
 
+// (String) => Unit
 const onNLWManError = (subtype) => {
   alert(`Fatal error received from client: ${subtype}`);
   self.location.reload();
@@ -49,6 +50,7 @@ const finishLaunch = ({ isSuccess, data }) => {
 
 };
 
+// (Object[Any]) => Unit
 const launchModel = (model) => {
   launchControlManager.launch(model).
     then(finishLaunch);
@@ -85,8 +87,6 @@ const bandwidthManager =
                         , setIT("activity-status-span")
                         , nlwManager.notifyCongested, nlwManager.notifyUncongested);
 
-// Honestly, this will probably not run before the tab closes.
-// Not much I can do about that.  --Jason B. (8/21/20)
 self.addEventListener("beforeunload", connMan.teardown);
 
 self.addEventListener("popstate", (event) => {
