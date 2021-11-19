@@ -58,6 +58,11 @@ const launchModel = (model) => {
 const awaitLaunchHTTP = (data) => fetch("/launch-session", data);
 const notifyUser      = (s) => { alert(s); };
 
+// (String) => (String) => Unit
+const setIT = (id) => (text) => {
+  byEID(id).innerText = text;
+};
+
 const launchControlManager =
   new LaunchControlManager( byEID("form-frame"), awaitLaunchHTTP, notifyUser
                           , finishLaunch);
@@ -75,11 +80,6 @@ const nlwManager =
                 , connMan.narrowcast, onNLWManError);
 
 document.addEventListener("DOMContentLoaded", nlwManager.init);
-
-// (String) => (String) => Unit
-const setIT = (id) => (text) => {
-  byEID(id).innerText = text;
-};
 
 const bandwidthManager =
     new BandwidthManager( setIT("bandwidth-span"), setIT("new-send-span")
