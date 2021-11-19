@@ -155,7 +155,7 @@ export default class ConnectionManager {
     const rtcID       = uuidToRTCID(joinerID);
     const channel     = connection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
     channel.onopen    = () => { this.#rtcManager.sendGreeting(channel); };
-    channel.onmessage = this.#onChannelMessages(joinerID, channel);
+    channel.onmessage = this.#onChannelMessage(joinerID, channel);
     channel.onclose   = () => { this.#disown(joinerID); };
 
     this.#sessionManager.setNetworking(joinerID, connection, channel);
@@ -192,7 +192,7 @@ export default class ConnectionManager {
   };
 
   // (UUID, RTCDataChannel) => (Object[Any]) => Unit
-  #onChannelMessages = (joinerID, channel) => ({ data }) => {
+  #onChannelMessage = (joinerID, channel) => ({ data }) => {
 
     const parcel = new Uint8Array(data);
 
