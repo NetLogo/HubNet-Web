@@ -1,3 +1,19 @@
+// (String, Element, SessionData, AppStatusManager, PreviewManager, SelNotifier) => Unit
+export default (term, parent, seshData, statusManager, previewManager, notifySel) => {
+
+  const matches = (haystack, needle) => haystack.toLowerCase().includes(needle);
+  const checkIt = (s) => matches(s.name, term) || matches(s.modelName, term);
+
+  if (term !== "") {
+    seshData.applyFilter(checkIt);
+  } else {
+    seshData.clearFilter();
+  }
+
+  populate(parent, seshData, statusManager, previewManager, notifySel);
+
+};
+
 // (Element, String) => Element?
 const descByID = (elem, id) => elem.querySelector(`#${id}`);
 
@@ -100,18 +116,3 @@ const populate = (parent, seshData, statusManager, previewManager, notifySel) =>
 
 };
 
-// (String, Element, SessionData, AppStatusManager, PreviewManager, SelNotifier) => Unit
-export default (term, parent, seshData, statusManager, previewManager, notifySel) => {
-
-  const matches = (haystack, needle) => haystack.toLowerCase().includes(needle);
-  const checkIt = (s) => matches(s.name, term) || matches(s.modelName, term);
-
-  if (term !== "") {
-    seshData.applyFilter(checkIt);
-  } else {
-    seshData.clearFilter();
-  }
-
-  populate(parent, seshData, statusManager, previewManager, notifySel);
-
-};

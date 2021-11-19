@@ -1,6 +1,3 @@
-// (String) => Element?
-const byEID = (eid) => document.getElementById(eid);
-
 // (Object[Any]) => (Object[Any]) => Object[Any]
 export default (rootBundle) => (connBundle) => {
 
@@ -42,3 +39,6 @@ export default (rootBundle) => (connBundle) => {
          };
 
 };
+
+// (String) => Element?
+const byEID = (eid) => document.getElementById(eid);

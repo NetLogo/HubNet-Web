@@ -3,9 +3,6 @@ import { typeIsOOB } from "./util.js";
 import BandwidthMonitor from "./bandwidth-monitor.js";
 import IDManager        from "./id-manager.js";
 
-// (String, Object[Any]) => Unit
-const makeMessage = (type, obj) => JSON.stringify({ type, ...obj });
-
 export default class WebSocketManager {
 
   #bandMon   = undefined; // BandwidthMonitor
@@ -123,3 +120,6 @@ export default class WebSocketManager {
   };
 
 }
+
+// (String, Object[Any]) => Unit
+const makeMessage = (type, obj) => JSON.stringify({ type, ...obj });

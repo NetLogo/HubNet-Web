@@ -1,28 +1,3 @@
-// ((RTCSessionDescription) => Unit, (RTCIceCandidate) => Unit) => (Object[Any]) => Unit
-const onSignalingMessage = (setRTCDesc, addRTCICE) => ({ data }) => {
-  const datum = JSON.parse(data);
-  switch (datum.type) {
-    case "host-answer": {
-      setRTCDesc(datum.answer);
-      break;
-    }
-    case "host-ice-candidate": {
-      addRTCICE(datum.candidate);
-      break;
-    }
-    case "bye-bye": {
-      console.warn("Central server disconnected from signaling");
-      break;
-    }
-    case "keep-alive": {
-      break;
-    }
-    default: {
-      console.warn(`Unknown signaling message type: ${datum.type}`);
-    }
-  }
-};
-
 export default class SignalingStream {
 
   #worker = undefined; // Worker[JoinerSignalingWorker]
@@ -60,3 +35,28 @@ export default class SignalingStream {
   };
 
 }
+
+// ((RTCSessionDescription) => Unit, (RTCIceCandidate) => Unit) => (Object[Any]) => Unit
+const onSignalingMessage = (setRTCDesc, addRTCICE) => ({ data }) => {
+  const datum = JSON.parse(data);
+  switch (datum.type) {
+    case "host-answer": {
+      setRTCDesc(datum.answer);
+      break;
+    }
+    case "host-ice-candidate": {
+      addRTCICE(datum.candidate);
+      break;
+    }
+    case "bye-bye": {
+      console.warn("Central server disconnected from signaling");
+      break;
+    }
+    case "keep-alive": {
+      break;
+    }
+    default: {
+      console.warn(`Unknown signaling message type: ${datum.type}`);
+    }
+  }
+};

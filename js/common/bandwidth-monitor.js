@@ -11,14 +11,6 @@
 
 // type Sendable = ArrayBuffer | Blob | String
 
-// (Protocol.Channel) => Number
-const getBufferedSize = (channel) => {
-  return channel.bufferedAmount;
-};
-
-// (StatBlock) => Number
-const sumBytesAdded = (sb) => sb.xs.reduce(((a, b) => a + b.bytesAdded), 0);
-
 export default class BandwidthMonitor {
 
   #entries = undefined; // Array[Entry]
@@ -95,3 +87,11 @@ export default class BandwidthMonitor {
   };
 
 }
+
+// (Protocol.Channel) => Number
+const getBufferedSize = (channel) => {
+  return channel.bufferedAmount;
+};
+
+// (StatBlock) => Number
+const sumBytesAdded = (sb) => sb.xs.reduce(((a, b) => a + b.bytesAdded), 0);

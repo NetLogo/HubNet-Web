@@ -5,6 +5,49 @@ import refilter from "./refilter.js";
 
 // type SelNotifier = (SessionData, Element, UUID) => Unit
 
+export default class SessionList {
+
+  #parent = undefined; // Element
+  #stream = undefined; // SessionStream
+
+  // (Element, (UUID) => Session?, AppStatusManager, PreviewManager, SelNotifier) => SessionList
+  constructor(parent, onStreamInit, statusManager, previewManager, notifySel) {
+
+    const filterBox = parent.querySelector("#session-filter-box");
+    const data      = new SessionData();
+
+    this.#parent = parent;
+    this.#stream = genSessionStream( filterBox, parent, data, statusManager
+                                   , previewManager, notifySel, onStreamInit);
+
+    previewManager.useDefault();
+
+    initListeners(filterBox, parent, data, statusManager, previewManager, notifySel);
+
+  }
+
+  // () => Unit
+  enable = () => {
+    this.#stream.connect();
+  };
+
+  // () => UUID?
+  getSelectedUUID = () => {
+    return this.#parent.querySelector(".active").dataset.uuid;
+  };
+
+  // () => Unit
+  hibernate = () => {
+
+    const options = Array.from(this.#parent.querySelectorAll(".session-option"));
+    options.forEach((o) => { o.checked = false; });
+
+    this.#stream.hibernate();
+
+  };
+
+}
+
 // (Element) => String
 const extractQuery = (elem) => elem.value.trim().toLowerCase();
 
@@ -50,46 +93,3 @@ const clickAndGetByUUID = (parent, seshData) => (uuid) => {
     return undefined;
   }
 };
-
-export default class SessionList {
-
-  #parent = undefined; // Element
-  #stream = undefined; // SessionStream
-
-  // (Element, (UUID) => Session?, AppStatusManager, PreviewManager, SelNotifier) => SessionList
-  constructor(parent, onStreamInit, statusManager, previewManager, notifySel) {
-
-    const filterBox = parent.querySelector("#session-filter-box");
-    const data      = new SessionData();
-
-    this.#parent = parent;
-    this.#stream = genSessionStream( filterBox, parent, data, statusManager
-                                   , previewManager, notifySel, onStreamInit);
-
-    previewManager.useDefault();
-
-    initListeners(filterBox, parent, data, statusManager, previewManager, notifySel);
-
-  }
-
-  // () => Unit
-  enable = () => {
-    this.#stream.connect();
-  };
-
-  // () => UUID?
-  getSelectedUUID = () => {
-    return this.#parent.querySelector(".active").dataset.uuid;
-  };
-
-  // () => Unit
-  hibernate = () => {
-
-    const options = Array.from(this.#parent.querySelectorAll(".session-option"));
-    options.forEach((o) => { o.checked = false; });
-
-    this.#stream.hibernate();
-
-  };
-
-}

@@ -7,23 +7,6 @@ import { deserialize } from "/js/serialize/xserialize-root.js";
 
 const dummyID = 0; // Number
 
-// (Array[Uint8Array]) => Uint8Array
-const assembleBucket = (bucket) => {
-
-  const totalLength = bucket.reduce((acc, x) => acc + x.length, 0);
-  const arr         = new Uint8Array(totalLength);
-
-  bucket.reduce(
-    (acc, x) => {
-      arr.set(x, acc);
-      return acc + x.length;
-    }
-  , 0);
-
-  return arr;
-
-};
-
 export default class RxQueue {
 
   #decodeInput      = undefined; // (Uint8Array) => Object[Any]
@@ -153,3 +136,20 @@ export default class RxQueue {
   };
 
 }
+
+// (Array[Uint8Array]) => Uint8Array
+const assembleBucket = (bucket) => {
+
+  const totalLength = bucket.reduce((acc, x) => acc + x.length, 0);
+  const arr         = new Uint8Array(totalLength);
+
+  bucket.reduce(
+    (acc, x) => {
+      arr.set(x, acc);
+      return acc + x.length;
+    }
+  , 0);
+
+  return arr;
+
+};

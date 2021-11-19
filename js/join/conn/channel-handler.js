@@ -1,54 +1,5 @@
 import { version } from "/js/static/version.js";
 
-// (Object[Any], Array[Number]) => (Object[Any]) => Unit
-const handlePing = (bundle, pings) => ({ id, lastPing }) => {
-
-  bundle.send("pong", { id });
-
-  if (lastPing !== undefined) {
-
-    pings.push(lastPing);
-
-    if (pings.length > 5) {
-      pings.shift();
-    }
-
-    const add         = (x, y) => x + y;
-    const averagePing = Math.round(pings.reduce(add) / pings.length);
-    bundle.setLatency(averagePing);
-
-  }
-
-};
-
-// (Object[Any]) => (Object[Any]) => Unit
-const handleConnEst = (bundle) => ({ protocolVersion }) => {
-
-  if (protocolVersion !== version) {
-    bundle.notifyUser(`HubNet protocol version mismatch!  You are using protocol version '${version}', while the host is using version '${protocolVersion}'.  To ensure that you and the host are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  Your connection will now close.`);
-    bundle.disconnect();
-  }
-
-  bundle.getConnectionStats().then(
-    (stats) => {
-
-      const usesTURN =
-        Array.from(stats.values()).some(
-          (v) =>
-            v.type === "candidate-pair" &&
-              v.state === "succeeded" &&
-              v.localCandidateId &&
-              stats.get(v.localCandidateId).candidateType === "relay"
-        );
-
-      const desc = usesTURN ? "Server-based" : "Peer-to-Peer";
-      bundle.setConnectionType(desc);
-
-    }
-  );
-
-};
-
 export default class ChannelHandler {
 
   #bundle      = undefined; // Object[Any]
@@ -134,3 +85,52 @@ export default class ChannelHandler {
   };
 
 }
+
+// (Object[Any], Array[Number]) => (Object[Any]) => Unit
+const handlePing = (bundle, pings) => ({ id, lastPing }) => {
+
+  bundle.send("pong", { id });
+
+  if (lastPing !== undefined) {
+
+    pings.push(lastPing);
+
+    if (pings.length > 5) {
+      pings.shift();
+    }
+
+    const add         = (x, y) => x + y;
+    const averagePing = Math.round(pings.reduce(add) / pings.length);
+    bundle.setLatency(averagePing);
+
+  }
+
+};
+
+// (Object[Any]) => (Object[Any]) => Unit
+const handleConnEst = (bundle) => ({ protocolVersion }) => {
+
+  if (protocolVersion !== version) {
+    bundle.notifyUser(`HubNet protocol version mismatch!  You are using protocol version '${version}', while the host is using version '${protocolVersion}'.  To ensure that you and the host are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  Your connection will now close.`);
+    bundle.disconnect();
+  }
+
+  bundle.getConnectionStats().then(
+    (stats) => {
+
+      const usesTURN =
+        Array.from(stats.values()).some(
+          (v) =>
+            v.type === "candidate-pair" &&
+              v.state === "succeeded" &&
+              v.localCandidateId &&
+              stats.get(v.localCandidateId).candidateType === "relay"
+        );
+
+      const desc = usesTURN ? "Server-based" : "Peer-to-Peer";
+      bundle.setConnectionType(desc);
+
+    }
+  );
+
+};
