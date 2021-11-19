@@ -162,19 +162,20 @@ export default class ConnectionManager {
 
     this.#sessionManager.setNetworking(joinerID, connection, channel);
 
-    let knownCandies = new Set([]);
-
-    connection.onicecandidate =
-      ({ candidate }) => {
-        if (candidate !== undefined && candidate !== null) {
-          const candy    = candidate.toJSON();
-          const candyStr = JSON.stringify(candy);
-          if (!knownCandies.has(candyStr)) {
-            knownCandies = knownCandies.add(candyStr);
-            this.#sessionManager.sendICECandidate(joinerID, candy);
+    {
+      const knownCandies = new Set();
+      connection.onicecandidate =
+        ({ candidate }) => {
+          if (candidate !== undefined && candidate !== null) {
+            const candy    = candidate.toJSON();
+            const candyStr = JSON.stringify(candy);
+            if (!knownCandies.has(candyStr)) {
+              knownCandies.add(candyStr);
+              this.#sessionManager.sendICECandidate(joinerID, candy);
+            }
           }
-        }
-      };
+        };
+    }
 
     connection.oniceconnectionstatechange = () => {
       if (connection.iceConnectionState === "disconnected") {
