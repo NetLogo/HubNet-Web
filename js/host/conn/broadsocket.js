@@ -36,7 +36,7 @@ export default class BroadSocket {
 
 }
 
-// (UUID, (RTCPeerConnection, UUID) => (Object[Any]) => Unit, (UUID, SignalingSocket) => Unit) =>
+// (UUID, (UUID, RTCPeerConnection) => (Object[Any]) => Unit, (UUID, SignalingSocket) => Unit) =>
 // (Object[{ data :: UUID }]) => Unit
 const handleSocketMessage = (hostID, processOffer2, registerSignaling) =>
                             ({ data: joinerID }) => {
@@ -44,7 +44,7 @@ const handleSocketMessage = (hostID, processOffer2, registerSignaling) =>
   const signaling  = new SignalingSocket();
 
   const connection    = new RTCPeerConnection(rtcConfig);
-  const processOffer0 = processOffer2(connection, joinerID);
+  const processOffer0 = processOffer2(joinerID, connection);
   const addICE        = (candy) => { connection.addIceCandidate(candy); };
 
   signaling.connect(hostID, joinerID, processOffer0, addICE);

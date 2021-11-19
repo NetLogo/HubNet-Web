@@ -17,7 +17,7 @@ const finishLaunch = ({ isSuccess, data }) => {
 
   if (isSuccess) {
 
-    const { hostID, json, nlogo, sessionName } = data;
+    const { hostID, json, nlogo } = data;
 
     document.getElementById("id-display").innerText = hostID;
 
@@ -26,7 +26,7 @@ const finishLaunch = ({ isSuccess, data }) => {
     nlwManager.show();
     nlwManager.becomeOracle(hostID, json, nlogo);
 
-    connMan.connect(hostID, nlogo, sessionName);
+    connMan.connect(hostID);
 
     setInterval(() => {
       bandwidthManager.updateCongestionStats(connMan.getChannelObj());

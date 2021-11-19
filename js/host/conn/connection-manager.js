@@ -64,9 +64,7 @@ export default class ConnectionManager {
   };
 
   // (UUID, String, String) => Unit
-  connect = (hostID, nlogo, sessionName) => {
-
-    const processOffer = (c, id) => this.#processOffer(c, nlogo, sessionName, id);
+  connect = (hostID) => {
 
     const registerSignaling = (joinerID, signaling) => {
       this.#sessionManager.register(joinerID, signaling);
@@ -74,7 +72,7 @@ export default class ConnectionManager {
       this.#deserializer.notifyClientConnect();
     };
 
-    this. #broadSocket.connect(hostID, processOffer, registerSignaling);
+    this. #broadSocket.connect(hostID, this.#processOffer, registerSignaling);
     this.#statusSocket.connect(hostID);
 
     setInterval(() => {
@@ -151,13 +149,13 @@ export default class ConnectionManager {
     this.#sessionManager.unregister(joinerID);
   };
 
-  // (RTCPeerConnection, String, String, String) => (RTCSessionDescription) => Unit
-  #processOffer = (connection, nlogo, sessionName, joinerID) => (offer) => {
+  // (UUID, RTCPeerConnection) => (RTCSessionDescription) => Unit
+  #processOffer = (joinerID, connection) => (offer) => {
 
     const rtcID       = uuidToRTCID(joinerID);
     const channel     = connection.createDataChannel("hubnet-web", { negotiated: true, id: rtcID });
     channel.onopen    = () => { this.#rtcManager.sendGreeting(channel); };
-    channel.onmessage = this.#onChannelMessages(channel, nlogo, sessionName, joinerID);
+    channel.onmessage = this.#onChannelMessages(joinerID, channel);
     channel.onclose   = () => { this.#disown(joinerID); };
 
     this.#sessionManager.setNetworking(joinerID, connection, channel);
@@ -193,8 +191,8 @@ export default class ConnectionManager {
 
   };
 
-  // (Protocol.Channel, String, String, String) => (Any) => Unit
-  #onChannelMessages = (channel, nlogo, sessionName, joinerID) => ({ data }) => {
+  // (UUID, RTCDataChannel) => (Any) => Unit
+  #onChannelMessages = (joinerID, channel) => ({ data }) => {
 
     const parcel = new Uint8Array(data);
 
@@ -211,7 +209,7 @@ export default class ConnectionManager {
         }
 
         case "login": {
-          this.#handleLogin(channel, nlogo, sessionName, datum, joinerID);
+          this.#handleLogin(joinerID, channel)(datum);
           break;
         }
 
@@ -241,8 +239,8 @@ export default class ConnectionManager {
 
   };
 
-  // (RTCDataChannel, String, String, { username :: String, password :: String }, String) => Unit
-  #handleLogin = (channel, nlogo, sessionName, datum, joinerID) => {
+  // (UUID, RTCDataChannel) => (Object[{ username :: String, password :: String }]) => Unit
+  #handleLogin = (joinerID, channel) => (datum) => {
 
     const reply = (msgType) => { this.#rtcManager.send(channel)(msgType); };
 

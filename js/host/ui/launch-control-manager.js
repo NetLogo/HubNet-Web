@@ -79,7 +79,7 @@ const awaitNlogo = (conf) => {
   );
 };
 
-// (Object[Any], (Object[Any]) => Promise[Response]) => Promise[(String, Response)]
+// (Object[Any], (Object[Any]) => Promise[Response]) => Promise[Response]
 const awaitLaunch = (awaitLaunchHTTP) => (config) => {
 
   const data =
@@ -88,12 +88,12 @@ const awaitLaunch = (awaitLaunchHTTP) => (config) => {
     , body:    JSON.stringify(config)
     };
 
-  return awaitLaunchHTTP(data).then((response) => [config.sessionName, response]);
+  return awaitLaunchHTTP(data);
 
 };
 
-// (Element, (String) => Unit) => ((String, Response)) => Promise[Object[Any]]
-const awaitProcessResponse = (frame, notifyUser) => ([sessionName, response]) => {
+// (Element, (String) => Unit) => (Response) => Promise[Object[Any]]
+const awaitProcessResponse = (frame, notifyUser) => (response) => {
 
   if (response.status === 200) {
 
@@ -106,7 +106,7 @@ const awaitProcessResponse = (frame, notifyUser) => ([sessionName, response]) =>
 
         frame.classList.add("hidden");
 
-        return { isSuccess: true, data: { hostID, json, nlogo, sessionName } };
+        return { isSuccess: true, data: { hostID, json, nlogo } };
 
       }
     );
