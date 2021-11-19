@@ -29,7 +29,8 @@ const finishLaunch = ({ isSuccess, data }) => {
     connMan.connect(hostID);
 
     setInterval(() => {
-      bandwidthManager.updateCongestionStats(connMan.getChannelObj());
+      const amounts = connMan.getBufferedAmounts();
+      bandwidthManager.updateCongestionStats(amounts);
     }, 1000);
 
     setInterval(() => {

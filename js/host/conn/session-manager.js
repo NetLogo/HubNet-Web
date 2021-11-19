@@ -13,15 +13,13 @@ export default class SessionManager {
 
   // () => Array[RTCDataChannel]
   getAllChannels = () => {
-    return Object.values(this.getChannelObj);
+    return Object.values(this.#getChannelObj);
   };
 
-  // () => Object[UUID, RTCDataChannel]
-  getChannelObj = () => {
-    const pairs    = Object.entries(this.#sessions);
-    const filtered = pairs.filter(([  , s]) => s.networking.channel !== undefined);
-    const entries  = filtered.map(([id, s]) => [id, s.networking.channel]);
-    return Object.fromEntries(entries);
+  // () => Object[UUID, Number]
+  getBufferedAmounts = () => {
+    return Object.entries(this.#getChannelObj).
+      map(([uuid, channel]) => [uuid, channel.bufferedAmount]);
   };
 
   // (UUID, Boolean?) => RTCDataChannel?
@@ -168,6 +166,14 @@ export default class SessionManager {
 
     return !usernameIsTaken;
 
+  };
+
+  // () => Object[UUID, RTCDataChannel]
+  #getChannelObj = () => {
+    const pairs    = Object.entries(this.#sessions);
+    const filtered = pairs.filter(([  , s]) => s.networking.channel !== undefined);
+    const entries  = filtered.map(([id, s]) => [id, s.networking.channel]);
+    return Object.fromEntries(entries);
   };
 
 }

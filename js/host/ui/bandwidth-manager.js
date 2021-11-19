@@ -37,18 +37,18 @@ export default class BandwidthManager {
     genStats(awaiter, base, this.#setNewSendDOM  );
   };
 
-  // (Object[UUID, RTCDataChannel]) => Unit
-  updateCongestionStats = (uuidToChannel) => {
+  // (Object[UUID, Number]) => Unit
+  updateCongestionStats = (uuidToBuffered) => {
 
-    Object.entries(uuidToChannel).forEach(
-      ([uuid, channel]) => {
+    Object.entries(uuidToBuffered).forEach(
+      ([uuid, bufferedAmount]) => {
 
         if (this.#recentBuffers[uuid] === undefined) {
           this.#recentBuffers[uuid] = [];
         }
 
         const bufferLog = this.#recentBuffers[uuid];
-        bufferLog.push(channel.bufferedAmount);
+        bufferLog.push(bufferedAmount);
 
         if (bufferLog.length > 8) {
           bufferLog.shift();
@@ -57,7 +57,7 @@ export default class BandwidthManager {
       }
     );
 
-    const numClients = Object.keys(uuidToChannel).length;
+    const numClients = Object.keys(uuidToBuffered).length;
 
     const numCongested =
       Object.values(this.#recentBuffers).filter(

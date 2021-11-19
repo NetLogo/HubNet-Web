@@ -100,9 +100,9 @@ export default class ConnectionManager {
     return this.#rtcManager.getBandwidth();
   };
 
-  // () => Object[UUID, RTCDataChannel]
-  getChannelObj = () => {
-    return this.#sessionManager.getChannelObj();
+  // () => Object[UUID, Number]
+  getBufferedAmounts = () => {
+    return this.#sessionManager.getBufferedAmounts();
   };
 
   // () => Number
