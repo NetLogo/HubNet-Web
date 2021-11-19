@@ -203,7 +203,7 @@ export default class ConnectionManager {
         case "connection-established": {
           if (datum.protocolVersion !== version) {
             const id = this.#sessionManager.invalidate(joinerID);
-            this.#notifyUser(`HubNet protocol version mismatch!  You are using protocol version '${version}', while client '${id}' is using version '${datum.v}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  The offending client has been disconnected.`);
+            this.#notifyUser(`HubNet protocol version mismatch!  You are using protocol version '${version}', while client '${id}' is using version '${datum.protocolVersion}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  The offending client has been disconnected.`);
           }
           break;
         }
