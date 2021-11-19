@@ -191,7 +191,7 @@ export default class ConnectionManager {
 
   };
 
-  // (UUID, RTCDataChannel) => (Any) => Unit
+  // (UUID, RTCDataChannel) => (Object[Any]) => Unit
   #onChannelMessages = (joinerID, channel) => ({ data }) => {
 
     const parcel = new Uint8Array(data);
