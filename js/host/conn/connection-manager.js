@@ -66,7 +66,7 @@ export default class ConnectionManager {
   // (UUID, String, String) => Unit
   connect = (hostID, nlogo, sessionName) => {
 
-    const onCM = (c, id) => this.#onConnectionMessage(c, nlogo, sessionName, id);
+    const processOffer = (c, id) => this.#processOffer(c, nlogo, sessionName, id);
 
     const registerSignaling = (joinerID, signaling) => {
       this.#sessionManager.register(joinerID, signaling);
@@ -74,7 +74,7 @@ export default class ConnectionManager {
       this.#deserializer.notifyClientConnect();
     };
 
-    this. #broadSocket.connect(hostID, onCM, registerSignaling);
+    this. #broadSocket.connect(hostID, processOffer, registerSignaling);
     this.#statusSocket.connect(hostID);
 
     setInterval(() => {
@@ -190,28 +190,6 @@ export default class ConnectionManager {
         this.#sessionManager.sendRTCAnswer(joinerID, desc);
       });
 
-  };
-
-  // (RTCPeerConnection, String, String, String) => (Object[Any]) => Unit
-  #onConnectionMessage = (connection, nlogo, sessionName, joinerID) => ({ data }) => {
-    const datum = JSON.parse(data);
-    switch (datum.type) {
-      case "joiner-offer": {
-        this.#processOffer(connection, nlogo, sessionName, joinerID)(datum.offer);
-        break;
-      }
-      case "joiner-ice-candidate": {
-        connection.addIceCandidate(datum.candidate);
-        break;
-      }
-      case "bye-bye":
-      case "keep-alive": {
-        break;
-      }
-      default: {
-        console.warn(`Unknown narrow event type: ${datum.type}`);
-      }
-    }
   };
 
   // (Protocol.Channel, String, String, String) => (Any) => Unit

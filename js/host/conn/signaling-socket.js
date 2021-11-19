@@ -19,12 +19,12 @@ export default class SignalingSocket {
     return awaitWorker(this.#worker)(msg);
   };
 
-  // (UUID, UUID, ((Object[Any]) => Unit) => Unit
-  connect = (hostID, joinerID, onMsg) => {
+  // (UUID, UUID, (Object[Any]) => Unit, (RTCIceCandidate) => Unit) => Unit
+  connect = (hostID, joinerID, processOffer, addICE) => {
 
     const mc = new MessageChannel();
 
-    mc.port1.onmessage = onMsg;
+    mc.port1.onmessage = handleConnectionMessage(processOffer, addICE);
 
     const url = `${wsProto}://${hnw}/rtc/${hostID}/${joinerID}/host`;
     this.#worker.postMessage({ type: "connect", url }, [mc.port2]);
@@ -50,3 +50,33 @@ export default class SignalingSocket {
   };
 
 }
+
+// ((RTCSessionDescriptionInit) => Unit, (RTCIceCandidate) => Unit) => (Object[Any]) => Unit
+const handleConnectionMessage = (processOffer, addICE) => ({ data }) => {
+
+  const datum = JSON.parse(data);
+
+  switch (datum.type) {
+
+    case "joiner-offer": {
+      processOffer(datum.offer);
+      break;
+    }
+
+    case "joiner-ice-candidate": {
+      addICE(datum.candidate);
+      break;
+    }
+
+    case "bye-bye":
+    case "keep-alive": {
+      break;
+    }
+
+    default: {
+      console.warn(`Unknown narrow event type: ${datum.type}`);
+    }
+
+  }
+
+};

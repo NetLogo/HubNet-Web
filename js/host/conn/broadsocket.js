@@ -22,12 +22,12 @@ export default class BroadSocket {
   };
 
   // (UUID, (RTCPeerConnection, UUID) => (Object[Any]) => Unit, (Worker) => Unit) => Unit
-  connect = (hostID, handleConnectionMessage, registerSignaling) => {
+  connect = (hostID, processOffer, registerSignaling) => {
 
     const mc = new MessageChannel();
 
     mc.port1.onmessage =
-      handleSocketMessage(hostID, handleConnectionMessage, registerSignaling);
+      handleSocketMessage(hostID, processOffer, registerSignaling);
 
     const url = `${wsProto}://${hnw}/rtc/${hostID}`;
     this.#worker.postMessage({ type: "connect", url }, [mc.port2]);
@@ -38,15 +38,16 @@ export default class BroadSocket {
 
 // (UUID, (RTCPeerConnection, UUID) => (Object[Any]) => Unit, (UUID, SignalingSocket) => Unit) =>
 // (Object[{ data :: UUID }]) => Unit
-const handleSocketMessage = (hostID, handleConnectionMessage, registerSignaling) =>
+const handleSocketMessage = (hostID, processOffer2, registerSignaling) =>
                             ({ data: joinerID }) => {
 
   const signaling  = new SignalingSocket();
 
-  const connection = new RTCPeerConnection(rtcConfig);
-  const onMsg      = handleConnectionMessage(connection, joinerID);
+  const connection    = new RTCPeerConnection(rtcConfig);
+  const processOffer0 = processOffer2(connection, joinerID);
+  const addICE        = (candy) => { connection.addIceCandidate(candy); };
 
-  signaling.connect(hostID, joinerID, onMsg);
+  signaling.connect(hostID, joinerID, processOffer0, addICE);
 
   registerSignaling(joinerID, signaling);
 
