@@ -17,7 +17,7 @@ onmessage = (e) => {
             break;
           }
           default:
-            console.warn(`Unknown broad event type: ${datum.type}`);
+            console.warn("Unknown broad event type:", datum.type);
         }
       };
 

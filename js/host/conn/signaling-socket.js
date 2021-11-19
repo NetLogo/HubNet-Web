@@ -74,7 +74,7 @@ const handleConnectionMessage = (processOffer, addICE) => ({ data }) => {
     }
 
     default: {
-      console.warn(`Unknown narrow event type: ${datum.type}`);
+      console.warn("Unknown narrow event type:", datum.type);
     }
 
   }

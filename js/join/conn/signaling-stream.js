@@ -56,7 +56,7 @@ const onSignalingMessage = (setRTCDesc, addRTCICE) => ({ data }) => {
       break;
     }
     default: {
-      console.warn(`Unknown signaling message type: ${datum.type}`);
+      console.warn("Unknown signaling message type:", datum.type);
     }
   }
 };

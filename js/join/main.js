@@ -158,7 +158,7 @@ self.addEventListener("popstate", (event) => {
         break;
       }
       default: {
-        console.warn(`Unknown state: ${event.state.name}`);
+        console.warn("Unknown state:", event.state.name);
       }
     }
   }

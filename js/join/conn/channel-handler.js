@@ -77,7 +77,7 @@ export default class ChannelHandler {
       }
 
       default: {
-        console.warn(`Unknown channel event type: ${datum.type}`);
+        console.warn("Unknown channel event type:", datum.type);
       }
 
     }

@@ -23,7 +23,7 @@ export default (bundle) => (datum) => {
     }
 
     default: {
-      console.warn(`Unknown bursted sub-event type: ${datum.type}`);
+      console.warn("Unknown bursted sub-event type:", datum.type);
     }
 
   }
