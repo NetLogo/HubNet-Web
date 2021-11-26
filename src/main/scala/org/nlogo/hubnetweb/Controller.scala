@@ -94,6 +94,7 @@ object Controller {
       path("hnw" / "my-status" / Segment) { (hostID) => handleWebSocketMessages(sessionStatus(toID(hostID))) } ~
       path("preview" / Segment)      { uuid => get { handlePreview(toID(uuid)) } } ~
       path("depend" / "js" / "pako.esm.mjs") { getFromFile("node_modules/pako/dist/pako.esm.mjs") } ~
+      path("favicon.ico") { getFromFile("assets/images/favicon.ico") } ~
       pathPrefix("js")               { getFromDirectory("js")         } ~
       pathPrefix("assets")           { getFromDirectory("assets")     }
 
