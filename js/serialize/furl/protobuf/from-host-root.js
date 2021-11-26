@@ -3,6 +3,11 @@ import deepFreeze from "/js/static/deep-freeze.js";
 import { RolePB        } from "./role.js";
 import { StateUpdatePB } from "./state-update.js";
 
+const answerFields =
+  { answerType: "string"
+  , sdp:        "string"
+  };
+
 const FromHostRoot = {
 
   nested: {
@@ -37,12 +42,7 @@ const FromHostRoot = {
       , answer: { type: "Answer", id: 2 }
       }
     , nested: {
-        Answer: {
-          fields: {
-            type: { type: "string", id: 1 }
-          , sdp:  { type: "string", id: 2 }
-          }
-        }
+        Answer: fieldsFrom(answerFields)
       }
     }
 

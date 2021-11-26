@@ -17,6 +17,14 @@ const rejiggerConnEst = (obj) => {
 
 };
 
+// (Object[Any]) => Object[Any]
+const rejiggerHostAnswer = (obj) => {
+  const out = deepClone(obj);
+  out.answer.answerType = out.answer.type;
+  delete out.answer.type;
+  return out;
+};
+
 // (Object[Any], Number|Array[Number]) => Unit
 const rejiggerColor = (target, key) => {
 
@@ -632,6 +640,14 @@ const recombobulateConnEst = (obj) => {
   return out;
 };
 
+// (Object[Any]) => Object[Any]
+const recombobulateHostAnswer = (obj) => {
+  const out = deepClone(obj);
+  out.answer.type = out.answer.answerType;
+  delete out.answer.answerType;
+  return out;
+};
+
 // (Object[Any], Number|Array[Number]) => Unit
 const recombobulateColor = (target, key) => {
   if (target[key] !== undefined) {
@@ -886,6 +902,9 @@ const rejigger = (msg) => {
     case "hnw-burst": {
       return rejiggerBurst(msg);
     }
+    case "host-answer": {
+      return rejiggerHostAnswer(msg);
+    }
     case "initial-model": {
       return rejiggerInitialModel(msg);
     }
@@ -906,6 +925,9 @@ const recombobulate = (msg) => {
     }
     case "hnw-burst": {
       return recombobulateBurst(msg);
+    }
+    case "host-answer": {
+      return recombobulateHostAnswer(msg);
     }
     case "initial-model": {
       return recombobulateInitialModel(msg);
