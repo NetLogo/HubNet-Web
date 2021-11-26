@@ -111,7 +111,7 @@ const handlePing = (bundle, pings) => ({ id, lastPing }) => {
 const handleConnEst = (bundle) => ({ protocolVersion }) => {
 
   if (protocolVersion !== version) {
-    bundle.notifyUser(`HubNet protocol version mismatch!  You are using protocol version '${version}', while the host is using version '${protocolVersion}'.  To ensure that you and the host are using the same version of HubNet Web, all parties should clear their browser cache and try connecting again.  Your connection will now close.`);
+    bundle.notifyUser(`HubNet protocol version mismatch!  You are using protocol version '${version}', while the host is using version '${protocolVersion}'.  To ensure that you and the host are using the same version of HubNet Web, all parties should clear their browser cache and refresh the page.  Your connection will now close.`);
     bundle.disconnect();
   }
 
