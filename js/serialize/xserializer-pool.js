@@ -31,7 +31,7 @@ const xserialize = (parcel, isHost, port, type) => {
     );
 
   } else {
-    setTimeout((() => xserialize(parcel, isHost, port, type)), 5);
+    setTimeout((() => xserialize(parcel, isHost, port, type)), 1);
   }
 
 };
