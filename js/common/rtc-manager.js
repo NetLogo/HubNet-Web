@@ -101,7 +101,13 @@ export default class RTCManager {
         objs.forEach((obj) => {
           channels.forEach((channel) => {
             const id = idMap.get(channel);
-            this.#send(channel)("hnw-burst", obj, id);
+            if (chunks.length === 1) {
+              this.#asyncSerialize({ type, ...msg, microBurstID: id }).then(
+                (microBurst) => this.#logAndSend(microBurst, channel)
+              );
+            } else {
+              this.#send(channel)("hnw-burst", obj, id);
+            }
           });
         });
 
