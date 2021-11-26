@@ -14,7 +14,7 @@ export default (bundle) => (datum) => {
     }
 
     case "relay": {
-      bundle.relayToNLW(datum.payload);
+      bundle.relayToNLW(datum);
       break;
     }
 

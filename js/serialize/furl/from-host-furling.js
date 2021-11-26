@@ -19,8 +19,8 @@ const basicMap =
   , "login-successful":       lookupType("LoginSuccessful")
   , "no-username-given":      lookupType("NoUsernameGiven")
   , "ping":                   lookupType("Ping")
-  , "relay":                  lookupType("Relay")
   , "state-update":           lookupType("StateUpdate")
+  , "ticks-started":          lookupType("TicksStarted")
   , "username-already-taken": lookupType("UsernameTaken")
   };
 

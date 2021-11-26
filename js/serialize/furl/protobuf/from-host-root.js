@@ -145,22 +145,16 @@ const FromHostRoot = {
       }
     }
 
-  , Relay: { // relay
+  , TicksStarted: {
       fields: {
-        id:      { type: "uint32"     , id: 1 }
-      , payload: { type: "StateUpdate", id: 2 }
+        id:              { type: "uint32", id: 1 }
+      , hnwTicksStarted: { type: "bool"  , id: 2 }
       }
     }
 
   , StateUpdate: { // state-update
-      oneofs: {
-        dataOneOf: {
-          oneof: ["hnwTicksStarted", "update"]
-        }
-      }
-    , fields: {
-        hnwTicksStarted: { type: "bool", id: 1 }
-      , update:          { type: "SUPB", id: 2 }
+      fields: {
+        update: { type: "SUPB", id: 1 }
       }
     , nested: {
         SUPB: StateUpdatePB

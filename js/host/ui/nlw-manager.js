@@ -101,13 +101,16 @@ export default class HostNLWManager extends NLWManager {
       }
 
       case "relay": {
+        const typ  = data.payload.type;
+        const type = (typ === "nlw-state-update") ? "state-update" : typ;
         if (data.isNarrowcast) {
-          const parcel = { ...data };
+          const parcel = { ...data.payload };
           delete parcel.isNarrowcast;
           delete parcel.recipient;
-          this.#narrowcast(data.recipient, "relay", parcel);
+          delete parcel.type;
+          this.#narrowcast(data.recipient, type, parcel);
         } else {
-          this.#broadcast("relay", data);
+          this.#broadcast(type, data.payload);
         }
         break;
       }

@@ -401,38 +401,6 @@ const rejiggerInitialModel = (obj) => {
 };
 
 // (Object[Any]) => Object[Any]
-const rejiggerRelay = (obj) => {
-
-  const out = {};
-  for (const k0 in obj) {
-
-    const v0 = obj[k0];
-    if (k0 === "payload") {
-
-      out[k0] = {};
-
-      // Rejigger relay.payload.data[type="ticks-started"], etc.
-      if (v0.type === "ticks-started") {
-        const outer = { hnwTicksStarted: deepClone(v0, { type: 1 }) };
-        out[k0] = outer;
-      } else if (v0.type === "nlw-state-update") {
-        out[k0].update = {};
-        rejiggerStateUpdateInner(v0.update, out[k0].update);
-      } else {
-        out[k0] = deepClone(v0);
-      }
-
-    } else {
-      out[k0] = v0;
-    }
-
-  }
-
-  return out;
-
-};
-
-// (Object[Any]) => Object[Any]
 const rejiggerStateUpdateInner = (target, parent) => {
   for (const k0 in target) {
     const v0 = target[k0];
@@ -872,43 +840,6 @@ const recombobulateInitialModel = (obj) => {
 };
 
 // (Object[Any]) => Object[Any]
-const recombobulateRelay = (obj) => {
-
-  const out = {};
-  for (const k0 in obj) {
-
-    const v0 = obj[k0];
-    if (k0 === "payload") {
-
-      out[k0] = {};
-      for (const k1 in v0) {
-
-        const v1 = v0[k1];
-
-        // Recombobulate relay.payload.hnwTicksStarted, etc.
-        if (k1 === "hnwTicksStarted") {
-          out[k0][k1] = { type: "ticks-started", ...deepClone(v1) };
-        } else if (k1 === "update") {
-          out[k0][k1]  = {};
-          out[k0].type = "nlw-state-update";
-          recombobulateStateUpdateInner(v1, out[k0][k1]);
-        } else {
-          out[k0][k1] = v1;
-        }
-
-      }
-
-    } else {
-      out[k0] = v0;
-    }
-
-  }
-
-  return out;
-
-};
-
-// (Object[Any]) => Object[Any]
 const recombobulateStateUpdateInner = (target, parent) => {
   for (const k0 in target) {
     const v0 = target[k0];
@@ -958,9 +889,6 @@ const rejigger = (msg) => {
     case "initial-model": {
       return rejiggerInitialModel(msg);
     }
-    case "relay": {
-      return rejiggerRelay(msg);
-    }
     case "state-update": {
       return rejiggerStateUpdate(msg);
     }
@@ -981,9 +909,6 @@ const recombobulate = (msg) => {
     }
     case "initial-model": {
       return recombobulateInitialModel(msg);
-    }
-    case "relay": {
-      return recombobulateRelay(msg);
     }
     case "state-update": {
       return recombobulateStateUpdate(msg);
