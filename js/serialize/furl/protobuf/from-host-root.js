@@ -1,12 +1,30 @@
 import deepFreeze from "/js/static/deep-freeze.js";
 
-import { RolePB        } from "./role.js";
-import { StateUpdatePB } from "./state-update.js";
+import { fromDescriptors, fieldsFrom, FurlingDescriptor } from "./field-gen.js";
+import { RolePB                                         } from "./role.js";
+
+import * as SUPB from "./state-update.js";
 
 const answerFields =
   { answerType: "string"
   , sdp:        "string"
   };
+
+const candyFields =
+  { candidate:     "string"
+  , sdpMid:        "string"
+  , sdpMLineIndex: "uint32"
+  };
+
+const answerPath = ["answer"];
+const candyPath  = ["candidate"];
+
+const RootDescriptors =
+  { HostAnswerUnfurled: FurlingDescriptor.new("plain", "host-answer"       , [], answerFields, answerPath)
+  , ICECandyUnfurled:   FurlingDescriptor.new("plain", "host-ice-candidate", [],  candyFields,  candyPath)
+  };
+
+const RootUnfurls = fromDescriptors(RootDescriptors);
 
 const FromHostRoot = {
 
@@ -52,13 +70,7 @@ const FromHostRoot = {
       , candidate: { type: "Candidate", id: 2 }
       }
     , nested: {
-        Candidate: {
-          fields: {
-            candidate:     { type: "string", id: 1 }
-          , sdpMid:        { type: "string", id: 2 }
-          , sdpMLineIndex: { type: "uint32", id: 3 }
-          }
-        }
+        Candidate: fieldsFrom(candyFields)
       }
     }
 
@@ -82,7 +94,7 @@ const FromHostRoot = {
     , nested: {
 
         Role:        RolePB
-      , StateUpdate: StateUpdatePB
+      , StateUpdate: SUPB.StateUpdate
 
       , ViewDims: {
           fields: {
@@ -157,7 +169,7 @@ const FromHostRoot = {
         update: { type: "SUPB", id: 1 }
       }
     , nested: {
-        SUPB: StateUpdatePB
+        SUPB: SUPB.StateUpdate
       }
     }
 
@@ -167,10 +179,14 @@ const FromHostRoot = {
       }
     }
 
+  , ...RootUnfurls
+  , ...SUPB.StateUpdateUnfurls
+
   }
 
 };
 
 deepFreeze(FromHostRoot);
+deepFreeze(RootDescriptors);
 
-export { FromHostRoot };
+export { FromHostRoot, RootDescriptors };

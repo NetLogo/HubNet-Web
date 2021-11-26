@@ -1,15 +1,6 @@
-import deepFreeze from "/js/static/deep-freeze.js";
+import { fieldsFrom } from "./field-gen.js";
 
-// (Object[Any]) => Object[Any]
-const fieldsFrom = (obj) => {
-  const fields =
-    Object.fromEntries(
-      Object.entries(obj).map(
-        ([key, value], i) => [key, { type: value, id: (i + 1) }]
-      )
-    );
-  return { fields };
-};
+import deepFreeze from "/js/static/deep-freeze.js";
 
 // (Object[Any]) => Object[Any]
 const unfurledFrom = (obj) => {
