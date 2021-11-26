@@ -167,7 +167,6 @@ const recombobulateRelay = (obj) => {
           for (const k2 in v1) {
             out[k0][k2] = v1[k2];
           }
-          console.log("Recombob rain", k1, v1, out[k0][k1]);
         } else {
           out[k0][k1] = v1;
         }
