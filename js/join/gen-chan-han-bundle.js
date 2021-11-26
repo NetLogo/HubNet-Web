@@ -30,7 +30,7 @@ export default (rootBundle) => (connBundle) => {
          , handleLogin
          , handleMissingUsername:   rootBundle.unlockUI
          , handleUsernameIsTaken:   rootBundle.unlockUI
-         , notifyUser:              alert
+         , notifyUser:              (s) => { alert(s); }
          , send:                    connBundle.send
          , setConnectionType
          , setLatency
