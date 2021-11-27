@@ -386,7 +386,7 @@ const rejiggerInitialModel = (obj) => {
               out[k0][k1].push(outer);
             } else if (widget.type === "hnwTextBox") {
               const outer = { textBox: deepClone(widget, { type: 1 }) };
-              transform(outer.textBox)("color", rejiggerColor);
+              rejiggerColor(outer.textBox, "color");
               out[k0][k1].push(outer);
             } else if (widget.type === "hnwView") {
               const outer = { view: deepClone(widget, { type: 1 }) };
@@ -837,7 +837,7 @@ const recombobulateInitialModel = (obj) => {
             } else if (widget.textBox !== undefined) {
               const inner       = widget.textBox;
               const replacement = { type: "hnwTextBox", ...deepClone(inner) };
-              transform(replacement)("color", (c) => c / 10);
+              recombobulateColor(replacement, "color");
               out[k0][k1].push(replacement);
             } else if (widget.view !== undefined) {
               const inner  = deepClone(widget.view);
