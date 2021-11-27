@@ -127,7 +127,8 @@ const handleConnEst = (bundle) => ({ protocolVersion }) => {
               stats.get(v.localCandidateId).candidateType === "relay"
         );
 
-      const desc = usesTURN ? "Server-based" : "Peer-to-Peer";
+      const serverBasedSpan = "<span class='conn-warn'>Server-based</span>";
+      const desc            = usesTURN ? serverBasedSpan : "Peer-to-Peer";
       bundle.setConnectionType(desc);
 
     }

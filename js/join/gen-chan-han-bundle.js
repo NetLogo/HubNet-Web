@@ -16,7 +16,7 @@ export default (rootBundle) => (connBundle) => {
   };
 
   const setConnectionType = (ct) => {
-    byEID("connection-type-span").innerText = ct;
+    byEID("connection-type-span").innerHTML = ct;
   };
 
   const setLatency = (lat) => {
