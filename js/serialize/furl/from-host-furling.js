@@ -35,6 +35,7 @@ const furlingMappings =
   , "unfurled-su-plot-reset":        "UpdatePlotReset"
   , "unfurled-su-plot-reset-pen":    "UpdatePlotResetPen"
   , "unfurled-su-plot-register-pen": "UpdatePlotRegisterPen"
+  , "unfurled-su-plot-resize":       "UpdatePlotResize"
   , "unfurled-su-plot-pen-color":    "UpdatePlotUpdatePenColor"
   , "unfurled-su-plot-pen-mode":     "UpdatePlotUpdatePenMode"
   , "unfurled-su-turtles":           "UpdateViewTurtles"
@@ -246,6 +247,9 @@ const unfurlSoloPlotUpdates = (msg) => {
         }
         case "resetPen": {
           return unfurlByType("unfurled-su-plot-reset-pen", msg);
+        }
+        case "resize": {
+          return unfurlByType("unfurled-su-plot-resize", msg);
         }
         case "updatePenColor": {
           return unfurlByType("unfurled-su-plot-pen-color", msg);

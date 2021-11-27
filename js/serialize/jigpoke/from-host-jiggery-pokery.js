@@ -278,6 +278,13 @@ const rejiggerPlotUpdates = (target, parent) => {
         const outer = { registerPen: deepClone(pupdate, { type: 1 }) };
         rejiggerColor(outer.registerPen.pen, "color");
         newPupdates.push(outer);
+      } else if (pupdate.type === "resize") {
+        const outer = { resize: deepClone(pupdate, { type: 1 }) };
+        transform(outer.resize)("xMin", (x) => Math.round(x * 10));
+        transform(outer.resize)("xMax", (x) => Math.round(x * 10));
+        transform(outer.resize)("yMin", (y) => Math.round(y * 10));
+        transform(outer.resize)("yMax", (x) => Math.round(x * 10));
+        newPupdates.push(outer);
       } else if (pupdate.type === "update-pen-color") {
         const outer = { updatePenColor: deepClone(pupdate, { type: 1 }) };
         rejiggerColor(outer.updatePenColor, "color");
@@ -713,6 +720,14 @@ const recombobulatePlotUpdates = (target, parent) => {
         const inner   = pupdate.registerPen;
         const out     = { type: "register-pen", ...deepClone(inner) };
         recombobulateColor(out.pen, "color");
+        newPupdates.push(out);
+      } else if (pupdate.resize !== undefined) {
+        const inner = pupdate.resize;
+        const out   = { type: "resize", ...deepClone(inner) };
+        transform(out)("xMin", (x) => x / 10);
+        transform(out)("xMax", (x) => x / 10);
+        transform(out)("yMin", (x) => x / 10);
+        transform(out)("yMax", (x) => x / 10);
         newPupdates.push(out);
       } else if (pupdate.updatePenColor !== undefined) {
         const inner = pupdate.updatePenColor;

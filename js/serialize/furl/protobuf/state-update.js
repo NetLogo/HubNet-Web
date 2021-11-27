@@ -245,6 +245,13 @@ const regPenFields =
   { pen: "Pen"
   };
 
+const resizeFields =
+  { xMin: "sint32"
+  , xMax: "sint32"
+  , yMin: "sint32"
+  , yMax: "sint32"
+  };
+
 const penColorFields =
   { penName: "string"
   , color:   "uint32"
@@ -284,6 +291,7 @@ const  addPointPath = ["plotUpdates", "!", "value", "*",       "addPoint"       
 const resetPlotPath = ["plotUpdates", "!", "value", "*",          "reset", "plot"];
 const  resetPenPath = ["plotUpdates", "!", "value", "*",       "resetPen"        ];
 const    regPenPath = ["plotUpdates", "!", "value", "*",    "registerPen",  "pen"];
+const    resizePath = ["plotUpdates", "!", "value", "*",         "resize"        ];
 const  penColorPath = ["plotUpdates", "!", "value", "*", "updatePenColor"        ];
 const   penModePath = ["plotUpdates", "!", "value", "*", "updatePenMode"         ];
 
@@ -291,6 +299,7 @@ const  addPointEntry = [      "addPoint", "PlotUpdateAddPoint"   ];
 const resetPlotEntry = [         "reset", "PlotUpdateReset"      ];
 const  resetPenEntry = [      "resetPen", "PlotUpdateResetPen"   ];
 const    regPenEntry = [   "registerPen", "PlotUpdateRegisterPen"];
+const    resizeEntry = [        "resize", "PlotUpdateResize"     ];
 const  penColorEntry = ["updatePenColor", "PlotUpdatePenColor"   ];
 const   penModeEntry = ["updatePenMode" , "PlotUpdatePenMode"    ];
 
@@ -302,6 +311,7 @@ const PlotUpdateStuff = {
 , PlotUpdateReset:       fieldsFrom(resetPlotFields)
 , PlotUpdateResetPen:    fieldsFrom( resetPenFields)
 , PlotUpdateRegisterPen: fieldsFrom(   regPenFields)
+, PlotUpdateResize:      fieldsFrom(   resizeFields)
 , PlotUpdatePenColor:    fieldsFrom( penColorFields)
 , PlotUpdatePenMode:     fieldsFrom(  penModeFields)
 
@@ -309,7 +319,7 @@ const PlotUpdateStuff = {
     oneofs: {
       plotUpdate: {
         oneof: [ "addPoint", "reset", "resetPen", "registerPen"
-               , "updatePenColor", "updatePenMode"]
+               , "resize", "updatePenColor", "updatePenMode"]
       }
     }
   , fields: {
@@ -317,8 +327,9 @@ const PlotUpdateStuff = {
     , reset:          { type: "PlotUpdateReset"      , id: 2 }
     , resetPen:       { type: "PlotUpdateResetPen"   , id: 3 }
     , registerPen:    { type: "PlotUpdateRegisterPen", id: 4 }
-    , updatePenColor: { type: "PlotUpdatePenColor"   , id: 5 }
-    , updatePenMode:  { type: "PlotUpdatePenMode"    , id: 6 }
+    , resize:         { type: "PlotUpdateResize"     , id: 5 }
+    , updatePenColor: { type: "PlotUpdatePenColor"   , id: 6 }
+    , updatePenMode:  { type: "PlotUpdatePenMode"    , id: 7 }
     }
   }
 
@@ -366,6 +377,7 @@ const StateUpdateDescriptors =
   , UpdatePlotReset:             newFD("plot1", resetPlotEntry,      plotFields, resetPlotPath)
   , UpdatePlotResetPen:          newFD("plot1",  resetPenEntry,  resetPenFields,  resetPenPath)
   , UpdatePlotRegisterPen:       newFD("plot1",    regPenEntry,       penFields,    regPenPath)
+  , UpdatePlotResize:            newFD("plot1",    resizeEntry,    resizeFields,    resizePath)
   , UpdatePlotUpdatePenColor:    newFD("plot1",  penColorEntry,  penColorFields,  penColorPath)
   , UpdatePlotUpdatePenMode:     newFD("plot1",   penModeEntry,   penModeFields,   penModePath)
   , UpdateViewTurtles:           newFD( "map" ,    turtleEntry,    turtleFields,    turtlePath)
