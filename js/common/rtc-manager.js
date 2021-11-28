@@ -88,31 +88,39 @@ export default class RTCManager {
       )
     );
 
-    this.#asyncSerialize({ type, ...msg }).then(
-      (serialized) => {
+    const fullMsg    = { type, ...msg };
+    const jsonLength = JSON.stringify(fullMsg).length;
 
-        const chunks = chunkForSending(serialized);
+    if (jsonLength <= chunkSize) {
+      channels.forEach((channel) => {
+        const id = idMap.get(channel);
+        this.#asyncSerialize({ ...fullMsg, microBurstID: id }).then(
+          (microBurst) => this.#logAndSend(microBurst, channel)
+        );
+      });
+    } else {
 
-        const objs =
-          chunks.map(
-            (m, index) => ({ index, fullLength: chunks.length, parcel: m })
-          );
+      this.#asyncSerialize(fullMsg).then(
+        (serialized) => {
 
-        objs.forEach((obj) => {
-          channels.forEach((channel) => {
-            const id = idMap.get(channel);
-            if (chunks.length === 1) {
-              this.#asyncSerialize({ type, ...msg, microBurstID: id }).then(
-                (microBurst) => this.#logAndSend(microBurst, channel)
-              );
-            } else {
+          const chunks = chunkForSending(serialized);
+
+          const objs =
+            chunks.map(
+              (m, index) => ({ index, fullLength: chunks.length, parcel: m })
+            );
+
+          objs.forEach((obj) => {
+            channels.forEach((channel) => {
+              const id = idMap.get(channel);
               this.#send(channel)("hnw-burst", obj, id);
-            }
+            });
           });
-        });
 
-      }
-    );
+        }
+      );
+
+    }
 
   };
 
@@ -160,8 +168,7 @@ export default class RTCManager {
 // (Array[_]) => Array[Array[U]]
 const chunkForSending = (message) => {
 
-  const chunkSize = 15500;
-  const chunks    = Array.from(Array(Math.ceil(message.length / chunkSize)));
+  const chunks = Array.from(Array(Math.ceil(message.length / chunkSize)));
 
   const messages =
     chunks.map((x, i) => message.slice(chunkSize * i, chunkSize * (i + 1)));
@@ -172,3 +179,6 @@ const chunkForSending = (message) => {
     throw new Error("This activity is generating too much data for HubNet Web to reliably transfer.  Aborting....");
 
 };
+
+// Number
+const chunkSize = 15500;
