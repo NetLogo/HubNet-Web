@@ -43,8 +43,8 @@ export default class WebSocketManager {
     return this.#bandMon.getNewSend();
   };
 
-  // (String, Object[Any]) => Unit
-  send = (type, obj) => {
+  // (String, Object[Any]?) => Unit
+  send = (type, obj = {}) => {
 
     const socket = this.#socket;
 
@@ -102,8 +102,8 @@ export default class WebSocketManager {
 
   };
 
-  // (String, Any, UUID) => Unit
-  #send = (type, obj, id = this.#genNextID()) => {
+  // (String, Object[Any]?, UUID?) => Unit
+  #send = (type, obj = {}, id = this.#genNextID()) => {
 
     const parcel = { ...obj };
     parcel.id    = id;
@@ -113,13 +113,13 @@ export default class WebSocketManager {
 
   };
 
-  // (String, Any) => Unit
-  #sendOOB = (type, obj) => {
+  // (String, Object[Any]?) => Unit
+  #sendOOB = (type, obj = {}) => {
     const finalStr = makeMessage(type, obj);
     this.#logAndSend(finalStr);
   };
 
 }
 
-// (String, Object[Any]) => Unit
-const makeMessage = (type, obj) => JSON.stringify({ type, ...obj });
+// (String, Object[Any]?) => Unit
+const makeMessage = (type, obj = {}) => JSON.stringify({ type, ...obj });
