@@ -26,12 +26,12 @@ export default class SessionManager {
 
   // () => Array[RTCDataChannel]
   getAllChannels = () => {
-    return Object.values(this.#getChannelObj);
+    return Object.values(this.#getChannelObj());
   };
 
   // () => Object[UUID, Number]
   getBufferedAmounts = () => {
-    return Object.entries(this.#getChannelObj).
+    return Object.entries(this.#getChannelObj()).
       map(([uuid, channel]) => [uuid, channel.bufferedAmount]);
   };
 
