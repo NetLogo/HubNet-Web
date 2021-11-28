@@ -35,9 +35,10 @@ export default class ConnectionManager {
   #sessionManager   = undefined; // SessionManager
   #statusSocket     = undefined; // StatusSocket
 
-  // ((UUID, String) => Promise[Object[Any]], (UUID, Number) => Unit, (Object[Any]) => Unit, (UUID) => Unit, (String) => Boolean) => ConnectionManager
-  constructor( awaitJoinerInit, registerPing, relay, onDisconnect, passwordMatches
-             , notifyUser) {
+  // ( (UUID, String) => Promise[Object[Any]], (UUID, Number) => Unit, (Object[Any]) => Unit, (UUID) => Unit, (Array[Promise[RTCStatReport]]) => Unit
+  // , (String) => Boolean, (String) => Unit) => ConnectionManager
+  constructor( awaitJoinerInit, registerPing, relay, onDisconnect, onConnStatChange
+             , passwordMatches, notifyUser) {
     this.#awaitJoinerInit  = awaitJoinerInit;
     this.#broadSocket      = new BroadSocket();
     this.#deserializer     = new DeserializerPoolParty();
@@ -47,7 +48,7 @@ export default class ConnectionManager {
     this.#registerPingTime = registerPing;
     this.#relay            = relay;
     this.#rtcManager       = new RTCManager(true);
-    this.#sessionManager   = new SessionManager();
+    this.#sessionManager   = new SessionManager(onConnStatChange);
     this.#statusSocket     = new StatusSocket();
   }
 

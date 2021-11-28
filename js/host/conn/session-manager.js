@@ -2,13 +2,15 @@ import IDManager from "/js/common/id-manager.js";
 
 export default class SessionManager {
 
-  #pingIDManager = undefined; // IDManager
-  #sessions      = undefined; // Object[Session]
+  #onConnStatChange = undefined; // (Array[Promise[RTCStatReport]]) => Unit
+  #pingIDManager    = undefined; // IDManager
+  #sessions         = undefined; // Object[Session]
 
-  // () => SessionManager
-  constructor() {
-    this.#pingIDManager = new IDManager();
-    this.#sessions      = {};
+  // ((Array[Promise[RTCStatReport]]) => Unit) => SessionManager
+  constructor(onConnStatChange) {
+    this.#onConnStatChange = onConnStatChange;
+    this.#pingIDManager    = new IDManager();
+    this.#sessions         = {};
   }
 
   // () => Array[RTCDataChannel]
@@ -95,6 +97,7 @@ export default class SessionManager {
     const nw      = this.#sessions[joinerID].networking;
     nw.connection = connection;
     nw.channel    = channel;
+    this.#onConnStatChange(this.#getConnStats());
   };
 
   // () => Array[(RTCDataChannel, Number, Number)]
@@ -152,6 +155,7 @@ export default class SessionManager {
   // (UUID) => Unit
   unregister = (joinerID) => {
     delete this.#sessions[joinerID];
+    this.#onConnStatChange(this.#getConnStats());
   };
 
   // (UUID, String) => Boolean
@@ -174,6 +178,12 @@ export default class SessionManager {
     const filtered = pairs.filter(([  , s]) => s.networking.channel !== undefined);
     const entries  = filtered.map(([id, s]) => [id, s.networking.channel]);
     return Object.fromEntries(entries);
+  };
+
+  // () => Array[Promise[RTCStatReport]]
+  #getConnStats = () => {
+    return Object.values(this.#sessions).
+                  map((s) => s.networking.connection.getStats());
   };
 
 }

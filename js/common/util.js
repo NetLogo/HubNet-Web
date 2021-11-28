@@ -7,6 +7,17 @@ const byteSizeLabel = (n, precision = 2) => {
                       `${trunc(n)} B`;
 };
 
+// (RTCStatReport) => Boolean
+const checkIsTURN = (stats) => {
+  return Array.from(stats.values()).some(
+    (v) =>
+      v.type === "candidate-pair" &&
+        v.state === "succeeded" &&
+        v.localCandidateId &&
+        stats.get(v.localCandidateId).candidateType === "relay"
+  );
+};
+
 // (String) => Number
 /* eslint-disable no-bitwise */
 const uuidToRTCID = (uuid) => {
@@ -29,4 +40,4 @@ const typeIsOOB = (type) => {
   return ["keep-alive", "ping", "pong"].includes(type);
 };
 
-export { byteSizeLabel, typeIsOOB, uuidToRTCID };
+export { byteSizeLabel, checkIsTURN, typeIsOOB, uuidToRTCID };

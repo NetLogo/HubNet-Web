@@ -1,5 +1,7 @@
 import { version } from "/js/static/version.js";
 
+import { checkIsTURN } from "/js/common/util.js";
+
 export default class ChannelHandler {
 
   #bundle      = undefined; // Object[Any]
@@ -117,20 +119,10 @@ const handleConnEst = (bundle) => ({ protocolVersion }) => {
 
   bundle.getConnectionStats().then(
     (stats) => {
-
-      const usesTURN =
-        Array.from(stats.values()).some(
-          (v) =>
-            v.type === "candidate-pair" &&
-              v.state === "succeeded" &&
-              v.localCandidateId &&
-              stats.get(v.localCandidateId).candidateType === "relay"
-        );
-
+      const usesTURN        = checkIsTURN(stats);
       const serverBasedSpan = "<span class='conn-warn'>Server-based</span>";
       const desc            = usesTURN ? serverBasedSpan : "Peer-to-Peer";
       bundle.setConnectionType(desc);
-
     }
   );
 

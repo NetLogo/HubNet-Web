@@ -72,6 +72,7 @@ const connMan =
                        , (jid, ping) => { nlwManager.registerPingStats(jid, ping); }
                        , (pl)        => { nlwManager.relay(pl);                    }
                        , ()          => { nlwManager.disown();                     }
+                       , (cs)        => { bandwidthManager.updateTURNs(cs);        }
                        , launchControlManager.passwordMatches
                        , notifyUser);
 
@@ -84,7 +85,7 @@ document.addEventListener("DOMContentLoaded", nlwManager.init);
 const bandwidthManager =
     new BandwidthManager( setIT("bandwidth-span"), setIT("new-send-span")
                         , setIT("num-clients-span"), setIT("num-congested-span")
-                        , setIT("activity-status-span")
+                        , setIT("activity-status-span"), setIT("num-turn-span")
                         , nlwManager.notifyCongested, nlwManager.notifyUncongested);
 
 self.addEventListener("beforeunload", connMan.teardown);

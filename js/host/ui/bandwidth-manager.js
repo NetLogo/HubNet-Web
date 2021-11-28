@@ -1,4 +1,4 @@
-import { byteSizeLabel } from "/js/common/util.js";
+import { byteSizeLabel, checkIsTURN } from "/js/common/util.js";
 
 export default class BandwidthManager {
 
@@ -10,12 +10,13 @@ export default class BandwidthManager {
   #setNewSendDOM      = undefined; // (String) => Unit
   #setNumClientsDOM   = undefined; // (String) => Unit
   #setNumCongestedDOM = undefined; // (String) => Unit
+  #setNumTURNs        = undefined; // (String) => Unit
   #setStatusDOM       = undefined; // (String) => Unit
 
   // ( (String) => Unit, (String) => Unit, (String) => Unit, (String) => Unit, (String) => Unit
-  // , () => Unit, () => Unit) => BandwidthManager
+  // , (String) => Unit, () => Unit, () => Unit) => BandwidthManager
   constructor( setBandwidth, setNewSend, setNumClients, setNumCongested, setStatus
-             , notifyCongested, notifyUncongested) {
+             , setNumTURNs, notifyCongested, notifyUncongested) {
     this.#congestionDuration = 0;
     this.#notifyCongested    = notifyCongested;
     this.#notifyUncongested  = notifyUncongested;
@@ -24,6 +25,7 @@ export default class BandwidthManager {
     this.#setNewSendDOM      = setNewSend;
     this.#setNumClientsDOM   = setNumClients;
     this.#setNumCongestedDOM = setNumCongested;
+    this.#setNumTURNs        = setNumTURNs;
     this.#setStatusDOM       = setStatus;
   }
 
@@ -89,6 +91,16 @@ export default class BandwidthManager {
     this.#setNumCongestedDOM(numCongested);
     this.#setStatusDOM      (status);
 
+  };
+
+  // (Array[Promise[RTCStatReport]]) => Unit
+  updateTURNs = (connStats) => {
+    Promise.all(connStats).then(
+      (allStats) => {
+        const turners = allStats.filter(checkIsTURN);
+        this.#setNumTURNs(turners.length);
+      }
+    );
   };
 
 }
