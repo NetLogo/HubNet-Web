@@ -63,7 +63,7 @@ export default class SessionManager {
       const username = sesh.username;
       sesh.networking.channel.close();
       delete this.#sessions[joinerID];
-      return username;
+      return username || joinerID;
     } else {
       return joinerID;
     }
