@@ -12,6 +12,9 @@ import genCHB from "./gen-chan-han-bundle.js";
 // (String) => Element?
 const byEID = (eid) => document.getElementById(eid);
 
+// String
+const usernameLSKey = "hnw.global.username";
+
 // (String, String) => Unit
 const onLogIn = (username, password) => {
 
@@ -37,6 +40,8 @@ const onLogIn = (username, password) => {
     alert("The selected session is currently full.  Please wait a bit before trying again, or choose another session.");
   };
 
+  window.localStorage.setItem(usernameLSKey, username);
+
   fetch(`/rtc/join/${hostID}`).
     then((response) => response.text()).
     then(connMan.logIn( hostID, username, password, genCHBundle
@@ -56,10 +61,12 @@ const processURLHash = (clickAndGetByUUID) => {
 
     if (session !== undefined) {
 
-      const hasUsername = username !== undefined;
+      const initialName = username || loginControls.getUsername();
+
+      const hasUsername = initialName !== undefined;
 
       const finalUsername =
-        hasUsername ? username : prompt("Please enter your login name");
+        hasUsername ? initialName : prompt("Please enter your login name");
 
       loginControls.setUsername(finalUsername);
 
@@ -134,6 +141,11 @@ const onHNWError = (type) => {
 const loginControls  = new LoginControlsManager(byEID("join-form"), onLogIn);
 const previewManager = new       PreviewManager(byEID("session-preview-image"));
 const statusManager  = new     AppStatusManager(byEID("status-value"));
+
+document.addEventListener("DOMContentLoaded", () => {
+  const username = window.localStorage.getItem(usernameLSKey);
+  loginControls.setUsername(username || "");
+});
 
 const sessionList =
   new SessionList(byEID("session-list-container"), processURLHash, statusManager
