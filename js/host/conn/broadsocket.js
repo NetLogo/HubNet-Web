@@ -21,13 +21,13 @@ export default class BroadSocket {
     return awaitWorker(this.#worker)(msg);
   };
 
-  // (UUID, (RTCPeerConnection, UUID) => (Object[Any]) => Unit, (Worker) => Unit) => Unit
-  connect = (hostID, processOffer, registerSignaling) => {
+  // (UUID, (RTCPeerConnection, UUID) => (Object[Any]) => Unit, (Worker) => Unit, () => Boolean) => Unit
+  connect = (hostID, processOffer, registerSignaling, getFullness) => {
 
     const mc = new MessageChannel();
 
     mc.port1.onmessage =
-      handleSocketMessage(hostID, processOffer, registerSignaling);
+      handleSocketMessage(hostID, processOffer, registerSignaling, getFullness);
 
     const url = `${wsProto}://${hnw}/rtc/${hostID}`;
     this.#worker.postMessage({ type: "connect", url }, [mc.port2]);
@@ -36,12 +36,12 @@ export default class BroadSocket {
 
 }
 
-// (UUID, (UUID, RTCPeerConnection) => (Object[Any]) => Unit, (UUID, SignalingSocket) => Unit) =>
+// (UUID, (UUID, RTCPeerConnection) => (Object[Any]) => Unit, (UUID, SignalingSocket) => Unit, () => Boolean) =>
 // (Object[{ data :: UUID }]) => Unit
-const handleSocketMessage = (hostID, processOffer2, registerSignaling) =>
+const handleSocketMessage = (hostID, processOffer2, registerSignaling, getFullness) =>
                             ({ data: joinerID }) => {
 
-  const signaling  = new SignalingSocket();
+  const signaling  = new SignalingSocket(getFullness());
 
   const connection    = new RTCPeerConnection(rtcConfig);
   const processOffer0 = processOffer2(joinerID, connection);

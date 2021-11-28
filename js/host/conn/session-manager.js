@@ -13,12 +13,14 @@ import IDManager from "/js/common/id-manager.js";
 
 export default class SessionManager {
 
+  #maxCapacity      = undefined; // Number
   #onConnStatChange = undefined; // (Array[Promise[RTCStatReport]]) => Unit
   #pingIDManager    = undefined; // IDManager
   #sessions         = undefined; // Object[Session]
 
-  // ((Array[Promise[RTCStatReport]]) => Unit) => SessionManager
-  constructor(onConnStatChange) {
+  // (Number, (Array[Promise[RTCStatReport]]) => Unit) => SessionManager
+  constructor(maxCapacity, onConnStatChange) {
+    this.#maxCapacity      = maxCapacity;
     this.#onConnStatChange = onConnStatChange;
     this.#pingIDManager    = new IDManager();
     this.#sessions         = {};
@@ -74,10 +76,16 @@ export default class SessionManager {
       const username = sesh.username;
       sesh.networking.channel.close();
       delete this.#sessions[joinerID];
+      this.#updateFullness();
       return username || joinerID;
     } else {
       return joinerID;
     }
+  };
+
+  // () => Boolean
+  isAtCapacity = () => {
+    return this.getNumActive() >= this.#maxCapacity;
   };
 
   // (UUID, String) => Unit
@@ -85,6 +93,7 @@ export default class SessionManager {
     const session = this.#sessions[joinerID];
     session.networking.signaling.terminate();
     session.username = username;
+    this.#updateFullness();
   };
 
   // (UUID, RTCIceCandidate) => Unit
@@ -166,7 +175,14 @@ export default class SessionManager {
   // (UUID) => Unit
   unregister = (joinerID) => {
     delete this.#sessions[joinerID];
+    this.#updateFullness();
     this.#onConnStatChange(this.#getConnStats());
+  };
+
+  // (Number) => Unit
+  updateFullness = (maxCapacity) => {
+    this.#maxCapacity  = maxCapacity;
+    this.#updateFullness();
   };
 
   // (UUID, String) => Boolean
@@ -194,7 +210,14 @@ export default class SessionManager {
   // () => Array[Promise[RTCStatReport]]
   #getConnStats = () => {
     return Object.values(this.#sessions).
-                  map((s) => s.networking.connection.getStats());
+                  map((s) => s.networking.connection?.getStats()).
+                  filter((stats) => stats !== undefined);
+  };
+
+  // () => Unit
+  #updateFullness = () => {
+    const isAtCapacity = this.isAtCapacity();
+    this.getSignalers().forEach((sig) => { sig.updateFullness(isAtCapacity); });
   };
 
 }

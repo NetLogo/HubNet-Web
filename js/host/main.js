@@ -63,6 +63,11 @@ const setIT = (id) => (text) => {
   byEID(id).innerText = text;
 };
 
+// () => Number
+const getCapacity = () => {
+  return Math.max(0, Math.min(999, parseInt(byEID("max-num-clients-picker").value)));
+};
+
 const launchControlManager =
   new LaunchControlManager( byEID("form-frame"), awaitLaunchHTTP, notifyUser
                           , finishLaunch);
@@ -73,7 +78,7 @@ const connMan =
                        , (pl)        => { nlwManager.relay(pl);                    }
                        , ()          => { nlwManager.disown();                     }
                        , (cs)        => { bandwidthManager.updateTURNs(cs);        }
-                       , launchControlManager.passwordMatches
+                       , launchControlManager.passwordMatches, getCapacity()
                        , notifyUser);
 
 const nlwManager =
@@ -87,6 +92,10 @@ const bandwidthManager =
                         , setIT("num-clients-span"), setIT("num-congested-span")
                         , setIT("activity-status-span"), setIT("num-turn-span")
                         , nlwManager.notifyCongested, nlwManager.notifyUncongested);
+
+byEID("max-num-clients-picker").addEventListener("change", () => {
+  connMan.updateFullness(getCapacity());
+});
 
 self.addEventListener("beforeunload", connMan.teardown);
 

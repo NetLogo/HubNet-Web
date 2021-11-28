@@ -30,14 +30,14 @@ export default class ConnectionManager {
   };
 
   // ( UUID, String, String, Object[Any], Object[Any], (Object[Any]) => Object[Any], () => Unit
-  // , () => Unit, (String) => Unit, (Boolean, () => Unit) => Unit, (() => Unit) => Unit) => (UUID) => Unit
+  // , () => Unit, (String) => Unit, (Boolean, () => Unit) => Unit, () => Unit, (() => Unit) => Unit) => (UUID) => Unit
   logIn = ( hostID, username, password, genCHBundle, notifyLoggingIn
-          , notifyICEConnLost, notifyUser, onTeardown) => (joinerID) => {
+          , notifyICEConnLost, notifyUser, notifyFull, onTeardown) => (joinerID) => {
     this.#initiateRTC(joinerID).
       then(([channel, offer]) => {
         this.#joinSession( hostID, joinerID, username, password, offer, channel
                          , genCHBundle, notifyLoggingIn, notifyICEConnLost
-                         , onTeardown);
+                         , notifyFull, onTeardown);
       }).catch(
         error => notifyUser(`Cannot join session: ${error.message}`)
       );
@@ -82,8 +82,8 @@ export default class ConnectionManager {
 
   };
 
-  // (UUID, UUID, RTCSessionDescriptionInit) => SignalingStream
-  #genSignalingStream = (hostID, joinerID, offer) => {
+  // (UUID, UUID, RTCSessionDescriptionInit, () => Unit) => SignalingStream
+  #genSignalingStream = (hostID, joinerID, offer, notifyFull) => {
 
     const setRTCDesc =
       (answer) => {
@@ -94,7 +94,8 @@ export default class ConnectionManager {
 
     const addRTCICE = (c) => { this.#conn.addIceCandidate(c); };
 
-    return new SignalingStream(hostID, joinerID, offer, setRTCDesc, addRTCICE);
+    return new SignalingStream( hostID, joinerID, offer
+                              , setRTCDesc, addRTCICE, notifyFull);
 
   };
 
@@ -118,13 +119,17 @@ export default class ConnectionManager {
   };
 
   // ( UUID, UUID, String, String, RTCSessionDescriptionInit, RTCDataChannel
-  // , (Object[Any]) => Object[Any], () => Unit, () => Unit, (Boolean, () => Unit) => Unit) => Unit
+  // , (Object[Any]) => Object[Any], () => Unit, () => Unit, () => Unit
+  // , (Boolean, () => Unit) => Unit) => Unit
   #joinSession = ( hostID, joinerID, username, password, offer, channel
-                 , genCHBundle, notifyLoggingIn, notifyICEConnLost, onTeardown) => {
+                 , genCHBundle, notifyLoggingIn, notifyICEConnLost, notifyFull
+                 , onTeardown) => {
 
-    const signalingStream = this.#genSignalingStream(hostID, joinerID, offer);
-    this.#rxQueue         = this.#genRxQueue(genCHBundle, signalingStream.terminate);
-    this.#channel         = channel;
+    const gen             = this.#genSignalingStream;
+    const signalingStream = gen(hostID, joinerID, offer, notifyFull);
+
+    this.#rxQueue = this.#genRxQueue(genCHBundle, signalingStream.terminate);
+    this.#channel = channel;
 
     this.#conn.setLocalDescription(offer);
     this.#registerICEListeners(signalingStream, onTeardown, notifyICEConnLost);

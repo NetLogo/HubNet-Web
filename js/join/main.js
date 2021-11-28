@@ -33,11 +33,15 @@ const onLogIn = (username, password) => {
 
   const genCHBundle = genCHB(rootCHBundle);
 
+  const notifyFull = () => {
+    alert("The selected session is currently full.  Please wait a bit before trying again, or choose another session.");
+  };
+
   fetch(`/rtc/join/${hostID}`).
     then((response) => response.text()).
     then(connMan.logIn( hostID, username, password, genCHBundle
                       , statusManager.loggingIn, statusManager.iceConnectionLost
-                      , alert, cleanupSession));
+                      , alert, notifyFull, cleanupSession));
 
 };
 

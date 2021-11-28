@@ -1,6 +1,7 @@
 import WebSocketManager from "/js/common/websocket.js";
 
-let socket = null; // WebSocketManager
+let isAtCapacity = false; // Boolean
+let socket       = null;  // WebSocketManager
 
 // (MessageEvent) => Unit
 onmessage = (e) => {
@@ -11,7 +12,12 @@ onmessage = (e) => {
     }
     case "connect": {
       const onMsg = ({ data }) => {
-        e.ports[0].postMessage(data);
+        if (!isAtCapacity) {
+          e.ports[0].postMessage(data);
+        } else {
+          socket.send("pool's-closed");
+          socket.close(4444, "Session is at capacity");
+        }
       };
       socket = new WebSocketManager(e.data.url, onMsg);
       break;
@@ -26,6 +32,10 @@ onmessage = (e) => {
     }
     case "request-bandwidth-report": {
       e.ports[0].postMessage(socket.getBandwidth());
+      break;
+    }
+    case "update-fullness": {
+      isAtCapacity = e.data.isAtCapacity;
       break;
     }
     default: {

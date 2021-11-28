@@ -7,11 +7,12 @@ export default class SignalingSocket {
   #isDead = undefined; // Boolean
   #worker = undefined; // Worker[SignalingSocketWorker]
 
-  // () => SignalingSocket
-  constructor() {
+  // (Boolean) => SignalingSocket
+  constructor(isAtCapacity) {
     const url    = "js/host/conn/signaling-socket-worker.js";
     this.#worker = new Worker(url, { type: "module" });
     this.#isDead = false;
+    this.updateFullness(isAtCapacity);
   }
 
   // (String) => Promise[_]
@@ -33,6 +34,11 @@ export default class SignalingSocket {
 
   // () => Boolean
   isTerminated = () => this.#isDead;
+
+  // (Boolean) => Unit
+  updateFullness = (isAtCapacity) => {
+    this.#worker.postMessage({ type: "update-fullness", isAtCapacity });
+  };
 
   // (RTCSessionDescription) => Unit
   sendAnswer = (answer) => {

@@ -25,9 +25,9 @@ export default class ConnectionManager {
   #statusSocket     = undefined; // StatusSocket
 
   // ( (UUID, String) => Promise[Object[Any]], (UUID, Number) => Unit, (Object[Any]) => Unit, (UUID) => Unit, (Array[Promise[RTCStatReport]]) => Unit
-  // , (String) => Boolean, (String) => Unit) => ConnectionManager
+  // , (String) => Boolean, Number, (String) => Unit) => ConnectionManager
   constructor( awaitJoinerInit, registerPing, relay, onDisconnect, onConnStatChange
-             , passwordMatches, notifyUser) {
+             , passwordMatches, maxCapacity, notifyUser) {
     this.#awaitJoinerInit  = awaitJoinerInit;
     this.#broadSocket      = new BroadSocket();
     this.#deserializer     = new DeserializerPoolParty();
@@ -37,7 +37,7 @@ export default class ConnectionManager {
     this.#registerPingTime = registerPing;
     this.#relay            = relay;
     this.#rtcManager       = new RTCManager(true);
-    this.#sessionManager   = new SessionManager(onConnStatChange);
+    this.#sessionManager   = new SessionManager(maxCapacity, onConnStatChange);
     this.#statusSocket     = new StatusSocket();
   }
 
@@ -56,13 +56,15 @@ export default class ConnectionManager {
   // (UUID, String, String) => Unit
   connect = (hostID) => {
 
-    const registerSignaling = (joinerID, signaling) => {
+    const regSig = (joinerID, signaling) => {
       this.#sessionManager.register(joinerID, signaling);
       this.#rtcManager  .notifyClientConnect();
       this.#deserializer.notifyClientConnect();
     };
 
-    this. #broadSocket.connect(hostID, this.#processOffer, registerSignaling);
+    const getFullness = this.#sessionManager.isAtCapacity;
+
+    this. #broadSocket.connect(hostID, this.#processOffer, regSig, getFullness);
     this.#statusSocket.connect(hostID);
 
     setInterval(() => {
@@ -121,6 +123,11 @@ export default class ConnectionManager {
         channel.close(1000, "Terminating unneeded sockets...");
       }
     );
+  };
+
+  // (Number) => Unit
+  updateFullness = (maxCapacity) => {
+    this.#sessionManager.updateFullness(maxCapacity);
   };
 
   // (Object[Any]) => Unit

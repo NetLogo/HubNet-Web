@@ -3,12 +3,13 @@ export default class SignalingStream {
   #worker = undefined; // Worker[JoinerSignalingWorker]
 
   // ( String, String, RTCSessionDescriptionInit
-  // , (RTCSessionDescription) => Unit, (RTCIceCandidate) => Unit) => SignalingStream
-  constructor(hostID, joinerID, offer, setRTCDesc, addRTCICE) {
+  // , (RTCSessionDescription) => Unit, (RTCIceCandidate) => Unit, () => Unit) => SignalingStream
+  constructor(hostID, joinerID, offer, setRTCDesc, addRTCICE, notifyFull) {
     const buddyURL = "js/join/conn/signaling-worker.js";
     this.#worker   = new Worker(buddyURL, { type: "module" });
     this.#connect(hostID, joinerID, offer);
-    this.#worker.onmessage = onSignalingMessage(setRTCDesc, addRTCICE);
+    this.#worker.onmessage =
+      onSignalingMessage(setRTCDesc, addRTCICE, notifyFull, this.terminate);
   }
 
   // (RTCIceCandidate) => Unit
@@ -18,8 +19,10 @@ export default class SignalingStream {
 
   // () => Unit
   terminate = () => {
-    this.#worker.terminate();
-    this.#worker = null;
+    if (this.#worker !== null) {
+      this.#worker.terminate();
+      this.#worker = null;
+    }
   };
 
   // (String, String, RTCSessionDescriptionInit) => Unit
@@ -36,8 +39,10 @@ export default class SignalingStream {
 
 }
 
-// ((RTCSessionDescription) => Unit, (RTCIceCandidate) => Unit) => (Object[Any]) => Unit
-const onSignalingMessage = (setRTCDesc, addRTCICE) => ({ data }) => {
+// ((RTCSessionDescription) => Unit, (RTCIceCandidate) => Unit, () => Unit, () => Unit) =>
+// (Object[Any]) => Unit
+const onSignalingMessage = (setRTCDesc, addRTCICE, notifyFull, selfDestruct) =>
+                           ({ data }) => {
   const datum = JSON.parse(data);
   switch (datum.type) {
     case "host-answer": {
@@ -53,6 +58,11 @@ const onSignalingMessage = (setRTCDesc, addRTCICE) => ({ data }) => {
       break;
     }
     case "keep-alive": {
+      break;
+    }
+    case "pool's-closed": {
+      selfDestruct();
+      notifyFull();
       break;
     }
     default: {
