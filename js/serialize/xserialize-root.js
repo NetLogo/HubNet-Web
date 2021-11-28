@@ -37,14 +37,8 @@ const serialize = (isHost) => (msg) => {
   const [preppedMsg, protoType, typeCode] =
     (isHost ? FromHostFurler : FromJoinerFurler).unfurl(rejiggered);
 
-  const protoMsg = protoType.fromObject(preppedMsg, { enums: String });
-  const errorMsg = protoType.verify(protoMsg);
-
-  if (errorMsg !== null) {
-    console.error(`Protobuf Error: ${errorMsg}`);
-  }
-
   const writer     = protobuf.Writer.create();
+  const protoMsg   = protoType.fromObject(preppedMsg, { enums: String });
   const encoded    = protoType.encode(protoMsg, writer).finish();
   const compressed = deflate(encoded);
 
