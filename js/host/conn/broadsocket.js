@@ -8,7 +8,7 @@ import SignalingSocket from "./signaling-socket.js";
 
 export default class BroadSocket {
 
-  #worker = undefined; // Worker[StatusSocketWorker]
+  #worker = undefined; // Worker[BroadSocketWorker]
 
   // () => BroadSocket
   constructor() {
