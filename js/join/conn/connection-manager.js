@@ -30,14 +30,16 @@ export default class ConnectionManager {
   };
 
   // ( UUID, String, String, Object[Any], Object[Any], (Object[Any]) => Object[Any], () => Unit
-  // , () => Unit, (String) => Unit, (Boolean, () => Unit) => Unit, () => Unit, (() => Unit) => Unit) => (UUID) => Unit
+  // , () => Unit, () => Unit, (String) => Unit, (Boolean, () => Unit) => Unit, () => Unit, (() => Unit) => Unit) =>
+  // (UUID) => Unit
   logIn = ( hostID, username, password, genCHBundle, notifyLoggingIn
-          , notifyICEConnLost, notifyUser, notifyFull, onTeardown) => (joinerID) => {
+          , notifyICEConnLost, onDoorbell, notifyUser, notifyFull, onTeardown) =>
+          (joinerID) => {
     this.#initiateRTC(joinerID).
       then(([channel, offer]) => {
         this.#joinSession( hostID, joinerID, username, password, offer, channel
                          , genCHBundle, notifyLoggingIn, notifyICEConnLost
-                         , notifyFull, onTeardown);
+                         , onDoorbell, notifyFull, onTeardown);
       }).catch(
         error => notifyUser(`Cannot join session: ${error.message}`)
       );
@@ -120,10 +122,10 @@ export default class ConnectionManager {
 
   // ( UUID, UUID, String, String, RTCSessionDescriptionInit, RTCDataChannel
   // , (Object[Any]) => Object[Any], () => Unit, () => Unit, () => Unit
-  // , (Boolean, () => Unit) => Unit) => Unit
+  // , () => Unit, (Boolean, () => Unit) => Unit) => Unit
   #joinSession = ( hostID, joinerID, username, password, offer, channel
-                 , genCHBundle, notifyLoggingIn, notifyICEConnLost, notifyFull
-                 , onTeardown) => {
+                 , genCHBundle, notifyLoggingIn, notifyICEConnLost, onDoorbell
+                 , notifyFull, onTeardown) => {
 
     const gen             = this.#genSignalingStream;
     const signalingStream = gen(hostID, joinerID, offer, notifyFull);
@@ -134,17 +136,18 @@ export default class ConnectionManager {
     this.#conn.setLocalDescription(offer);
     this.#registerICEListeners(signalingStream, onTeardown, notifyICEConnLost);
     this.#registerChannelListeners( channel, username, password, notifyLoggingIn
-                                  , this.#rxQueue, onTeardown);
+                                  , this.#rxQueue, onDoorbell, onTeardown);
 
 
   };
 
-  // (RTCDataChannel, String, String, () => Unit, RxQueue, (Boolean) => Unit) => Unit
+  // (RTCDataChannel, String, String, () => Unit, RxQueue, () => Unit, (Boolean) => Unit) => Unit
   #registerChannelListeners = ( channel, username, password, notifyLoggingIn
-                              , rxQueue, onTeardown) => {
+                              , rxQueue, onDoorbell, onTeardown) => {
 
     channel.onopen = () => {
       notifyLoggingIn();
+      onDoorbell();
       this.#rtcMan.sendGreeting(this.#channel);
       this.send("login", { username, password });
     };

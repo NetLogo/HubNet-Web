@@ -19,7 +19,7 @@ const onLogIn = (username, password) => {
 
   const hostID = sessionList.getSelectedUUID();
 
-  requestAnimationFrame(burstQueue.run);
+  const onDoorbell = () => requestAnimationFrame(burstQueue.run);
 
   const rootCHBundle =
     { enqueue:                burstQueue.enqueue
@@ -41,7 +41,7 @@ const onLogIn = (username, password) => {
     then((response) => response.text()).
     then(connMan.logIn( hostID, username, password, genCHBundle
                       , statusManager.loggingIn, statusManager.iceConnectionLost
-                      , alert, notifyFull, cleanupSession));
+                      , onDoorbell, alert, notifyFull, cleanupSession));
 
 };
 
