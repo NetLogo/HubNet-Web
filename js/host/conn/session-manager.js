@@ -1,5 +1,16 @@
 import IDManager from "/js/common/id-manager.js";
 
+// type Session = {
+//   networking :: { signaling  :: WebSocket
+//                 , connection :: RTCPeerConnection
+//                 , channel    :: RTCDataChannel
+//                 }
+// , hasInitialized :: Boolean
+// , username       :: String
+// , pingData       :: { [pingID] :: Number }
+// , recentPings    :: Array[Number]
+// }
+
 export default class SessionManager {
 
   #onConnStatChange = undefined; // (Array[Promise[RTCStatReport]]) => Unit

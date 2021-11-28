@@ -10,17 +10,6 @@ import RTCManager from "/js/common/rtc-manager.js";
 
 import DeserializerPoolParty from "/js/serialize/deserializer-pool-party.js";
 
-// type Session = {
-//   networking :: { socket     :: WebSocket
-//                 , connection :: RTCPeerConnection
-//                 , channel    :: RTCDataChannel
-//                 }
-// , hasInitialized :: Boolean
-// , username       :: String
-// , pingData       :: { [pingID] :: Number }
-// , recentPings    :: Array[Number]
-// }
-
 export default class ConnectionManager {
 
   #awaitJoinerInit  = undefined; // (UUID, String) => Promise[Object[Any]]
