@@ -11,8 +11,18 @@
   width: 80%;
 }
 
+.session-label {
+  border-radius: 12px;
+  margin:         3px 0 3px 3px;
+  padding:        5px;
+}
+
+.session-label:not(.active) {
+  box-shadow: 0 0 8px #47daff;
+}
+
 .session-label.active {
-  background-color: red;
+  background-color: #47daff;
 }
 
 .session-option {
