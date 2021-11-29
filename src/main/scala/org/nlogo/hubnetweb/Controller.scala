@@ -16,7 +16,7 @@ import akka.http.scaladsl.model.ws.{ BinaryMessage, Message, TextMessage }
 import akka.http.scaladsl.server.directives.ContentTypeResolver
 import akka.http.scaladsl.server.Directives.{ complete, reject }
 import akka.http.scaladsl.server.{ RequestContext, RouteResult, ValidationRejection }
-import akka.stream.scaladsl.{ Flow, Sink, Source }
+import akka.stream.scaladsl.{ Flow, Merge, Sink, Source }
 import akka.util.Timeout
 
 import akka.actor.typed.{ ActorRef, ActorSystem => TASystem }
@@ -32,6 +32,9 @@ import session.SessionManagerActor.{ CreateSession, DelistSession, GetPreview
                                    , PushFromJoiner, PushNewJoiner, SeshMessageAsk
                                    , UpdateNumPeers, UpdatePreview
                                    }
+
+import ChatManagerActor.{ Census, ChatMessageAsk, LogChat, LogTick, PullBuffer
+                        , StartLoop }
 
 object Controller {
 
@@ -50,10 +53,23 @@ object Controller {
   private case class SessionInfoUpdate(name: String, modelName: String, roleInfo: Vector[(String, Int, Int)], oracleID: String, hasPassword: Boolean)
   implicit private val siuFormat = jsonFormat5(SessionInfoUpdate)
 
+  private case class CensusMessage(`type`: String, num: Int)
+  implicit private val cemFormat = jsonFormat2(CensusMessage)
+
+  private case class ChatMessage(`type`: String, sender: Int, message: String, isAuthority: Boolean)
+  implicit private val chmFormat = jsonFormat4(ChatMessage)
+
   implicit private val system           = ActorSystem("hnw-system")
   implicit private val executionContext = system.dispatcher
 
   private val seshManager = TASystem(SessionManagerActor(), "session-manager-system")
+  private val chatManager = TASystem(   ChatManagerActor(),    "chat-manager-system")
+
+  chatManager ! StartLoop {
+    (d: FiniteDuration, thunk: () => Unit) =>
+      system.scheduler.scheduleOnce(delay = d)(thunk())
+      ()
+  }
 
   private val namesToPaths = makeModelMappings()
 
@@ -86,6 +102,7 @@ object Controller {
       path("launch-session")   { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
       path("join")             { getFromFile("html/join.html")  } ~
       path("available-models") { get { complete(availableModels) } } ~
+      path("chat")                             { handleWebSocketMessages(chat) } ~
       path("rtc" / "join" / Segment)           { (hostID)           => get { startJoin(toID(hostID)) } } ~
       path("rtc" / Segment / Segment / "host") { (hostID, joinerID) => handleWebSocketMessages(rtcHost(toID(hostID), toID(joinerID))) } ~
       path("rtc" / Segment / Segment / "join") { (hostID, joinerID) => handleWebSocketMessages(rtcJoiner(toID(hostID), toID(joinerID))) } ~
@@ -352,6 +369,74 @@ object Controller {
 
   }
 
+  private def chat(): Flow[Message, Message, Any] = {
+
+    import scala.concurrent.duration.DurationDouble
+    import scala.concurrent.duration.DurationInt
+
+    var myID: Option[UUID] = None
+
+    val sink =
+      Flow[Message].mapConcat {
+        case tm: TextMessage =>
+          tm.toStrict(100 seconds).map(json => {
+            val parsed = JsonParser(json.getStrictText).asInstanceOf[JsObject]
+            parsed.fields("type") match {
+              case JsString("chat") =>
+                val JsString( msg) = parsed.fields("message")
+                val JsString(uuid) = parsed.fields("sender")
+                val id             = toID(uuid)
+                myID               = Option(id)
+                chatManager ! LogChat(msg, id)
+              case JsString("tick") =>
+                val JsString(uuid) = parsed.fields("sender")
+                val id             = toID(uuid)
+                myID               = Option(id)
+                chatManager ! LogTick(id)
+              case JsString("keep-alive") =>
+              case x =>
+                println(s"I don't know what this chatter is: $x")
+            }
+          })
+          Nil
+        case binary: BinaryMessage =>
+          binary.dataStream.runWith(Sink.ignore)
+          Nil
+      }
+
+    val msgSource =
+      Source
+        .tick(0 seconds, 0.01 seconds, None)
+        .mapConcat(
+          _ => {
+            myID.toList.flatMap {
+              uuid =>
+                askChatFor(PullBuffer(uuid, _)).map {
+                  case (id, msg, isPrivileged) =>
+                    val cm     = ChatMessage("chat", id, msg, isPrivileged)
+                    TextMessage(chmFormat.write(cm).toString)
+                }
+            }
+          }
+        )
+
+    val censusSource =
+      Source
+        .tick(0 seconds, 30 seconds, None)
+        .mapConcat(
+          _ => {
+            val result = askChatFor(Census(_))
+            val cm = CensusMessage("census", result)
+            List(TextMessage(cemFormat.write(cm).toString))
+          }
+        )
+
+    val source = Source.combine(msgSource, censusSource)(Merge(_))
+
+    sink.merge(source)
+
+  }
+
   private def slurpXModelSource(modelName: String): Either[String, (String, String, String)] = {
     import scala.collection.JavaConverters.asScalaIteratorConverter
     val pathStr     = s"./models/$modelName HubNet.nlogo"
@@ -391,6 +476,13 @@ object Controller {
     import scala.concurrent.duration.DurationInt
     val timeout = Timeout(20 seconds)
     val future = seshManager.ask(replyTo => makeParcel(replyTo))(timeout, seshManager.scheduler)
+    Await.result(future, timeout.duration)
+  }
+
+  private def askChatFor[T](makeParcel: ActorRef[T] => ChatMessageAsk[T]): T = {
+    import scala.concurrent.duration.DurationInt
+    val timeout = Timeout(20 seconds)
+    val future = chatManager.ask(replyTo => makeParcel(replyTo))(timeout, chatManager.scheduler)
     Await.result(future, timeout.duration)
   }
 

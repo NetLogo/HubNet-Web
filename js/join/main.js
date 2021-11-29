@@ -24,10 +24,14 @@ const onLogIn = (username, password) => {
 
   const hostID = sessionList.getSelectedUUID();
 
-  const onDoorbell = () => requestAnimationFrame(burstQueue.run);
+  const onDoorbell = () => {
+    byEID( "global-chat").classList.add(   "hidden");
+    byEID("session-chat").classList.remove("hidden");
+    requestAnimationFrame(burstQueue.run);
+  };
 
   const rootCHBundle =
-    { addChatLine:            chatManager.addNewChat
+    { addChatLine:            sessionChatManager.addNewChat
     , enqueue:                burstQueue.enqueue
     , hibernateSessionList:   sessionList.hibernate
     , notifyLoggedIn:         burstQueue.setStateLoggedIn
@@ -141,6 +145,13 @@ const onHNWError = (type) => {
   cleanupSession(false);
 };
 
+const onSessionDisconnect = () => {
+  connMan.disconnect();
+  byEID( "global-chat").classList.remove("hidden");
+  byEID("session-chat").classList.add(   "hidden");
+  sessionChatManager.clear();
+};
+
 const loginControls  = new LoginControlsManager(byEID("join-form"), onLogIn);
 const previewManager = new       PreviewManager(byEID("session-preview-image"));
 const statusManager  = new     AppStatusManager(byEID("status-value"));
@@ -167,9 +178,9 @@ const globalChatManager =
                  , () => { alert("Your chat message is too large"); }
                  , () => { alert("You are sending chat messages too fast"); });
 
-const connMan    = new ConnectionManager();
+const connMan    = new ConnectionManager(globalChatManager);
 const nlwManager = new NLWManager( byEID("nlw-frame"), connMan.send
-                                 , connMan.disconnect, onHNWError);
+                                 , onSessionDisconnect, onHNWError);
 const burstQueue = genBurstQueue(); // BurstQueue
 
 document.addEventListener("DOMContentLoaded", nlwManager.init);

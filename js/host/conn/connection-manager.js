@@ -6,6 +6,7 @@ import BroadSocket    from "./broadsocket.js";
 import SessionManager from "./session-manager.js";
 import StatusSocket   from "./status-socket.js";
 
+import ChatSocket from "/js/common/chat-socket.js";
 import RTCManager from "/js/common/rtc-manager.js";
 
 import DeserializerPoolParty from "/js/serialize/deserializer-pool-party.js";
@@ -15,6 +16,7 @@ export default class ConnectionManager {
   #awaitJoinerInit  = undefined; // (UUID, String) => Promise[Object[Any]]
   #broadSocket      = undefined; // BroadSocket
   #chatManager      = undefined; // ChatManager
+  #chatSocket       = undefined; // ChatSocket
   #deserializer     = undefined; // DeserializerPoolParty
   #notifyUser       = undefined; // (String) => Unit
   #onDisconnect     = undefined; // (UUID) => Unit
@@ -25,13 +27,17 @@ export default class ConnectionManager {
   #sessionManager   = undefined; // SessionManager
   #statusSocket     = undefined; // StatusSocket
 
-  // ( ChatManager, (UUID, String) => Promise[Object[Any]], (UUID, Number) => Unit, (Object[Any]) => Unit, (UUID) => Unit
-  // , (Array[Promise[RTCStatReport]]) => Unit, (String) => Boolean, Number, (String) => Unit) => ConnectionManager
-  constructor( chatManager, awaitJoinerInit, registerPing, relay, onDisconnect
-             , onConnStatChange, passwordMatches, maxCapacity, notifyUser) {
+  // ( ChatManager, ChatManager, (UUID, String) => Promise[Object[Any]], (UUID, Number) => Unit
+  // , (Object[Any]) => Unit, (UUID) => Unit, (Array[Promise[RTCStatReport]]) => Unit, (String) => Boolean, Number
+  // , (String) => Unit) => ConnectionManager
+  constructor( sessionChatManager, globalChatManager, awaitJoinerInit, registerPing
+             , relay, onDisconnect, onConnStatChange, passwordMatches, maxCapacity
+             , notifyUser) {
+
     this.#awaitJoinerInit  = awaitJoinerInit;
     this.#broadSocket      = new BroadSocket();
-    this.#chatManager      = chatManager;
+    this.#chatManager      = sessionChatManager;
+    this.#chatSocket       = new ChatSocket(globalChatManager);
     this.#deserializer     = new DeserializerPoolParty();
     this.#notifyUser       = notifyUser;
     this.#onDisconnect     = onDisconnect;
@@ -143,7 +149,8 @@ export default class ConnectionManager {
   // (Object[Any]) => Unit
   #awaitSenders = (msg) => {
     const signalers  = this.#sessionManager.getSignalers();
-    const awaitables = [this.#broadSocket, this.#statusSocket].concat(signalers);
+    const sockets    = [this.#broadSocket, this.#statusSocket, this.#chatSocket];
+    const awaitables = sockets.concat(signalers);
     const promises   = awaitables.map((s) => s.await(msg));
     return Promise.all(promises);
   };

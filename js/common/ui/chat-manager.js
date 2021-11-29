@@ -32,15 +32,15 @@ export default class ChatManager {
 
   }
 
-  // (String, String, Boolean) => Unit
-  addNewChat = (str, from, isFromSelf = false) => {
+  // (String, String, Boolean?, Boolean?) => Unit
+  addNewChat = (str, from, isFromSelf = false, isFromAuthority = false) => {
 
     const elem = this.#outputElem;
 
     const entry = document.createElement("div");
     entry.classList.add("chat-entry");
 
-    if (from === "") {
+    if (from === "" || isFromAuthority) {
       entry.classList.add("chat-from-host");
     }
 
@@ -64,6 +64,11 @@ export default class ChatManager {
 
     elem.scrollTo(0, elem.scrollHeight);
 
+  };
+
+  // () => Unit
+  clear = () => {
+    this.#outputElem.innerHTML = "";
   };
 
   // ((String) => Unit) => Unit

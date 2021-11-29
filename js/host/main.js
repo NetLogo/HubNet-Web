@@ -79,8 +79,13 @@ const sessionChatManager =
                  , () => { alert("Your chat message is too large"); }
                  , () => { alert("You are sending chat messages too fast"); });
 
+const globalChatManager =
+  new ChatManager( byEID("global-chat-output"), byEID("global-chat-input")
+                 , () => { alert("Your chat message is too large"); }
+                 , () => { alert("You are sending chat messages too fast"); });
+
 const connMan =
-  new ConnectionManager( sessionChatManager
+  new ConnectionManager( sessionChatManager, globalChatManager
                        , (jid, un)   =>   nlwManager.awaitJoinerInit(jid, un)
                        , (jid, ping) => { nlwManager.registerPingStats(jid, ping); }
                        , (pl)        => { nlwManager.relay(pl);                    }

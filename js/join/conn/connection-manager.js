@@ -6,17 +6,20 @@ import ChannelHandler  from "./channel-handler.js";
 import SignalingStream from "./signaling-stream.js";
 import RxQueue         from "./rx-queue.js";
 
+import ChatSocket from "/js/common/chat-socket.js";
 import RTCManager from "/js/common/rtc-manager.js";
 
 export default class ConnectionManager {
 
-  #channel = undefined; // RTCDataChannel
-  #conn    = undefined; // RTCPeerConnection
-  #rtcMan  = undefined; // RTCManager
-  #rxQueue = undefined; // RxQueue
+  #channel    = undefined; // RTCDataChannel
+  #chatSocket = undefined; // ChatSocket
+  #conn       = undefined; // RTCPeerConnection
+  #rtcMan     = undefined; // RTCManager
+  #rxQueue    = undefined; // RxQueue
 
   // () => ConnectionManager
-  constructor() {
+  constructor(chatManager) {
+    this.#chatSocket = new ChatSocket(chatManager);
     this.reset();
   }
 
