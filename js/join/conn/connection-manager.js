@@ -72,6 +72,7 @@ export default class ConnectionManager {
       { disconnect:             this.disconnect
       , closeSignaling
       , getConnectionStats:     () => this.#conn.getStats()
+      , resetConn:              this.reset
       , send:                   this.send
       , terminate:              this.terminate
       };

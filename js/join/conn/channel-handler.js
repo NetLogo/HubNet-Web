@@ -50,6 +50,7 @@ export default class ChannelHandler {
         b.statusManager.rejectedOverPassword();
         b.notifyUser("Incorrect password");
         b.handleIncorrectPassword();
+        b.resetConn();
         break;
       }
 
@@ -57,6 +58,7 @@ export default class ChannelHandler {
         b.statusManager.rejectedOverBlankName();
         b.notifyUser("You must provide a username.");
         b.handleMissingUsername();
+        b.resetConn();
         break;
       }
 
@@ -64,6 +66,7 @@ export default class ChannelHandler {
         b.statusManager.rejectedOverDupeName();
         b.notifyUser("Username already in use.");
         b.handleUsernameIsTaken();
+        b.resetConn();
         break;
       }
 
