@@ -155,9 +155,15 @@ const sessionList =
                  , previewManager
                  , loginControls.onNewSelection(() => document.createElement("option")));
 
-const chatManager =
-  new ChatManager( byEID("chat-output"), byEID("chat-input" )
-                 , (message) => { connMan.send("chat", { message }); }
+const sessionChatManager =
+  new ChatManager( byEID("session-chat-output"), byEID("session-chat-input")
+                 , () => { alert("Your chat message is too large"); }
+                 , () => { alert("You are sending chat messages too fast"); });
+
+sessionChatManager.onSend((message) => { connMan.send("chat", { message }); });
+
+const globalChatManager =
+  new ChatManager( byEID("global-chat-output"), byEID("global-chat-input")
                  , () => { alert("Your chat message is too large"); }
                  , () => { alert("You are sending chat messages too fast"); });
 

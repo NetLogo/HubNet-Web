@@ -41,6 +41,14 @@ export default class ConnectionManager {
     this.#rtcManager       = new RTCManager(true);
     this.#sessionManager   = new SessionManager(maxCapacity, onConnStatChange);
     this.#statusSocket     = new StatusSocket();
+
+    sessionChatManager.onSend(
+      (message) => {
+        const channels = this.#sessionManager.getOpenChannels();
+        this.#rtcManager.send(...channels)("chat", { message });
+      }
+    );
+
   }
 
   // () => Promise[Array[Number]]
@@ -53,12 +61,6 @@ export default class ConnectionManager {
   broadcast = (type, message = {}) => {
     const channels = this.#sessionManager.getOpenChannels();
     this.#rtcManager.sendBurst(...channels)(type, message);
-  };
-
-  // (String, Object[Any]?) => Unit
-  broadcastRaw = (type, message = {}) => {
-    const channels = this.#sessionManager.getOpenChannels();
-    this.#rtcManager.send(...channels)(type, message);
   };
 
   // (UUID, String, String) => Unit

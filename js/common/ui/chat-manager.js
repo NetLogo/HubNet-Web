@@ -2,12 +2,16 @@ export default class ChatManager {
 
   #lastTS     = undefined; // Number
   #outputElem = undefined; // Element
+  #sendInput  = undefined; // (String) => Unit
 
-  // (Element, Element, (String) => Unit, () => Unit, () => Unit) => ChatManager
-  constructor(outputElem, inputElem, sendInput, notifyTooWordy, notifyTooFast) {
+  // (Element, Element, () => Unit, () => Unit) => ChatManager
+  constructor(outputElem, inputElem, notifyTooWordy, notifyTooFast) {
 
     this.#lastTS     = 0;
     this.#outputElem = outputElem;
+    this.#sendInput  = () => {
+      console.warn("Chat manager asked to send without a callback", outputElem);
+    };
 
     inputElem.addEventListener("keydown", (e) => {
       if (e.code === "Enter") {
@@ -18,7 +22,7 @@ export default class ChatManager {
         } else if ((Date.now() - this.#lastTS) <= oncePer15Frames) {
           notifyTooFast();
         } else {
-          sendInput(input);
+          this.#sendInput(input);
           this.addNewChat(input, "Me", true);
           this.#lastTS = Date.now();
           inputElem.value = "";
@@ -60,6 +64,11 @@ export default class ChatManager {
 
     elem.scrollTo(0, elem.scrollHeight);
 
+  };
+
+  // ((String) => Unit) => Unit
+  onSend = (callback) => {
+    this.#sendInput = callback;
   };
 
 }

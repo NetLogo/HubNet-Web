@@ -75,8 +75,7 @@ const launchControlManager =
                           , finishLaunch);
 
 const sessionChatManager =
-  new ChatManager( byEID("session-chat-output"), byEID("session-chat-input" )
-                 , (message) => { connMan.broadcastRaw("chat", { message }); }
+  new ChatManager( byEID("session-chat-output"), byEID("session-chat-input")
                  , () => { alert("Your chat message is too large"); }
                  , () => { alert("You are sending chat messages too fast"); });
 

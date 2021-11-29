@@ -11,8 +11,14 @@
     </div>
 
     <div>
-      <div id="chat-output" class="chat-output"></div>
-      <input id="chat-input" type="text" value="" />
+      <div id="global-chat">
+        <div id="global-chat-output" class="chat-output"></div>
+        <input id="global-chat-input" type="text" value="" />
+      </div>
+      <div id="session-chat" class="hidden">
+        <div id="session-chat-output" class="chat-output"></div>
+        <input id="session-chat-input" type="text" value="" />
+      </div>
     </div>
 
     <div id="session-browser-frame" class="flex-row">
