@@ -85,7 +85,7 @@ const connMan =
                        , (jid, un)   =>   nlwManager.awaitJoinerInit(jid, un)
                        , (jid, ping) => { nlwManager.registerPingStats(jid, ping); }
                        , (pl)        => { nlwManager.relay(pl);                    }
-                       , ()          => { nlwManager.disown();                     }
+                       , (jid)       => { nlwManager.disown(jid);                  }
                        , (cs)        => { bandwidthManager.updateTURNs(cs);        }
                        , launchControlManager.passwordMatches, getCapacity()
                        , notifyUser);
