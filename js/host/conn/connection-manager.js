@@ -14,6 +14,7 @@ export default class ConnectionManager {
 
   #awaitJoinerInit  = undefined; // (UUID, String) => Promise[Object[Any]]
   #broadSocket      = undefined; // BroadSocket
+  #chatManager      = undefined; // ChatManager
   #deserializer     = undefined; // DeserializerPoolParty
   #notifyUser       = undefined; // (String) => Unit
   #onDisconnect     = undefined; // (UUID) => Unit
@@ -24,12 +25,13 @@ export default class ConnectionManager {
   #sessionManager   = undefined; // SessionManager
   #statusSocket     = undefined; // StatusSocket
 
-  // ( (UUID, String) => Promise[Object[Any]], (UUID, Number) => Unit, (Object[Any]) => Unit, (UUID) => Unit, (Array[Promise[RTCStatReport]]) => Unit
-  // , (String) => Boolean, Number, (String) => Unit) => ConnectionManager
-  constructor( awaitJoinerInit, registerPing, relay, onDisconnect, onConnStatChange
-             , passwordMatches, maxCapacity, notifyUser) {
+  // ( ChatManager, (UUID, String) => Promise[Object[Any]], (UUID, Number) => Unit, (Object[Any]) => Unit, (UUID) => Unit
+  // , (Array[Promise[RTCStatReport]]) => Unit, (String) => Boolean, Number, (String) => Unit) => ConnectionManager
+  constructor( chatManager, awaitJoinerInit, registerPing, relay, onDisconnect
+             , onConnStatChange, passwordMatches, maxCapacity, notifyUser) {
     this.#awaitJoinerInit  = awaitJoinerInit;
     this.#broadSocket      = new BroadSocket();
+    this.#chatManager      = chatManager;
     this.#deserializer     = new DeserializerPoolParty();
     this.#notifyUser       = notifyUser;
     this.#onDisconnect     = onDisconnect;
@@ -51,6 +53,12 @@ export default class ConnectionManager {
   broadcast = (type, message = {}) => {
     const channels = this.#sessionManager.getOpenChannels();
     this.#rtcManager.sendBurst(...channels)(type, message);
+  };
+
+  // (String, Object[Any]?) => Unit
+  broadcastRaw = (type, message = {}) => {
+    const channels = this.#sessionManager.getOpenChannels();
+    this.#rtcManager.send(...channels)(type, message);
   };
 
   // (UUID, String, String) => Unit
@@ -203,6 +211,23 @@ export default class ConnectionManager {
     this.#deserializer.await(true, parcel).then((datum) => {
 
       switch (datum.type) {
+
+        case "chat": {
+
+          const username = this.#sessionManager.lookupUsername(joinerID) || "???";
+          this.#chatManager.addNewChat(datum.message, username);
+
+          const dontSendTo  = this.#sessionManager.getOpenChannelByID(joinerID);
+          const allChannels = this.#sessionManager.getOpenChannels();
+          const sendTos     = allChannels.filter((c) => c !== dontSendTo);
+
+          const obj = { message: datum.message, username };
+
+          this.#rtcManager.send(...sendTos)("chat-relay", obj);
+
+          break;
+
+        }
 
         case "connection-established": {
           if (datum.protocolVersion !== version) {

@@ -25,6 +25,16 @@ export default class ChannelHandler {
 
     switch (datum.type) {
 
+      case "chat": {
+        this.#bundle.addChatLine(datum.message, "");
+        break;
+      }
+
+      case "chat-relay": {
+        this.#bundle.addChatLine(datum.message, datum.username);
+        break;
+      }
+
       case "connection-established": {
         handleConnEst(b)(datum);
         break;

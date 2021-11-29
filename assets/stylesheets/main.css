@@ -22,3 +22,19 @@
   height: 100%;
   width:  100%;
 }
+
+.chat-output {
+  border:   1px solid gray;
+  height:   200px;
+  overflow: scroll;
+  width:    200px;
+}
+
+.chat-from-host {
+  color:       #1b00c3;
+  font-weight: bold;
+}
+
+.chat-from-self {
+  font-weight: bold;
+}

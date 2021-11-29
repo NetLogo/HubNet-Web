@@ -23,7 +23,8 @@ export default (rootBundle) => (connBundle) => {
     byEID("latency-span").innerText = lat;
   };
 
-  return { disconnect:              connBundle.disconnect
+  return { addChatLine:             rootBundle.addChatLine
+         , disconnect:              connBundle.disconnect
          , enqueue:                 rootBundle.enqueue
          , getConnectionStats:      connBundle.getConnectionStats
          , handleIncorrectPassword: rootBundle.unlockUI

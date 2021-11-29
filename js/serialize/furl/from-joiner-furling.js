@@ -9,6 +9,7 @@ const lookupType = (x) =>
 // Object[ProtoBufType]
 const basicMap =
   { "bye-bye":                lookupType("ByeBye"         )
+  , "chat":                   lookupType("Chat"           )
   , "connection-established": lookupType("ConnEstablished")
   , "joiner-ice-candidate":   lookupType("ICECandy"       )
   , "joiner-offer":           lookupType("JoinerOffer"    )

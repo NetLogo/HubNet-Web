@@ -96,6 +96,12 @@ export default class SessionManager {
     this.#updateFullness();
   };
 
+  // (UUID) => String
+  lookupUsername = (joinerID) => {
+    const session = this.#sessions[joinerID];
+    return session?.username;
+  };
+
   // (UUID, RTCIceCandidate) => Unit
   sendICECandidate = (joinerID, candidate) => {
     const signaling = this.#sessions[joinerID].networking.signaling;

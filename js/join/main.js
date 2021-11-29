@@ -9,6 +9,8 @@ import SessionList          from "./ui/session/session-list.js";
 
 import genCHB from "./gen-chan-han-bundle.js";
 
+import ChatManager from "/js/common/ui/chat-manager.js";
+
 // (String) => Element?
 const byEID = (eid) => document.getElementById(eid);
 
@@ -25,7 +27,8 @@ const onLogIn = (username, password) => {
   const onDoorbell = () => requestAnimationFrame(burstQueue.run);
 
   const rootCHBundle =
-    { enqueue:                burstQueue.enqueue
+    { addChatLine:            chatManager.addNewChat
+    , enqueue:                burstQueue.enqueue
     , hibernateSessionList:   sessionList.hibernate
     , notifyLoggedIn:         burstQueue.setStateLoggedIn
     , showNLW:                nlwManager.show
@@ -151,6 +154,12 @@ const sessionList =
   new SessionList(byEID("session-list-container"), processURLHash, statusManager
                  , previewManager
                  , loginControls.onNewSelection(() => document.createElement("option")));
+
+const chatManager =
+  new ChatManager( byEID("chat-output"), byEID("chat-input" )
+                 , (message) => { connMan.send("chat", { message }); }
+                 , () => { alert("Your chat message is too large"); }
+                 , () => { alert("You are sending chat messages too fast"); });
 
 const connMan    = new ConnectionManager();
 const nlwManager = new NLWManager( byEID("nlw-frame"), connMan.send

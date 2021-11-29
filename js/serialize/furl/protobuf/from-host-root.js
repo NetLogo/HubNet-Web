@@ -34,6 +34,21 @@ const FromHostRoot = {
       fields: {}
     }
 
+  , Chat: { // chat
+      fields: {
+        id:      { type: "uint32", id: 1 }
+      , message: { type: "string", id: 2 }
+      }
+    }
+
+  , ChatRelay: { // chat-relay
+      fields: {
+        id:       { type: "uint32", id: 1 }
+      , message:  { type: "string", id: 2 }
+      , username: { type: "string", id: 3 }
+      }
+    }
+
   , ConnEstablished: { // connection-established
       fields: {
         id:            { type: "uint32", id: 1 }

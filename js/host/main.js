@@ -4,6 +4,8 @@ import BandwidthManager     from "./ui/bandwidth-manager.js";
 import LaunchControlManager from "./ui/launch-control-manager.js";
 import NLWManager           from "./ui/nlw-manager.js";
 
+import ChatManager from "/js/common/ui/chat-manager.js";
+
 // (String) => Element?
 const byEID = (eid) => document.getElementById(eid);
 
@@ -72,8 +74,15 @@ const launchControlManager =
   new LaunchControlManager( byEID("form-frame"), awaitLaunchHTTP, notifyUser
                           , finishLaunch);
 
+const sessionChatManager =
+  new ChatManager( byEID("session-chat-output"), byEID("session-chat-input" )
+                 , (message) => { connMan.broadcastRaw("chat", { message }); }
+                 , () => { alert("Your chat message is too large"); }
+                 , () => { alert("You are sending chat messages too fast"); });
+
 const connMan =
-  new ConnectionManager( (jid, un)   =>   nlwManager.awaitJoinerInit(jid, un)
+  new ConnectionManager( sessionChatManager
+                       , (jid, un)   =>   nlwManager.awaitJoinerInit(jid, un)
                        , (jid, ping) => { nlwManager.registerPingStats(jid, ping); }
                        , (pl)        => { nlwManager.relay(pl);                    }
                        , ()          => { nlwManager.disown();                     }

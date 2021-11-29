@@ -69,21 +69,41 @@
     <div id="id-display"></div>
 
     <div id="nlw-frame" class="frame hidden">
-      <div>Upload: <span id="bandwidth-span">0 B</span>/s</div>
-      <div>New Send: <span id="new-send-span">0 B</span>/s</div>
+
       <div style="display: flex; flex-direction: row;">
-        <div># Clients: <span id="num-clients-span">0</span></div>
-        <div style="margin: 0 10px;">|</div>
-        <label>Max # Clients:
-          <input id="max-num-clients-picker" type="number"
-                 min="0" max="999" step="1" value="50"
-                 oninput="this.value = Math.max(0, Math.min(999, parseInt(this.value)))" />
-        </label>
+
+        <div id="session-dashboard">
+          <div>Upload: <span id="bandwidth-span">0 B</span>/s</div>
+          <div>New Send: <span id="new-send-span">0 B</span>/s</div>
+          <div style="display: flex; flex-direction: row;">
+            <div># Clients: <span id="num-clients-span">0</span></div>
+            <div style="margin: 0 10px;">|</div>
+            <label>Max # Clients:
+              <input id="max-num-clients-picker" type="number"
+                     min="0" max="999" step="1" value="50"
+                     oninput="this.value = Math.max(0, Math.min(999, parseInt(this.value)))" />
+            </label>
+          </div>
+          <div># TURNs: <span id="num-turn-span">0</span></div>
+          <div># Congested: <span id="num-congested-span">0</span></div>
+          <div>Status: <span id="activity-status-span">...</span></div>
+        </div>
+
+        <div>
+          <div id="global-chat-container">
+            <div id="global-chat-output" class="chat-output"></div>
+            <input id="global-chat-input" type="text" value="" />
+          </div>
+          <div id="session-chat-container">
+            <div id="session-chat-output" class="chat-output"></div>
+            <input id="session-chat-input" type="text" value="" />
+          </div>
+        </div>
+
       </div>
-      <div># TURNs: <span id="num-turn-span">0</span></div>
-      <div># Congested: <span id="num-congested-span">0</span></div>
-      <div>Status: <span id="activity-status-span">...</span></div>
+
       <iframe class="nlw-iframe"></iframe>
+
     </div>
 
     <script src="/js/firefox-abort.js"></script>
