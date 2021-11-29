@@ -2,6 +2,10 @@ body {
   background-color: white;
 }
 
+.chat-wrapper {
+  width: 100%;
+}
+
 .frame {
   height: 100%;
   width:  100%;
