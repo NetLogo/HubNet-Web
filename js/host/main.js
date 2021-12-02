@@ -95,7 +95,7 @@ const connMan =
                        , notifyUser);
 
 const nlwManager =
-  new NLWManager( byEID("nlw-frame"), launchModel, connMan.broadcast
+  new NLWManager( byEID("nlw-frame"), connMan.broadcast
                 , connMan.narrowcast, onNLWManError);
 
 document.addEventListener("DOMContentLoaded", nlwManager.init);
@@ -108,6 +108,27 @@ const bandwidthManager =
 
 byEID("max-num-clients-picker").addEventListener("change", () => {
   connMan.updateFullness(getCapacity());
+});
+
+window.addEventListener("message", ({ data }) => {
+  switch (data.type) {
+    case "galapagos-direct-launch": {
+      const { nlogo, config, sessionName, password } = data;
+      launchModel({ modelType:  "upload"
+                  , model:       nlogo
+                  , sessionName
+                  , password
+                  , config
+                  });
+      break;
+    }
+    case "nlw-resize": {
+      break;
+    }
+    default: {
+      console.warn("Unknown `window.postMessage` type:", data.type, data);
+    }
+  }
 });
 
 self.addEventListener("beforeunload", connMan.teardown);

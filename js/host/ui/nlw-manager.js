@@ -3,15 +3,13 @@ import NLWManager from "/js/common/ui/nlw-manager.js";
 export default class HostNLWManager extends NLWManager {
 
   #broadcast   = undefined; // (UUID, Boolean?) => RTCDataChannel?
-  #launchModel = undefined; // (Object[Any]) => Unit
   #narrowcast  = undefined; // () => Array[RTCDataChannel]
   #onError     = undefined; // (String) => Unit
 
-  // (Element, (Object[Any]) => Unit, (String, Object[Any]?) => Unit, () => Array[RTCDataChannel], (String) => Unit) => HostNLWManager
-  constructor(outerFrame, launchModel, broadcast, narrowcast, onError) {
+  // (Element, (String, Object[Any]?) => Unit, () => Array[RTCDataChannel], (String) => Unit) => HostNLWManager
+  constructor(outerFrame, broadcast, narrowcast, onError) {
     super(outerFrame);
     this.#broadcast   = broadcast;
-    this.#launchModel = launchModel;
     this.#narrowcast  = narrowcast;
     this.#onError     = onError;
   }
@@ -86,17 +84,6 @@ export default class HostNLWManager extends NLWManager {
           this.#narrowcast(data.recipient, "state-update", { update: data.update });
         else
           this.#broadcast("state-update", { update: data.update });
-        break;
-      }
-
-      case "galapagos-direct-launch": {
-        const { nlogo, config, sessionName, password } = data;
-        this.#launchModel({ modelType:  "upload"
-                          , model:       nlogo
-                          , sessionName
-                          , password
-                          , config
-                          });
         break;
       }
 
