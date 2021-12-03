@@ -17,7 +17,7 @@ const prevID = (num) => {
 // (Number, Number) => Boolean
 const precedesID = (target, ref) => {
   const maxDist     = 20;
-  const wrappedDist = (ref + maxDist) - ((target + maxDist) % MaxID);
+  const wrappedDist = ((ref - target) + MaxID) % MaxID;
   return (target !== ref) &&
          wrappedDist >= MinID &&
          wrappedDist < (MinID + maxDist);
