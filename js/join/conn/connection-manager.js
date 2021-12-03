@@ -50,10 +50,15 @@ export default class ConnectionManager {
 
   // () => Unit
   reset = () => {
+
+    this.#conn   ?.close();
+    this.#channel?.close();
+    this.#rxQueue?.reset();
+
     this.#conn    = new RTCPeerConnection(rtcConfig);
     this.#channel = null;
     this.#rtcMan  = new RTCManager(false);
-    this.#rxQueue?.reset();
+
   };
 
   // (String, Object[Any]?) => Unit
