@@ -195,7 +195,6 @@ self.addEventListener("popstate", (event) => {
   if (event.state !== null && event.state !== undefined) {
     switch (event.state.name) {
       case "joined": {
-        connMan.reset();
         cleanupSession(false);
         break;
       }
