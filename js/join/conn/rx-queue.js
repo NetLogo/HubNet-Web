@@ -97,10 +97,11 @@ export default class RxQueue {
   #preprocess = (msg) => {
 
     const lastMsgID      = this.#lastMsgID;
+    const msgID          = msg.id;
     const predIDToMsg    = this.#predIDToMsg;
     const processMessage = this.#messageHandler.run;
 
-    if (msg.id === MinID) {
+    if (msgID === MinID) {
 
       // If looping around, clear any junk in the queue --Jason B. (12/2/21)
       if (lastMsgID > MinID) {
@@ -115,14 +116,14 @@ export default class RxQueue {
         this.#predIDToMsg = newQueue;
       }
 
-      this.#lastMsgID = msg.id;
+      this.#lastMsgID = msgID;
       processMessage(msg);
 
-    } else if (succeedsID(msg.id, lastMsgID)) {
-      predIDToMsg[prevID(msg.id)] = msg;
+    } else if (succeedsID(msgID, lastMsgID)) {
+      predIDToMsg[prevID(msgID)] = msg;
       this.#processQueue();
     } else {
-      const s = `Received message #${msg.id} when the last-processed message was #${lastMsgID}.  #${msg.id} is out-of-order and will be dropped:`;
+      const s = `Received message #${msgID} when the last-processed message was #${lastMsgID}.  #${msgID} is out-of-order and will be dropped:`;
       console.warn(s, msg);
     }
 
