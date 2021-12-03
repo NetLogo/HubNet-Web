@@ -10,6 +10,7 @@ const dummyID = 0; // Number
 export default class RxQueue {
 
   #decodeInput      = undefined; // (Uint8Array) => Object[Any]
+  #isStarted        = undefined; // Boolean
   #lastMsgID        = undefined; // Number
   #messageHandler   = undefined; // MessageHandler
   #multipartHeaders = undefined; // Object[UUID, String]
@@ -19,6 +20,7 @@ export default class RxQueue {
   // (MessageHandler, Boolean) => RxQueue
   constructor(messageHandler, isHost) {
     this.#decodeInput    = deserialize(isHost);
+    this.#isStarted      = false;
     this.#lastMsgID      = dummyID;
     this.#messageHandler = messageHandler;
     this.reset();
@@ -101,10 +103,14 @@ export default class RxQueue {
     const predIDToMsg    = this.#predIDToMsg;
     const processMessage = this.#messageHandler.run;
 
-    if (msgID === MinID) {
+    if (!this.#isStarted && msgID === MinID) {
+      this.#isStarted = true;
+      this.#lastMsgID = msgID;
+      processMessage(msg);
+    } else if (succeedsID(msgID, lastMsgID)) {
 
       // If looping around, clear any junk in the queue --Jason B. (12/2/21)
-      if (lastMsgID > MinID) {
+      if (msgID === MinID && lastMsgID > MinID) {
         const newQueue = {};
         if (precedesID(lastMsgID, MaxID) || lastMsgID === MaxID) {
           for (let i = lastMsgID; i <= MaxID; i++) {
@@ -116,12 +122,9 @@ export default class RxQueue {
         this.#predIDToMsg = newQueue;
       }
 
-      this.#lastMsgID = msgID;
-      processMessage(msg);
-
-    } else if (succeedsID(msgID, lastMsgID)) {
-      predIDToMsg[prevID(msgID)] = msg;
+      this.#predIDToMsg[prevID(msgID)] = msg;
       this.#processQueue();
+
     } else {
       const s = `Received message #${msgID} when the last-processed message was #${lastMsgID}.  #${msgID} is out-of-order and will be dropped:`;
       console.warn(s, msg);
