@@ -8,10 +8,14 @@ import * as FromJoinerJP from "./jigpoke/from-joiner-jiggery-pokery.js";
 import * as FromHostFurler   from "./furl/from-host-furling.js";
 import * as FromJoinerFurler from "./furl/from-joiner-furling.js";
 
-const  cMask = 0b10000000; // Number
-const mbMask = 0b01000000; // Number
+const  cMask  = 0b10000000; // Number
+const  cMaskF = 0b01111111; // Number
 
-const mbidMask = 0b10000000; // Number
+const mbMask  = 0b01000000; // Number
+const mbMaskF = 0b10111111; // Number
+
+const mbidMask  = 0b10000000; // Number
+const mbidMaskF = 0b01111111; // Number
 
 // (String) => (() => Unit) => Unit
 const trace = (type) => (f) => {
@@ -69,7 +73,7 @@ const deserialize = (isHost) => (byteStream) => {
   const initialCode = byteStream[0];
   const dataStream  = byteStream.slice(1);
 
-  const unmask = (x) => x & (~cMask) & (~mbMask);
+  const unmask = (x) => x & cMaskF & mbMaskF;
 
   const isRaw        = (initialCode &  cMask) !==  cMask;
   const isMicroBurst = (initialCode & mbMask) === mbMask;
@@ -77,7 +81,7 @@ const deserialize = (isHost) => (byteStream) => {
   if (isMicroBurst) {
 
     const [id, innerParcel] = snapOffID(dataStream);
-    const newCode           = initialCode & (~mbMask);
+    const newCode           = initialCode & mbMaskF;
     const parcel            = new Uint8Array(innerParcel.length + 1);
 
     parcel[0] = newCode;
@@ -114,7 +118,7 @@ const encodeMBID = (id) => {
   const bytes = [0, 0, 0, 0, 0];
 
   for (let i = 0; i < bytes.length; i++) {
-    const byte = temp & (~mbidMask);
+    const byte = temp & mbidMaskF;
     bytes[i]   = byte;
     temp       = (temp - byte) / mbidMask;
   }
@@ -138,7 +142,7 @@ const snapOffID = (bytes) => {
   let keepGoing = true;
 
   while (keepGoing) {
-    const unmasked = bytes[i] & (~mbidMask);
+    const unmasked = bytes[i] & mbidMaskF;
     idBytes.push(unmasked);
     keepGoing = bytes[i] === unmasked;
     i++;
