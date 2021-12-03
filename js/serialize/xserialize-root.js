@@ -113,20 +113,26 @@ const deserialize = (isHost) => (byteStream) => {
 // (Number) => Uint8Array
 const encodeMBID = (id) => {
 
-  const bytes = [  id        & mbidMaskF
-                , (id >>  7) & mbidMaskF
-                , (id >> 14) & mbidMaskF
-                , (id >> 21) & mbidMaskF
-                , (id >> 28) & 0b1111
-                ];
+  if (id !== 0) {
 
-  while (bytes[bytes.length - 1] === 0) {
-    bytes.pop();
+    const bytes = [  id        & mbidMaskF
+                  , (id >>  7) & mbidMaskF
+                  , (id >> 14) & mbidMaskF
+                  , (id >> 21) & mbidMaskF
+                  , (id >> 28) & 0b1111
+                  ];
+
+    while (bytes[bytes.length - 1] === 0) {
+      bytes.pop();
+    }
+
+    bytes[bytes.length - 1] = bytes[bytes.length - 1] | mbidMask;
+
+    return bytes;
+
+  } else {
+    return [mbidMask];
   }
-
-  bytes[bytes.length - 1] = bytes[bytes.length - 1] | mbidMask;
-
-  return bytes;
 
 };
 
