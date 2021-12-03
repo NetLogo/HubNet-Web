@@ -1,4 +1,4 @@
-import { MaxID, MinID, precedesID, prevID, SentinelID, succeedsID } from "/js/common/id.js";
+import { MaxID, MinID, precedesID, prevID, succeedsID } from "/js/common/id.js";
 import { typeIsOOB } from "/js/common/util.js";
 
 import { deserialize } from "/js/serialize/xserialize-root.js";
@@ -100,9 +100,7 @@ export default class RxQueue {
     const predIDToMsg    = this.#predIDToMsg;
     const processMessage = this.#messageHandler.run;
 
-    if (msg.id === SentinelID) {
-      processMessage(msg);
-    } else if (msg.id === MinID) {
+    if (msg.id === MinID) {
 
       // If looping around, clear any junk in the queue --Jason B. (12/2/21)
       if (lastMsgID > MinID) {

@@ -1,15 +1,14 @@
-const SentinelID = 0;
-const MinID      = 1;
-const MaxID      = (2 ** 32) - 1;
+const MinID = 0;
+const MaxID = (2 ** 32) - 1;
 
 // (Number) => Number
 const nextID = (num) => {
-  return (num === SentinelID) ? SentinelID : ((num === MaxID) ? MinID : num + 1);
+  return (num === MaxID) ? MinID : num + 1;
 };
 
 // (Number) => Number
 const prevID = (num) => {
-  return (num === SentinelID) ? SentinelID : ((num === MinID) ? MaxID : num - 1);
+  return (num === MinID) ? MaxID : num - 1;
 };
 
 // This logic's a bit funky, because we're supporting ID numbers wrapping
@@ -26,4 +25,4 @@ const precedesID = (target, ref) => {
 // (Number, Number) => Boolean
 const succeedsID = (target, ref) => precedesID(ref, target);
 
-export { MaxID, MinID, nextID, precedesID, prevID, SentinelID, succeedsID };
+export { MaxID, MinID, nextID, precedesID, prevID, succeedsID };
