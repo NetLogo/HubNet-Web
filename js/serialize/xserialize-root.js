@@ -113,15 +113,12 @@ const deserialize = (isHost) => (byteStream) => {
 // (Number) => Uint8Array
 const encodeMBID = (id) => {
 
-  let temp = id;
-
-  const bytes = [0, 0, 0, 0, 0];
-
-  for (let i = 0; i < bytes.length; i++) {
-    const byte = temp & mbidMaskF;
-    bytes[i]   = byte;
-    temp       = (temp - byte) / mbidMask;
-  }
+  const bytes = [  id        & mbidMaskF
+                , (id >>  7) & mbidMaskF
+                , (id >> 14) & mbidMaskF
+                , (id >> 21) & mbidMaskF
+                , (id >> 28) & 0b1111
+                ];
 
   while (bytes[bytes.length - 1] === 0) {
     bytes.pop();
@@ -152,8 +149,13 @@ const snapOffID = (bytes) => {
 
   let id = 0;
 
+  // We must use a power of 2 here, rather than bitshifting!
+  // (0b1111 << 28)     => Some nonsense negative number
+  // (0b1111 * 2 ** 28) => Something totally legit
+  // I want to blame JS, but I actually can't.
+  // This is just how IEEE math works....  --Jason B. (12/2/21)
   for (let j = idBytes.length - 1; j >= 0; j--) {
-    id = (id * mbidMask) + idBytes[j];
+    id += idBytes[j] * (2 ** (7 * j));
   }
 
   return [id, snapped];
