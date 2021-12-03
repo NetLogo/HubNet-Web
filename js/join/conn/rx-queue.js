@@ -105,14 +105,13 @@ export default class RxQueue {
     } else if (msg.id === MinID) {
       this.#lastMsgID = msg.id;
       processMessage(msg);
+
+    } else if (succeedsID(msg.id, lastMsgID)) {
+      predIDToMsg[prevID(msg.id)] = msg;
+      this.#processQueue();
     } else {
-      if (succeedsID(msg.id, lastMsgID)) {
-        predIDToMsg[prevID(msg.id)] = msg;
-        this.#processQueue();
-      } else {
-        const s = `Received message #${msg.id} when the last-processed message was #${lastMsgID}.  #${msg.id} is out-of-order and will be dropped:`;
-        console.warn(s, msg);
-      }
+      const s = `Received message #${msg.id} when the last-processed message was #${lastMsgID}.  #${msg.id} is out-of-order and will be dropped:`;
+      console.warn(s, msg);
     }
 
   };
