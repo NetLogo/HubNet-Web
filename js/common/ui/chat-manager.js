@@ -22,10 +22,12 @@ export default class ChatManager {
         } else if ((Date.now() - this.#lastTS) <= oncePer15Frames) {
           notifyTooFast();
         } else {
-          this.#sendInput(input);
-          this.addNewChat(input, "Me", true);
-          this.#lastTS = Date.now();
-          inputElem.value = "";
+          if (input.length > 0) {
+            this.#sendInput(input);
+            this.addNewChat(input, "Me", true);
+            this.#lastTS = Date.now();
+            inputElem.value = "";
+          }
         }
       }
     });

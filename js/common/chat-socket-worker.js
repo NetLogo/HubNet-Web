@@ -52,7 +52,10 @@ onmessage = (e) => {
     }
 
     case "send": {
-      socket.send("chat", { message: e.data.message, sender: uuid });
+      const message = e.data.message;
+      if (message.trim().length > 0) {
+        socket.send("chat", { message, sender: uuid });
+      }
       break;
     }
 
