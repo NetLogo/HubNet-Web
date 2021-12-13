@@ -134,7 +134,16 @@ const cleanupSession = (warrantsExplanation, updateStatus = () => {}) => {
 const onHNWError = (type) => {
   switch (type) {
     case "unknown-agent": {
-      alert(`We received an update for an agent that we have never heard of (${event.data.agentType} #${event.data.agentID}).\n\nIn a later version, we will add the ability to resynchronize with the server to get around this issue.  However, the only solution right now is for the activity to close.\n\nYou might have better success if you reconnect.`);
+      alert(`Invalid activity state detected.  Please report this error by e-mail to bugs@ccl.northwestern.edu.
+
+Include as much of the following information as you can:
+
+  Which model was being used.
+  What actions the participants in the activity took, leading up to the error.
+  Which browser and version the error occurred in.
+  The error message: "Invalid activity state detected."
+
+You can reconnect to the activity, but you are likely to encounter this error again, until a new version of HubNet Web can be released.`);
       break;
     }
     default: {
