@@ -98,7 +98,31 @@ const nlwManager =
   new NLWManager( byEID("nlw-frame"), connMan.broadcast
                 , connMan.narrowcast, onNLWManError);
 
-document.addEventListener("DOMContentLoaded", nlwManager.init);
+document.addEventListener("DOMContentLoaded", () => {
+  const modalContainer = byEID("modal-container");
+
+  window.onclick = (event) => {
+    if (event.target === modalContainer) {
+      modalContainer.classList.add("hidden");
+    }
+  };
+
+  byEID("read-more-button").onclick = () => {
+    modalContainer.classList.remove("hidden");
+  };
+
+  byEID("close-modal-button").onclick = () => {
+    modalContainer.classList.add("hidden");
+  };
+
+  document.addEventListener("keydown", (event) => {
+    if (!modalContainer.classList.contains("hidden") && event.key === "Escape") {
+      modalContainer.classList.add("hidden");
+    }
+  });
+
+  nlwManager.init();
+});
 
 const bandwidthManager =
     new BandwidthManager( setIT("bandwidth-span"), setIT("new-send-span")

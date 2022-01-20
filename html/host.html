@@ -6,64 +6,109 @@
   </head>
   <body>
 
+    <div id="modal-container" class="modal-container hidden">
+
+      <div id="full-description-modal" class="modal flex-column">
+        <div class="modal-text">
+          <p class="modal-activity-title">Disease</p>
+          <p id="activity-text-full" class="activity-text-full">
+            This is placeholder text for a full activity description.
+          </p>
+        </div>
+        <div>
+          <hr class="modal-delineation"></hr>
+          <input type="button" id="close-modal-button" class="close-modal-button" value="Close">
+        </div>
+      </div>
+
+    </div>
+
     <div id="form-frame" class="frame">
-      <h1>You're a hoster</h1>
+      <h1 class="host-header">Hosting</h1>
       <form id="launch-form" action="javascript:void(0);" method="POST" enctype="multipart/form-data">
-        <select id="library-model" name="libraryModel" type="chooser">
-          <option>[5] Example</option>
-          <option>[5] Template</option>
-          <option>[4] Client Perspective Example</option>
-          <option selected>[4] Disease</option>
-          <option>[4] Function</option>
-          <option>[4] Investments</option>
-          <option>[4] Predator Prey Game</option>
-          <option>[4] Root Beer Game</option>
-          <option>[3] Bug Hunters Camouflage</option>
-          <option>[3] Disease With Android Avoidance</option>
-          <option>[3] Minority Game</option>
-          <option>[3] Tragedy of the Commons</option>
-          <option>[3] Walking</option>
-          <option>[2] Disease Doctors</option>
-          <option>[2] Memory</option>
-          <option>[2] Oil Cartel Alternate</option>
-          <option>[2] Public Good</option>
-          <option>[1] BeeSmart</option>
-          <option>[1] Bug Hunters Adaptations</option>
-          <option>[1] Bug Hunters Competition</option>
-          <option>[1] Dice Stalagmite</option>
-          <option>[1] Fish Spotters</option>
-          <option>[1] Gridlock</option>
-          <option>[1] Guppy Spots</option>
-          <option>[1] PANDA BEAR</option>
-          <option>[1] Polling</option>
-          <option>[1] Polling Advanced</option>
-          <option>[1] Prisoners Dilemma</option>
 
-          <option>[a] Oil Cartel</option> <!-- requires narrowcast plots -->
+        <div class="activity-selection">
 
-          <option>[0] Restaurants</option> <!-- makes no distinction between AI restaurants and player-owned ones -->
+          <div class="activity-description">
+            <div class="library-model-container" class="library-model-container">
+              <select class="library-model" id="library-model" name="libraryModel" type="chooser">
+                <option>[5] Example</option>
+                <option>[5] Template</option>
+                <option>[4] Client Perspective Example</option>
+                <option selected>[4] Disease</option>
+                <option>[4] Function</option>
+                <option>[4] Investments</option>
+                <option>[4] Predator Prey Game</option>
+                <option>[4] Root Beer Game</option>
+                <option>[3] Bug Hunters Camouflage</option>
+                <option>[3] Disease With Android Avoidance</option>
+                <option>[3] Minority Game</option>
+                <option>[3] Tragedy of the Commons</option>
+                <option>[3] Walking</option>
+                <option>[2] Disease Doctors</option>
+                <option>[2] Memory</option>
+                <option>[2] Oil Cartel Alternate</option>
+                <option>[2] Public Good</option>
+                <option>[1] BeeSmart</option>
+                <option>[1] Bug Hunters Adaptations</option>
+                <option>[1] Bug Hunters Competition</option>
+                <option>[1] Dice Stalagmite</option>
+                <option>[1] Fish Spotters</option>
+                <option>[1] Gridlock</option>
+                <option>[1] Guppy Spots</option>
+                <option>[1] PANDA BEAR</option>
+                <option>[1] Polling</option>
+                <option>[1] Polling Advanced</option>
+                <option>[1] Prisoners Dilemma</option>
 
-          <option>[0] Bird Breeders</option> <!-- requires spectator clients -->
-          <option>[0] Gridlock Alternate</option> <!-- requires spectator clients -->
+                <option>[a] Oil Cartel</option> <!-- requires narrowcast plots -->
 
-          <option>[0] Client Overrides Example</option> <!-- requires view overrides -->
-          <option>[0] Critter Designers</option> <!-- requires view overrides -->
-          <option>[0] Current in a Wire</option> <!-- requires view overrides -->
-          <option>[0] MTG 1 Equal Opportunities</option> <!-- requires view overrides -->
-          <option>[0] MTG 2 Random Assignment</option> <!-- requires view overrides -->
-          <option>[0] MTG 3 Feedback Loop</option> <!-- requires view overrides -->
-          <option>[0] Sampler</option> <!-- requires view overrides -->
-        </select>
-        <label>
-          Session Name:
-          <input name="sessionName" type="text" pattern="\w.*" required>
-        </label>
-        <label>
-          Password (optional):
-          <input name="password" type="password">
-        </label>
-        <input type="submit" value="Launch">
+                <option>[0] Restaurants</option> <!-- makes no distinction between AI restaurants and player-owned ones -->
+
+                <option>[0] Bird Breeders</option> <!-- requires spectator clients -->
+                <option>[0] Gridlock Alternate</option> <!-- requires spectator clients -->
+
+                <option>[0] Client Overrides Example</option> <!-- requires view overrides -->
+                <option>[0] Critter Designers</option> <!-- requires view overrides -->
+                <option>[0] Current in a Wire</option> <!-- requires view overrides -->
+                <option>[0] MTG 1 Equal Opportunities</option> <!-- requires view overrides -->
+                <option>[0] MTG 2 Random Assignment</option> <!-- requires view overrides -->
+                <option>[0] MTG 3 Feedback Loop</option> <!-- requires view overrides -->
+                <option>[0] Sampler</option> <!-- requires view overrides -->
+              </select>
+            </div>
+            <p id="activity-text-short" class="activity-text-short">
+              This is a placeholder for a condensed activity description.
+            </p>
+            <input type="button" id="read-more-button" class="read-more-button" value="Read More">
+          </div>
+
+          <div class="image-wrapper">
+            <img
+              id="preview-image"
+              class="preview-image"
+              src=" http://ccl.northwestern.edu/netlogo/models/models/Curricular%20Models/epiDEM/epiDEM%20Basic.png"
+              alt="Activity Image"
+            >
+          </div>
+        </div>
+
+        <div class="form-input-wrapper">
+          <div>
+            <label class="form-label">Session Name
+              <input class="form-input" name="sessionName" type="text" pattern="\w.*" required>
+            </label>
+          </div>
+          <div class="center-input">
+            <label class="form-label">Password
+              <input class="form-input" name="password" type="text">
+            </label>
+          </div>
+          <input class="button-general launch-button" type="submit" value="Launch">
+        </div>
+
       </form>
+
     </div>
 
     <div id="id-display"></div>

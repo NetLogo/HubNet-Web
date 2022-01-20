@@ -1,5 +1,6 @@
 body {
-  background-color: white;
+  margin-left: 50px;
+  margin-right: 50px;
 }
 
 .chat-wrapper {
@@ -9,4 +10,220 @@ body {
 .frame {
   height: 100%;
   width:  100%;
+  margin-top: 15px;
+}
+
+.modal-container {
+  animation: modalContainerFade ease 0.1s;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+@keyframes modalContainerFade {
+  0% {
+    background-color: rgba(0, 0, 0, 0);
+  }
+  100% {
+    background-color: rgba(0, 0, 0, 0.5);
+   }
+}
+
+.modal {
+  animation: modalFade ease 0.5s;
+  background-color: white;
+  justify-content: space-between;
+  position: relative;
+  top: 50%;
+  transform: translateY(-70%);
+  margin-left: auto;
+  margin-right: auto;
+  width: 70%;
+  height: 50%;
+  border: 5px solid;
+  border-radius: 20px;
+}
+
+@keyframes modalFade {
+  0% {
+   opacity: 0;
+  }
+  100% {
+    opacity: 100%;
+   }
+}
+
+.modal-text {
+  margin: 25px 25px 0px 25px;
+  overflow-y: auto;
+}
+
+.modal-activity-title {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 48px;
+  font-weight: bold;
+}
+
+.activity-text-full {
+  line-height: 1.5;
+  padding-right: 25px;
+}
+
+.modal-delineation {
+  margin: 15px 0 15px 0;
+  border: 1px solid black;
+  opacity: 70%;
+}
+
+.close-modal-button {
+  background-color: #ed9393;
+  display: block;
+  margin: 0 auto 10px auto;
+  width: 100px;
+  height: 40px;
+  font-size: 18px;
+  border-radius: 8px;
+}
+
+.close-modal-button:hover {
+  filter: brightness(0.9);
+}
+
+.close-modal-button:active {
+  filter: brightness(0.7);
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
+}
+
+.host-header {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: -5px;
+}
+
+.activity-selection {
+  background-color: white;
+  display: flex;
+  flex-direction: row;
+  border: 2px solid;
+  height: 400px;
+  border-radius: 35px;
+  margin-top: 15px;
+  padding: 25px;
+}
+
+.activity-description {
+  width: 40%;
+  font-size: 18px;
+  margin-right: 30px;
+}
+
+.library-model-container {
+  position: relative;
+}
+
+.library-model-container:after {
+  background-color: #aed8f2;
+  content: "\25bc"; /* Draws custom triangle -- Chris S. (1/20/22) */
+  color: white;
+  right: 0;
+  position: absolute;
+  height: 20px;
+  padding: 4px 10px 4px 10px;
+  border: 1px solid gray;
+  border-radius: 0px 8px 8px 0px;
+  pointer-events: none;
+}
+
+.library-model-container:hover {
+  filter: brightness(0.9);
+}
+
+.library-model {
+  width: 100%;
+  height: 30px;
+  font-size: 18px;
+  padding-left: 5px;
+  border-radius: 8px;
+}
+
+.activity-text-short {
+  max-height: 200px;
+}
+
+.read-more-button {
+  background-color: #aed8f2;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 150px;
+  height: 50px;
+  font-size: 18px;
+  border-radius: 8px;
+}
+
+.read-more-button:hover {
+  filter: brightness(0.9);
+}
+
+.read-more-button:active {
+  filter: brightness(0.7);
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
+}
+
+.image-wrapper {
+  width: 60%;
+}
+
+.preview-image {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.form-input-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 50px;
+  padding-bottom: 40px;
+}
+
+.form-label {
+  display: block;
+  font-size: 20px;
+}
+
+.form-input {
+  display: block;
+  margin-top: 5px;
+  width: 175%;
+  height: 30px;
+}
+
+.center-input {
+  margin-left: 20%;
+  margin-right: 20%;
+}
+
+.launch-button {
+  background-color: #bfebbe;
+  width: 10vw;
+  height: 40px;
+  font-size: 18px;
+  border-radius: 8px;
+  margin-top: 25px;
+}
+
+.launch-button:hover {
+  filter: brightness(0.9);
+}
+
+.launch-button:active {
+  filter: brightness(0.7);
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
 }
