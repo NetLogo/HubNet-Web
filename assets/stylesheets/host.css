@@ -34,7 +34,7 @@ body {
 }
 
 .modal {
-  animation: modalFade ease 0.5s;
+  animation: modalFade ease 0.1s;
   background-color: white;
   justify-content: space-between;
   position: relative;
