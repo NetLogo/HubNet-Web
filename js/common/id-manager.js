@@ -10,10 +10,10 @@ export default class IDManager {
 
   // (String) => Number
   next = (ident) => {
-    const lid  = this.#lastIDMap[ident];
-    const next = (lid !== undefined) ? nextID(lid) : MinID;
-    this.#lastIDMap[ident] = next;
-    return next;
+    const lid = this.#lastIDMap[ident];
+    const out = (lid !== undefined) ? nextID(lid) : MinID;
+    this.#lastIDMap[ident] = out;
+    return out;
   };
 
 }
