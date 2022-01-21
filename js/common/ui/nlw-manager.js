@@ -1,4 +1,5 @@
 import { awaitPort } from "/js/common/await.js";
+import IDManager     from "/js/common/id-manager.js";
 
 import { galapagos, galaProto } from "/js/static/domain.js";
 
@@ -7,11 +8,17 @@ export default class NLWManager {
   #babyMonitor   = null;      // MessagePort
   #outerFrame    = undefined; // Element
   #resolverQueue = undefined; // Array[() => Unit]
+  #withNLWID     = undefined; // (Object[Any]) => Object[Any]
 
   // (Element) => NLWManager
   constructor(outerFrame) {
+
+    const idMan = new IDManager();
+
     this.#outerFrame    = outerFrame;
     this.#resolverQueue = [];
+    this.#withNLWID     = (msg) => ({ ...msg, id: idMan.next("") });
+
   }
 
   // () => Unit
@@ -34,14 +41,16 @@ export default class NLWManager {
 
   // (String, Object[Any]?) => Promise[Any]
   _await = (type, msg = {}) => {
-    return this.#withBabyMonitor((bm) => awaitPort(bm)(type, msg));
+    const m = this.#withNLWID(msg);
+    return this.#withBabyMonitor((bm) => awaitPort(bm)(type, m));
   };
 
   // (Object[Any]) => Unit
   _post = (msg) => {
+    const m = this.#withNLWID(msg);
     this.#withBabyMonitor((bm) =>
       new Promise((resolve) => {
-        bm.postMessage(msg);
+        bm.postMessage(m);
         resolve();
       })
     );
