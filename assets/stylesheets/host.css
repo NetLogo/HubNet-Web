@@ -196,23 +196,23 @@ body {
 .form-label {
   display: block;
   font-size: 20px;
+  width: 30vw;
 }
 
 .form-input {
   display: block;
   margin-top: 5px;
-  width: 175%;
   height: 30px;
+  width: 25vw;
 }
 
 .center-input {
-  margin-left: 20%;
-  margin-right: 20%;
+  margin: 0 3vw 0 3vw;
 }
 
 .launch-button {
   background-color: #bfebbe;
-  width: 10vw;
+  width: 100px;
   height: 40px;
   font-size: 18px;
   border-radius: 8px;
