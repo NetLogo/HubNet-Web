@@ -1,4 +1,4 @@
-const placeholderBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wYGEwkDoISeKgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAADElEQVQI12NobmwEAAMQAYa2CjzCAAAAAElFTkSuQmCC";
+const imagePlaceholder = "/assets/images/netlogo-icon.png";
 
 export default class PreviewManager {
 
@@ -22,7 +22,7 @@ export default class PreviewManager {
 
   // () => UNit
   useDefault = () => {
-    this.#setImage(placeholderBase64);
+    this.#setImage(imagePlaceholder);
   };
 
   // (String) => Unit

@@ -13,8 +13,35 @@ export default class SessionList {
   // (Element, (UUID) => Session?, AppStatusManager, PreviewManager, SelNotifier) => SessionList
   constructor(parent, onStreamInit, statusManager, previewManager, notifySel) {
 
-    const filterBox = parent.querySelector("#session-filter-box");
-    const data      = new SessionData();
+    const filterBox         = parent.querySelector("#session-filter-box");
+    const sessionRowWrapper = parent.querySelector("#session-row-wrapper");
+    const data              = new SessionData();
+
+    const sessionTableOverflow = () => {
+      return (sessionRowWrapper.offsetHeight + sessionRowWrapper.scrollTop) >=
+        sessionRowWrapper.scrollHeight;
+    };
+
+    sessionRowWrapper.onscroll = () => {
+      if (sessionTableOverflow()) {
+        sessionRowWrapper.classList.add("box-shadow-none");
+        sessionRowWrapper.classList.remove("box-shadow-standard");
+      } else {
+        sessionRowWrapper.classList.add("box-shadow-standard");
+        sessionRowWrapper.classList.remove("box-shadow-none");
+      }
+    };
+
+    const observer = new ResizeObserver(() => {
+      if (sessionTableOverflow()) {
+        sessionRowWrapper.classList.add("box-shadow-none");
+        sessionRowWrapper.classList.remove("box-shadow-standard");
+      } else {
+        sessionRowWrapper.classList.add("box-shadow-standard");
+        sessionRowWrapper.classList.remove("box-shadow-none");
+      }
+    });
+    observer.observe(sessionRowWrapper);
 
     this.#parent = parent;
     this.#stream = genSessionStream( filterBox, parent, data, statusManager
