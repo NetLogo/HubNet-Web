@@ -8,6 +8,14 @@
   flex-direction: row;
 }
 
+.block-display {
+  display: block;
+}
+
+.flex-display {
+  display: flex;
+}
+
 .hidden {
   display: none;
 }
