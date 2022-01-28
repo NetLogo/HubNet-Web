@@ -158,8 +158,9 @@ export default class ConnectionManager {
 
   // (UUID) => Unit
   #disown = (joinerID) => {
+    const channel = this.#sessionManager.getAnyChannelByID(joinerID);
     this.#onDisconnect(joinerID);
-    this.#rtcManager  .notifyClientDisconnect();
+    this.#rtcManager  .notifyChannelDisconnect(channel);
     this.#deserializer.notifyClientDisconnect();
     this.#sessionManager.unregister(joinerID);
   };

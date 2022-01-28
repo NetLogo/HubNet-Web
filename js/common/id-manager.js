@@ -16,4 +16,9 @@ export default class IDManager {
     return out;
   };
 
+  // (String) => Unit
+  unregister = (ident) => {
+    delete this.#lastIDMap[ident];
+  };
+
 }

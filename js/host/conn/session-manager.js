@@ -37,6 +37,16 @@ export default class SessionManager {
       map(([uuid, channel]) => [uuid, channel.bufferedAmount]);
   };
 
+  // (UUID) => RTCDataChannel?
+  getAnyChannelByID = (uuid) => {
+    const session = this.#sessions[uuid];
+    if (session !== undefined) {
+      return session.networking.channel;
+    } else {
+      return null;
+    }
+  };
+
   // (UUID, Boolean?) => RTCDataChannel?
   getOpenChannelByID = (uuid, allowUninited = false) => {
     const session = this.#sessions[uuid];

@@ -36,8 +36,9 @@ export default class RTCManager {
     this.#serializer.notifyClientConnect();
   };
 
-  // () => Unit
-  notifyClientDisconnect = () => {
+  // (RTCDataChannel) => Unit
+  notifyChannelDisconnect = (channel) => {
+    this.#idMan.unregister(this.#chanToIdent(channel));
     this.#serializer.notifyClientDisconnect();
   };
 
@@ -135,9 +136,14 @@ export default class RTCManager {
     return this.#serializer.await(this.#isHost, parcel);
   };
 
-  // (Channel) => Number
+  // (RTCDataChannel) => String
+  #chanToIdent = (channel) => {
+    return `${channel.label}-${channel.id}`;
+  };
+
+  // (RTCDataChannel) => Number
   #genChanID = (channel) => {
-    return this.#idMan.next(`${channel.label}-${channel.id}`);
+    return this.#idMan.next(this.#chanToIdent(channel));
   };
 
   // (Sendable, RTCDataChannel) => Unit
