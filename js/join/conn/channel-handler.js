@@ -73,7 +73,6 @@ export default class ChannelHandler {
       case "ping": {
         handlePing(b, this.#recentPings)(datum);
         break;
-
       }
 
       case "hnw-burst": {
