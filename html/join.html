@@ -6,119 +6,123 @@
   </head>
   <body>
 
-    <div>
-      <h1>Join a Session</h1>
-    </div>
+    <div id="session-browser-frame" class="flex-column">
 
-    <div id="session-browser-frame" class="flex-row">
-
-      <div class="left-column" class="flex-column">
-
-        <div class="session-status">
-          <span class="status-value-container">Status: </span><span id="status-value">Floating through the ether</span>
-        </div>
-
-        <div id="session-list-container">
-          <input
-            class="session-filter-box"
-            id="session-filter-box"
-            type="search"
-            placeholder="Search..."
-          >
-
-          <div id="session-row-wrapper" class="session-row-wrapper">
-            <table id="session-row-container" class="session-row-container">
-              <template id="session-row-template">
-                <tr class="session-row">
-                  <td class="row-label session-element">
-                    <input id="session-option" class="session-option" name="sessionOption" type="radio">
-                  </td>
-                  <td class="session-name session-element"></td>
-                  <td class="session-model-name session-element"></td>
-                  <td class="session-info session-element"></td>
-                </tr>
-              </template>
-              <thead class="session-header" id="session-header">
-                <tr>
-                  <th class="session-element">Session Name</th>
-                  <th class="session-element">Activity</th>
-                  <th class="session-element"># Participants</th>
-                </tr>
-              </thead>
-              <tbody class="session-rows" id="session-rows"></tbody>
-            </table>
-          </div>
-
-        </div>
-        <hr class="session-list-boundary"></hr>
-
-        <form class="user-inputs-container" id="join-form" action="javascript:void(0);" method="POST">
-          <div class="user-inputs-top-row flex-display">
-            <div>
-              <label class="form-label">Username
-                <input class="username block-display" id="username" name="username" type="text" required>
-              </label>
-            </div>
-            <div>
-              <label class="form-label">Password
-                <input class="password block-display" id="password" name="password" type="password" disabled>
-              </label>
-            </div>
-          </div>
-          <div class="user-inputs-bottom-row flex-display">
-            <div class="flex-column">
-              <label class="form-label">Role
-                <select id="role-select" class="role-select block-display" disabled></select>
-              </label>
-            </div>
-            <input id="join-button" class="join-button block-display" type="submit" value="Join" disabled>
-          </div>
-        </form>
-
+      <div>
+        <h1>Join a Session</h1>
       </div>
 
-      <div class="right-column">
-        <img
-          id="session-preview-image"
-          class="session-preview-image"
-          draggable=false
-        />
+      <div class="flex-row">
 
-        <div id="chat-box-closed" class="chat-box-closed flex-display">
-          <div class="chat-box-closed-header">
-            <div>Chat</div>
-            <div class="expand-chat-arrow"></div>
+        <div class="left-column" class="flex-column">
+
+          <div class="session-status">
+            <span class="status-value-container">Status: </span><span id="status-value">Floating through the ether</span>
           </div>
+
+          <div id="session-list-container">
+            <input
+              class="session-filter-box"
+              id="session-filter-box"
+              type="search"
+              placeholder="Search..."
+            >
+
+            <div id="session-row-wrapper" class="session-row-wrapper">
+              <table id="session-row-container" class="session-row-container">
+                <template id="session-row-template">
+                  <tr class="session-row">
+                    <td class="row-label session-element">
+                      <input id="session-option" class="session-option" name="sessionOption" type="radio">
+                    </td>
+                    <td class="session-name session-element"></td>
+                    <td class="session-model-name session-element"></td>
+                    <td class="session-info session-element"></td>
+                  </tr>
+                </template>
+                <thead class="session-header" id="session-header">
+                  <tr>
+                    <th class="session-element">Session Name</th>
+                    <th class="session-element">Activity</th>
+                    <th class="session-element"># Participants</th>
+                  </tr>
+                </thead>
+                <tbody class="session-rows" id="session-rows"></tbody>
+              </table>
+            </div>
+
+          </div>
+          <hr class="session-list-boundary"></hr>
+
+          <form class="user-inputs-container" id="join-form" action="javascript:void(0);" method="POST">
+            <div class="user-inputs-top-row flex-display">
+              <div>
+                <label class="form-label">Username
+                  <input class="username block-display" id="username" name="username" type="text" required>
+                </label>
+              </div>
+              <div>
+                <label class="form-label">Password
+                  <input class="password block-display" id="password" name="password" type="password" disabled>
+                </label>
+              </div>
+            </div>
+            <div class="user-inputs-bottom-row flex-display">
+              <div class="flex-column">
+                <label class="form-label">Role
+                  <select id="role-select" class="role-select block-display" disabled></select>
+                </label>
+              </div>
+              <input id="join-button" class="join-button block-display" type="submit" value="Join" disabled>
+            </div>
+          </form>
+
         </div>
 
-        <div id="chat-box-open" class="chat-box-open hidden">
-          <div id="open-chat-header" class="open-chat-header flex-display">
-            <div>Chat</div>
-            <div class="collapse-chat-arrow"></div>
-          </div>
-          <div>
-            <div id="global-chat">
-              <div id="global-chat-output" class="open-chat-body"></div>
-              <input
-                id="global-chat-input"
-                class="open-chat-input"
-                type="text"
-                value=""
-                placeholder="Type chat here..."
-              />
-            </div>
-            <div id="session-chat" class="hidden">
-              <div id="session-chat-output" class="open-chat-body"></div>
-              <input
-                id="session-chat-input"
-                class="open-chat-input"
-                type="text"
-                value=""
-                placeholder="Type chat here..."
-              />
+        <div class="right-column">
+          <img
+            id="session-preview-image"
+            class="session-preview-image"
+            draggable=false
+          />
+
+          <div id="chat-box-closed" class="chat-box-closed flex-display">
+            <div class="chat-box-closed-header">
+              <div>Chat</div>
+              <div class="expand-chat-arrow"></div>
             </div>
           </div>
-        </div>
+
+          <div id="chat-box-open" class="chat-box-open hidden">
+            <div id="open-chat-header" class="open-chat-header flex-display">
+              <div>Chat</div>
+              <div class="collapse-chat-arrow"></div>
+            </div>
+            <div>
+              <div id="global-chat">
+                <div id="global-chat-output" class="open-chat-body"></div>
+                <input
+                  id="global-chat-input"
+                  class="open-chat-input"
+                  type="text"
+                  value=""
+                  placeholder="Type chat here..."
+                />
+              </div>
+              <div id="session-chat" class="hidden">
+                <div id="session-chat-output" class="open-chat-body"></div>
+                <input
+                  id="session-chat-input"
+                  class="open-chat-input"
+                  type="text"
+                  value=""
+                  placeholder="Type chat here..."
+                />
+              </div>
+            </div>
+          </div>
+
+      </div>
 
     </div>
   </div>
