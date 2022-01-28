@@ -1,5 +1,6 @@
 import { awaitPort } from "/js/common/await.js";
 import IDManager     from "/js/common/id-manager.js";
+import SimpleQueue   from "/js/common/simple-queue.js";
 
 import { galapagos, galaProto } from "/js/static/domain.js";
 
@@ -90,7 +91,11 @@ export default class NLWManager {
     this.#resolverQueue.forEach((f) => f());
     this.#resolverQueue = [];
 
-    bm.onmessage = this._onBabyMonitorMessage;
+    const queue = new SimpleQueue(this._onBabyMonitorMessage);
+
+    bm.onmessage = (x) => {
+      queue.enqueue(x.data);
+    };
 
   };
 

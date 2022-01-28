@@ -75,7 +75,8 @@ export default class HostNLWManager extends NLWManager {
     this._post({ type: "hnw-latest-ping", joinerID, ping });
   };
 
-  _onBabyMonitorMessage = ({ data }) => {
+  // (Object[Any]) => Unit
+  _onBabyMonitorMessage = (data) => {
 
     switch (data.type) {
 

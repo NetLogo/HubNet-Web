@@ -43,7 +43,7 @@ export default class JoinerNLWManager extends NLWManager {
   };
 
   // (Object[Any]) => Unit
-  _onBabyMonitorMessage = ({ data }) => {
+  _onBabyMonitorMessage = (data) => {
     switch (data.type) {
       case "relay": {
         this.#send("relay", data);

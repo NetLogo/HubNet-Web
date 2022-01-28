@@ -1,32 +1,40 @@
+import SimpleQueue from "/js/common/simple-queue.js";
+
 // (Object[Any]) => (Object[Any]) => Unit
-export default (bundle) => (datum) => {
+export default (bundle) => {
 
-  switch (datum.type) {
+  const relayQueue = new SimpleQueue(bundle.relayToNLW);
 
-    case "initial-model": {
-      handleInitialModel(bundle)(datum);
-      break;
+  return (datum) => {
+
+    switch (datum.type) {
+
+      case "initial-model": {
+        handleInitialModel(bundle)(datum);
+        break;
+      }
+
+      case "state-update": {
+        bundle.updateNLW(datum.update);
+        break;
+      }
+
+      case "relay": {
+        relayQueue.enqueue(datum);
+        break;
+      }
+
+      case "hnw-resize": {
+        break;
+      }
+
+      default: {
+        console.warn("Unknown bursted sub-event type:", datum.type);
+      }
+
     }
 
-    case "state-update": {
-      bundle.updateNLW(datum.update);
-      break;
-    }
-
-    case "relay": {
-      bundle.relayToNLW(datum);
-      break;
-    }
-
-    case "hnw-resize": {
-      break;
-    }
-
-    default: {
-      console.warn("Unknown bursted sub-event type:", datum.type);
-    }
-
-  }
+  };
 
 };
 
