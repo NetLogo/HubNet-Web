@@ -53,8 +53,8 @@ const genSessionNode = (parent, seshData, statusManager, previewManager, notifyS
 
   node.querySelector(".session-name").textContent       = name;
   node.querySelector(".session-model-name").textContent = modelName;
-  node.querySelector(".session-info").textContent       = `${numClients} people`;
-  node.querySelector(".session-row").dataset.uuid     = oracleID;
+  node.querySelector(".session-info").textContent       = (numClients === 1) ? `${numClients} person` : `${numClients} people`;
+  node.querySelector(".session-row").dataset.uuid       = oracleID;
 
   node.querySelector(".session-option").addEventListener("change", (event) => {
 
