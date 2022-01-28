@@ -58,6 +58,13 @@ const FromHostRoot = {
       }
     }
 
+  , ConnValidation: { // connection-validation
+      fields: {
+        id:         { type: "uint32", id: 1 }
+      , isApproved: { type: "bool"  , id: 2 }
+      }
+    }
+
   , HNWBurst: { // hnw-burst
       fields: {
         id:         { type: "uint32", id: 1 }

@@ -23,6 +23,12 @@ const FromJoinerRoot = {
       , protocolMajor: { type: "uint32", id: 2 }
       , protocolMinor: { type: "uint32", id: 3 }
       , protocolPatch: { type: "uint32", id: 4 }
+      , usesTURN:      { type: "bool"  , id: 5 }
+      // Begin jiggery optimizations
+      , uuidChunk1: { type: "uint32", id: 6 }
+      , uuidChunk2: { type: "uint32", id: 7 }
+      , uuidChunk3: { type: "uint32", id: 8 }
+      , uuidChunk4: { type: "uint32", id: 9 }
       }
     }
 

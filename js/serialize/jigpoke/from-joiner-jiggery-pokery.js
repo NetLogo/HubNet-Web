@@ -1,4 +1,5 @@
-import { deepClone, recombobulateToken, rejiggerToken } from "./common-jiggery-pokery.js";
+import { deepClone, recombobulateToken, rejiggerToken, recombobulateUUID
+       , rejiggerUUID } from "./common-jiggery-pokery.js";
 
 // (Object[Any]) => Object[Any]
 const rejiggerConnEst = (obj) => {
@@ -12,6 +13,13 @@ const rejiggerConnEst = (obj) => {
   out.protocolMajor = major;
   out.protocolMinor = minor;
   out.protocolPatch = patch;
+
+  const [uc1, uc2, uc3, uc4] = rejiggerUUID(out.uuid);
+
+  out.uuidChunk1 = uc1;
+  out.uuidChunk2 = uc2;
+  out.uuidChunk3 = uc3;
+  out.uuidChunk4 = uc4;
 
   return out;
 
@@ -91,12 +99,20 @@ const rejiggerRelay = (obj) => {
 
 // (Object[Any]) => Object[Any]
 const recombobulateConnEst = (obj) => {
+
   const out           = deepClone(obj);
+
   const major         = out.protocolMajor;
   const minor         = out.protocolMinor;
   const patch         = out.protocolPatch;
+
   out.protocolVersion = `${major}.${minor}.${patch}`;
+
+  out.uuid = recombobulateUUID( out.uuidChunk1, out.uuidChunk2, out.uuidChunk3
+                              , out.uuidChunk4);
+
   return out;
+
 };
 
 // (Object[Any]) => Object[Any]
