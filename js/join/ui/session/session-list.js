@@ -111,7 +111,7 @@ const initListeners = ( filterBox, parent, data, statusManager, previewManager
 
 // (Element, SessionData) => (UUID) => Session?
 const clickAndGetByUUID = (parent, seshData) => (uuid) => {
-  const selector = `.session-label[data-uuid="${uuid}"] > .session-option`;
+  const selector = `.session-row[data-uuid="${uuid}"] > .row-label > .session-option`;
   const match    = parent.querySelector(selector);
   if (match !== null) {
     match.click();
