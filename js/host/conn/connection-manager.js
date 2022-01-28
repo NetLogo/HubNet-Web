@@ -1,3 +1,4 @@
+import RxQueue         from "/js/common/rx-queue.js";
 import { uuidToRTCID } from "/js/common/util.js";
 
 import { version } from "/js/static/version.js";
@@ -170,8 +171,12 @@ export default class ConnectionManager {
     const props   = { negotiated: true, id: rtcID };
     const channel = connection.createDataChannel("hubnet-web", props);
 
+    const onRun      = this.#onChannelMessage(joinerID, channel);
+    const msgHandler = { reset: () => {}, run: onRun };
+    const rxQueue    = new RxQueue(msgHandler, true);
+
     channel.onopen    = () => { this.#rtcManager.sendGreeting(channel); };
-    channel.onmessage = this.#onChannelMessage(joinerID, channel);
+    channel.onmessage = rxQueue.enqueue;
     channel.onclose   = () => { this.#disown(joinerID); };
 
     this.#sessionManager.setNetworking(joinerID, connection, channel);
@@ -215,67 +220,61 @@ export default class ConnectionManager {
   };
 
   // (UUID, RTCDataChannel) => (Object[Any]) => Unit
-  #onChannelMessage = (joinerID, channel) => ({ data }) => {
+  #onChannelMessage = (joinerID, channel) => (datum) => {
 
-    const parcel = new Uint8Array(data);
+    switch (datum.type) {
 
-    this.#deserializer.await(true, parcel).then((datum) => {
+      case "chat": {
 
-      switch (datum.type) {
+        const username = this.#sessionManager.lookupUsername(joinerID) || "???";
+        this.#chatManager.addNewChat(datum.message, username);
 
-        case "chat": {
+        const dontSendTo  = this.#sessionManager.getOpenChannelByID(joinerID);
+        const allChannels = this.#sessionManager.getOpenChannels();
+        const sendTos     = allChannels.filter((c) => c !== dontSendTo);
 
-          const username = this.#sessionManager.lookupUsername(joinerID) || "???";
-          this.#chatManager.addNewChat(datum.message, username);
+        const obj = { message: datum.message, username };
 
-          const dontSendTo  = this.#sessionManager.getOpenChannelByID(joinerID);
-          const allChannels = this.#sessionManager.getOpenChannels();
-          const sendTos     = allChannels.filter((c) => c !== dontSendTo);
+        this.#rtcManager.send(...sendTos)("chat-relay", obj);
 
-          const obj = { message: datum.message, username };
-
-          this.#rtcManager.send(...sendTos)("chat-relay", obj);
-
-          break;
-
-        }
-
-        case "connection-established": {
-          if (datum.protocolVersion !== version) {
-            const id = this.#sessionManager.invalidate(joinerID);
-            this.#notifyUser(`HubNet protocol version mismatch!  You are using protocol version '${version}', while client '${id}' is using version '${datum.protocolVersion}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and refresh the page.  The offending client has been disconnected.`);
-          }
-          break;
-        }
-
-        case "login": {
-          this.#handleLogin(joinerID, channel)(datum);
-          break;
-        }
-
-        case "pong": {
-          const pingTime = this.#sessionManager.pong(joinerID, datum.id);
-          this.#registerPingTime(joinerID, pingTime);
-          break;
-        }
-
-        case "relay": {
-          this.#relay(datum.payload);
-          break;
-        }
-
-        case "bye-bye": {
-          this.#disown(joinerID);
-          break;
-        }
-
-        default: {
-          console.warn("Unknown channel event type:", datum.type);
-        }
+        break;
 
       }
 
-    });
+      case "connection-established": {
+        if (datum.protocolVersion !== version) {
+          const id = this.#sessionManager.invalidate(joinerID);
+          this.#notifyUser(`HubNet protocol version mismatch!  You are using protocol version '${version}', while client '${id}' is using version '${datum.protocolVersion}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and refresh the page.  The offending client has been disconnected.`);
+        }
+        break;
+      }
+
+      case "login": {
+        this.#handleLogin(joinerID, channel)(datum);
+        break;
+      }
+
+      case "pong": {
+        const pingTime = this.#sessionManager.pong(joinerID, datum.id);
+        this.#registerPingTime(joinerID, pingTime);
+        break;
+      }
+
+      case "relay": {
+        this.#relay(datum.payload);
+        break;
+      }
+
+      case "bye-bye": {
+        this.#disown(joinerID);
+        break;
+      }
+
+      default: {
+        console.warn("Unknown channel event type:", datum.type);
+      }
+
+    }
 
   };
 
