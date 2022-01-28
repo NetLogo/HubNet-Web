@@ -46,7 +46,7 @@ const JoinerRelayPayloadPB = {
 
     CashRaincheckPayload: {
       fields: {
-        "id": { type: "sint64", id: 1 }
+        "hash": { type: "sint64", id: 1 }
       }
     }
 
