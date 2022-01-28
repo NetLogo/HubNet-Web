@@ -14,11 +14,10 @@ export default class NLWManager {
   // (Element) => NLWManager
   constructor(outerFrame) {
 
-    const idMan = new IDManager();
-
     this.#outerFrame    = outerFrame;
     this.#resolverQueue = [];
-    this.#withNLWID     = (msg) => ({ ...msg, id: idMan.next(""), source: "hnw" });
+
+    this.resetIDMan();
 
   }
 
@@ -33,6 +32,12 @@ export default class NLWManager {
 
   // () => Unit
   init = () => {};
+
+  // () => Unit
+  resetIDMan = () => {
+    const idMan     = new IDManager();
+    this.#withNLWID = (msg) => ({ ...msg, id: idMan.next(""), source: "hnw" });
+  };
 
   // () => Unit
   show = () => {

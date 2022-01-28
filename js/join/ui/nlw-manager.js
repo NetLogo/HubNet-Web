@@ -61,6 +61,7 @@ export default class JoinerNLWManager extends NLWManager {
 
   // () => Unit
   _hide = () => {
+    this.resetIDMan();
     this._post(fakeModel);
   };
 
