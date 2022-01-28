@@ -1,6 +1,5 @@
 body {
   margin-left: 50px;
-  margin-right: 50px;
 }
 
 .session-status {
@@ -134,8 +133,11 @@ body {
 }
 
 .session-preview-image {
-  height: 400px;
-  width: 100%;
+  display: block;
+  margin: auto;
+  margin-top: 2vh;
+  width: 35vw;
+  max-width: 350px;
   border-radius: 20px;
 }
 
