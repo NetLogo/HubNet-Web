@@ -1,10 +1,10 @@
-import { uuidToRTCID  } from "/js/common/util.js";
+import RxQueue         from "/js/common/rx-queue.js";
+import { uuidToRTCID } from "/js/common/util.js";
 
 import { rtcConfig } from "./webrtc.js";
 
 import ChannelHandler  from "./channel-handler.js";
 import SignalingStream from "./signaling-stream.js";
-import RxQueue         from "./rx-queue.js";
 
 import ChatSocket from "/js/common/chat-socket.js";
 import RTCManager from "/js/common/rtc-manager.js";
