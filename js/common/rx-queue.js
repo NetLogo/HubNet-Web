@@ -48,7 +48,6 @@ export default class RxQueue {
       } else {
         this.#handleFragment(datum);
       }
-
     }
 
   };

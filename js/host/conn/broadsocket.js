@@ -41,7 +41,7 @@ export default class BroadSocket {
 const handleSocketMessage = (hostID, processOffer2, registerSignaling, getFullness) =>
                             ({ data: joinerID }) => {
 
-  const signaling  = new SignalingSocket(getFullness());
+  const signaling = new SignalingSocket(getFullness());
 
   const connection    = new RTCPeerConnection(rtcConfig);
   const processOffer0 = processOffer2(joinerID, connection);
