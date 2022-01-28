@@ -204,12 +204,6 @@ export default class ConnectionManager {
         };
     }
 
-    connection.oniceconnectionstatechange = () => {
-      if (connection.iceConnectionState === "disconnected") {
-        this.#disown(joinerID);
-      }
-    };
-
     connection.setRemoteDescription(offer).
       then(()     => connection.createAnswer()).
       then(answer => connection.setLocalDescription(answer)).
