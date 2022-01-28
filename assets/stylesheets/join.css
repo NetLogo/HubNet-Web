@@ -141,22 +141,19 @@ body {
 
 .chat-box-closed {
   position: fixed;
-  bottom: 0;
-  right: 60px;
+  bottom: 20px;
+  right: 30px;
   justify-content: center;
-  align-items: center;
   cursor: pointer;
   border: 1px solid black;
-  border-bottom: none;
-  border-radius: 15px 15px 0 0;
-  width: 20vw;
-  height: 40px;
-  padding-top: 10px;
+  border-radius: 50%;
+  width: 60px;
+  height: 50px;
+  padding-top: 5px;
   background-color: #aed8f2;
   color: black;
-  font-size: 18px;
+  font-size: 32px;
   font-weight: bold;
-  margin-top: 10px;
 }
 
 .chat-box-closed-header {
