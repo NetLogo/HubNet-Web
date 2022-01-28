@@ -143,7 +143,11 @@ export default class RTCManager {
   // (Sendable, RTCDataChannel) => Unit
   #logAndSend = (data, channel) => {
     this.#bandMon.log(data, channel);
-    channel.send(data);
+    if (channel.readyState === "open") {
+      channel.send(data);
+    } else {
+      console.warn("Channel no longer open.  Dropping message!", data, channel);
+    }
   };
 
   // (RTCDataChannel) => (String, Any, UUID) => Unit
