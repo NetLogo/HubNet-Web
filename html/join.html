@@ -85,44 +85,10 @@
             class="session-preview-image"
             draggable=false
           />
-
-          <div id="chat-box-closed" class="chat-box-closed flex-display">
-            ...
-          </div>
-
-          <div id="chat-box-open" class="chat-box-open hidden">
-            <div id="open-chat-header" class="open-chat-header flex-display">
-              <div>Chat</div>
-              <div class="collapse-chat-arrow"></div>
-            </div>
-            <div>
-              <div id="global-chat">
-                <div id="global-chat-output" class="open-chat-body"></div>
-                <input
-                  id="global-chat-input"
-                  class="open-chat-input"
-                  type="text"
-                  value=""
-                  placeholder="Type chat here..."
-                />
-              </div>
-              <div id="session-chat" class="hidden">
-                <div id="session-chat-output" class="open-chat-body"></div>
-                <input
-                  id="session-chat-input"
-                  class="open-chat-input"
-                  type="text"
-                  value=""
-                  placeholder="Type chat here..."
-                />
-              </div>
-            </div>
-          </div>
+        </div>
 
       </div>
-
     </div>
-  </div>
 
   <div id="nlw-frame" class="frame hidden">
     <input id="disconnect-button" type="button" value="Disconnect">
@@ -132,6 +98,41 @@
       <div>Latency: <span id="latency-span">(N/A)</span>ms</div>
     </div>
     <iframe class="nlw-iframe"></iframe>
+  </div>
+
+  <div id="chat-box">
+    <div id="chat-box-closed" class="chat-box-closed flex-display">
+      ...
+    </div>
+
+    <div id="chat-box-open" class="chat-box-open hidden">
+      <div id="open-chat-header" class="open-chat-header flex-display">
+        <div>Chat</div>
+        <div class="collapse-chat-arrow"></div>
+      </div>
+      <div>
+        <div id="global-chat">
+          <div id="global-chat-output" class="open-chat-body"></div>
+          <input
+            id="global-chat-input"
+            class="open-chat-input"
+            type="text"
+            value=""
+            placeholder="Type chat here..."
+          />
+        </div>
+        <div id="session-chat" class="hidden">
+          <div id="session-chat-output" class="open-chat-body"></div>
+          <input
+            id="session-chat-input"
+            class="open-chat-input"
+            type="text"
+            value=""
+            placeholder="Type chat here..."
+          />
+        </div>
+      </div>
+    </div>
   </div>
 
   </body>
