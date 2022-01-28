@@ -13,8 +13,10 @@ const checkIsTURN = (stats) => {
     (v) =>
       v.type === "candidate-pair" &&
         v.state === "succeeded" &&
-        v.localCandidateId &&
-        stats.get(v.localCandidateId).candidateType === "relay"
+        ((v. localCandidateId &&
+          stats.get(v. localCandidateId).candidateType === "relay") ||
+         (v.remoteCandidateId &&
+          stats.get(v.remoteCandidateId).candidateType === "relay"))
   );
 };
 
