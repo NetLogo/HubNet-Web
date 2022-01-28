@@ -37,7 +37,7 @@ const uuidToRTCID = (uuid) => {
 
 // (String) => Boolean
 const typeIsOOB = (type) => {
-  return ["keep-alive", "ping", "pong"].includes(type);
+  return ["bye-bye", "keep-alive", "ping", "pong"].includes(type);
 };
 
 export { byteSizeLabel, checkIsTURN, typeIsOOB, uuidToRTCID };
