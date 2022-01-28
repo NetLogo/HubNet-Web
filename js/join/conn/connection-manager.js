@@ -145,14 +145,14 @@ export default class ConnectionManager {
     this.#conn.setLocalDescription(offer);
     this.#registerICEListeners(signalingStream, onTeardown, notifyICEConnLost);
     this.#registerChannelListeners( channel, username, password, notifyLoggingIn
-                                  , this.#rxQueue, onDoorbell, onTeardown);
+                                  , onDoorbell, onTeardown);
 
 
   };
 
-  // (RTCDataChannel, String, String, () => Unit, RxQueue, () => Unit, (Boolean) => Unit) => Unit
+  // (RTCDataChannel, String, String, () => Unit, () => Unit, (Boolean) => Unit) => Unit
   #registerChannelListeners = ( channel, username, password, notifyLoggingIn
-                              , rxQueue, onDoorbell, onTeardown) => {
+                              , onDoorbell, onTeardown) => {
 
     channel.onopen = () => {
       notifyLoggingIn();
@@ -165,7 +165,7 @@ export default class ConnectionManager {
       onTeardown(e.code !== 1000);
     };
 
-    channel.onmessage = rxQueue.enqueue;
+    channel.onmessage = this.#rxQueue.enqueue;
 
   };
 
