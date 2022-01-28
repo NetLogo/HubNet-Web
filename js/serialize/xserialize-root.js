@@ -98,7 +98,7 @@ const deserialize = (isHost) => (byteStream) => {
     const [type, protoType] = furler.lookupTypeCode(typeCode);
     const decoded           = protoType.decode(msgBuf);
     const decodedObj        = protoType.toObject(decoded, { enums: String });
-    const reconstructed     = { type, ...decodedObj };
+    const reconstructed     = { type, source: "wire", ...decodedObj };
     const furled            = furler.furl(reconstructed);
     trace(type)(() => console.log("About to recombobulate", reconstructed, furled));
     const recombobulated    = jiggeryPokery.recombobulate(furled);

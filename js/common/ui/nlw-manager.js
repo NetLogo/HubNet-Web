@@ -17,7 +17,7 @@ export default class NLWManager {
 
     this.#outerFrame    = outerFrame;
     this.#resolverQueue = [];
-    this.#withNLWID     = (msg) => ({ ...msg, id: idMan.next("") });
+    this.#withNLWID     = (msg) => ({ ...msg, id: idMan.next(""), source: "hnw" });
 
   }
 
