@@ -158,6 +158,72 @@ body {
   margin-bottom: 40px;
 }
 
+.modal-container {
+  animation: modalContainerFade ease 0.1s;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+@keyframes modalContainerFade {
+  0% {
+    background-color: rgba(0, 0, 0, 0);
+  }
+  100% {
+    background-color: rgba(0, 0, 0, 0.5);
+   }
+}
+
+.modal {
+  animation: modalFade ease 0.1s;
+  background-color: white;
+  justify-content: space-between;
+  position: relative;
+  top: 50%;
+  transform: translateY(-70%);
+  margin-left: auto;
+  margin-right: auto;
+  width: 70%;
+  height: 50%;
+  border: 5px solid;
+  border-radius: 20px;
+}
+
+@keyframes modalFade {
+  0% {
+   opacity: 0;
+  }
+  100% {
+    opacity: 100%;
+   }
+}
+
+.modal-text {
+  margin: 25px 25px 0px 25px;
+  overflow-y: auto;
+}
+
+.modal-session-name {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 36px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.session-detail {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.bold {
+  font-weight: bold;
+}
+
 .session-buttons {
   justify-content: space-between;
   margin-bottom: 20px;
