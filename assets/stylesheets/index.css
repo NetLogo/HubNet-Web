@@ -17,3 +17,24 @@ body {
 .index-page-body {
     margin: 10px 50px;
 }
+
+.about-tab {
+    display: flex;
+    height: 40px;
+    margin-right: -50px;
+    padding-left: 20px;
+    align-items: center;
+    font-size: 24px;
+    background-color: lightgray;
+}
+
+.hnw-description-text {
+    margin-top: 20px;
+    margin-left: 40px;
+}
+
+.blockquote-bar {
+    min-width: 15px;
+    margin-right: 20px;
+    background-color: lightgray;
+}
