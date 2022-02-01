@@ -1,0 +1,19 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.index-page-header {
+    position: sticky;
+    top: 0;
+    height: 60px;
+    padding: 0 50px;
+    background-color: lightgray;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 36px;
+}
+
+.index-page-body {
+    margin: 10px 50px;
+}
