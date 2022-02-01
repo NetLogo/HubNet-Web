@@ -11,7 +11,7 @@ body {
 }
 
 .session-row-wrapper {
-  height: 100px;
+  height: 250px;
   width: 100%;
   overflow-y: auto;
   display: inline-block;
@@ -164,10 +164,17 @@ body {
   width: 60px;
   height: 50px;
   padding-top: 5px;
-  background-color: #aed8f2;
   color: black;
   font-size: 32px;
   font-weight: bold;
+}
+
+.chat-box-read {
+  background-color: #aed8f2;
+}
+
+.chat-box-unread {
+  background-color: gray;
 }
 
 .chat-box-closed-header {

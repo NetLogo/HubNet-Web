@@ -22,6 +22,10 @@ const onLogIn = (username, password) => {
 
   statusManager.connecting();
 
+  // (NEW): Chat box is initially cleared for session chat,
+  // so mark all as read (in case messages were previously sent by host)
+  sessionChatManager.markAllMessagesRead();
+
   const hostID = sessionList.getSelectedUUID();
 
   const onDoorbell = () => {
@@ -174,6 +178,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const openChatBox = byEID("chat-box-open");
   const openChatHeader = byEID("open-chat-header");
 
+  // (NEW): Check for unread messages & update chat box color if needed
+  const checkUnreadMessages = () => {
+    const globalChatView = !byEID( "global-chat").classList.contains("hidden");
+    const sessionChatView = !byEID( "session-chat").classList.contains("hidden");
+
+    if (globalChatView && globalChatManager.hasUnreadMessages()) {
+      closedChatBox.classList.remove("chat-box-read");
+      closedChatBox.classList.add("chat-box-unread");
+    } else if (sessionChatView && sessionChatManager.hasUnreadMessages()) {
+      closedChatBox.classList.remove("chat-box-read");
+      closedChatBox.classList.add("chat-box-unread");
+    } else {
+      closedChatBox.classList.remove("chat-box-unread");
+      closedChatBox.classList.add("chat-box-read");
+    }
+  }
+
+  setInterval(checkUnreadMessages, 100);
+
   closedChatBox.onclick = () => {
     openChatBox.classList.remove("hidden");
     openChatBox.classList.add("block-display");
@@ -182,6 +205,15 @@ document.addEventListener("DOMContentLoaded", () => {
     closedChatBox.classList.remove("flex-display");
     closedChatBox.classList.add("hidden");
     closedChatBox.classList.add("chat-fade-out");
+
+    // (NEW): When we open chat box, mark all messages as read
+    const globalChatView = !byEID( "global-chat").classList.contains("hidden");
+
+    if (globalChatView) {
+      globalChatManager.markAllMessagesRead();
+    } else {
+      sessionChatManager.markAllMessagesRead();
+    }
   };
 
   openChatHeader.onclick = () => {
