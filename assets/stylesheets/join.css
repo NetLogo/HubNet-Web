@@ -153,6 +153,50 @@ body {
   border-radius: 20px;
 }
 
+.frame {
+  margin-right: 50px;
+  margin-bottom: 40px;
+}
+
+.session-buttons {
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.view-details-button {
+  width: 200px;
+  height: 40px;
+  font-size: 16px;
+  border-radius: 12px;
+  background-color: #63ab73;
+}
+
+.view-details-button:hover {
+  filter: brightness(0.7);
+}
+
+.view-details-button:active {
+  filter: brightness(0.5);
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
+}
+
+.disconnect-button {
+  width: 125px;
+  height: 40px;
+  font-size: 16px;
+  border-radius: 12px;
+  background-color: #e66c6c;
+}
+
+.disconnect-button:hover {
+  filter: brightness(0.7);
+}
+
+.disconnect-button:active {
+  filter: brightness(0.5);
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
+}
+
 .chat-box-closed {
   position: fixed;
   bottom: 20px;
@@ -183,11 +227,12 @@ body {
 }
 
 .chat-box-closed:hover {
-  filter: brightness(0.9);
+  filter: brightness(0.8);
 }
 
 .chat-box-closed:active {
-  filter: brightness(0.7);
+  filter: brightness(0.6);
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
 }
 
 .expand-chat-arrow {
@@ -259,11 +304,11 @@ body {
 }
 
 .open-chat-header:hover {
-  filter: brightness(0.9);
+  filter: brightness(0.8);
 }
 
 .open-chat-header:active {
-  filter: brightness(0.7);
+  filter: brightness(0.6);
 }
 
 .open-chat-body {
