@@ -228,6 +228,29 @@ document.addEventListener("DOMContentLoaded", () => {
     closedChatBox.classList.add("chat-fade-in");
   };
 
+  // (NEW): Toggle on and off of modal visibility
+  const modalContainer = byEID("modal-container");
+
+  window.onclick = (event) => {
+    if (event.target === modalContainer) {
+      modalContainer.classList.add("hidden");
+    }
+  };
+
+  byEID("view-details-button").onclick = () => {
+    modalContainer.classList.remove("hidden");
+  };
+
+  byEID("close-modal-button").onclick = () => {
+    modalContainer.classList.add("hidden");
+  };
+
+  document.addEventListener("keydown", (event) => {
+    if (!modalContainer.classList.contains("hidden") && event.key === "Escape") {
+      modalContainer.classList.add("hidden");
+    }
+  });
+
   const username = window.localStorage.getItem(usernameLSKey);
   loginControls.setUsername(username || "");
 });

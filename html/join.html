@@ -93,46 +93,30 @@
   <!-- JoinB page here -->
   <div id="nlw-frame" class="frame">
 
-    <div id="modal-container" class="modal-container">
+    <div id="modal-container" class="modal-container hidden">
 
       <div id="session-details-modal" class="modal flex-column">
+        <div id="close-modal-button" class="close-modal-button"></div>
+
         <div class="modal-text">
           <p class="modal-session-name"><u>Sample Session Name</u></p>
-
-          <!-- <p id="activity-text-full" class="activity-text-full">
-            This is placeholder text for a full activity description.
-          </p> -->
-
-          <div class="session">
+          <div class="session-button">
             <div class="session-detail"><span class="bold">Activity: </span>(Activity Name Here)</div>
             <div class="session-detail"><span class="bold">No. of Participants: </span>(# Participants Here)</div>
             <div class="session-detail"><span class="bold">Connection Type: </span>(Peer-to-Peer, Server, etc.)</div>
             <div class="session-detail"><span class="bold">Latency: </span>(Time in ms Here)</div>
           </div>
-
         </div>
       </div>
 
     </div>
 
     <h1>Activity Name</h1>
-
     <div class="session-buttons flex-row">
-      <input class="view-details-button" type="button" value="View Session Details">
+      <input class="view-details-button" id="view-details-button" type="button" value="View Session Details">
       <input class="disconnect-button" id="disconnect-button" type="button" value="Disconnect">
     </div>
-
     <iframe class="nlw-iframe"></iframe>
-
-
-    <!-- <div style="display: flex; flex-direction: row;">
-      <div>Connection Type: <span id="connection-type-span">(N/A)</span></div>
-      <span style="margin: 0 12px;">|</span>
-      <div>Latency: <span id="latency-span">(N/A)</span>ms</div>
-    </div> -->
-    <!-- <iframe class="nlw-iframe"></iframe> -->
-
-
 
   </div>
 
