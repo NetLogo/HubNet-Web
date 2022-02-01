@@ -11,7 +11,7 @@ body {
 }
 
 .session-row-wrapper {
-  height: 250px;
+  height: 100px;
   width: 100%;
   overflow-y: auto;
   display: inline-block;
@@ -43,6 +43,18 @@ body {
   text-align: center;
   width: 100%;
   user-select: none;
+}
+
+.session-header {
+  position: sticky;
+  top: 0;
+  background-color: #DEDEDE;
+  z-index: 1;
+}
+
+.session-row {
+  position: relative;
+  z-index: 0;
 }
 
 .session-element {
