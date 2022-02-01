@@ -104,7 +104,7 @@
 .close-modal-button::after {
   font-size: 20px;
   color: white;
-  content: "\00d7";
+  content: "\00d7"; /* Draws 'X' for close button -- Chris S. (2/1/22) */
 }
 
 .close-modal-button:hover {
