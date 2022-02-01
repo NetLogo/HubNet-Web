@@ -304,6 +304,7 @@ body {
   color: black;
   font-size: 32px;
   font-weight: bold;
+  z-index: 2;
 }
 
 .chat-box-read {
@@ -343,6 +344,7 @@ body {
   bottom: 0;
   right: 60px;
   width: 40vw;
+  z-index: 2;
 }
 
 .chat-fade-in {
