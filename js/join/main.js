@@ -190,21 +190,21 @@ document.addEventListener("DOMContentLoaded", () => {
       closedChatBoxBottom.classList.remove("chat-box-bottom-read");
       closedChatBoxBottom.classList.add("chat-box-bottom-unread");
 
-      closedChatBox.innerHTML = globalChatManager.getUnreadMessages().toString();
+      closedChatBox.innerHTML = `Chat: ${globalChatManager.getUnreadMessages().toString()}`
     } else if (sessionChatView && sessionChatManager.hasUnreadMessages()) {
       closedChatBox.classList.remove("chat-box-read");
       closedChatBox.classList.add("chat-box-unread");
       closedChatBoxBottom.classList.remove("chat-box-bottom-read");
       closedChatBoxBottom.classList.add("chat-box-bottom-unread");
 
-      closedChatBox.innerHTML = sessionChatManager.getUnreadMessages().toString();
+      closedChatBox.innerHTML = `Chat: ${sessionChatManager.getUnreadMessages().toString()}`;
     } else {
       closedChatBox.classList.remove("chat-box-unread");
       closedChatBox.classList.add("chat-box-read");
       closedChatBoxBottom.classList.remove("chat-box-bottom-unread");
       closedChatBoxBottom.classList.add("chat-box-bottom-read");
 
-      closedChatBox.innerHTML = "";
+      closedChatBox.innerHTML = "Chat";
     }
   }
 
