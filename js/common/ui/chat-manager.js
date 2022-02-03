@@ -94,6 +94,10 @@ export default class ChatManager {
     return this.unreadMessages !== 0;
   }
 
+  getUnreadMessages = () => {
+    return this.unreadMessages;
+  }
+
   // () => Unit
   clear = () => {
     this.#outputElem.innerHTML = "";

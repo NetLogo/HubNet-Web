@@ -183,15 +183,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const globalChatView = !byEID( "global-chat").classList.contains("hidden");
     const sessionChatView = !byEID( "session-chat").classList.contains("hidden");
 
+    console.log(globalChatManager.getUnreadMessages());
+
+
     if (globalChatView && globalChatManager.hasUnreadMessages()) {
       closedChatBox.classList.remove("chat-box-read");
       closedChatBox.classList.add("chat-box-unread");
+      closedChatBox.innerHTML = globalChatManager.getUnreadMessages().toString();
     } else if (sessionChatView && sessionChatManager.hasUnreadMessages()) {
       closedChatBox.classList.remove("chat-box-read");
       closedChatBox.classList.add("chat-box-unread");
+      closedChatBox.innerHTML = sessionChatManager.getUnreadMessages().toString();
     } else {
       closedChatBox.classList.remove("chat-box-unread");
       closedChatBox.classList.add("chat-box-read");
+      closedChatBox.innerHTML = "";
     }
   }
 
