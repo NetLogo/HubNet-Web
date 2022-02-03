@@ -54,7 +54,7 @@ export default class ChatManager {
     }
 
     // (NEW): TODO
-    const fromCensus = (from === "Census");
+    const fromCensus = (from === "(Census)");
 
     if (!fromCensus) {
       const onJoinPage = (document.getElementById("chat-box-open") !== null);
@@ -64,7 +64,7 @@ export default class ChatManager {
       }
     }
 
-    console.log("unreadMessages:", this.unreadMessages);
+    // console.log("unreadMessages:", this.unreadMessages);
 
     const realFrom = isFromSelf ? "Me" : ((from !== "") ? from : "(Host)");
     const span = document.createElement("span");
@@ -87,7 +87,7 @@ export default class ChatManager {
   markAllMessagesRead = () => {
     this.unreadMessages = 0;
 
-    console.log("unreadMessages:", this.unreadMessages);
+    // console.log("unreadMessages:", this.unreadMessages);
   }
 
   hasUnreadMessages = () => {
