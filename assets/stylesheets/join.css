@@ -216,12 +216,11 @@ body {
 
 .chat-box-closed {
   position: fixed;
-  bottom: 20px;
+  bottom: 30px;
   right: 30px;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  /* border: 1px solid black; */
   border-radius: 10px;
   width: 80px;
   height: 40px;
@@ -229,6 +228,17 @@ body {
   font-size: 20px;
   font-weight: bold;
   z-index: 2;
+}
+
+.chat-box-closed-bottom {
+  position: fixed;
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 0;
+  border-bottom: 0;
+  bottom: 12px;
+  right: 40px;
 }
 
 .chat-box-read {
@@ -239,18 +249,21 @@ body {
   background-color: gray;
 }
 
-.chat-box-closed-header {
-  display: inline-flex;
-  flex-wrap: wrap;
+.chat-box-bottom-read {
+  border-top: 20px solid #aed8f2;
 }
 
-.chat-box-closed:hover {
+.chat-box-bottom-unread {
+  border-top: 20px solid gray;
+}
+
+.brightness-dim-minor {
   filter: brightness(0.8);
 }
 
-.chat-box-closed:active {
+.brightness-dim-major {
   filter: brightness(0.6);
-  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
+  box-shadow: 3px 0 rgba(0, 0, 0, 0.8);
 }
 
 .expand-chat-arrow {

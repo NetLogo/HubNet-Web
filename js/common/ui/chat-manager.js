@@ -13,7 +13,6 @@ export default class ChatManager {
       console.warn("Chat manager asked to send without a callback", outputElem);
     };
 
-    // (NEW): TODO
     this.unreadMessages = 0;
 
     inputElem.addEventListener("keydown", (e) => {
@@ -53,7 +52,6 @@ export default class ChatManager {
       entry.classList.add("chat-from-self");
     }
 
-    // (NEW): TODO
     const fromCensus = (from === "(Census)");
 
     if (!fromCensus) {
@@ -63,8 +61,6 @@ export default class ChatManager {
         this.unreadMessages = chatOpen ? 0 : (this.unreadMessages + 1);
       }
     }
-
-    // console.log("unreadMessages:", this.unreadMessages);
 
     const realFrom = isFromSelf ? "Me" : ((from !== "") ? from : "(Host)");
     const span = document.createElement("span");
@@ -86,8 +82,6 @@ export default class ChatManager {
 
   markAllMessagesRead = () => {
     this.unreadMessages = 0;
-
-    // console.log("unreadMessages:", this.unreadMessages);
   }
 
   hasUnreadMessages = () => {

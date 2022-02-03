@@ -175,6 +175,7 @@ const statusManager  = new     AppStatusManager(byEID("status-value"));
 
 document.addEventListener("DOMContentLoaded", () => {
   const closedChatBox = byEID("chat-box-closed");
+  const closedChatBoxBottom = byEID("chat-box-closed-bottom")
   const openChatBox = byEID("chat-box-open");
   const openChatHeader = byEID("open-chat-header");
 
@@ -183,25 +184,61 @@ document.addEventListener("DOMContentLoaded", () => {
     const globalChatView = !byEID( "global-chat").classList.contains("hidden");
     const sessionChatView = !byEID( "session-chat").classList.contains("hidden");
 
-    console.log(globalChatManager.getUnreadMessages());
-
-
     if (globalChatView && globalChatManager.hasUnreadMessages()) {
       closedChatBox.classList.remove("chat-box-read");
       closedChatBox.classList.add("chat-box-unread");
+      closedChatBoxBottom.classList.remove("chat-box-bottom-read");
+      closedChatBoxBottom.classList.add("chat-box-bottom-unread");
+
       closedChatBox.innerHTML = globalChatManager.getUnreadMessages().toString();
     } else if (sessionChatView && sessionChatManager.hasUnreadMessages()) {
       closedChatBox.classList.remove("chat-box-read");
       closedChatBox.classList.add("chat-box-unread");
+      closedChatBoxBottom.classList.remove("chat-box-bottom-read");
+      closedChatBoxBottom.classList.add("chat-box-bottom-unread");
+
       closedChatBox.innerHTML = sessionChatManager.getUnreadMessages().toString();
     } else {
       closedChatBox.classList.remove("chat-box-unread");
       closedChatBox.classList.add("chat-box-read");
+      closedChatBoxBottom.classList.remove("chat-box-bottom-unread");
+      closedChatBoxBottom.classList.add("chat-box-bottom-read");
+
       closedChatBox.innerHTML = "";
     }
   }
 
   setInterval(checkUnreadMessages, 100);
+
+  // (NEW): Hover / focus styling for new chat box
+  const onChatBoxHover = () => {
+    closedChatBox.classList.remove("brightness-dim-major");
+    closedChatBoxBottom.classList.remove("brightness-dim-major");
+    closedChatBox.classList.add("brightness-dim-minor");
+    closedChatBoxBottom.classList.add("brightness-dim-minor");
+  }
+
+  const onChatBoxFocus = () => {
+    closedChatBox.classList.remove("brightness-dim-minor");
+    closedChatBoxBottom.classList.remove("brightness-dim-minor");
+    closedChatBox.classList.add("brightness-dim-major");
+    closedChatBoxBottom.classList.add("brightness-dim-major");
+  }
+
+  const onChatBoxExit = () => {
+    closedChatBox.classList.remove("brightness-dim-minor");
+    closedChatBoxBottom.classList.remove("brightness-dim-minor");
+    closedChatBox.classList.remove("brightness-dim-major");
+    closedChatBoxBottom.classList.remove("brightness-dim-major");
+  }
+
+  closedChatBox.onmouseover = onChatBoxHover;
+  closedChatBox.onmousedown = onChatBoxFocus;
+  closedChatBox.onmouseleave = onChatBoxExit;
+
+  closedChatBoxBottom.onmouseover = onChatBoxHover;
+  closedChatBoxBottom.onmousedown = onChatBoxFocus;
+  closedChatBoxBottom.onmouseleave = onChatBoxExit;
 
   closedChatBox.onclick = () => {
     openChatBox.classList.remove("hidden");
@@ -211,6 +248,8 @@ document.addEventListener("DOMContentLoaded", () => {
     closedChatBox.classList.remove("flex-display");
     closedChatBox.classList.add("hidden");
     closedChatBox.classList.add("chat-fade-out");
+    closedChatBoxBottom.classList.add("hidden");
+    closedChatBoxBottom.classList.add("chat-fade-out");
 
     // (NEW): When we open chat box, mark all messages as read
     const globalChatView = !byEID( "global-chat").classList.contains("hidden");
@@ -232,6 +271,9 @@ document.addEventListener("DOMContentLoaded", () => {
     closedChatBox.classList.add("flex-display");
     closedChatBox.classList.remove("chat-fade-out");
     closedChatBox.classList.add("chat-fade-in");
+    closedChatBoxBottom.classList.remove("hidden");
+    closedChatBoxBottom.classList.remove("chat-fade-out");
+    closedChatBoxBottom.classList.add("chat-fade-in");
   };
 
   // (NEW): Toggle on and off of modal visibility for JoinB page
