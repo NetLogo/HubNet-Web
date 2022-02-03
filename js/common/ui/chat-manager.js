@@ -13,9 +13,8 @@ export default class ChatManager {
       console.warn("Chat manager asked to send without a callback", outputElem);
     };
 
-    // (NEW): IDs for most recent & most recently read messages
-    this.mostRecentID = undefined;
-    this.mostRecentReadID = undefined;
+    // (NEW): TODO
+    this.unreadMessages = 0;
 
     inputElem.addEventListener("keydown", (e) => {
       if (e.code === "Enter") {
@@ -54,17 +53,18 @@ export default class ChatManager {
       entry.classList.add("chat-from-self");
     }
 
-    // (NEW): Add unique ID to messages, update ID fields as appropriate
-    entry.dataset.messageid = String(new Date().valueOf());
-    this.mostRecentID = entry.dataset.messageid;
+    // (NEW): TODO
+    const fromCensus = (from === "Census");
 
-    const onJoinPage = (document.getElementById("chat-box-open") !== null);
-    if (onJoinPage) {
-      const chatOpen = !document.getElementById("chat-box-open").classList.contains("hidden");
-      if (chatOpen) {
-        this.mostRecentReadID = entry.dataset.messageid;
+    if (!fromCensus) {
+      const onJoinPage = (document.getElementById("chat-box-open") !== null);
+      if (onJoinPage) {
+        const chatOpen = !document.getElementById("chat-box-open").classList.contains("hidden");
+        this.unreadMessages = chatOpen ? 0 : (this.unreadMessages + 1);
       }
     }
+
+    console.log("unreadMessages:", this.unreadMessages);
 
     const realFrom = isFromSelf ? "Me" : ((from !== "") ? from : "(Host)");
     const span = document.createElement("span");
@@ -85,11 +85,13 @@ export default class ChatManager {
   };
 
   markAllMessagesRead = () => {
-    this.mostRecentReadID = this.mostRecentID;
+    this.unreadMessages = 0;
+
+    console.log("unreadMessages:", this.unreadMessages);
   }
 
   hasUnreadMessages = () => {
-    return this.mostRecentReadID !== this.mostRecentID;
+    return this.unreadMessages !== 0;
   }
 
   // () => Unit

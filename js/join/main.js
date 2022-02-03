@@ -228,7 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
     closedChatBox.classList.add("chat-fade-in");
   };
 
-  // (NEW): Toggle on and off of modal visibility
+  // (NEW): Toggle on and off of modal visibility for JoinB page
   const modalContainer = byEID("modal-container");
 
   window.onclick = (event) => {
