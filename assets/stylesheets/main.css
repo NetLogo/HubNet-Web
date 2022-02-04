@@ -56,7 +56,7 @@
   font-weight: bold;
 }
 
-/*  */
+/* (NEW): Common stylings for modal */
 .modal-container {
   animation: modalContainerFade ease 0.1s;
   position: fixed;
@@ -64,7 +64,7 @@
   height: 100%;
   left: 0;
   top: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.3);
   z-index: 1;
 }
 
@@ -73,7 +73,7 @@
     background-color: rgba(0, 0, 0, 0);
   }
   100% {
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.3);
    }
 }
 

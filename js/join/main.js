@@ -247,9 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     closedChatBox.classList.remove("flex-display");
     closedChatBox.classList.add("hidden");
-    closedChatBox.classList.add("chat-fade-out");
     closedChatBoxBottom.classList.add("hidden");
-    closedChatBoxBottom.classList.add("chat-fade-out");
 
     // (NEW): When we open chat box, mark all messages as read
     const globalChatView = !byEID( "global-chat").classList.contains("hidden");
@@ -265,15 +263,15 @@ document.addEventListener("DOMContentLoaded", () => {
     openChatBox.classList.remove("block-display");
     openChatBox.classList.add("hidden");
     openChatBox.classList.remove("chat-fade-in");
-    openChatBox.classList.add("chat-fade-out");
+    // openChatBox.classList.add("chat-fade-out");
 
     closedChatBox.classList.remove("hidden");
     closedChatBox.classList.add("flex-display");
-    closedChatBox.classList.remove("chat-fade-out");
-    closedChatBox.classList.add("chat-fade-in");
+    // closedChatBox.classList.remove("chat-fade-out");
+    // closedChatBox.classList.add("chat-fade-in");
     closedChatBoxBottom.classList.remove("hidden");
-    closedChatBoxBottom.classList.remove("chat-fade-out");
-    closedChatBoxBottom.classList.add("chat-fade-in");
+    // closedChatBoxBottom.classList.remove("chat-fade-out");
+    // closedChatBoxBottom.classList.add("chat-fade-in");
   };
 
   // (NEW): Toggle on and off of modal visibility for JoinB page
