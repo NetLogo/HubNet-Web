@@ -31,7 +31,7 @@ const updateGlobalChatUnread = () => {
   closedChatBoxBottom.classList.add("chat-box-bottom-unread");
 
   closedChatBox.innerHTML = `Chat: ${globalChatManager.getUnreadMessages().toString()}`;
-}
+};
 
 const updateSessionChatUnread = () => {
   closedChatBox.classList.remove("chat-box-read");
@@ -40,7 +40,7 @@ const updateSessionChatUnread = () => {
   closedChatBoxBottom.classList.add("chat-box-bottom-unread");
 
   closedChatBox.innerHTML = `Chat: ${sessionChatManager.getUnreadMessages().toString()}`;
-}
+};
 
 const updateChatRead = () => {
   closedChatBox.classList.remove("chat-box-unread");
@@ -49,7 +49,7 @@ const updateChatRead = () => {
     closedChatBoxBottom.classList.add("chat-box-bottom-read");
 
     closedChatBox.innerHTML = "Chat";
-}
+};
 
 // (String, String) => Unit
 const onLogIn = (username, password) => {
