@@ -175,7 +175,7 @@ const statusManager  = new     AppStatusManager(byEID("status-value"));
 
 document.addEventListener("DOMContentLoaded", () => {
   const closedChatBox = byEID("chat-box-closed");
-  const closedChatBoxBottom = byEID("chat-box-closed-bottom")
+  const closedChatBoxBottom = byEID("chat-box-closed-bottom");
   const openChatBox = byEID("chat-box-open");
   const openChatHeader = byEID("open-chat-header");
 
@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       closedChatBox.innerHTML = "Chat";
     }
-  }
+  };
 
   setInterval(checkUnreadMessages, 100);
 
@@ -216,21 +216,21 @@ document.addEventListener("DOMContentLoaded", () => {
     closedChatBoxBottom.classList.remove("brightness-dim-major");
     closedChatBox.classList.add("brightness-dim-minor");
     closedChatBoxBottom.classList.add("brightness-dim-minor");
-  }
+  };
 
   const onChatBoxFocus = () => {
     closedChatBox.classList.remove("brightness-dim-minor");
     closedChatBoxBottom.classList.remove("brightness-dim-minor");
     closedChatBox.classList.add("brightness-dim-major");
     closedChatBoxBottom.classList.add("brightness-dim-major");
-  }
+  };
 
   const onChatBoxExit = () => {
     closedChatBox.classList.remove("brightness-dim-minor");
     closedChatBoxBottom.classList.remove("brightness-dim-minor");
     closedChatBox.classList.remove("brightness-dim-major");
     closedChatBoxBottom.classList.remove("brightness-dim-major");
-  }
+  };
 
   closedChatBox.onmouseover = onChatBoxHover;
   closedChatBox.onmousedown = onChatBoxFocus;

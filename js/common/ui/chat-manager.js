@@ -82,15 +82,15 @@ export default class ChatManager {
 
   markAllMessagesRead = () => {
     this.unreadMessages = 0;
-  }
+  };
 
   hasUnreadMessages = () => {
     return this.unreadMessages !== 0;
-  }
+  };
 
   getUnreadMessages = () => {
     return this.unreadMessages;
-  }
+  };
 
   // () => Unit
   clear = () => {
