@@ -74,15 +74,21 @@ const launchControlManager =
   new LaunchControlManager( byEID("form-frame"), awaitLaunchHTTP, notifyUser
                           , finishLaunch);
 
+// (NEW): Added callback functions b/c constructor now accounts for read & unread messages
+// TODO --> Not sure if it's a good idea to have empty functions here though...
 const sessionChatManager =
   new ChatManager( byEID("session-chat-output"), byEID("session-chat-input")
                  , () => { alert("Your chat message is too large"); }
-                 , () => { alert("You are sending chat messages too fast"); });
+                 , () => { alert("You are sending chat messages too fast"); }
+                 , () => {}
+                 , () => {});
 
 const globalChatManager =
   new ChatManager( byEID("global-chat-output"), byEID("global-chat-input")
                  , () => { alert("Your chat message is too large"); }
-                 , () => { alert("You are sending chat messages too fast"); });
+                 , () => { alert("You are sending chat messages too fast"); }
+                 , () => {}
+                 , () => {});
 
 const connMan =
   new ConnectionManager( sessionChatManager, globalChatManager

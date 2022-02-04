@@ -4,8 +4,9 @@ export default class ChatManager {
   #outputElem = undefined; // Element
   #sendInput  = undefined; // (String) => Unit
 
+  // (NEW): TODO --> Update constructor comment here
   // (Element, Element, () => Unit, () => Unit) => ChatManager
-  constructor(outputElem, inputElem, notifyTooWordy, notifyTooFast) {
+  constructor(outputElem, inputElem, notifyTooWordy, notifyTooFast, updateChatUnread, updateChatRead) {
 
     this.#lastTS     = 0;
     this.#outputElem = outputElem;
@@ -14,6 +15,8 @@ export default class ChatManager {
     };
 
     this.unreadMessages = 0;
+    this.updateChatUnread = updateChatUnread;
+    this.updateChatRead = updateChatRead;
 
     inputElem.addEventListener("keydown", (e) => {
       if (e.code === "Enter") {
@@ -78,10 +81,16 @@ export default class ChatManager {
 
     elem.scrollTo(0, elem.scrollHeight);
 
+    if (this.hasUnreadMessages()) {
+      this.updateChatUnread();
+    } else {
+      this.updateChatRead();
+    }
   };
 
   markAllMessagesRead = () => {
     this.unreadMessages = 0;
+    this.updateChatRead();
   };
 
   hasUnreadMessages = () => {

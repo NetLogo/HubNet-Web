@@ -17,6 +17,40 @@ const byEID = (eid) => document.getElementById(eid);
 // String
 const usernameLSKey = "hnw.global.username";
 
+// (NEW): Relevant DOM elements for chat box
+const closedChatBox = byEID("chat-box-closed");
+const closedChatBoxBottom = byEID("chat-box-closed-bottom");
+const openChatBox = byEID("chat-box-open");
+const openChatHeader = byEID("open-chat-header");
+
+// (NEW): Callback functions for chat manager to update UI for unread messages
+const updateGlobalChatUnread = () => {
+  closedChatBox.classList.remove("chat-box-read");
+  closedChatBox.classList.add("chat-box-unread");
+  closedChatBoxBottom.classList.remove("chat-box-bottom-read");
+  closedChatBoxBottom.classList.add("chat-box-bottom-unread");
+
+  closedChatBox.innerHTML = `Chat: ${globalChatManager.getUnreadMessages().toString()}`;
+}
+
+const updateSessionChatUnread = () => {
+  closedChatBox.classList.remove("chat-box-read");
+  closedChatBox.classList.add("chat-box-unread");
+  closedChatBoxBottom.classList.remove("chat-box-bottom-read");
+  closedChatBoxBottom.classList.add("chat-box-bottom-unread");
+
+  closedChatBox.innerHTML = `Chat: ${sessionChatManager.getUnreadMessages().toString()}`;
+}
+
+const updateChatRead = () => {
+  closedChatBox.classList.remove("chat-box-unread");
+    closedChatBox.classList.add("chat-box-read");
+    closedChatBoxBottom.classList.remove("chat-box-bottom-unread");
+    closedChatBoxBottom.classList.add("chat-box-bottom-read");
+
+    closedChatBox.innerHTML = "Chat";
+}
+
 // (String, String) => Unit
 const onLogIn = (username, password) => {
 
@@ -174,41 +208,6 @@ const previewManager = new       PreviewManager(byEID("session-preview-image"));
 const statusManager  = new     AppStatusManager(byEID("status-value"));
 
 document.addEventListener("DOMContentLoaded", () => {
-  const closedChatBox = byEID("chat-box-closed");
-  const closedChatBoxBottom = byEID("chat-box-closed-bottom");
-  const openChatBox = byEID("chat-box-open");
-  const openChatHeader = byEID("open-chat-header");
-
-  // (NEW): Check for unread messages & update chat box color if needed
-  const checkUnreadMessages = () => {
-    const globalChatView = !byEID( "global-chat").classList.contains("hidden");
-    const sessionChatView = !byEID( "session-chat").classList.contains("hidden");
-
-    if (globalChatView && globalChatManager.hasUnreadMessages()) {
-      closedChatBox.classList.remove("chat-box-read");
-      closedChatBox.classList.add("chat-box-unread");
-      closedChatBoxBottom.classList.remove("chat-box-bottom-read");
-      closedChatBoxBottom.classList.add("chat-box-bottom-unread");
-
-      closedChatBox.innerHTML = `Chat: ${globalChatManager.getUnreadMessages().toString()}`;
-    } else if (sessionChatView && sessionChatManager.hasUnreadMessages()) {
-      closedChatBox.classList.remove("chat-box-read");
-      closedChatBox.classList.add("chat-box-unread");
-      closedChatBoxBottom.classList.remove("chat-box-bottom-read");
-      closedChatBoxBottom.classList.add("chat-box-bottom-unread");
-
-      closedChatBox.innerHTML = `Chat: ${sessionChatManager.getUnreadMessages().toString()}`;
-    } else {
-      closedChatBox.classList.remove("chat-box-unread");
-      closedChatBox.classList.add("chat-box-read");
-      closedChatBoxBottom.classList.remove("chat-box-bottom-unread");
-      closedChatBoxBottom.classList.add("chat-box-bottom-read");
-
-      closedChatBox.innerHTML = "Chat";
-    }
-  };
-
-  setInterval(checkUnreadMessages, 100);
 
   // (NEW): Hover / focus styling for new chat box
   const onChatBoxHover = () => {
@@ -293,17 +292,23 @@ const sessionList =
                  , previewManager
                  , loginControls.onNewSelection(() => document.createElement("option")));
 
+// (NEW): Add callback functions to update UI for unread chat messages
 const sessionChatManager =
   new ChatManager( byEID("session-chat-output"), byEID("session-chat-input")
                  , () => { alert("Your chat message is too large"); }
-                 , () => { alert("You are sending chat messages too fast"); });
+                 , () => { alert("You are sending chat messages too fast"); }
+                 , () => { updateSessionChatUnread(); }
+                 , () => { updateChatRead(); });
 
 sessionChatManager.onSend((message) => { connMan.send("chat", { message }); });
 
 const globalChatManager =
   new ChatManager( byEID("global-chat-output"), byEID("global-chat-input")
                  , () => { alert("Your chat message is too large"); }
-                 , () => { alert("You are sending chat messages too fast"); });
+                 , () => { alert("You are sending chat messages too fast"); }
+                 , () => { updateGlobalChatUnread(); }
+                 , () => { updateChatRead(); });
+
 
 const connMan    = new ConnectionManager(globalChatManager);
 const nlwManager = new NLWManager( byEID("nlw-frame"), connMan.send
