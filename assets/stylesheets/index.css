@@ -38,3 +38,35 @@ body {
     margin-right: 20px;
     background-color: lightgray;
 }
+
+.page-links-group {
+    margin-top: 50px;
+    height: 25vh;
+    justify-content: space-between;
+}
+
+.flex-row-center {
+    display: flex;
+    flex-direction: flex-row;
+    align-items: center;
+}
+
+.triangle-right {
+    width: 0;
+    height: 0;
+    border-top: 30px solid transparent;
+    border-bottom: 30px solid transparent;
+    margin-right: 20px;
+}
+
+.red-triangle-border {
+    border-left: 40px solid red;
+}
+
+.green-triangle-border {
+    border-left: 40px solid green;
+}
+
+.blue-triangle-border {
+    border-left: 40px solid blue;
+}
