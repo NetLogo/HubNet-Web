@@ -1,7 +1,5 @@
-import RxQueue                               from "/js/common/rx-queue.js";
-import { checkIsTURN, genUUID, uuidToRTCID } from "/js/common/util.js";
-
-import { version } from "/js/static/version.js";
+import RxQueue         from "/js/common/rx-queue.js";
+import { uuidToRTCID } from "/js/common/util.js";
 
 import { rtcConfig } from "./webrtc.js";
 
@@ -13,19 +11,15 @@ import RTCManager from "/js/common/rtc-manager.js";
 
 export default class ConnectionManager {
 
-  #channel     = undefined; // RTCDataChannel
-  #chatSocket  = undefined; // ChatSocket
-  #conn        = undefined; // RTCPeerConnection
-  #isRetrying  = undefined; // Boolean
-  #retrialUUID = undefined; // UUID
-  #rtcMan      = undefined; // RTCManager
-  #rxQueue     = undefined; // RxQueue
+  #channel    = undefined; // RTCDataChannel
+  #chatSocket = undefined; // ChatSocket
+  #conn       = undefined; // RTCPeerConnection
+  #rtcMan     = undefined; // RTCManager
+  #rxQueue    = undefined; // RxQueue
 
   // () => ConnectionManager
   constructor(chatManager) {
-    this.#chatSocket  = new ChatSocket(chatManager);
-    this.#isRetrying  = false;
-    this.#retrialUUID = genUUID();
+    this.#chatSocket = new ChatSocket(chatManager);
     this.reset();
   }
 
@@ -39,31 +33,19 @@ export default class ConnectionManager {
   };
 
   // ( UUID, String, String, Object[Any], Object[Any], (Object[Any]) => Object[Any], () => Unit
-  // , () => Unit, () => Unit, (String) => Unit, (Boolean, () => Unit) => Unit, () => Unit, (() => Unit) => Unit
-  // , () => Unit) =>
+  // , () => Unit, () => Unit, (String) => Unit, (Boolean, () => Unit) => Unit, () => Unit, (() => Unit) => Unit) =>
   // (UUID) => Unit
   logIn = ( hostID, username, password, genCHBundle, notifyLoggingIn
-          , notifyICEConnLost, onDoorbell, notifyUser, notifyFull, onTeardown
-          , retry) =>
+          , notifyICEConnLost, onDoorbell, notifyUser, notifyFull, onTeardown) =>
           (joinerID) => {
-
     this.#initiateRTC(joinerID).
       then(([channel, offer]) => {
-
-        const retryConn = () => {
-          this.#isRetrying = true;
-          this.reset();
-          retry();
-        };
-
         this.#joinSession( hostID, joinerID, username, password, offer, channel
                          , genCHBundle, notifyLoggingIn, notifyICEConnLost
-                         , onDoorbell, notifyFull, onTeardown, retryConn);
-
+                         , onDoorbell, notifyFull, onTeardown);
       }).catch(
         error => notifyUser(`Cannot join session: ${error.message}`)
       );
-
   };
 
   // () => Unit
@@ -91,21 +73,15 @@ export default class ConnectionManager {
     this.#channel.close(1000, "Connection closed by host");
   };
 
-  // ((Object[Any]) => Object[Any], () => Unit, () => Unit, String, String) => RxQueue
-  #genRxQueue = (genCHBundle, closeSignaling, retryConn, username, password) => {
-
-    const sendLogIn = () => {
-      this.#isRetrying = false;
-      this.send("login", { username, password });
-    };
+  // ((Object[Any]) => Object[Any], () => Unit) => RxQueue
+  #genRxQueue = (genCHBundle, closeSignaling) => {
 
     const connCHBundle =
       { disconnect:             this.disconnect
       , closeSignaling
       , getConnectionStats:     () => this.#conn.getStats()
-      , retryConn
+      , resetConn:              this.reset
       , send:                   this.send
-      , sendLogIn
       , terminate:              this.terminate
       };
 
@@ -155,50 +131,38 @@ export default class ConnectionManager {
 
   // ( UUID, UUID, String, String, RTCSessionDescriptionInit, RTCDataChannel
   // , (Object[Any]) => Object[Any], () => Unit, () => Unit, () => Unit
-  // , () => Unit, (Boolean, () => Unit) => Unit, () => Unit) => Unit
+  // , () => Unit, (Boolean, () => Unit) => Unit) => Unit
   #joinSession = ( hostID, joinerID, username, password, offer, channel
                  , genCHBundle, notifyLoggingIn, notifyICEConnLost, onDoorbell
-                 , notifyFull, onTeardown, retryConn) => {
+                 , notifyFull, onTeardown) => {
 
     const gen             = this.#genSignalingStream;
     const signalingStream = gen(hostID, joinerID, offer, notifyFull);
 
-    this.#rxQueue = this.#genRxQueue( genCHBundle, signalingStream.terminate
-                                    , retryConn, username, password);
-
+    this.#rxQueue = this.#genRxQueue(genCHBundle, signalingStream.terminate);
     this.#channel = channel;
 
     this.#conn.setLocalDescription(offer);
     this.#registerICEListeners(signalingStream, onTeardown, notifyICEConnLost);
-    this.#registerChannelListeners( channel, notifyLoggingIn, onDoorbell
-                                  , onTeardown);
+    this.#registerChannelListeners( channel, username, password, notifyLoggingIn
+                                  , onDoorbell, onTeardown);
 
 
   };
 
-  // (RTCDataChannel, () => Unit, () => Unit, (Boolean) => Unit) => Unit
-  #registerChannelListeners = ( channel, notifyLoggingIn, onDoorbell
-                              , onTeardown) => {
+  // (RTCDataChannel, String, String, () => Unit, () => Unit, (Boolean) => Unit) => Unit
+  #registerChannelListeners = ( channel, username, password, notifyLoggingIn
+                              , onDoorbell, onTeardown) => {
 
     channel.onopen = () => {
-
       notifyLoggingIn();
       onDoorbell();
-
-      this.#conn.getStats().then(
-        (stats) => {
-          const usesTURN = checkIsTURN(stats);
-          const uuid     = this.#retrialUUID;
-          const msg      = { uuid, protocolVersion: version, usesTURN };
-          this.#rtcMan.send(channel)("connection-established", msg);
-        }
-      );
-
+      this.#rtcMan.sendGreeting(this.#channel);
+      this.send("login", { username, password });
     };
 
     channel.onclose = (e) => {
-      onTeardown(!this.#isRetrying && e.code !== 1000);
-      this.#isRetrying = false;
+      onTeardown(e.code !== 1000);
     };
 
     channel.onmessage = this.#rxQueue.enqueue;

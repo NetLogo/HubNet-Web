@@ -13,7 +13,6 @@ const basicMap =
   , "chat":                   lookupType("Chat")
   , "chat-relay":             lookupType("ChatRelay")
   , "connection-established": lookupType("ConnEstablished")
-  , "connection-validation":  lookupType("ConnValidation")
   , "hnw-burst":              lookupType("HNWBurst")
   , "host-answer":            lookupType("HostAnswer")
   , "host-ice-candidate":     lookupType("ICECandy")

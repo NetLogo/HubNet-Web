@@ -40,11 +40,6 @@ export default class ChannelHandler {
         break;
       }
 
-      case "connection-validation": {
-        handleConnVal(b)(datum);
-        break;
-      }
-
       case "login-successful": {
         b.statusManager.loadingNLW();
         b.handleLogin();
@@ -143,14 +138,4 @@ const handleConnEst = (bundle) => ({ protocolVersion }) => {
     }
   );
 
-};
-
-// (Object[Any]) => (Object[Any]) => Unit
-const handleConnVal = (bundle) => ({ isApproved }) => {
-  if (isApproved) {
-    bundle.sendLogIn();
-  } else {
-    console.warn("Connection was rejected for TURN usage.  Retrying....");
-    bundle.retryConn();
-  }
 };
