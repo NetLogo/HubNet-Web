@@ -11,11 +11,17 @@ body {
     background-color: lightgray;
     justify-content: space-between;
     align-items: center;
-    font-size: 36px;
+    font-size: 28px;
 }
 
 .index-page-body {
     margin: 10px 50px;
+}
+
+.welcome-text {
+    font-size: 36px;
+    font-weight: bold;
+    margin: 20px 0;
 }
 
 .about-tab {
@@ -31,6 +37,8 @@ body {
 .hnw-description-text {
     margin-top: 20px;
     margin-left: 40px;
+    font-size: 18px;
+    line-height: 1.5;
 }
 
 .blockquote-bar {
@@ -40,8 +48,8 @@ body {
 }
 
 .page-links-group {
-    margin-top: 50px;
-    height: 25vh;
+    margin: 50px 0;
+    height: 200px;
     justify-content: space-between;
 }
 
@@ -54,8 +62,8 @@ body {
 .triangle-right {
     width: 0;
     height: 0;
-    border-top: 30px solid transparent;
-    border-bottom: 30px solid transparent;
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
     margin-right: 20px;
 }
 
@@ -69,4 +77,16 @@ body {
 
 .blue-triangle-border {
     border-left: 40px solid blue;
+}
+
+.join-page-text {
+    font-size: 28px;
+}
+
+.host-page-text {
+    font-size: 24px;
+}
+
+.netlogo-text {
+    font-size: 20px;
 }
