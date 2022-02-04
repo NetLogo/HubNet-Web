@@ -190,7 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
       closedChatBoxBottom.classList.remove("chat-box-bottom-read");
       closedChatBoxBottom.classList.add("chat-box-bottom-unread");
 
-      closedChatBox.innerHTML = `Chat: ${globalChatManager.getUnreadMessages().toString()}`
+      closedChatBox.innerHTML = `Chat: ${globalChatManager.getUnreadMessages().toString()}`;
     } else if (sessionChatView && sessionChatManager.hasUnreadMessages()) {
       closedChatBox.classList.remove("chat-box-read");
       closedChatBox.classList.add("chat-box-unread");
