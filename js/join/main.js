@@ -30,7 +30,7 @@ const updateGlobalChatUnread = () => {
   closedChatBoxBottom.classList.remove("chat-box-bottom-read");
   closedChatBoxBottom.classList.add("chat-box-bottom-unread");
 
-  closedChatBox.innerHTML = `Chat: ${globalChatManager.getUnreadMessages().toString()}`;
+  closedChatBox.innerHTML = `Unread: ${globalChatManager.getUnreadMessages().toString()}`;
 };
 
 const updateSessionChatUnread = () => {
@@ -39,7 +39,7 @@ const updateSessionChatUnread = () => {
   closedChatBoxBottom.classList.remove("chat-box-bottom-read");
   closedChatBoxBottom.classList.add("chat-box-bottom-unread");
 
-  closedChatBox.innerHTML = `Chat: ${sessionChatManager.getUnreadMessages().toString()}`;
+  closedChatBox.innerHTML = `Unread: ${sessionChatManager.getUnreadMessages().toString()}`;
 };
 
 const updateChatRead = () => {
