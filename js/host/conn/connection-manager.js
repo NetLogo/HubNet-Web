@@ -197,6 +197,7 @@ export default class ConnectionManager {
             const candy    = candidate.toJSON();
             const candyStr = JSON.stringify(candy);
             if (!knownCandies.has(candyStr)) {
+              console.log("DEBUG", "oic", candyStr);
               knownCandies.add(candyStr);
               this.#sessionManager.sendICECandidate(joinerID, candy);
             }

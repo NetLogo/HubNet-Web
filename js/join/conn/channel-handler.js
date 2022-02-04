@@ -132,6 +132,8 @@ const handleConnEst = (bundle) => ({ protocolVersion }) => {
   bundle.getConnectionStats().then(
     (stats) => {
       const usesTURN        = checkIsTURN(stats);
+      const s               = JSON.stringify(Array.from(stats.values()));
+      console.log("DEBUG", "cit", usesTURN, s);
       const serverBasedSpan = "<span class='conn-warn'>Server-based</span>";
       const desc            = usesTURN ? serverBasedSpan : "Peer-to-Peer";
       bundle.setConnectionType(desc);

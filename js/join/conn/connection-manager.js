@@ -103,7 +103,10 @@ export default class ConnectionManager {
         }
       };
 
-    const addRTCICE = (c) => { this.#conn.addIceCandidate(c); };
+    const addRTCICE = (c) => {
+      console.log("DEBUG", "ari", JSON.stringify(c));
+      this.#conn.addIceCandidate(c);
+    };
 
     return new SignalingStream( hostID, joinerID, offer
                               , setRTCDesc, addRTCICE, notifyFull);
@@ -181,6 +184,7 @@ export default class ConnectionManager {
           const candyStr = JSON.stringify(candy);
           if (!knownCandies.has(candyStr)) {
             knownCandies = knownCandies.add(candyStr);
+            console.log("DEBUG", "oic", candyStr);
             signalingStream.sendICE(candy);
           }
         }

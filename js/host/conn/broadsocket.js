@@ -45,7 +45,10 @@ const handleSocketMessage = (hostID, processOffer2, registerSignaling, getFullne
 
   const connection    = new RTCPeerConnection(rtcConfig);
   const processOffer0 = processOffer2(joinerID, connection);
-  const addICE        = (candy) => { connection.addIceCandidate(candy); };
+  const addICE        = (candy) => {
+    console.log("DEBUG", "ari", JSON.stringify(candy));
+    connection.addIceCandidate(candy);
+  };
 
   signaling.connect(hostID, joinerID, processOffer0, addICE);
 
