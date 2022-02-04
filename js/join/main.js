@@ -241,13 +241,9 @@ document.addEventListener("DOMContentLoaded", () => {
   closedChatBoxBottom.onmouseleave = onChatBoxExit;
 
   closedChatBox.onclick = () => {
-    openChatBox.classList.remove("hidden");
-    openChatBox.classList.add("block-display");
-    openChatBox.classList.add("chat-fade-in");
-
-    closedChatBox.classList.remove("flex-display");
-    closedChatBox.classList.add("hidden");
-    closedChatBoxBottom.classList.add("hidden");
+    openChatBox.classList.remove("invisible");
+    closedChatBox.classList.add("invisible");
+    closedChatBoxBottom.classList.add("invisible");
 
     // (NEW): When we open chat box, mark all messages as read
     const globalChatView = !byEID( "global-chat").classList.contains("hidden");
@@ -260,18 +256,9 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   openChatHeader.onclick = () => {
-    openChatBox.classList.remove("block-display");
-    openChatBox.classList.add("hidden");
-    openChatBox.classList.remove("chat-fade-in");
-    // openChatBox.classList.add("chat-fade-out");
-
-    closedChatBox.classList.remove("hidden");
-    closedChatBox.classList.add("flex-display");
-    // closedChatBox.classList.remove("chat-fade-out");
-    // closedChatBox.classList.add("chat-fade-in");
-    closedChatBoxBottom.classList.remove("hidden");
-    // closedChatBoxBottom.classList.remove("chat-fade-out");
-    // closedChatBoxBottom.classList.add("chat-fade-in");
+    openChatBox.classList.add("invisible");
+    closedChatBox.classList.remove("invisible");
+    closedChatBoxBottom.classList.remove("invisible");
   };
 
   // (NEW): Toggle on and off of modal visibility for JoinB page

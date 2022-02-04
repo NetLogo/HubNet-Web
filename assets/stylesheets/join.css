@@ -214,13 +214,16 @@ body {
   box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
 }
 
+.chat-box-closed-container {
+  cursor: pointer;
+}
+
 .chat-box-closed {
   position: fixed;
   bottom: 30px;
   right: 30px;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
   border-radius: 10px;
   width: 80px;
   height: 40px;
@@ -228,6 +231,7 @@ body {
   font-size: 16px;
   font-weight: bold;
   z-index: 2;
+  transition: opacity 0.25s;
 }
 
 .chat-box-closed-bottom {
@@ -240,6 +244,7 @@ body {
   bottom: 10.5px;
   right: 40px;
   z-index: 2;
+  transition: opacity 0.25s;
 }
 
 .chat-box-read {
@@ -289,25 +294,17 @@ body {
   border-bottom: 15px solid black;
 }
 
+.invisible {
+  opacity: 0;
+}
+
 .chat-box-open {
   position: fixed;
   bottom: 0;
   right: 60px;
   width: 40vw;
   z-index: 2;
-}
-
-.chat-fade-in {
-  animation: chatFadeIn 0.5s forwards;
-}
-
-@keyframes chatFadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 100%;
-   }
+  transition: opacity 0.25s;
 }
 
 .open-chat-header {

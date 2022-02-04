@@ -57,7 +57,7 @@ export default class ChatManager {
     if (!fromCensus) {
       const onJoinPage = (document.getElementById("chat-box-open") !== null);
       if (onJoinPage) {
-        const chatOpen = !document.getElementById("chat-box-open").classList.contains("hidden");
+        const chatOpen = !document.getElementById("chat-box-open").classList.contains("invisible");
         this.unreadMessages = chatOpen ? 0 : (this.unreadMessages + 1);
       }
     }
