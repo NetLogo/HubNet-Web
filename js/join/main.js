@@ -25,30 +25,37 @@ const openChatHeader = byEID("open-chat-header");
 
 // (NEW): Callback functions for chat manager to update UI for unread messages
 const updateGlobalChatUnread = () => {
-  closedChatBox.classList.remove("chat-box-read");
-  closedChatBox.classList.add("chat-box-unread");
-  closedChatBoxBottom.classList.remove("chat-box-bottom-read");
-  closedChatBoxBottom.classList.add("chat-box-bottom-unread");
+  const globalChatView = !byEID( "global-chat").classList.contains("hidden");
+  if (globalChatView) {
+    closedChatBox.classList.remove("chat-box-read");
+    closedChatBox.classList.add("chat-box-unread");
+    closedChatBoxBottom.classList.remove("chat-box-bottom-read");
+    closedChatBoxBottom.classList.add("chat-box-bottom-unread");
 
-  closedChatBox.innerHTML = `Unread: ${globalChatManager.getUnreadMessages().toString()}`;
+    closedChatBox.innerHTML = `Unread: ${globalChatManager.getUnreadMessages().toString()}`;
+  }
 };
 
 const updateSessionChatUnread = () => {
-  closedChatBox.classList.remove("chat-box-read");
-  closedChatBox.classList.add("chat-box-unread");
-  closedChatBoxBottom.classList.remove("chat-box-bottom-read");
-  closedChatBoxBottom.classList.add("chat-box-bottom-unread");
+  const sessionChatView = byEID( "global-chat").classList.contains("hidden");
 
-  closedChatBox.innerHTML = `Unread: ${sessionChatManager.getUnreadMessages().toString()}`;
+  if (sessionChatView) {
+    closedChatBox.classList.remove("chat-box-read");
+    closedChatBox.classList.add("chat-box-unread");
+    closedChatBoxBottom.classList.remove("chat-box-bottom-read");
+    closedChatBoxBottom.classList.add("chat-box-bottom-unread");
+
+    closedChatBox.innerHTML = `Unread: ${sessionChatManager.getUnreadMessages().toString()}`;
+  }
 };
 
 const updateChatRead = () => {
   closedChatBox.classList.remove("chat-box-unread");
-    closedChatBox.classList.add("chat-box-read");
-    closedChatBoxBottom.classList.remove("chat-box-bottom-unread");
-    closedChatBoxBottom.classList.add("chat-box-bottom-read");
+  closedChatBox.classList.add("chat-box-read");
+  closedChatBoxBottom.classList.remove("chat-box-bottom-unread");
+  closedChatBoxBottom.classList.add("chat-box-bottom-read");
 
-    closedChatBox.innerHTML = "Chat";
+  closedChatBox.innerHTML = "Chat";
 };
 
 // (String, String) => Unit
