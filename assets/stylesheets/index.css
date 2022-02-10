@@ -8,10 +8,10 @@ body {
     top: 0;
     height: 60px;
     padding: 0 50px;
-    background-color: lightgray;
+    background-color: #aed8f2;
     justify-content: space-between;
     align-items: center;
-    font-size: 28px;
+    font-size: 36px;
 }
 
 .page-links-dropdown {
@@ -20,7 +20,7 @@ body {
 }
 
 .page-links-dropdown:hover .activities-label {
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgb(100, 100, 100);
 }
 
 .page-links-dropdown:hover .page-links-tabs {
@@ -29,9 +29,9 @@ body {
 
 .activities-label {
     display: flex;
-    flex-direction: row;
+    direction: row;
     align-items: center;
-    background-color: black;
+    background-color: rgb(60, 60, 60);
     color: white;
     height: 100%;
     padding: 0 20px;
@@ -42,10 +42,10 @@ body {
     width: 0;
     height: 0;
     margin-top: 3px;
-    margin-left: 5px;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-top: 20px solid white;
+    margin-left: 7px;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 15px solid white;
 }
 
 .page-links-tabs {
@@ -61,8 +61,13 @@ body {
     background-color: lightgray;
     color: black;
     border: 1px solid black;
-    padding: 20px 50px;
+    font-size: 32px;
+    padding: 20px 30px;
     text-decoration: none;
+}
+
+.page-links:last-of-type {
+    border-radius: 0 0 15px 15px;
 }
 
 .page-links:hover {
@@ -74,18 +79,18 @@ body {
 }
 
 .welcome-text {
-    font-size: 36px;
+    font-size: 44px;
     font-weight: bold;
     margin: 20px 0;
 }
 
 .about-tab {
     display: flex;
-    height: 40px;
+    height: 50px;
     margin-right: -50px;
     padding-left: 20px;
     align-items: center;
-    font-size: 24px;
+    font-size: 32px;
     background-color: lightgray;
 }
 
@@ -143,5 +148,5 @@ body {
 }
 
 .netlogo-text {
-    font-size: 20px;
+    font-size: 24px;
 }
