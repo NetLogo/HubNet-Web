@@ -52,9 +52,10 @@ body {
   position: relative;
 }
 
+/*
 .library-model-container:after {
   background-color: #aed8f2;
-  content: "\25bc"; /* Draws custom triangle -- Chris S. (1/20/22) */
+  content: "\25bc";
   color: white;
   right: 0;
   position: absolute;
@@ -64,6 +65,7 @@ body {
   border-radius: 0px 8px 8px 0px;
   pointer-events: none;
 }
+*/
 
 .library-model-container:hover {
   filter: brightness(0.9);
