@@ -230,7 +230,7 @@ body {
   color: white;
   font-size: 16px;
   font-weight: bold;
-  z-index: 2;
+  z-index: 3;
   transition: opacity 0.25s;
 }
 
@@ -243,7 +243,7 @@ body {
   border-bottom: 0;
   bottom: 10.5px;
   right: 40px;
-  z-index: 2;
+  z-index: 3;
   transition: opacity 0.25s;
 }
 

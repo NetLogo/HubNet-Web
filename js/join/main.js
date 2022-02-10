@@ -238,6 +238,22 @@ document.addEventListener("DOMContentLoaded", () => {
     closedChatBoxBottom.classList.remove("brightness-dim-major");
   };
 
+  // byEID("chat-box-closed-container").onmouseover = () => {
+  //   console.log("HOVER!")
+  // }
+
+  // byEID("chat-box-closed-container").onmouseleave = () => {
+  //   console.log("EXITING!")
+  // }
+
+  document.onmousedown = click
+
+  // click function called
+  function click(event) {
+
+    console.log(event.target)
+  }
+
   closedChatBox.onmouseover = onChatBoxHover;
   closedChatBox.onmousedown = onChatBoxFocus;
   closedChatBox.onmouseleave = onChatBoxExit;
