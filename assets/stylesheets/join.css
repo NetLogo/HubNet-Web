@@ -22,7 +22,7 @@ body {
 }
 
 .box-shadow-standard {
-  box-shadow: inset 0px -25px 25px -25px rgba(128, 128, 128, 0.7);
+  box-shadow: inset 0px -25px 25px -25px rgba(128, 128, 128, 0.9);
 }
 
 .session-filter-box {
@@ -48,7 +48,7 @@ body {
 .session-header {
   position: sticky;
   top: 0;
-  background-color: #DEDEDE;
+  background-color: #dedede;
   z-index: 1;
 }
 
@@ -58,14 +58,14 @@ body {
 }
 
 .session-element {
-  border: 0.75px solid rgba(0, 0, 0, 0.35);
+  border: 0.95px solid rgba(0, 0, 0, 0.35);
   border-collapse: collapse;
   text-align: center;
   padding: 10px 5px;
 }
 
 .session-row.active {
-  background-color: rgba(0, 128, 0, 0.5);
+  background-color: rgba(0, 128, 0, 0.8);
 }
 
 .session-row:hover:not(.active) {
@@ -128,16 +128,16 @@ body {
   height: 40px;
   border-radius: 7px;
   font-size: 16px;
-  background-color: rgba(0, 128, 0, 0.5);
+  background-color: rgba(0, 128, 0, 0.8);
 }
 
 .join-button:hover {
-  filter: brightness(0.7);
+  filter: brightness(0.9);
 }
 
 .join-button:active {
-  filter: brightness(0.5);
-  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
+  filter: brightness(0.8);
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.9);
 }
 
 .right-column {
@@ -164,6 +164,7 @@ body {
   font-size: 32px;
   font-weight: bold;
   text-align: center;
+  text-decoration: underline;
 }
 
 .session-detail {
@@ -189,12 +190,12 @@ body {
 }
 
 .view-details-button:hover {
-  filter: brightness(0.7);
+  filter: brightness(0.9);
 }
 
 .view-details-button:active {
-  filter: brightness(0.5);
-  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
+  filter: brightness(0.8);
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.9);
 }
 
 .disconnect-button {
@@ -206,12 +207,12 @@ body {
 }
 
 .disconnect-button:hover {
-  filter: brightness(0.7);
+  filter: brightness(0.9);
 }
 
 .disconnect-button:active {
-  filter: brightness(0.5);
-  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
+  filter: brightness(0.8);
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.9);
 }
 
 .chat-box-closed-container {
@@ -231,7 +232,7 @@ body {
   font-size: 16px;
   font-weight: bold;
   z-index: 3;
-  transition: opacity 0.25s;
+  transition: opacity 0.1s;
 }
 
 .chat-box-closed-bottom {
@@ -241,10 +242,10 @@ body {
   border-left: 20px solid transparent;
   border-right: 0;
   border-bottom: 0;
-  bottom: 10.5px;
+  bottom: 10.8px;
   right: 40px;
   z-index: 3;
-  transition: opacity 0.25s;
+  transition: opacity 0.1s;
 }
 
 .chat-box-read {
@@ -254,7 +255,7 @@ body {
 .chat-box-unread {
   background-color: #aed8f2;
   color: black;
-  animation: unreadMessagesAlert 0.5s forwards;
+  transition: background-color 0.8s;
 }
 
 .chat-box-bottom-read {
@@ -263,7 +264,7 @@ body {
 
 .chat-box-bottom-unread {
   border-top: 20px solid #aed8f2;
-  animation: unreadMessagesAlert 0.5s forwards;
+  transition: border-top 0.8s;
 }
 
 @keyframes unreadMessagesAlert {
@@ -276,12 +277,12 @@ body {
 }
 
 .brightness-dim-minor {
-  filter: brightness(0.8);
+  filter: brightness(0.9);
 }
 
 .brightness-dim-major {
-  filter: brightness(0.6);
-  box-shadow: 3px 0 rgba(0, 0, 0, 0.8);
+  filter: brightness(0.8);
+  box-shadow: 3px 0 rgba(0, 0, 0, 0.9);
 }
 
 .expand-chat-arrow {
@@ -304,7 +305,7 @@ body {
   right: 60px;
   width: 40vw;
   z-index: 2;
-  transition: opacity 0.25s;
+  transition: opacity 0.0.1s;
 }
 
 .open-chat-header {
@@ -333,11 +334,11 @@ body {
 }
 
 .open-chat-header:hover {
-  filter: brightness(0.8);
+  filter: brightness(0.9);
 }
 
 .open-chat-header:active {
-  filter: brightness(0.6);
+  filter: brightness(0.8);
 }
 
 .open-chat-body {

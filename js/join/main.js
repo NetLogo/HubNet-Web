@@ -17,13 +17,13 @@ const byEID = (eid) => document.getElementById(eid);
 // String
 const usernameLSKey = "hnw.global.username";
 
-// (NEW): Relevant DOM elements for chat box
+// Element
 const closedChatBox = byEID("chat-box-closed");
 const closedChatBoxBottom = byEID("chat-box-closed-bottom");
 const openChatBox = byEID("chat-box-open");
 const openChatHeader = byEID("open-chat-header");
 
-// (NEW): Callback functions for chat manager to update UI for unread messages
+// () => Unit
 const updateGlobalChatUnread = () => {
   const globalChatView = !byEID( "global-chat").classList.contains("hidden");
   if (globalChatView) {
@@ -36,8 +36,9 @@ const updateGlobalChatUnread = () => {
   }
 };
 
+// () => Unit
 const updateSessionChatUnread = () => {
-  const sessionChatView = byEID( "global-chat").classList.contains("hidden");
+  const sessionChatView = byEID("global-chat").classList.contains("hidden");
 
   if (sessionChatView) {
     closedChatBox.classList.remove("chat-box-read");
@@ -49,6 +50,7 @@ const updateSessionChatUnread = () => {
   }
 };
 
+// () => Unit
 const updateChatRead = () => {
   closedChatBox.classList.remove("chat-box-unread");
   closedChatBox.classList.add("chat-box-read");
@@ -62,9 +64,6 @@ const updateChatRead = () => {
 const onLogIn = (username, password) => {
 
   statusManager.connecting();
-
-  // (NEW): Chat box is initially cleared for session chat,
-  // so mark all as read (in case messages were previously sent by host)
   sessionChatManager.markAllMessagesRead();
 
   const hostID = sessionList.getSelectedUUID();
@@ -216,7 +215,6 @@ const statusManager  = new     AppStatusManager(byEID("status-value"));
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  // (NEW): Hover / focus styling for new chat box
   const onChatBoxHover = () => {
     closedChatBox.classList.remove("brightness-dim-major");
     closedChatBoxBottom.classList.remove("brightness-dim-major");
@@ -251,7 +249,6 @@ document.addEventListener("DOMContentLoaded", () => {
     closedChatBox.classList.add("invisible");
     closedChatBoxBottom.classList.add("invisible");
 
-    // (NEW): When we open chat box, mark all messages as read
     const globalChatView = !byEID( "global-chat").classList.contains("hidden");
 
     if (globalChatView) {
@@ -267,7 +264,6 @@ document.addEventListener("DOMContentLoaded", () => {
     closedChatBoxBottom.classList.remove("invisible");
   };
 
-  // (NEW): Toggle on and off of modal visibility for JoinB page
   const modalContainer = byEID("modal-container");
 
   window.onclick = (event) => {
@@ -299,7 +295,6 @@ const sessionList =
                  , previewManager
                  , loginControls.onNewSelection(() => document.createElement("option")));
 
-// (NEW): Add callback functions to update UI for unread chat messages
 const sessionChatManager =
   new ChatManager( byEID("session-chat-output"), byEID("session-chat-input")
                  , () => { alert("Your chat message is too large"); }

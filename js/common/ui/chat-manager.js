@@ -4,8 +4,9 @@ export default class ChatManager {
   #outputElem = undefined; // Element
   #sendInput  = undefined; // (String) => Unit
 
-  // (Element, Element, () => Unit, () => Unit, () => Unit, () => Unit) => ChatManager
-  constructor(outputElem, inputElem, notifyTooWordy, notifyTooFast, updateChatUnread, updateChatRead) {
+  // (Element, Element, () => Unit, () => Unit, () => Unit?, () => Unit?) => ChatManager
+  constructor(outputElem, inputElem, notifyTooWordy, notifyTooFast,
+    updateChatUnread = () => {}, updateChatRead = () => {}) {
 
     this.#lastTS     = 0;
     this.#outputElem = outputElem;
@@ -54,7 +55,7 @@ export default class ChatManager {
       entry.classList.add("chat-from-self");
     }
 
-    const fromCensus = (from === "(Census)");
+    const fromCensus = from === "(Census)";
 
     if (!fromCensus) {
       const onJoinPage = (document.getElementById("chat-box-open") !== null);
@@ -87,15 +88,18 @@ export default class ChatManager {
     }
   };
 
+  // () => Unit
   markAllMessagesRead = () => {
     this.unreadMessages = 0;
     this.updateChatRead();
   };
 
+  // () => Boolean
   hasUnreadMessages = () => {
     return this.unreadMessages !== 0;
   };
 
+  // () => Number
   getUnreadMessages = () => {
     return this.unreadMessages;
   };
