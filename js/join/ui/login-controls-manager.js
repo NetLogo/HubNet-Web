@@ -103,10 +103,10 @@ export default class LoginControlsManager {
   // () => String
   getSessionName = () => {
     return this.#sessionNameInput.value;
-  }
+  };
 
   // () => String
   getActivityName = () => {
     return this.#activityNameInput.value;
-  }
+  };
 }

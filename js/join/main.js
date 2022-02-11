@@ -302,8 +302,8 @@ const sessionChatManager =
   new ChatManager( byEID("session-chat-output"), byEID("session-chat-input")
                  , () => { alert("Your chat message is too large"); }
                  , () => { alert("You are sending chat messages too fast"); }
-                 , () => { updateSessionChatUnread(); }
-                 , () => { updateChatRead(); });
+                 , updateSessionChatUnread
+                 , updateChatRead);
 
 sessionChatManager.onSend((message) => { connMan.send("chat", { message }); });
 
@@ -311,8 +311,8 @@ const globalChatManager =
   new ChatManager( byEID("global-chat-output"), byEID("global-chat-input")
                  , () => { alert("Your chat message is too large"); }
                  , () => { alert("You are sending chat messages too fast"); }
-                 , () => { updateGlobalChatUnread(); }
-                 , () => { updateChatRead(); });
+                 , updateGlobalChatUnread
+                 , updateChatRead);
 
 
 const connMan    = new ConnectionManager(globalChatManager);

@@ -13,13 +13,14 @@ import RTCManager from "/js/common/rtc-manager.js";
 
 export default class ConnectionManager {
 
-  #channel     = undefined; // RTCDataChannel
-  #chatSocket  = undefined; // ChatSocket
-  #conn        = undefined; // RTCPeerConnection
-  #isRetrying  = undefined; // Boolean
-  #retrialUUID = undefined; // UUID
-  #rtcMan      = undefined; // RTCManager
-  #rxQueue     = undefined; // RxQueue
+  #channel         = undefined; // RTCDataChannel
+  #chatSocket      = undefined; // ChatSocket
+  #conn            = undefined; // RTCPeerConnection
+  #isRetrying      = undefined; // Boolean
+  #retrialUUID     = undefined; // UUID
+  #rtcMan          = undefined; // RTCManager
+  #rxQueue         = undefined; // RxQueue
+  #disconnectError = undefined; // Boolean
 
   // () => ConnectionManager
   constructor(chatManager) {
@@ -33,7 +34,8 @@ export default class ConnectionManager {
   disconnect = () => {
     if (this.#channel !== null) {
       this.send("bye-bye");
-      this.#channel.close(1000, "Connection closed by user");
+      this.#disconnectError = false;
+      this.#channel.close();
       this.#channel = null;
     }
   };
@@ -197,7 +199,7 @@ export default class ConnectionManager {
     };
 
     channel.onclose = (e) => {
-      onTeardown(!this.#isRetrying && e.code !== 1000);
+      onTeardown(!this.#isRetrying && this.#disconnectError !== false);
       this.#isRetrying = false;
     };
 
