@@ -198,7 +198,7 @@ export default class ConnectionManager {
 
     };
 
-    channel.onclose = (e) => {
+    channel.onclose = () => {
       onTeardown(!this.#isRetrying && this.#disconnectError !== false);
       this.#isRetrying = false;
     };
