@@ -15,30 +15,59 @@ export default class SessionList {
 
     const filterBox         = parent.querySelector("#session-filter-box");
     const sessionRowWrapper = parent.querySelector("#session-row-wrapper");
+    const sessionHeader       = parent.querySelector("#session-header");
     const data              = new SessionData();
 
-    const sessionTableOverflow = () => {
+    const hitTableTop = () => {
+      return sessionRowWrapper.scrollTop === 0;
+    }
+
+    const hitTableBottom = () => {
       return (sessionRowWrapper.offsetHeight + sessionRowWrapper.scrollTop) >=
         sessionRowWrapper.scrollHeight;
     };
 
     sessionRowWrapper.onscroll = () => {
-      if (sessionTableOverflow()) {
-        sessionRowWrapper.classList.add("box-shadow-none");
-        sessionRowWrapper.classList.remove("box-shadow-standard");
-      } else {
-        sessionRowWrapper.classList.add("box-shadow-standard");
+      if (!hitTableTop() && !hitTableBottom()) {
+        sessionHeader.classList.add("box-shadow-bottom");
+        sessionHeader.classList.remove("box-shadow-none");
+
+        sessionRowWrapper.classList.add("box-shadow-bottom");
         sessionRowWrapper.classList.remove("box-shadow-none");
+      } else if (hitTableTop() && !hitTableBottom()) {
+        sessionHeader.classList.remove("box-shadow-bottom");
+        sessionHeader.classList.add("box-shadow-none");
+
+        sessionRowWrapper.classList.add("box-shadow-bottom");
+        sessionRowWrapper.classList.remove("box-shadow-none");
+      } else {
+        sessionHeader.classList.add("box-shadow-bottom");
+        sessionHeader.classList.remove("box-shadow-none");
+
+        sessionRowWrapper.classList.remove("box-shadow-bottom");
+        sessionRowWrapper.classList.add("box-shadow-none");
       }
     };
 
     const observer = new ResizeObserver(() => {
-      if (sessionTableOverflow()) {
-        sessionRowWrapper.classList.add("box-shadow-none");
-        sessionRowWrapper.classList.remove("box-shadow-standard");
-      } else {
-        sessionRowWrapper.classList.add("box-shadow-standard");
+      if (!hitTableTop() && !hitTableBottom()) {
+        sessionHeader.classList.add("box-shadow-bottom");
+        sessionHeader.classList.remove("box-shadow-none");
+
+        sessionRowWrapper.classList.add("box-shadow-bottom");
         sessionRowWrapper.classList.remove("box-shadow-none");
+      } else if (hitTableTop() && !hitTableBottom()) {
+        sessionHeader.classList.remove("box-shadow-bottom");
+        sessionHeader.classList.add("box-shadow-none");
+
+        sessionRowWrapper.classList.add("box-shadow-bottom");
+        sessionRowWrapper.classList.remove("box-shadow-none");
+      } else {
+        sessionHeader.classList.add("box-shadow-bottom");
+        sessionHeader.classList.remove("box-shadow-none");
+
+        sessionRowWrapper.classList.remove("box-shadow-bottom");
+        sessionRowWrapper.classList.add("box-shadow-none");
       }
     });
     observer.observe(sessionRowWrapper);
