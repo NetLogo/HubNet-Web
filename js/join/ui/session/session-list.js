@@ -27,47 +27,41 @@ export default class SessionList {
         sessionRowWrapper.scrollHeight;
     };
 
+    const handleTableTop = () => {
+      sessionHeader.classList.remove("box-shadow-bottom");
+      sessionHeader.classList.add("box-shadow-none");
+    }
+
+    const handleTableMiddle = () => {
+      sessionHeader.classList.add("box-shadow-bottom");
+      sessionHeader.classList.remove("box-shadow-none");
+
+      sessionRowWrapper.classList.add("box-shadow-bottom");
+      sessionRowWrapper.classList.remove("box-shadow-none");
+    }
+
+    const handleTableBottom = () => {
+      sessionRowWrapper.classList.remove("box-shadow-bottom");
+      sessionRowWrapper.classList.add("box-shadow-none");
+    }
+
     sessionRowWrapper.onscroll = () => {
       if (!hitTableTop() && !hitTableBottom()) {
-        sessionHeader.classList.add("box-shadow-bottom");
-        sessionHeader.classList.remove("box-shadow-none");
-
-        sessionRowWrapper.classList.add("box-shadow-bottom");
-        sessionRowWrapper.classList.remove("box-shadow-none");
+        handleTableMiddle();
       } else if (hitTableTop() && !hitTableBottom()) {
-        sessionHeader.classList.remove("box-shadow-bottom");
-        sessionHeader.classList.add("box-shadow-none");
-
-        sessionRowWrapper.classList.add("box-shadow-bottom");
-        sessionRowWrapper.classList.remove("box-shadow-none");
+        handleTableTop();
       } else {
-        sessionHeader.classList.add("box-shadow-bottom");
-        sessionHeader.classList.remove("box-shadow-none");
-
-        sessionRowWrapper.classList.remove("box-shadow-bottom");
-        sessionRowWrapper.classList.add("box-shadow-none");
+        handleTableBottom();
       }
     };
 
     const observer = new ResizeObserver(() => {
       if (!hitTableTop() && !hitTableBottom()) {
-        sessionHeader.classList.add("box-shadow-bottom");
-        sessionHeader.classList.remove("box-shadow-none");
-
-        sessionRowWrapper.classList.add("box-shadow-bottom");
-        sessionRowWrapper.classList.remove("box-shadow-none");
+        handleTableMiddle();
       } else if (hitTableTop() && !hitTableBottom()) {
-        sessionHeader.classList.remove("box-shadow-bottom");
-        sessionHeader.classList.add("box-shadow-none");
-
-        sessionRowWrapper.classList.add("box-shadow-bottom");
-        sessionRowWrapper.classList.remove("box-shadow-none");
+        handleTableTop();
       } else {
-        sessionHeader.classList.add("box-shadow-bottom");
-        sessionHeader.classList.remove("box-shadow-none");
-
-        sessionRowWrapper.classList.remove("box-shadow-bottom");
-        sessionRowWrapper.classList.add("box-shadow-none");
+        handleTableBottom();
       }
     });
     observer.observe(sessionRowWrapper);
