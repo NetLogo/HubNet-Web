@@ -4,6 +4,8 @@ export default class LoginControlsManager {
   #usernameInput = undefined; // HTMLInputElement
   #passwordInput = undefined; // HTMLInputElement
   #roleSelect    = undefined; // HTMLSelectElement
+  #sessionNameInput = undefined; // HTMLInputElement
+  #activityNameInput = undefined; // HTMLInputElement
 
   #lastUUID = null; // UUID
 
@@ -15,14 +17,19 @@ export default class LoginControlsManager {
     this.#passwordInput = joinForm.querySelector("#password"   );
     this.#roleSelect    = joinForm.querySelector("#role-select");
 
+    this.#sessionNameInput = joinForm.querySelector("#session-name");
+    this.#activityNameInput = joinForm.querySelector("#activity-name");
+
     joinForm.addEventListener("submit", () => {
 
       this.#button.disabled = true;
 
-      const username = this. getUsername();
-      const password = this.#getPassword();
+      const username     = this. getUsername();
+      const password     = this.#getPassword();
+      const sessionName  = this.getSessionName();
+      const activityName = this.getActivityName();
 
-      onLogIn(username, password);
+      onLogIn(username, password, sessionName, activityName);
 
     });
 
@@ -49,6 +56,9 @@ export default class LoginControlsManager {
     this.#passwordInput.disabled = !hasActive || !session.hasPassword;
     this.#button       .disabled = !hasActive;
     this.#roleSelect   .disabled = !hasActive;
+
+    this.#sessionNameInput.value = session === null ? "" : session.name;
+    this.#activityNameInput.value = session === null ? "" : session.modelName;
 
     if (!hasActive || isNewSelection) {
       this.setPassword("");
@@ -90,4 +100,13 @@ export default class LoginControlsManager {
     return this.#passwordInput.value;
   };
 
+  // () => String
+  getSessionName = () => {
+    return this.#sessionNameInput.value;
+  }
+
+  // () => String
+  getActivityName = () => {
+    return this.#activityNameInput.value;
+  }
 }

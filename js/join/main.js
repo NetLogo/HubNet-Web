@@ -60,11 +60,14 @@ const updateChatRead = () => {
   closedChatBox.innerHTML = "Chat";
 };
 
-// (String, String) => Unit
-const onLogIn = (username, password) => {
+// (String, String, String, String) => Unit
+const onLogIn = (username, password, sessionName, activityName) => {
 
   statusManager.connecting();
   sessionChatManager.markAllMessagesRead();
+
+  byEID("modal-session-name").innerHTML = `Session Name: ${sessionName}`;
+  byEID("modal-activity-name").innerHTML = activityName;
 
   const hostID = sessionList.getSelectedUUID();
 
