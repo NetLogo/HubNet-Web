@@ -20,7 +20,7 @@ export default class SessionList {
 
     const hitTableTop = () => {
       return sessionRowWrapper.scrollTop === 0;
-    }
+    };
 
     const hitTableBottom = () => {
       return (sessionRowWrapper.offsetHeight + sessionRowWrapper.scrollTop) >=
