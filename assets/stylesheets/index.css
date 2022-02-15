@@ -6,12 +6,17 @@ body {
 .index-page-header {
     position: sticky;
     top: 0;
-    height: 60px;
+    height: 70px;
     padding: 0 50px;
     background-color: #aed8f2;
     justify-content: space-between;
     align-items: center;
     font-size: 36px;
+}
+
+.hnw-header {
+    font-size: 52px;
+    font-weight: bold;
 }
 
 .page-links-dropdown {
@@ -30,11 +35,12 @@ body {
 .activities-label {
     display: flex;
     direction: row;
+    justify-content: center;
     align-items: center;
     background-color: rgb(60, 60, 60);
     color: white;
+    width: 200px;
     height: 100%;
-    padding: 0 20px;
     font-size: 28px;
 }
 
@@ -51,18 +57,17 @@ body {
 .page-links-tabs {
     display: none;
     position: absolute;
-    right: 0;
+    width: 200px;
 }
 
 .page-links {
     display: block;
-    white-space: nowrap;
     text-align: center;
-    background-color: lightgray;
+    background-color: #aed8f2;
     color: black;
     border: 1px solid black;
     font-size: 32px;
-    padding: 20px 30px;
+    padding: 10px 30px;
     text-decoration: none;
 }
 
@@ -79,15 +84,13 @@ body {
 }
 
 .welcome-text {
-    font-size: 44px;
-    font-weight: bold;
+    font-size: 40px;
     margin: 20px 0;
 }
 
 .about-tab {
     display: flex;
     height: 50px;
-    margin-right: -50px;
     padding-left: 20px;
     align-items: center;
     font-size: 32px;
@@ -140,18 +143,22 @@ body {
 }
 
 .text-borders {
-    margin: 30px -50px 30px 0;
+    margin: 30px 0 30px 40px;
     border: 2px solid lightgray;
 }
 
 .join-page-text {
+    margin-left: 40px;
     font-size: 28px;
+    font-weight: bold;
 }
 
 .host-page-text {
+    margin-left: 40px;
     font-size: 28px;
 }
 
 .netlogo-text {
+    margin-left: 40px;
     font-size: 28px;
 }
