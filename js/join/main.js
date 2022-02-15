@@ -271,21 +271,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.onclick = (event) => {
     if (event.target === modalContainer) {
-      modalContainer.classList.add("hidden");
+      modalContainer.classList.add("modal-invis");
     }
   };
 
   byEID("view-details-button").onclick = () => {
-    modalContainer.classList.remove("hidden");
+    modalContainer.classList.remove("modal-invis");
   };
 
   byEID("close-modal-button").onclick = () => {
-    modalContainer.classList.add("hidden");
+    modalContainer.classList.add("modal-invis");
   };
 
   document.addEventListener("keydown", (event) => {
-    if (!modalContainer.classList.contains("hidden") && event.key === "Escape") {
-      modalContainer.classList.add("hidden");
+    if (!modalContainer.classList.contains("modal-invis") && event.key === "Escape") {
+      modalContainer.classList.add("modal-invis");
     }
   });
 

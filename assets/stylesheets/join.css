@@ -305,7 +305,7 @@ body {
   right: 10px;
   width: 40vw;
   z-index: 2;
-  transition: opacity 0.0.1s;
+  transition: opacity 0.1s;
 }
 
 .open-chat-header {
