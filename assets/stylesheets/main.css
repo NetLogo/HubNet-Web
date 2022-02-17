@@ -94,15 +94,15 @@
   top: 1vh;
   right: 1vw;
   background-color: #e04141;
-  height: 4vh;
-  width: 2vw;
+  height: 30px;
+  width: 30px;
   min-width: 25px;
   border-radius: 50%;
   cursor: pointer;
 }
 
 .close-modal-button::after {
-  font-size: 3vh;
+  font-size: 20px;
   color: white;
   content: "\00d7";
 }

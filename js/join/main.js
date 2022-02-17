@@ -268,24 +268,29 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const modalContainer = byEID("modal-container");
+  const joinBPageMain = byEID("join-b-page");
 
   window.onclick = (event) => {
     if (event.target === modalContainer) {
       modalContainer.classList.add("modal-invis");
+      joinBPageMain.classList.remove("no-select");
     }
   };
 
   byEID("view-details-button").onclick = () => {
     modalContainer.classList.remove("modal-invis");
+    joinBPageMain.classList.add("no-select");
   };
 
   byEID("close-modal-button").onclick = () => {
     modalContainer.classList.add("modal-invis");
+    joinBPageMain.classList.remove("no-select");
   };
 
   document.addEventListener("keydown", (event) => {
     if (!modalContainer.classList.contains("modal-invis") && event.key === "Escape") {
       modalContainer.classList.add("modal-invis");
+      joinBPageMain.classList.remove("no-select");
     }
   });
 

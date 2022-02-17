@@ -172,6 +172,10 @@ body {
   font-weight: bold;
 }
 
+.no-select {
+  user-select: none;
+}
+
 .session-buttons {
   justify-content: space-between;
   margin-bottom: 20px;
@@ -260,16 +264,7 @@ body {
 
 .chat-box-bottom-unread {
   border-top: 20px solid #aed8f2;
-  transition: border-top 0.8s;
-}
-
-@keyframes unreadMessagesAlert {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 100%;
-   }
+  transition: border-top 0.1s;
 }
 
 .brightness-dim-minor {
