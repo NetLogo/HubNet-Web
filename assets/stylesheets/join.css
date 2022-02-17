@@ -79,7 +79,6 @@ body {
 .left-column {
   width: 50%;
   max-width: 43vw;
-  margin-right: 6vw;
 }
 
 .session-list-boundary {
@@ -138,14 +137,15 @@ body {
 }
 
 .right-column {
-  /* float: right; */
   width: 50%;
-  margin-right: -50px;
+}
+
+.standard-column-gap {
+  column-gap: 60px;
 }
 
 .session-preview-image {
   display: block;
-  margin: auto;
   width: 35vw;
   max-width: 350px;
   border-radius: 20px;
@@ -234,7 +234,7 @@ body {
   font-size: 16px;
   font-weight: bold;
   z-index: 3;
-  transition: opacity 0.1s;
+  transition: opacity 0.2s;
 }
 
 .chat-box-closed-bottom {
@@ -290,6 +290,7 @@ body {
 
 .invisible {
   opacity: 0;
+  visibility: hidden;
 }
 
 .chat-box-open {
@@ -298,7 +299,7 @@ body {
   right: 10px;
   width: 40vw;
   z-index: 2;
-  transition: opacity 0.1s;
+  transition: opacity 0.2s;
 }
 
 .open-chat-header {
