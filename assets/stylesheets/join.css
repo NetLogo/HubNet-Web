@@ -231,6 +231,7 @@ body {
   font-weight: bold;
   z-index: 3;
   transition: opacity 0.2s;
+  background-color: gray;
 }
 
 .chat-box-closed-bottom {
@@ -244,23 +245,16 @@ body {
   right: 20px;
   z-index: 3;
   transition: opacity 0.1s;
+  border-top: 20px solid gray;
 }
 
-.chat-box-read {
-  background-color: gray;
-}
-
-.chat-box-unread {
+.chat-box-closed.unread {
   background-color: #aed8f2;
   color: black;
   transition: background-color 0.1s;
 }
 
-.chat-box-bottom-read {
-  border-top: 20px solid gray;
-}
-
-.chat-box-bottom-unread {
+.chat-box-closed-bottom.unread {
   border-top: 20px solid #aed8f2;
   transition: border-top 0.1s;
 }
