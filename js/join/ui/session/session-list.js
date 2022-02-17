@@ -28,20 +28,16 @@ export default class SessionList {
 
     const handleTableTop = () => {
       sessionHeader.classList.remove("box-shadow-bottom");
-      sessionHeader.classList.add("box-shadow-none");
     };
 
     const handleTableMiddle = () => {
       sessionHeader.classList.add("box-shadow-bottom");
-      sessionHeader.classList.remove("box-shadow-none");
 
       sessionRowWrapper.classList.add("box-shadow-bottom");
-      sessionRowWrapper.classList.remove("box-shadow-none");
     };
 
     const handleTableBottom = () => {
       sessionRowWrapper.classList.remove("box-shadow-bottom");
-      sessionRowWrapper.classList.add("box-shadow-none");
     };
 
     sessionRowWrapper.onscroll = () => {
