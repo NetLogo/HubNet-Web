@@ -58,9 +58,9 @@ export default class ChatManager {
     const fromCensus = from === "(Census)";
 
     if (!fromCensus) {
-      const onJoinPage = (document.getElementById("chat-box-open") !== null);
+      const onJoinPage = elem.closest("#chat-box-open") !== null;
       if (onJoinPage) {
-        const chatOpen = !document.getElementById("chat-box-open").classList.contains("invisible");
+        const chatOpen = !elem.closest("#chat-box-open").classList.contains("invisible");
         this.unreadMessages = chatOpen ? 0 : (this.unreadMessages + 1);
       }
     }
