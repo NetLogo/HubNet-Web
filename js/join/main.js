@@ -269,32 +269,40 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalContainer = byEID("modal-container");
   const joinBPageMain = byEID("join-b-page");
 
-  window.onclick = (event) => {
-    if (event.target === modalContainer) {
-      modalContainer.classList.add("modal-invis");
-      joinBPageMain.classList.remove("no-select");
-    }
-  };
-
-  byEID("view-details-button").onclick = () => {
+  const showModal = () => {
     modalContainer.classList.remove("modal-invis");
     joinBPageMain.classList.add("no-select");
   };
 
-  byEID("close-modal-button").onclick = () => {
+  const hideModal = () => {
     modalContainer.classList.add("modal-invis");
     joinBPageMain.classList.remove("no-select");
   };
 
+  window.onclick = (event) => {
+    if (event.target === modalContainer) {
+      hideModal();
+    }
+  };
+
+  byEID("view-details-button").onclick = () => {
+    showModal();
+  };
+
+  byEID("close-modal-button").onclick = () => {
+    hideModal();
+  };
+
   document.addEventListener("keydown", (event) => {
-    if (!modalContainer.classList.contains("modal-invis") && event.key === "Escape") {
-      modalContainer.classList.add("modal-invis");
-      joinBPageMain.classList.remove("no-select");
+    const modalIsInvis = modalContainer.classList.contains("modal-invis");
+    if (!modalIsInvis && event.key === "Escape") {
+      hideModal();
     }
   });
 
   const username = window.localStorage.getItem(usernameLSKey);
   loginControls.setUsername(username || "");
+
 });
 
 const sessionList =
