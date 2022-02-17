@@ -4,7 +4,7 @@ export default class ChatManager {
   #outputElem = undefined; // Element
   #sendInput  = undefined; // (String) => Unit
 
-  // (Element, Element, () => Unit, () => Unit, () => Unit?, () => Unit?) => ChatManager
+  // (Element, Element, () => Unit, () => Unit, () => Unit, () => Unit) => ChatManager
   constructor(outputElem, inputElem, notifyTooWordy, notifyTooFast,
     updateChatUnread = () => {}, updateChatRead = () => {}) {
 
