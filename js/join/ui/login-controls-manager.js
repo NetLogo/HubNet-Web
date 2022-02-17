@@ -4,21 +4,18 @@ export default class LoginControlsManager {
   #usernameInput = undefined; // HTMLInputElement
   #passwordInput = undefined; // HTMLInputElement
   #roleSelect    = undefined; // HTMLSelectElement
-  #sessionNameInput = undefined; // HTMLInputElement
-  #activityNameInput = undefined; // HTMLInputElement
+  #nlwFrame      = undefined; // HTMLDivElement
 
   #lastUUID = null; // UUID
 
-  // (Element, (String, String) => Unit) => LoginControlsManager
-  constructor(joinForm, onLogIn) {
+  // (Element, Element, (String, String) => Unit) => LoginControlsManager
+  constructor(joinForm, nlwFrame, onLogIn) {
 
     this.#button        = joinForm.querySelector("#join-button");
     this.#usernameInput = joinForm.querySelector("#username"   );
     this.#passwordInput = joinForm.querySelector("#password"   );
     this.#roleSelect    = joinForm.querySelector("#role-select");
-
-    this.#sessionNameInput = joinForm.querySelector("#session-name");
-    this.#activityNameInput = joinForm.querySelector("#activity-name");
+    this.#nlwFrame = nlwFrame;
 
     joinForm.addEventListener("submit", () => {
 
@@ -57,8 +54,8 @@ export default class LoginControlsManager {
     this.#button       .disabled = !hasActive;
     this.#roleSelect   .disabled = !hasActive;
 
-    this.#sessionNameInput.value = session === null ? "" : session.name;
-    this.#activityNameInput.value = session === null ? "" : session.modelName;
+    this.#nlwFrame.dataset.sessionName = session === null ? "" : session.name;
+    this.#nlwFrame.dataset.activityName = session === null ? "" : session.modelName;
 
     if (!hasActive || isNewSelection) {
       this.setPassword("");
@@ -102,11 +99,11 @@ export default class LoginControlsManager {
 
   // () => String
   getSessionName = () => {
-    return this.#sessionNameInput.value;
+    return this.#nlwFrame.dataset.sessionName;
   };
 
   // () => String
   getActivityName = () => {
-    return this.#activityNameInput.value;
+    return this.#nlwFrame.dataset.activityName;
   };
 }
