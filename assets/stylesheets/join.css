@@ -78,6 +78,7 @@ body {
 
 .left-column {
   width: 50%;
+  max-width: 43vw;
   margin-right: 30px;
 }
 
@@ -85,10 +86,6 @@ body {
   width: 100%;
   border: 1px solid rgba(0, 0, 0, 0.4);
   margin: 25px 0;
-}
-
-.user-inputs-container {
-  max-width: 43vw;
 }
 
 .user-inputs-top-row {
@@ -128,7 +125,7 @@ body {
   height: 40px;
   border-radius: 7px;
   font-size: 16px;
-  background-color: rgba(0, 128, 0, 0.8);
+  background-color: #63ab73;
 }
 
 .join-button:hover {
@@ -147,7 +144,6 @@ body {
 .session-preview-image {
   display: block;
   margin: auto;
-  margin-top: 2vh;
   width: 35vw;
   max-width: 350px;
   border-radius: 20px;
@@ -255,7 +251,7 @@ body {
 .chat-box-unread {
   background-color: #aed8f2;
   color: black;
-  transition: background-color 0.8s;
+  transition: background-color 0.1s;
 }
 
 .chat-box-bottom-read {

@@ -294,8 +294,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const sessionList =
-  new SessionList(byEID("session-list-container"), processURLHash, statusManager
-                 , previewManager
+  new SessionList( byEID("session-list-container"), byEID("session-filter-box")
+                 , processURLHash, statusManager, previewManager
                  , loginControls.onNewSelection(() => document.createElement("option")));
 
 const sessionChatManager =
