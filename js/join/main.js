@@ -17,11 +17,10 @@ const byEID = (eid) => document.getElementById(eid);
 // String
 const usernameLSKey = "hnw.global.username";
 
-// Element
-const closedChatBox = byEID("chat-box-closed");
-const closedChatBoxBottom = byEID("chat-box-closed-bottom");
-const openChatBox = byEID("chat-box-open");
-const openChatHeader = byEID("open-chat-header");
+const closedChatBox       = byEID("chat-box-closed");        // Element
+const closedChatBoxBottom = byEID("chat-box-closed-bottom"); // Element
+const openChatBox         = byEID("chat-box-open");          // Element
+const openChatHeader      = byEID("open-chat-header");       // Element
 
 // () => Unit
 const updateGlobalChatUnread = () => {
