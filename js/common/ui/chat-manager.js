@@ -6,7 +6,7 @@ export default class ChatManager {
 
   // (Element, Element, () => Unit, () => Unit, () => Unit, () => Unit) => ChatManager
   constructor(outputElem, inputElem, notifyTooWordy, notifyTooFast,
-    updateChatUnread = () => {}, updateChatRead = () => {}) {
+              updateChatUnread = () => {}, updateChatRead = () => {}) {
 
     this.#lastTS     = 0;
     this.#outputElem = outputElem;
