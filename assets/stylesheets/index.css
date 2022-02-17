@@ -112,7 +112,7 @@ body {
 
 .page-links-group {
     margin: 50px 0;
-    height: 200px;
+    height: 250px;
     justify-content: space-between;
 }
 
@@ -147,18 +147,30 @@ body {
     border: 2px solid lightgray;
 }
 
-.join-page-text {
-    margin-left: 40px;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.host-page-text {
+.page-links-base {
     margin-left: 40px;
     font-size: 28px;
 }
 
-.netlogo-text {
-    margin-left: 40px;
-    font-size: 28px;
+.button-base {
+    width: 300px;
+    border-radius: 15px;
+    height: 60px;
+}
+
+.button-base:hover {
+    filter: brightness(0.9);
+}
+
+.button-base:active {
+    filter: brightness(0.7);
+    box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
+}
+
+.join-page-button {
+    background-color: #63ab73;
+}
+
+.host-page-button {
+    background-color: #e66c6c;;
 }
