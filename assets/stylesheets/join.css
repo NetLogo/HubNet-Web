@@ -79,7 +79,7 @@ body {
 .left-column {
   width: 50%;
   max-width: 43vw;
-  margin-right: 30px;
+  margin-right: 6vw;
 }
 
 .session-list-boundary {
@@ -138,7 +138,9 @@ body {
 }
 
 .right-column {
+  /* float: right; */
   width: 50%;
+  margin-right: -50px;
 }
 
 .session-preview-image {
