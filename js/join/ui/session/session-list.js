@@ -17,49 +17,30 @@ export default class SessionList {
     const sessionHeader     = parent.querySelector("#session-header");
     const data              = new SessionData();
 
-    const hitTableTop = () => {
-      return sessionRowWrapper.scrollTop === 0;
-    };
+    const rollInTheFog = () => {
 
-    const hitTableBottom = () => {
-      return (sessionRowWrapper.offsetHeight + sessionRowWrapper.scrollTop) >=
-        sessionRowWrapper.scrollHeight;
-    };
+      const isAtTableTop = sessionRowWrapper.scrollTop === 0;
 
-    const handleTableTop = () => {
-      sessionHeader.classList.remove("box-shadow-bottom");
-    };
+      const isAtTableBottom =
+        (sessionRowWrapper.offsetHeight + sessionRowWrapper.scrollTop) >=
+          sessionRowWrapper.scrollHeight;
 
-    const handleTableMiddle = () => {
-      sessionHeader.classList.add("box-shadow-bottom");
-
-      sessionRowWrapper.classList.add("box-shadow-bottom");
-    };
-
-    const handleTableBottom = () => {
-      sessionRowWrapper.classList.remove("box-shadow-bottom");
-    };
-
-    sessionRowWrapper.onscroll = () => {
-      if (!hitTableTop() && !hitTableBottom()) {
-        handleTableMiddle();
-      } else if (hitTableTop() && !hitTableBottom()) {
-        handleTableTop();
+      if (isAtTableTop) {
+        sessionHeader.classList.remove("box-shadow-bottom");
       } else {
-        handleTableBottom();
+        sessionHeader.classList.add("box-shadow-bottom");
       }
+
+      if (isAtTableBottom) {
+        sessionRowWrapper.classList.remove("box-shadow-bottom");
+      } else {
+        sessionRowWrapper.classList.add("box-shadow-bottom");
+      }
+
     };
 
-    const observer = new ResizeObserver(() => {
-      if (!hitTableTop() && !hitTableBottom()) {
-        handleTableMiddle();
-      } else if (hitTableTop() && !hitTableBottom()) {
-        handleTableTop();
-      } else {
-        handleTableBottom();
-      }
-    });
-    observer.observe(sessionRowWrapper);
+    sessionRowWrapper.onscroll = rollInTheFog;
+    (new ResizeObserver(rollInTheFog)).observe(sessionRowWrapper);
 
     this.#parent = parent;
     this.#stream = genSessionStream( filterBox, parent, data, statusManager
