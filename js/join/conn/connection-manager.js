@@ -16,6 +16,7 @@ export default class ConnectionManager {
   #channel     = undefined; // RTCDataChannel
   #chatSocket  = undefined; // ChatSocket
   #conn        = undefined; // RTCPeerConnection
+  #isLeaving   = undefined; // Boolean
   #isRetrying  = undefined; // Boolean
   #retrialUUID = undefined; // UUID
   #rtcMan      = undefined; // RTCManager
@@ -24,6 +25,7 @@ export default class ConnectionManager {
   // () => ConnectionManager
   constructor(chatManager) {
     this.#chatSocket  = new ChatSocket(chatManager);
+    this.#isLeaving   = false;
     this.#isRetrying  = false;
     this.#retrialUUID = genUUID();
     this.reset();
@@ -33,7 +35,8 @@ export default class ConnectionManager {
   disconnect = () => {
     if (this.#channel !== null) {
       this.send("bye-bye");
-      this.#channel.close(1000, "Connection closed by user");
+      this.#isLeaving = true;
+      this.#channel.close();
       this.#channel = null;
     }
   };
@@ -196,8 +199,9 @@ export default class ConnectionManager {
 
     };
 
-    channel.onclose = (e) => {
-      onTeardown(!this.#isRetrying && e.code !== 1000);
+    channel.onclose = () => {
+      onTeardown(!(this.#isLeaving || this.#isRetrying));
+      this.#isLeaving  = false;
       this.#isRetrying = false;
     };
 
