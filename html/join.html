@@ -13,21 +13,23 @@
       </div>
 
       <div class="flex-row">
-
-        <div class="left-column" class="flex-column">
-
+        <div class="left-column">
           <div class="session-status">
             <span class="status-value-container">Status: </span><span id="status-value">Floating through the ether</span>
           </div>
 
-          <div id="session-list-container">
-            <input
-              class="session-filter-box"
-              id="session-filter-box"
-              type="search"
-              placeholder="Search..."
-            >
+          <input
+            class="session-filter-box"
+            id="session-filter-box"
+            type="search"
+            placeholder="Search..."
+          >
+        </div>
+      </div>
 
+      <div class="flex-row standard-column-gap">
+        <div class="left-column">
+          <div id="session-list-container">
             <div id="session-row-wrapper" class="session-row-wrapper">
               <table id="session-row-container" class="session-row-container">
                 <template id="session-row-template">
@@ -50,10 +52,21 @@
                 <tbody class="session-rows" id="session-rows"></tbody>
               </table>
             </div>
-
           </div>
           <hr class="session-list-boundary"></hr>
+        </div>
 
+        <div class="right-column">
+          <img
+            id="session-preview-image"
+            class="session-preview-image"
+            draggable=false
+          />
+        </div>
+      </div>
+
+      <div class="flex-row">
+        <div class="left-column">
           <form class="user-inputs-container" id="join-form" action="javascript:void(0);" method="POST">
             <div class="user-inputs-top-row flex-display">
               <div>
@@ -76,65 +89,81 @@
               <input id="join-button" class="join-button block-display" type="submit" value="Join" disabled>
             </div>
           </form>
-
         </div>
+      </div>
+    </div>
 
-        <div class="right-column">
-          <img
-            id="session-preview-image"
-            class="session-preview-image"
-            draggable=false
-          />
+  <!-- JoinB page here -->
+  <div id="nlw-frame" class="frame hidden">
 
-          <div id="chat-box-closed" class="chat-box-closed flex-display">
-            <div class="chat-box-closed-header">
-              <div>Chat</div>
-              <div class="expand-chat-arrow"></div>
+    <div id="modal-container" class="modal-container modal-invis">
+
+      <div id="session-details-modal" class="modal flex-column">
+        <div id="close-modal-button" class="close-modal-button"></div>
+
+        <div class="modal-text">
+          <p class="modal-session-name" id="modal-session-name"></p>
+          <div class="session-button">
+            <div class="session-detail">
+              <span class="bold">Connection Type: </span>
+              <span id="connection-type-span">(N/A)</span>
+            </div>
+            <div class="session-detail">
+              <span class="bold">Latency: </span>
+              <span id="latency-span">(N/A)</span>ms
             </div>
           </div>
-
-          <div id="chat-box-open" class="chat-box-open hidden">
-            <div id="open-chat-header" class="open-chat-header flex-display">
-              <div>Chat</div>
-              <div class="collapse-chat-arrow"></div>
-            </div>
-            <div>
-              <div id="global-chat">
-                <div id="global-chat-output" class="open-chat-body"></div>
-                <input
-                  id="global-chat-input"
-                  class="open-chat-input"
-                  type="text"
-                  value=""
-                  placeholder="Type chat here..."
-                />
-              </div>
-              <div id="session-chat" class="hidden">
-                <div id="session-chat-output" class="open-chat-body"></div>
-                <input
-                  id="session-chat-input"
-                  class="open-chat-input"
-                  type="text"
-                  value=""
-                  placeholder="Type chat here..."
-                />
-              </div>
-            </div>
-          </div>
-
+        </div>
       </div>
 
     </div>
+
+    <div id="join-b-page">
+      <h1><span id="modal-activity-name""></span></h1>
+      <div class="session-buttons flex-row">
+        <input class="view-details-button" id="view-details-button" type="button" value="View Session Details">
+        <input class="disconnect-button" id="disconnect-button" type="button" value="Disconnect">
+      </div>
+      <iframe class="nlw-iframe"></iframe>
+    </div>
+
   </div>
 
-  <div id="nlw-frame" class="frame hidden">
-    <input id="disconnect-button" type="button" value="Disconnect">
-    <div style="display: flex; flex-direction: row;">
-      <div>Connection Type: <span id="connection-type-span">(N/A)</span></div>
-      <span style="margin: 0 12px;">|</span>
-      <div>Latency: <span id="latency-span">(N/A)</span>ms</div>
+  <div id="chat-box">
+    <div id="chat-box-closed-container" class="chat-box-closed-container">
+      <div id="chat-box-closed" class="chat-box-closed flex-display">
+        Chat
+      </div>
+      <div id="chat-box-closed-bottom" class="chat-box-closed-bottom"></div>
     </div>
-    <iframe class="nlw-iframe"></iframe>
+
+    <div id="chat-box-open" class="chat-box-open invisible">
+      <div id="open-chat-header" class="open-chat-header flex-display">
+        <div class="collapse-chat-arrow"></div>
+      </div>
+      <div>
+        <div id="global-chat">
+          <div id="global-chat-output" class="open-chat-body"></div>
+          <input
+            id="global-chat-input"
+            class="open-chat-input"
+            type="text"
+            value=""
+            placeholder="Send a message"
+          />
+        </div>
+        <div id="session-chat" class="hidden">
+          <div id="session-chat-output" class="open-chat-body"></div>
+          <input
+            id="session-chat-input"
+            class="open-chat-input"
+            type="text"
+            value=""
+            placeholder="Send a message"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 
   </body>
