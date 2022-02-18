@@ -217,7 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
     closedChatBox.classList.add("invisible");
     closedChatBoxBottom.classList.add("invisible");
 
-    const globalChatView = !byEID( "global-chat").classList.contains("hidden");
+    const globalChatView = byEID("nlw-frame").classList.contains("hidden");
 
     if (globalChatView) {
       globalChatManager.markAllMessagesRead();
