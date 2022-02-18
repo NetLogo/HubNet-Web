@@ -9,15 +9,12 @@
     <div id="modal-container" class="modal-container hidden">
 
       <div id="full-description-modal" class="modal flex-column">
+        <div id="close-modal-button" class="close-modal-button"></div>
         <div class="modal-text">
           <p class="modal-activity-title">Disease</p>
           <p id="activity-text-full" class="activity-text-full">
             This is placeholder text for a full activity description.
           </p>
-        </div>
-        <div>
-          <hr class="modal-delineation"></hr>
-          <input type="button" id="close-modal-button" class="close-modal-button" value="Close">
         </div>
       </div>
 
@@ -30,6 +27,7 @@
         <div class="activity-selection">
 
           <div class="activity-description">
+
             <div class="library-model-container" class="library-model-container">
               <select class="library-model" id="library-model" name="libraryModel" type="chooser">
                 <option>[5] Example</option>
@@ -77,6 +75,7 @@
                 <option>[0] Sampler</option> <!-- requires view overrides -->
               </select>
             </div>
+
             <p id="activity-text-short" class="activity-text-short">
               This is a placeholder for a condensed activity description.
             </p>

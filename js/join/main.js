@@ -241,8 +241,43 @@ document.addEventListener("DOMContentLoaded", () => {
     closedChatBox.classList.add("chat-fade-in");
   };
 
+  const modalContainer = byEID("modal-container");
+  const joinBPageMain = byEID("join-b-page");
+
+  const showModal = () => {
+    modalContainer.classList.remove("modal-invis");
+    joinBPageMain.classList.add("no-select");
+  };
+
+  const hideModal = () => {
+    modalContainer.classList.add("modal-invis");
+    joinBPageMain.classList.remove("no-select");
+  };
+
+  window.onclick = (event) => {
+    if (event.target === modalContainer) {
+      hideModal();
+    }
+  };
+
+  byEID("view-details-button").onclick = () => {
+    showModal();
+  };
+
+  byEID("close-modal-button").onclick = () => {
+    hideModal();
+  };
+
+  document.addEventListener("keydown", (event) => {
+    const modalIsInvis = modalContainer.classList.contains("modal-invis");
+    if (!modalIsInvis && event.key === "Escape") {
+      hideModal();
+    }
+  });
+
   const username = window.localStorage.getItem(usernameLSKey);
   loginControls.setUsername(username || "");
+
 });
 
 const sessionList =
