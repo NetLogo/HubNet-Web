@@ -15,33 +15,33 @@ export default class SessionList {
 
     const filterBox         = parent.querySelector("#session-filter-box");
     const sessionRowWrapper = parent.querySelector("#session-row-wrapper");
+    const sessionHeader     = parent.querySelector("#session-header");
     const data              = new SessionData();
 
-    const sessionTableOverflow = () => {
-      return (sessionRowWrapper.offsetHeight + sessionRowWrapper.scrollTop) >=
-        sessionRowWrapper.scrollHeight;
+    const rollInTheFog = () => {
+
+      const isAtTableTop = sessionRowWrapper.scrollTop === 0;
+
+      const isAtTableBottom =
+        (sessionRowWrapper.offsetHeight + sessionRowWrapper.scrollTop) >=
+          sessionRowWrapper.scrollHeight;
+
+      if (isAtTableTop) {
+        sessionHeader.classList.remove("box-shadow-bottom");
+      } else {
+        sessionHeader.classList.add("box-shadow-bottom");
+      }
+
+      if (isAtTableBottom) {
+        sessionRowWrapper.classList.remove("box-shadow-bottom");
+      } else {
+        sessionRowWrapper.classList.add("box-shadow-bottom");
+      }
+
     };
 
-    sessionRowWrapper.onscroll = () => {
-      if (sessionTableOverflow()) {
-        sessionRowWrapper.classList.add("box-shadow-none");
-        sessionRowWrapper.classList.remove("box-shadow-standard");
-      } else {
-        sessionRowWrapper.classList.add("box-shadow-standard");
-        sessionRowWrapper.classList.remove("box-shadow-none");
-      }
-    };
-
-    const observer = new ResizeObserver(() => {
-      if (sessionTableOverflow()) {
-        sessionRowWrapper.classList.add("box-shadow-none");
-        sessionRowWrapper.classList.remove("box-shadow-standard");
-      } else {
-        sessionRowWrapper.classList.add("box-shadow-standard");
-        sessionRowWrapper.classList.remove("box-shadow-none");
-      }
-    });
-    observer.observe(sessionRowWrapper);
+    sessionRowWrapper.onscroll = rollInTheFog;
+    (new ResizeObserver(rollInTheFog)).observe(sessionRowWrapper);
 
     this.#parent = parent;
     this.#stream = genSessionStream( filterBox, parent, data, statusManager
