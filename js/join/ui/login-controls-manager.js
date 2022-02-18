@@ -1,28 +1,31 @@
 export default class LoginControlsManager {
 
-  #button        = undefined; // HTMLButtonElement
-  #usernameInput = undefined; // HTMLInputElement
-  #passwordInput = undefined; // HTMLInputElement
-  #roleSelect    = undefined; // HTMLSelectElement
-
+  #button          = undefined; // HTMLButtonElement
+  #usernameInput   = undefined; // HTMLInputElement
+  #passwordInput   = undefined; // HTMLInputElement
+  #roleSelect      = undefined; // HTMLSelectElement
+  #nlwFrameDataset = undefined; // HTMLElementDataset
   #lastUUID = null; // UUID
 
-  // (Element, (String, String) => Unit) => LoginControlsManager
-  constructor(joinForm, onLogIn) {
+  // (Element, HTMLElementDataset, (String, String) => Unit) => LoginControlsManager
+  constructor(joinForm, nlwFrameDataset, onLogIn) {
 
     this.#button        = joinForm.querySelector("#join-button");
     this.#usernameInput = joinForm.querySelector("#username"   );
     this.#passwordInput = joinForm.querySelector("#password"   );
     this.#roleSelect    = joinForm.querySelector("#role-select");
+    this.#nlwFrameDataset = nlwFrameDataset;
 
     joinForm.addEventListener("submit", () => {
 
       this.#button.disabled = true;
 
-      const username = this. getUsername();
-      const password = this.#getPassword();
+      const username     = this. getUsername();
+      const password     = this.#getPassword();
+      const sessionName  = this.getSessionName();
+      const activityName = this.getActivityName();
 
-      onLogIn(username, password);
+      onLogIn(username, password, sessionName, activityName);
 
     });
 
@@ -49,6 +52,9 @@ export default class LoginControlsManager {
     this.#passwordInput.disabled = !hasActive || !session.hasPassword;
     this.#button       .disabled = !hasActive;
     this.#roleSelect   .disabled = !hasActive;
+
+    this.#nlwFrameDataset.sessionName = session === null ? "" : session.name;
+    this.#nlwFrameDataset.activityName = session === null ? "" : session.modelName;
 
     if (!hasActive || isNewSelection) {
       this.setPassword("");
@@ -90,4 +96,13 @@ export default class LoginControlsManager {
     return this.#passwordInput.value;
   };
 
+  // () => String
+  getSessionName = () => {
+    return this.#nlwFrameDataset.sessionName;
+  };
+
+  // () => String
+  getActivityName = () => {
+    return this.#nlwFrameDataset.activityName;
+  };
 }

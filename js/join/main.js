@@ -17,10 +17,13 @@ const byEID = (eid) => document.getElementById(eid);
 // String
 const usernameLSKey = "hnw.global.username";
 
-// (String, String) => Unit
-const onLogIn = (username, password) => {
+// (String, String, String, String) => Unit
+const onLogIn = (username, password, sessionName, activityName) => {
 
   statusManager.connecting();
+
+  byEID("modal-session-name" ).innerHTML =  sessionName;
+  byEID("modal-activity-name").innerHTML = activityName;
 
   const hostID = sessionList.getSelectedUUID();
 
@@ -126,6 +129,10 @@ const cleanupSession = (warrantsExplanation, updateStatus = () => {}) => {
   sessionList.enable();
   loginControls.reset();
 
+  const nlwFrame = byEID("nlw-frame");
+  delete nlwFrame.dataset.sessionName;
+  delete nlwFrame.dataset.activityName;
+
   if (warrantsExplanation) {
     alert("Connection to host lost");
   }
@@ -165,7 +172,7 @@ const onSessionDisconnect = () => {
   sessionChatManager.clear();
 };
 
-const loginControls  = new LoginControlsManager(byEID("join-form"), onLogIn);
+const loginControls  = new LoginControlsManager(byEID("join-form"), byEID("nlw-frame").dataset, onLogIn);
 const previewManager = new       PreviewManager(byEID("session-preview-image"));
 const statusManager  = new     AppStatusManager(byEID("status-value"));
 
