@@ -56,8 +56,8 @@ const onLogIn = (username, password, sessionName, activityName) => {
   statusManager.connecting();
   sessionChatManager.markAllMessagesRead();
 
-  byEID("modal-session-name" ).innerHTML =  sessionName;
-  byEID("modal-activity-name").innerHTML = activityName;
+  byEID("modal-session-name").innerHTML =  sessionName;
+  byEID(     "activity-name").innerHTML = activityName;
 
   const hostID = sessionList.getSelectedUUID();
 
