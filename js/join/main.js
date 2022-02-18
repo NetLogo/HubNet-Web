@@ -212,35 +212,6 @@ const statusManager  = new     AppStatusManager(byEID("status-value"));
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  const onChatBoxHover = () => {
-    closedChatBox.classList.remove("brightness-dim-major");
-    closedChatBoxBottom.classList.remove("brightness-dim-major");
-    closedChatBox.classList.add("brightness-dim-minor");
-    closedChatBoxBottom.classList.add("brightness-dim-minor");
-  };
-
-  const onChatBoxFocus = () => {
-    closedChatBox.classList.remove("brightness-dim-minor");
-    closedChatBoxBottom.classList.remove("brightness-dim-minor");
-    closedChatBox.classList.add("brightness-dim-major");
-    closedChatBoxBottom.classList.add("brightness-dim-major");
-  };
-
-  const onChatBoxExit = () => {
-    closedChatBox.classList.remove("brightness-dim-minor");
-    closedChatBoxBottom.classList.remove("brightness-dim-minor");
-    closedChatBox.classList.remove("brightness-dim-major");
-    closedChatBoxBottom.classList.remove("brightness-dim-major");
-  };
-
-  closedChatBox.onmouseover = onChatBoxHover;
-  closedChatBox.onmousedown = onChatBoxFocus;
-  closedChatBox.onmouseleave = onChatBoxExit;
-
-  closedChatBoxBottom.onmouseover = onChatBoxHover;
-  closedChatBoxBottom.onmousedown = onChatBoxFocus;
-  closedChatBoxBottom.onmouseleave = onChatBoxExit;
-
   closedChatBox.onclick = () => {
     openChatBox.classList.remove("invisible");
     closedChatBox.classList.add("invisible");

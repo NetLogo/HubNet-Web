@@ -217,6 +217,24 @@ body {
   cursor: pointer;
 }
 
+.chat-box-closed-container:hover .chat-box-closed {
+  filter: brightness(0.9);
+}
+
+.chat-box-closed-container:hover .chat-box-closed-bottom {
+  filter: brightness(0.9);
+}
+
+.chat-box-closed-container:active .chat-box-closed {
+  filter: brightness(0.8);
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.9);
+}
+
+.chat-box-closed-container:active .chat-box-closed-bottom {
+  filter: brightness(0.8);
+  box-shadow: 3px 0 rgba(0, 0, 0, 0.9);
+}
+
 .chat-box-closed {
   position: fixed;
   bottom: 30px;
@@ -257,15 +275,6 @@ body {
 .chat-box-closed-bottom.unread {
   border-top: 20px solid #aed8f2;
   transition: border-top 0.1s;
-}
-
-.brightness-dim-minor {
-  filter: brightness(0.9);
-}
-
-.brightness-dim-major {
-  filter: brightness(0.8);
-  box-shadow: 3px 0 rgba(0, 0, 0, 0.9);
 }
 
 .expand-chat-arrow {
