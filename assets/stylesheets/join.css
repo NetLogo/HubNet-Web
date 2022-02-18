@@ -258,6 +258,17 @@ body {
   border-top: 20px solid gray;
 }
 
+.chat-box-closed.unread {
+  background-color: #aed8f2;
+  color: black;
+  transition: background-color 0.1s;
+}
+
+.chat-box-closed-bottom.unread {
+  border-top: 20px solid #aed8f2;
+  transition: border-top 0.1s;
+}
+
 .expand-chat-arrow {
   margin-left: 30px;
   margin-top: 3px;

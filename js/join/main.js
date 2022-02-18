@@ -17,10 +17,44 @@ const byEID = (eid) => document.getElementById(eid);
 // String
 const usernameLSKey = "hnw.global.username";
 
+const closedChatBox       = byEID("chat-box-closed");        // Element
+const closedChatBoxBottom = byEID("chat-box-closed-bottom"); // Element
+const openChatBox         = byEID("chat-box-open");          // Element
+const openChatHeader      = byEID("open-chat-header");       // Element
+
+const updateChatUnread = (isRelevant, chatManager) => {
+  if (isRelevant) {
+    closedChatBox.classList.add("unread");
+    closedChatBoxBottom.classList.add("unread");
+    closedChatBox.innerHTML =
+      `Unread: ${chatManager.getUnreadMessages().toString()}`;
+  }
+};
+
+// () => Unit
+const updateGlobalChatUnread = () => {
+  const isGlobalChat = byEID("nlw-frame").classList.contains("hidden");
+  updateChatUnread(isGlobalChat, globalChatManager);
+};
+
+// () => Unit
+const updateSessionChatUnread = () => {
+  const isSessionChat = !byEID("nlw-frame").classList.contains("hidden");
+  updateChatUnread(isSessionChat, sessionChatManager);
+};
+
+// () => Unit
+const updateChatRead = () => {
+  closedChatBox.classList.remove("unread");
+  closedChatBoxBottom.classList.remove("unread");
+  closedChatBox.innerHTML = "Chat";
+};
+
 // (String, String, String, String) => Unit
 const onLogIn = (username, password, sessionName, activityName) => {
 
   statusManager.connecting();
+  sessionChatManager.markAllMessagesRead();
 
   byEID("modal-session-name" ).innerHTML =  sessionName;
   byEID("modal-activity-name").innerHTML = activityName;
@@ -186,9 +220,13 @@ document.addEventListener("DOMContentLoaded", () => {
     openChatBox.classList.add("block-display");
     openChatBox.classList.add("chat-fade-in");
 
-    closedChatBox.classList.remove("flex-display");
-    closedChatBox.classList.add("hidden");
-    closedChatBox.classList.add("chat-fade-out");
+    const globalChatView = byEID("nlw-frame").classList.contains("hidden");
+
+    if (globalChatView) {
+      globalChatManager.markAllMessagesRead();
+    } else {
+      sessionChatManager.markAllMessagesRead();
+    }
   };
 
   openChatHeader.onclick = () => {
@@ -215,14 +253,19 @@ const sessionList =
 const sessionChatManager =
   new ChatManager( byEID("session-chat-output"), byEID("session-chat-input")
                  , () => { alert("Your chat message is too large"); }
-                 , () => { alert("You are sending chat messages too fast"); });
+                 , () => { alert("You are sending chat messages too fast"); }
+                 , updateSessionChatUnread
+                 , updateChatRead);
 
 sessionChatManager.onSend((message) => { connMan.send("chat", { message }); });
 
 const globalChatManager =
   new ChatManager( byEID("global-chat-output"), byEID("global-chat-input")
                  , () => { alert("Your chat message is too large"); }
-                 , () => { alert("You are sending chat messages too fast"); });
+                 , () => { alert("You are sending chat messages too fast"); }
+                 , updateGlobalChatUnread
+                 , updateChatRead);
+
 
 const connMan    = new ConnectionManager(globalChatManager);
 const nlwManager = new NLWManager( byEID("nlw-frame"), connMan.send

@@ -4,14 +4,19 @@ export default class ChatManager {
   #outputElem = undefined; // Element
   #sendInput  = undefined; // (String) => Unit
 
-  // (Element, Element, () => Unit, () => Unit) => ChatManager
-  constructor(outputElem, inputElem, notifyTooWordy, notifyTooFast) {
+  // (Element, Element, () => Unit, () => Unit, () => Unit, () => Unit) => ChatManager
+  constructor(outputElem, inputElem, notifyTooWordy, notifyTooFast,
+              updateChatUnread = () => {}, updateChatRead = () => {}) {
 
     this.#lastTS     = 0;
     this.#outputElem = outputElem;
     this.#sendInput  = () => {
       console.warn("Chat manager asked to send without a callback", outputElem);
     };
+
+    this.unreadMessages = 0;
+    this.updateChatUnread = updateChatUnread;
+    this.updateChatRead = updateChatRead;
 
     inputElem.addEventListener("keydown", (e) => {
       if (e.code === "Enter") {
@@ -50,6 +55,16 @@ export default class ChatManager {
       entry.classList.add("chat-from-self");
     }
 
+    const fromCensus = from === "(Census)";
+
+    if (!fromCensus) {
+      const onJoinPage = elem.closest("#chat-box-open") !== null;
+      if (onJoinPage) {
+        const chatOpen = !elem.closest("#chat-box-open").classList.contains("invisible");
+        this.unreadMessages = chatOpen ? 0 : (this.unreadMessages + 1);
+      }
+    }
+
     const realFrom = isFromSelf ? "Me" : ((from !== "") ? from : "(Host)");
     const span = document.createElement("span");
     span.classList.add("chat-from");
@@ -66,6 +81,27 @@ export default class ChatManager {
 
     elem.scrollTo(0, elem.scrollHeight);
 
+    if (this.hasUnreadMessages()) {
+      this.updateChatUnread();
+    } else {
+      this.updateChatRead();
+    }
+  };
+
+  // () => Unit
+  markAllMessagesRead = () => {
+    this.unreadMessages = 0;
+    this.updateChatRead();
+  };
+
+  // () => Boolean
+  hasUnreadMessages = () => {
+    return this.unreadMessages !== 0;
+  };
+
+  // () => Number
+  getUnreadMessages = () => {
+    return this.unreadMessages;
   };
 
   // () => Unit
