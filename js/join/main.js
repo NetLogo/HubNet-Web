@@ -211,14 +211,11 @@ const previewManager = new       PreviewManager(byEID("session-preview-image"));
 const statusManager  = new     AppStatusManager(byEID("status-value"));
 
 document.addEventListener("DOMContentLoaded", () => {
-  const closedChatBox = byEID("chat-box-closed");
-  const openChatBox = byEID("chat-box-open");
-  const openChatHeader = byEID("open-chat-header");
 
   closedChatBox.onclick = () => {
-    openChatBox.classList.remove("hidden");
-    openChatBox.classList.add("block-display");
-    openChatBox.classList.add("chat-fade-in");
+    openChatBox.classList.remove("invisible");
+    closedChatBox.classList.add("invisible");
+    closedChatBoxBottom.classList.add("invisible");
 
     const globalChatView = byEID("nlw-frame").classList.contains("hidden");
 
@@ -230,15 +227,9 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   openChatHeader.onclick = () => {
-    openChatBox.classList.remove("block-display");
-    openChatBox.classList.add("hidden");
-    openChatBox.classList.remove("chat-fade-in");
-    openChatBox.classList.add("chat-fade-out");
-
-    closedChatBox.classList.remove("hidden");
-    closedChatBox.classList.add("flex-display");
-    closedChatBox.classList.remove("chat-fade-out");
-    closedChatBox.classList.add("chat-fade-in");
+    openChatBox.classList.add("invisible");
+    closedChatBox.classList.remove("invisible");
+    closedChatBoxBottom.classList.remove("invisible");
   };
 
   const modalContainer = byEID("modal-container");
