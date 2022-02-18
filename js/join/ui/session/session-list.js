@@ -10,10 +10,9 @@ export default class SessionList {
   #parent = undefined; // Element
   #stream = undefined; // SessionStream
 
-  // (Element, (UUID) => Session?, AppStatusManager, PreviewManager, SelNotifier) => SessionList
-  constructor(parent, onStreamInit, statusManager, previewManager, notifySel) {
+  // (Element, Element, (UUID) => Session?, AppStatusManager, PreviewManager, SelNotifier) => SessionList
+  constructor(parent, filterBox, onStreamInit, statusManager, previewManager, notifySel) {
 
-    const filterBox         = parent.querySelector("#session-filter-box");
     const sessionRowWrapper = parent.querySelector("#session-row-wrapper");
     const sessionHeader     = parent.querySelector("#session-header");
     const data              = new SessionData();
