@@ -206,7 +206,7 @@ const onSessionDisconnect = () => {
   sessionChatManager.clear();
 };
 
-const loginControls  = new LoginControlsManager(byEID("join-form"), byEID("nlw-frame"), onLogIn);
+const loginControls  = new LoginControlsManager(byEID("join-form"), byEID("nlw-frame").dataset, onLogIn);
 const previewManager = new       PreviewManager(byEID("session-preview-image"));
 const statusManager  = new     AppStatusManager(byEID("status-value"));
 

@@ -1,21 +1,20 @@
 export default class LoginControlsManager {
 
-  #button        = undefined; // HTMLButtonElement
-  #usernameInput = undefined; // HTMLInputElement
-  #passwordInput = undefined; // HTMLInputElement
-  #roleSelect    = undefined; // HTMLSelectElement
-  #nlwFrame      = undefined; // HTMLDivElement
-
+  #button          = undefined; // HTMLButtonElement
+  #usernameInput   = undefined; // HTMLInputElement
+  #passwordInput   = undefined; // HTMLInputElement
+  #roleSelect      = undefined; // HTMLSelectElement
+  #nlwFrameDataset = undefined; // HTMLElementDataset
   #lastUUID = null; // UUID
 
-  // (Element, Element, (String, String) => Unit) => LoginControlsManager
-  constructor(joinForm, nlwFrame, onLogIn) {
+  // (Element, HTMLElementDataset, (String, String) => Unit) => LoginControlsManager
+  constructor(joinForm, nlwFrameDataset, onLogIn) {
 
     this.#button        = joinForm.querySelector("#join-button");
     this.#usernameInput = joinForm.querySelector("#username"   );
     this.#passwordInput = joinForm.querySelector("#password"   );
     this.#roleSelect    = joinForm.querySelector("#role-select");
-    this.#nlwFrame = nlwFrame;
+    this.#nlwFrameDataset = nlwFrameDataset;
 
     joinForm.addEventListener("submit", () => {
 
@@ -54,8 +53,8 @@ export default class LoginControlsManager {
     this.#button       .disabled = !hasActive;
     this.#roleSelect   .disabled = !hasActive;
 
-    this.#nlwFrame.dataset.sessionName = session === null ? "" : session.name;
-    this.#nlwFrame.dataset.activityName = session === null ? "" : session.modelName;
+    this.#nlwFrameDataset.sessionName = session === null ? "" : session.name;
+    this.#nlwFrameDataset.activityName = session === null ? "" : session.modelName;
 
     if (!hasActive || isNewSelection) {
       this.setPassword("");
@@ -99,11 +98,11 @@ export default class LoginControlsManager {
 
   // () => String
   getSessionName = () => {
-    return this.#nlwFrame.dataset.sessionName;
+    return this.#nlwFrameDataset.sessionName;
   };
 
   // () => String
   getActivityName = () => {
-    return this.#nlwFrame.dataset.activityName;
+    return this.#nlwFrameDataset.activityName;
   };
 }
