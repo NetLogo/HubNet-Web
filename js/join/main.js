@@ -33,13 +33,13 @@ const updateChatUnread = (isRelevant, chatManager) => {
 
 // () => Unit
 const updateGlobalChatUnread = () => {
-  const isGlobalChat = !byEID("global-chat").classList.contains("hidden");
+  const isGlobalChat = byEID("nlw-frame").classList.contains("hidden");
   updateChatUnread(isGlobalChat, globalChatManager);
 };
 
 // () => Unit
 const updateSessionChatUnread = () => {
-  const isSessionChat = byEID("global-chat").classList.contains("hidden");
+  const isSessionChat = !byEID("nlw-frame").classList.contains("hidden");
   updateChatUnread(isSessionChat, sessionChatManager);
 };
 
