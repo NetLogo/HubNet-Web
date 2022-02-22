@@ -168,3 +168,27 @@ body {
   filter: brightness(0.8);
   box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
 }
+
+/* (NEW): TODO */
+.top-setup-row {
+  /* justify-content: space-between; */
+  /* margin-right: 50%; */
+}
+
+.copy-invite-button {
+  width: 175px;
+  height: 40px;
+  font-size: 16px;
+  border-radius: 12px;
+  background-color: #e66c6c;
+}
+
+.capacity-slider {
+  width: 500px;
+  display: block;
+  margin: 0 auto;
+}
+
+.bottom-setup-row {
+
+}

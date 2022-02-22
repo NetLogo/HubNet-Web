@@ -119,12 +119,12 @@
 
     <!-- HostB page here -->
     <div id="nlw-frame" class="frame">
+
       <div id="hnw-general-header" class="hnw-general-header hnw-host-header flex-row">
         <div class="hnw-header-text">HubNet Web</div>
-
         <div class="page-links-dropdown">
-          <div class="activities-label">
-            <div>Activities</div>
+          <div class="dropdown-label">
+            <div>View Options</div>
             <div class="triangle-down"></div>
           </div>
           <div class="page-links-tabs">
@@ -133,12 +133,17 @@
             <a href="/" class="page-links">Model Info</a>
           </div>
         </div>
-
       </div>
+
+      <div class="flex-row">
+        <input class="copy-invite-button" id="copy-invite-button" type="button" value="Copy Invite Link">
+        <input class="capacity-slider" type="range" min="0" max="100" value="50">
+      </div>
+
 
       <div style="display: flex; flex-direction: row;">
 
-        <div id="session-dashboard">
+        <!-- <div id="session-dashboard">
           <div>Upload: <span id="bandwidth-span">0 B</span>/s</div>
           <div>New Send: <span id="new-send-span">0 B</span>/s</div>
           <div style="display: flex; flex-direction: row;">
@@ -153,9 +158,9 @@
           <div># TURNs: <span id="num-turn-span">0</span></div>
           <div># Congested: <span id="num-congested-span">0</span></div>
           <div>Status: <span id="activity-status-span">...</span></div>
-        </div>
+        </div> -->
 
-        <div class="chat-wrapper">
+        <!-- <div class="chat-wrapper">
           <div id="global-chat-container" class="chat-container">
             <div id="global-chat-output" class="chat-output"></div>
             <input id="global-chat-input" class="chat-input" type="text" value=""
@@ -166,11 +171,17 @@
             <input id="session-chat-input" class="chat-input" type="text" value=""
                    placeholder="Send a message" />
           </div>
-        </div>
+        </div> -->
 
       </div>
 
       <iframe class="nlw-iframe"></iframe>
+
+      <div style="padding: 0 50px;">
+        <div class="bottom-setup-row flex-row">
+          <input class="copy-invite-button" id="copy-invite-button" type="button" value="Copy Invite Link">
+        </div>
+      </div>
 
     </div>
 

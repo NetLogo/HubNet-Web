@@ -50,7 +50,7 @@
   display: inline-block;
 }
 
-.page-links-dropdown:hover .activities-label {
+.page-links-dropdown:hover .dropdown-label {
   background-color: rgb(150, 150, 150);
 }
 
@@ -58,7 +58,7 @@
   display: block;
 }
 
-.activities-label {
+.dropdown-label {
   display: flex;
   direction: row;
   justify-content: center;
@@ -112,6 +112,7 @@
 }
 
 .nlw-iframe {
+  margin-top: 15px;
   height: 70vh;
   width:  100%;
 }
