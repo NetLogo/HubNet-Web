@@ -196,7 +196,7 @@ body {
 }
 
 .capacity-slider {
-  width: 500px;
+  width: 400px;
 }
 
 .bottom-setup-row {
@@ -213,12 +213,18 @@ body {
   background-color: #7cacec;
 }
 
+.invisible {
+  opacity: 0;
+  visibility: hidden;
+}
+
 .popup-header-text {
   font-size: 20px;
   margin-right: 20px;
 }
 
 .command-center-closed {
+  cursor: pointer;
   position: absolute;
   left: 0;
   bottom: 0;
@@ -228,6 +234,14 @@ body {
   width: 300px;
   height: 70px;
   background-color: lightgray;
+}
+
+.command-center-closed:hover {
+  filter: brightness(0.9);
+}
+
+.command-center-closed:active {
+  filter: brightness(0.8);
 }
 
 .command-center-open {
@@ -238,6 +252,7 @@ body {
 }
 
 .command-center-header {
+  cursor: pointer;
   justify-content: center;
   align-items: center;
   border-radius: 25px 25px 0 0;
@@ -246,7 +261,16 @@ body {
   border: 1px solid black;
 }
 
+.command-center-header:hover {
+  filter: brightness(0.9);
+}
+
+.command-center-header:active {
+  filter: brightness(0.8);
+}
+
 .command-center-body {
+  height: 300px;
   border-right: 1px solid black;
   background-color: white;
   z-index: 1;
@@ -271,6 +295,24 @@ body {
 /* TEMP */
 .session-chat-box-closed-container {
   cursor: pointer;
+}
+
+.session-chat-box-closed-container:hover .session-chat-box-closed {
+  filter: brightness(0.9);
+}
+
+.session-chat-box-closed-container:hover .session-chat-box-closed-bottom {
+  filter: brightness(0.9);
+}
+
+.session-chat-box-closed-container:active .session-chat-box-closed {
+  filter: brightness(0.8);
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.9);
+}
+
+.session-chat-box-closed-container:active .session-chat-box-closed-bottom {
+  filter: brightness(0.8);
+  box-shadow: 3px 0 rgba(0, 0, 0, 0.9);
 }
 
 .session-chat-box-closed {
@@ -329,6 +371,14 @@ body {
   font-weight: bold;
 }
 
+.session-open-chat-header:hover {
+  filter: brightness(0.9);
+}
+
+.session-open-chat-header:active {
+  filter: brightness(0.8);
+}
+
 .session-open-chat-body {
   height: 60vh;
   padding: 5px;
@@ -347,6 +397,24 @@ body {
 
 .global-chat-box-closed-container {
   cursor: pointer;
+}
+
+.global-chat-box-closed-container:hover .global-chat-box-closed {
+  filter: brightness(0.9);
+}
+
+.global-chat-box-closed-container:hover .global-chat-box-closed-bottom {
+  filter: brightness(0.9);
+}
+
+.global-chat-box-closed-container:active .global-chat-box-closed {
+  filter: brightness(0.8);
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.9);
+}
+
+.global-chat-box-closed-container:active .global-chat-box-closed-bottom {
+  filter: brightness(0.8);
+  box-shadow: 3px 0 rgba(0, 0, 0, 0.9);
 }
 
 .global-chat-box-closed {
@@ -403,6 +471,14 @@ body {
   color: black;
   font-size: 18px;
   font-weight: bold;
+}
+
+.global-open-chat-header:hover {
+  filter: brightness(0.9);
+}
+
+.global-open-chat-header:active {
+  filter: brightness(0.8);
 }
 
 .global-open-chat-body {

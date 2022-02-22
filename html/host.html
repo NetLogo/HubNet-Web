@@ -13,6 +13,54 @@
           capacitySlider.onchange = (e) => {
             capacityDisplayText.innerHTML = `Session Capacity: ${e.target.value}`;
           };
+
+          const sessionClosedChatBox = document.getElementById("session-chat-box-closed");
+          const sessionClosedChatBoxBottom = document.getElementById("session-chat-box-closed-bottom");
+          const sessionOpenChatBox = document.getElementById("session-chat-box-open");
+          const sessionOpenChatHeader = document.getElementById("session-open-chat-header");
+
+          sessionClosedChatBox.onclick = () => {
+            sessionOpenChatBox.classList.remove("invisible");
+            sessionClosedChatBox.classList.add("invisible");
+            sessionClosedChatBoxBottom.classList.add("invisible");
+          };
+
+          sessionOpenChatHeader.onclick = () => {
+            sessionOpenChatBox.classList.add("invisible");
+            sessionClosedChatBox.classList.remove("invisible");
+            sessionClosedChatBoxBottom.classList.remove("invisible");
+          };
+
+          const globalClosedChatBox = document.getElementById("global-chat-box-closed");
+          const globalClosedChatBoxBottom = document.getElementById("global-chat-box-closed-bottom");
+          const globalOpenChatBox = document.getElementById("global-chat-box-open");
+          const globalOpenChatHeader = document.getElementById("global-open-chat-header");
+
+          globalClosedChatBox.onclick = () => {
+            globalOpenChatBox.classList.remove("invisible");
+            globalClosedChatBox.classList.add("invisible");
+            globalClosedChatBoxBottom.classList.add("invisible");
+          };
+
+          globalOpenChatHeader.onclick = () => {
+            globalOpenChatBox.classList.add("invisible");
+            globalClosedChatBox.classList.remove("invisible");
+            globalClosedChatBoxBottom.classList.remove("invisible");
+          };
+
+          const commandCenterClosedBox = document.getElementById("command-center-closed");
+          const commandCenterOpenBox = document.getElementById("command-center-open");
+          const commandCenterOpenHeader = document.getElementById("command-center-header");
+
+          commandCenterClosedBox.onclick = () => {
+            commandCenterOpenBox.classList.remove("invisible");
+            commandCenterClosedBox.classList.add("invisible");
+          };
+
+          commandCenterOpenHeader.onclick = () => {
+            commandCenterOpenBox.classList.add("invisible");
+            commandCenterClosedBox.classList.remove("invisible");
+          };
         });
     </script>
   </head>
@@ -198,29 +246,29 @@
       </div>
 
       <div id="command-center-container">
-        <div class="command-center-closed flex-row">
+        <div id="command-center-closed" class="command-center-closed flex-row">
           <div class="popup-header-text">Command Center</div>
           <div class="triangle-up-black"></div>
         </div>
 
-        <!-- <div class="command-center-open flex-column">
-          <div class="command-center-header flex-row">
+        <div id="command-center-open" class="command-center-open flex-column invisible">
+          <div id="command-center-header" class="command-center-header flex-row">
             <div class="popup-header-text">Command Center</div>
             <div class="triangle-down-black"></div>
           </div>
-          <div class="command-center-body">
-        </div> -->
+          <div class="command-center-body"></div>
+        </div>
       </div>
 
       <div class="chat-wrapper">
 
         <div id="session-chat-container">
-          <!-- <div id="session-chat-box-closed-container" class="session-chat-box-closed-container">
+          <div id="session-chat-box-closed-container" class="session-chat-box-closed-container">
             <div id="session-chat-box-closed" class="session-chat-box-closed flex-display">
               Session Chat
             </div>
             <div id="session-chat-box-closed-bottom" class="session-chat-box-closed-bottom"></div>
-          </div> -->
+          </div>
           <div id="session-chat-box-open" class="session-chat-box-open invisible">
             <div id="session-open-chat-header" class="session-open-chat-header flex-display">
               <div class="popup-header-text">Session Chat</div>
@@ -241,12 +289,12 @@
         </div>
 
         <div id="global-chat-container">
-          <!-- <div id="global-chat-box-closed-container" class="global-chat-box-closed-container">
+          <div id="global-chat-box-closed-container" class="global-chat-box-closed-container">
             <div id="global-chat-box-closed" class="global-chat-box-closed flex-display">
               Global Chat
             </div>
             <div id="global-chat-box-closed-bottom" class="global-chat-box-closed-bottom"></div>
-          </div> -->
+          </div>
           <div id="global-chat-box-open" class="global-chat-box-open invisible">
             <div id="global-open-chat-header" class="global-open-chat-header flex-display">
               <div class="popup-header-text">Global Chat</div>
