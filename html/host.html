@@ -3,6 +3,18 @@
     <meta charset="utf-8"/>
     <link href="/assets/stylesheets/main.css" rel="stylesheet">
     <link href="/assets/stylesheets/host.css" rel="stylesheet">
+
+    <!-- (NEW): TODO [WILL REFACTOR LATER] -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const capacityDisplayText = document.getElementById("capacity-display-text");
+          const capacitySlider = document.getElementById("capacity-slider");
+
+          capacitySlider.onchange = (e) => {
+            capacityDisplayText.innerHTML = `Session Capacity: ${e.target.value}`;
+          };
+        });
+    </script>
   </head>
   <body>
 
@@ -135,9 +147,12 @@
         </div>
       </div>
 
-      <div class="flex-row">
+      <div class="top-setup-row flex-row">
         <input class="button-base copy-invite-button" id="copy-invite-button" type="button" value="Copy Invite Link">
-        <input class="capacity-slider" type="range" min="0" max="100" value="50">
+        <div class="capacity-slider-container">
+          <p id="capacity-display-text" class="capacity-display-text">Session Capacity: 50</p>
+          <input id="capacity-slider" class="capacity-slider" type="range" min="0" max="100" value="50">
+        </div>
       </div>
 
 
@@ -177,11 +192,9 @@
 
       <iframe class="nlw-iframe"></iframe>
 
-      <div style="padding: 0 50px;">
-        <div class="bottom-setup-row flex-row">
-          <input class="button-base setup-button" id="setup-button" type="button" value="Setup">
-          <input class="button-base go-button" id="go-button" type="button" value="Go">
-        </div>
+      <div class="bottom-setup-row flex-row">
+        <input class="button-base setup-button" id="setup-button" type="button" value="Setup">
+        <input class="button-base go-button" id="go-button" type="button" value="Go">
       </div>
 
     </div>

@@ -170,10 +170,10 @@ body {
 }
 
 /* (NEW): TODO */
-.top-setup-row {
-  /* justify-content: space-between; */
-  /* margin-right: 50%; */
+.top-setup-row{
+  align-items: flex-end;
 }
+
 
 .button-base {
   width: 175px;
@@ -186,10 +186,18 @@ body {
   background-color: #e66c6c;
 }
 
-.capacity-slider {
-  width: 500px;
+.capacity-slider-container {
   display: block;
   margin: 0 auto;
+}
+
+.capacity-display-text {
+  font-size: 16px;
+  text-align: center;
+}
+
+.capacity-slider {
+  width: 500px;
 }
 
 .bottom-setup-row {
