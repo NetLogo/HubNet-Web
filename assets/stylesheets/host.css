@@ -175,11 +175,14 @@ body {
   /* margin-right: 50%; */
 }
 
-.copy-invite-button {
+.button-base {
   width: 175px;
   height: 40px;
   font-size: 16px;
   border-radius: 12px;
+}
+
+.copy-invite-button {
   background-color: #e66c6c;
 }
 
@@ -190,5 +193,15 @@ body {
 }
 
 .bottom-setup-row {
+  margin-top: 15px;
+  justify-content: center;
+}
 
+.setup-button {
+  background-color: #7cacec;
+  margin-right: 50px;
+}
+
+.go-button {
+  background-color: #7cacec;
 }
