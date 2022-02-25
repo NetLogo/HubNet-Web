@@ -8,7 +8,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
           const capacityDisplayText = document.getElementById("capacity-display-text");
-          const capacitySlider = document.getElementById("capacity-slider");
+          const capacitySlider = document.getElementById("max-num-clients-picker");
 
           capacitySlider.onchange = (e) => {
             capacityDisplayText.innerHTML = `Session Capacity: ${e.target.value}`;
@@ -180,6 +180,40 @@
     <!-- HostB page here -->
     <div id="nlw-frame" class="frame">
 
+      <!-- <div id="stats-modal-container" class="stats-modal-container">
+        <div id="stats-modal" class="modal flex-column">
+          <div id="close-stats-modal-button" class="close-stats-modal-button"></div>
+          <div class="stats-modal-text">
+            <p class="stats-modal-title">Disease</p>
+             <div id="session-dashboard" class="session-dashboard-text">
+                <div>
+                  <span class="stats-modal-bold-text">- Upload: </span>
+                  <span id="bandwidth-span">0 B</span>/s
+                </div>
+                <div>
+                  <span class="stats-modal-bold-text">- New Send: </span>
+                  <span id="new-send-span">0 B</span>/s
+                </div>
+                <div>
+                  <span class="stats-modal-bold-text">- # Clients: </span>
+                  <span id="num-clients-span">0</span>
+                </div>
+                <div>
+                  <span class="stats-modal-bold-text">- # TURNs: </span>
+                  <span id="num-turn-span">0</span>
+                </div>
+                <div>
+                  <span class="stats-modal-bold-text">- # Congested: </span>
+                  <span id="num-congested-span">0</span></div>
+                <div>
+                  <span class="stats-modal-bold-text">- Status: </span>
+                  <span id="activity-status-span">...</span>
+                </div>
+              </div>
+          </div>
+        </div>
+      </div> -->
+
       <div id="hnw-general-header" class="hnw-general-header hnw-host-header flex-row">
         <div class="hnw-header-text">HubNet Web</div>
         <div class="page-links-dropdown">
@@ -197,45 +231,10 @@
 
       <div class="top-setup-row flex-row">
         <input class="button-base copy-invite-button" id="copy-invite-button" type="button" value="Copy Invite Link">
-        <div class="capacity-slider-container">
+        <div class="capacity-slider-container flex-column">
           <p id="capacity-display-text" class="capacity-display-text">Session Capacity: 50</p>
-          <input id="capacity-slider" class="capacity-slider" type="range" min="0" max="100" value="50">
+          <input id="max-num-clients-picker" class="max-num-clients-picker" type="range" min="0" max="100" value="50">
         </div>
-      </div>
-
-
-      <div style="display: flex; flex-direction: row;">
-
-        <!-- <div id="session-dashboard">
-          <div>Upload: <span id="bandwidth-span">0 B</span>/s</div>
-          <div>New Send: <span id="new-send-span">0 B</span>/s</div>
-          <div style="display: flex; flex-direction: row;">
-            <div># Clients: <span id="num-clients-span">0</span></div>
-            <div style="margin: 0 10px;">|</div>
-            <label>Max # Clients:
-              <input id="max-num-clients-picker" type="number"
-                     min="0" max="999" step="1" value="50"
-                     oninput="this.value = Math.max(0, Math.min(999, parseInt(this.value)))" />
-            </label>
-          </div>
-          <div># TURNs: <span id="num-turn-span">0</span></div>
-          <div># Congested: <span id="num-congested-span">0</span></div>
-          <div>Status: <span id="activity-status-span">...</span></div>
-        </div> -->
-
-        <!-- <div class="chat-wrapper">
-          <div id="global-chat-container" class="chat-container">
-            <div id="global-chat-output" class="chat-output"></div>
-            <input id="global-chat-input" class="chat-input" type="text" value=""
-                   placeholder="Send a message" />
-          </div>
-          <div id="session-chat-container" class="chat-container">
-            <div id="session-chat-output" class="chat-output"></div>
-            <input id="session-chat-input" class="chat-input" type="text" value=""
-                   placeholder="Send a message" />
-          </div>
-        </div> -->
-
       </div>
 
       <iframe class="nlw-iframe"></iframe>

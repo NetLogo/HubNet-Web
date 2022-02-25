@@ -171,6 +171,7 @@ body {
 
 /* (NEW): TODO */
 .top-setup-row{
+  justify-content: space-between;
   align-items: flex-end;
 }
 
@@ -186,8 +187,7 @@ body {
 }
 
 .capacity-slider-container {
-  display: block;
-  margin: 0 auto;
+  align-items: center;
 }
 
 .capacity-display-text {
@@ -195,8 +195,8 @@ body {
   text-align: center;
 }
 
-.capacity-slider {
-  width: 400px;
+.max-num-clients-picker {
+  width: 400;
 }
 
 .bottom-setup-row {
@@ -225,7 +225,7 @@ body {
 
 .command-center-closed {
   cursor: pointer;
-  position: absolute;
+  position: fixed;
   left: 0;
   bottom: 0;
   justify-content: center;
@@ -245,7 +245,7 @@ body {
 }
 
 .command-center-open {
-  position: absolute;
+  position: fixed;
   left: 0;
   bottom: 0;
   width: 300px;
@@ -495,4 +495,64 @@ body {
   width: 100%;
   height: 6vh;
   padding-left: 10px;
+}
+
+/* TODO: Stats modal */
+.stats-modal-container {
+  transition: opacity 0.25s;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+.stats-modal {
+  background-color: white;
+  justify-content: space-between;
+  position: relative;
+  top: 50%;
+  transform: translateY(-70%);
+  margin-left: auto;
+  margin-right: auto;
+  width: 70%;
+  height: 50%;
+  border: 5px solid;
+  border-radius: 20px;
+}
+
+.close-stats-modal-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 1vh;
+  right: 1vw;
+  background-color: #e04141;
+  height: 30px;
+  width: 30px;
+  min-width: 25px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.close-stats-modal-button::after {
+  font-size: 20px;
+  color: white;
+  content: "\00d7"; /* Draws 'X' for close button -- Chris S. (2/1/22) */
+}
+
+.close-stats-modal-button:hover {
+  filter: brightness(0.9);
+}
+
+.close-stats-modal-button:active {
+  filter: brightness(0.8);
+}
+
+.stats-modal-text {
+  margin: 25px 25px 0px 25px;
+  overflow-y: auto;
 }

@@ -347,7 +347,24 @@
   filter: brightness(0.8);
 }
 
+.stats-modal-title {
+  margin-top: 0;
+  margin-bottom: 10px;
+  text-align: center;
+  font-size: 36px;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
 .modal-text {
   margin: 25px 25px 0px 25px;
   overflow-y: auto;
+}
+
+.session-dashboard-text {
+  font-size: 20px;
+}
+
+.stats-modal-bold-text {
+  font-weight: bold;
 }
