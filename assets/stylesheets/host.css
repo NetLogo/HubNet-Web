@@ -166,7 +166,7 @@ body {
   box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
 }
 
-/* (NEW): TODO */
+/* (NEW): HostB styling starts here */
 .top-setup-row{
   margin-top: -15px;
   justify-content: space-between;
@@ -293,7 +293,7 @@ body {
   border-bottom: 18px solid black;
 }
 
-/* TEMP */
+/* Custom chat box styling for HostB page */
 .session-chat-box-closed {
   text-align: center;
   justify-content: center;
@@ -365,7 +365,7 @@ body {
   justify-content: center;
 }
 
-/* (NEW): TODO */
+/* (NEW): Specific / custom modal styling */
 .stats-modal-title {
   margin-top: 0;
   margin-bottom: 10px;

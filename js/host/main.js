@@ -100,7 +100,7 @@ const nlwManager =
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  // (NEW): TODO
+  // (NEW): Modal responses to clicks & 'Esc' key
   document.onclick = (event) => {
     const onHostAPage = byEID("nlw-frame").classList.contains("hidden");
 
@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // (NEW): TODO
+  // (NEW): HostA page modal
   const descriptionModalContainer = byEID("description-modal-container");
 
   byEID("read-more-button").onclick = () => {
@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
     descriptionModalContainer.classList.add("modal-invis");
   };
 
-  // (NEW): TODO
+  // (NEW): Chat box controls
   const capacityDisplayText = document.getElementById("capacity-display-text");
   const capacitySlider = document.getElementById("max-num-clients-picker");
 
@@ -226,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
     commandCenterClosedBox.classList.remove("invisible");
   };
 
-  // (NEW): TODO
+  // (NEW): HostB page modals
   const statsModalTab = document.getElementById("stats-modal-tab");
   const codeModalTab = document.getElementById("code-modal-tab");
   const modelInfoModalTab = document.getElementById("model-info-modal-tab");
