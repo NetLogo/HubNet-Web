@@ -347,13 +347,11 @@
   filter: brightness(0.8);
 }
 
-.stats-modal-title {
+.modal-activity-title {
   margin-top: 0;
-  margin-bottom: 10px;
-  text-align: center;
-  font-size: 36px;
+  margin-bottom: 0;
+  font-size: 48px;
   font-weight: bold;
-  text-decoration: underline;
 }
 
 .modal-text {
