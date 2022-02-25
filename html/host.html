@@ -3,159 +3,12 @@
     <meta charset="utf-8"/>
     <link href="/assets/stylesheets/main.css" rel="stylesheet">
     <link href="/assets/stylesheets/host.css" rel="stylesheet">
-
-    <!-- (NEW): TODO [WILL REFACTOR LATER] -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-          const capacityDisplayText = document.getElementById("capacity-display-text");
-          const capacitySlider = document.getElementById("max-num-clients-picker");
-
-          capacitySlider.onchange = (e) => {
-            capacityDisplayText.innerHTML = `Session Capacity: ${e.target.value}`;
-          };
-
-          const sessionClosedChatBox = document.getElementById("session-chat-box-closed");
-          const sessionClosedChatBoxBottom = document.getElementById("session-chat-box-closed-bottom");
-          const sessionOpenChatBox = document.getElementById("session-chat-box-open");
-          const sessionOpenChatHeader = document.getElementById("session-open-chat-header");
-
-          sessionClosedChatBox.onclick = () => {
-            sessionOpenChatBox.classList.remove("invisible");
-            sessionClosedChatBox.classList.add("invisible");
-            sessionClosedChatBoxBottom.classList.add("invisible");
-          };
-
-          sessionOpenChatHeader.onclick = () => {
-            sessionOpenChatBox.classList.add("invisible");
-            sessionClosedChatBox.classList.remove("invisible");
-            sessionClosedChatBoxBottom.classList.remove("invisible");
-          };
-
-          const globalClosedChatBox = document.getElementById("global-chat-box-closed");
-          const globalClosedChatBoxBottom = document.getElementById("global-chat-box-closed-bottom");
-          const globalOpenChatBox = document.getElementById("global-chat-box-open");
-          const globalOpenChatHeader = document.getElementById("global-open-chat-header");
-
-          globalClosedChatBox.onclick = () => {
-            globalOpenChatBox.classList.remove("invisible");
-            globalClosedChatBox.classList.add("invisible");
-            globalClosedChatBoxBottom.classList.add("invisible");
-          };
-
-          globalOpenChatHeader.onclick = () => {
-            globalOpenChatBox.classList.add("invisible");
-            globalClosedChatBox.classList.remove("invisible");
-            globalClosedChatBoxBottom.classList.remove("invisible");
-          };
-
-          const commandCenterClosedBox = document.getElementById("command-center-closed");
-          const commandCenterOpenBox = document.getElementById("command-center-open");
-          const commandCenterOpenHeader = document.getElementById("command-center-header");
-
-          commandCenterClosedBox.onclick = () => {
-            commandCenterOpenBox.classList.remove("invisible");
-            commandCenterClosedBox.classList.add("invisible");
-          };
-
-          commandCenterOpenHeader.onclick = () => {
-            commandCenterOpenBox.classList.add("invisible");
-            commandCenterClosedBox.classList.remove("invisible");
-          };
-
-          // (NEW): TODO
-          const statsModalTab = document.getElementById("stats-modal-tab");
-          const codeModalTab = document.getElementById("code-modal-tab");
-          const modelInfoModalTab = document.getElementById("model-info-modal-tab");
-
-          const closeStatsModalButton = document.getElementById("close-stats-modal-button");
-          const closeCodeModalButton = document.getElementById("close-code-modal-button");
-          const closeModelInfoModalButton = document.getElementById("close-model-info-modal-button");
-
-          const statsModalContainer = document.getElementById("stats-modal-container");
-          const codeModalContainer = document.getElementById("code-modal-container");
-          const modelInfoModalContainer = document.getElementById("model-info-modal-container");
-          const hostBPageMain = document.getElementById("nlw-frame");
-          const hnwHeader = document.getElementById("hnw-general-header");
-
-          const showModal = (modalContainer) => {
-            modalContainer.classList.remove("modal-invis");
-            hostBPageMain.classList.add("no-select");
-          };
-
-          const hideModal = (modalContainer) => {
-            modalContainer.classList.add("modal-invis");
-            hostBPageMain.classList.remove("no-select");
-          };
-
-          const hideAllModals = () => {
-            const statsModalIsInvis = statsModalContainer.classList.contains("modal-invis");
-            const codeModalIsInvis = codeModalContainer.classList.contains("modal-invis");
-            const modelInfoModalIsInvis = modelInfoModalContainer.classList.contains("modal-invis");
-
-            if (!statsModalIsInvis) {
-              hideModal(statsModalContainer);
-            } else if (!codeModalIsInvis) {
-              hideModal(codeModalContainer);
-            } else if (!modelInfoModalIsInvis) {
-              hideModal(modelInfoModalContainer);
-            }
-          }
-
-          document.onclick = (event) => {
-            if (event.target === statsModalContainer) {
-              hideModal(statsModalContainer);
-            } else if (event.target === codeModalContainer) {
-              hideModal(codeModalContainer);
-            } else if (event.target === modelInfoModalContainer) {
-              hideModal(modelInfoModalContainer);
-            }
-          };
-
-          statsModalTab.onclick = () => {
-            hideAllModals();
-            showModal(statsModalContainer);
-          };
-
-          codeModalTab.onclick = () => {
-            hideAllModals();
-            showModal(codeModalContainer);
-          };
-
-          modelInfoModalTab.onclick = () => {
-            hideAllModals();
-            showModal(modelInfoModalContainer);
-          };
-
-          closeStatsModalButton.onclick = () => {
-            hideModal(statsModalContainer);
-          };
-
-          closeCodeModalButton.onclick = () => {
-            hideModal(codeModalContainer);
-          };
-
-          closeModelInfoModalButton.onclick = () => {
-            hideModal(modelInfoModalContainer);
-          }
-
-          document.addEventListener("keydown", (event) => {
-            const statsModalIsInvis = statsModalContainer.classList.contains("modal-invis");
-            const codeModalIsInvis = codeModalContainer.classList.contains("modal-invis");
-            const modelInfoModalIsInvis = modelInfoModalContainer.classList.contains("modal-invis");
-
-            if (event.key === "Escape") {
-              hideAllModals();
-            }
-          });
-
-        });
-    </script>
   </head>
   <body>
 
-    <div id="modal-container" class="modal-container hidden">
-      <div id="full-description-modal" class="modal flex-column">
-        <div id="close-modal-button" class="close-modal-button"></div>
+    <div id="description-modal-container" class="modal-container modal-invis">
+      <div id="description-modal" class="modal flex-column">
+        <div id="close-description-modal-button" class="close-modal-button"></div>
         <div class="modal-body">
           <p class="modal-activity-title">Disease</p>
           <p id="activity-text-full" class="activity-text-full">
@@ -165,7 +18,7 @@
       </div>
     </div>
 
-    <div id="form-frame" class="frame hidden">
+    <div id="form-frame" class="frame">
       <h1 class="host-header">Hosting</h1>
       <form id="launch-form" action="javascript:void(0);" method="POST" enctype="multipart/form-data">
 
@@ -260,10 +113,8 @@
 
     </div>
 
-    <div id="id-display"></div>
-
     <!-- HostB page here -->
-    <div id="nlw-frame" class="frame host-b-frame">
+    <div id="nlw-frame" class="frame host-b-frame hidden">
 
       <div id="stats-modal-container" class="modal-container modal-invis">
         <div id="stats-modal" class="modal flex-column">
@@ -271,6 +122,10 @@
           <div class="modal-body">
             <p class="stats-modal-title">[Session Name]</p>
              <div id="session-dashboard" class="session-dashboard-text">
+                <div>
+                  <span class="stats-modal-bold-text">- Session ID: </span>
+                  <span id="id-display"></span>
+                </div>
                 <div>
                   <span class="stats-modal-bold-text">- Upload: </span>
                   <span id="bandwidth-span">0 B</span>/s
