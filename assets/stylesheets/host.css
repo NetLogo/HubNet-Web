@@ -287,128 +287,20 @@ body {
 }
 
 /* TEMP */
-.session-chat-box-closed-container {
-  cursor: pointer;
-}
-
-.session-chat-box-closed-container:hover .session-chat-box-closed {
-  filter: brightness(0.9);
-}
-
-.session-chat-box-closed-container:hover .session-chat-box-closed-bottom {
-  filter: brightness(0.9);
-}
-
-.session-chat-box-closed-container:active .session-chat-box-closed {
-  filter: brightness(0.8);
-  box-shadow: 3px 3px rgba(0, 0, 0, 0.9);
-}
-
-.session-chat-box-closed-container:active .session-chat-box-closed-bottom {
-  filter: brightness(0.8);
-  box-shadow: 3px 0 rgba(0, 0, 0, 0.9);
-}
-
 .session-chat-box-closed {
-  position: fixed;
-  bottom: 30px;
-  right: 10px;
   text-align: center;
   justify-content: center;
   align-items: center;
-  border-radius: 10px;
   overflow-wrap: break-word;
-  width: 80px;
-  height: 40px;
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
-  z-index: 3;
-  transition: opacity 0.2s;
-  background-color: gray;
-}
-
-.session-chat-box-closed-bottom {
-  position: fixed;
-  width: 0;
-  height: 0;
-  border-left: 20px solid transparent;
-  border-right: 0;
-  border-bottom: 0;
-  bottom: 10.8px;
-  right: 20px;
-  z-index: 3;
-  transition: opacity 0.1s;
-  border-top: 20px solid gray;
-}
-
-.session-chat-box-open {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  width: 40vw;
-  z-index: 2;
-  transition: opacity 0.2s;
 }
 
 .session-open-chat-header {
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  border-radius: 15px 15px 0 0;
-  height: 6vh;
-  padding-top: 10px;
-  background-color: #aed8f2;
-  border: 1px solid black;
-  color: black;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.session-open-chat-header:hover {
-  filter: brightness(0.9);
-}
-
-.session-open-chat-header:active {
-  filter: brightness(0.8);
-}
-
-.session-open-chat-body {
-  height: 60vh;
-  padding: 5px;
-  background-color: white;
-  border: 1px solid black;
-  overflow-y: auto;
-}
-
-.session-open-chat-input {
-  border: 1px solid black;
-  border-bottom: none;
-  width: 100%;
-  height: 6vh;
-  padding-left: 10px;
 }
 
 .global-chat-box-closed-container {
   cursor: pointer;
-}
-
-.global-chat-box-closed-container:hover .global-chat-box-closed {
-  filter: brightness(0.9);
-}
-
-.global-chat-box-closed-container:hover .global-chat-box-closed-bottom {
-  filter: brightness(0.9);
-}
-
-.global-chat-box-closed-container:active .global-chat-box-closed {
-  filter: brightness(0.8);
-  box-shadow: 3px 3px rgba(0, 0, 0, 0.9);
-}
-
-.global-chat-box-closed-container:active .global-chat-box-closed-bottom {
-  filter: brightness(0.8);
-  box-shadow: 3px 0 rgba(0, 0, 0, 0.9);
 }
 
 .global-chat-box-closed {
@@ -418,80 +310,20 @@ body {
   text-align: center;
   justify-content: center;
   align-items: center;
-  border-radius: 10px;
   overflow-wrap: break-word;
-  width: 80px;
-  height: 40px;
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
-  z-index: 3;
-  transition: opacity 0.2s;
-  background-color: gray;
 }
 
 .global-chat-box-closed-bottom {
-  position: fixed;
-  width: 0;
-  height: 0;
-  border-left: 20px solid transparent;
-  border-right: 0;
-  border-bottom: 0;
   bottom: 10.8px;
   right: 110px;
-  z-index: 3;
-  transition: opacity 0.1s;
-  border-top: 20px solid gray;
-}
-
-.global-chat-box-open {
-  position: fixed;
-  bottom: 0;
-  right: 40vw;
-  width: 40vw;
-  z-index: 2;
-  transition: opacity 0.2s;
 }
 
 .global-open-chat-header {
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  border-radius: 15px 15px 0 0;
-  height: 6vh;
-  padding-top: 10px;
-  background-color: #aed8f2;
-  border: 1px solid black;
-  color: black;
-  font-size: 18px;
-  font-weight: bold;
 }
 
-.global-open-chat-header:hover {
-  filter: brightness(0.9);
-}
-
-.global-open-chat-header:active {
-  filter: brightness(0.8);
-}
-
-.global-open-chat-body {
-  height: 60vh;
-  padding: 5px;
-  background-color: white;
-  border: 1px solid black;
-  overflow-y: auto;
-}
-
-.global-open-chat-input {
-  border: 1px solid black;
-  border-bottom: none;
-  width: 100%;
-  height: 6vh;
-  padding-left: 10px;
-}
-
-/* TODO: Stats modal */
+/* (NEW): TODO */
 .stats-modal-title {
   margin-top: 0;
   margin-bottom: 10px;
@@ -509,7 +341,6 @@ body {
   font-weight: bold;
 }
 
-/* TODO: Code modal */
 .code-modal-title {
   margin-top: 0;
   margin-bottom: 10px;
@@ -519,7 +350,6 @@ body {
   text-decoration: underline;
 }
 
-/* TODO: Model information (details) modal */
 .model-info-modal-title {
   margin-top: 0;
   margin-bottom: 10px;
