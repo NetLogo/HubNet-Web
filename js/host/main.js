@@ -157,22 +157,48 @@ document.addEventListener("DOMContentLoaded", () => {
   const sessionOpenChatBox = document.getElementById("session-chat-box-open");
   const sessionOpenChatHeader = document.getElementById("session-open-chat-header");
 
+  const globalClosedChatBox = document.getElementById("global-chat-box-closed");
+  const globalClosedChatBoxBottom = document.getElementById("global-chat-box-closed-bottom");
+  const globalOpenChatBox = document.getElementById("global-chat-box-open");
+  const globalOpenChatHeader = document.getElementById("global-open-chat-header");
+
+  const globalChatStandardPosition = () => {
+    globalOpenChatBox.classList.add("global-chat-box-open-std");
+    globalOpenChatBox.classList.remove("global-chat-box-open-offset");
+
+    globalClosedChatBox.classList.add("global-chat-box-closed-std");
+    globalClosedChatBox.classList.remove("global-chat-box-closed-offset");
+
+    globalClosedChatBoxBottom.classList.add("global-chat-box-closed-bottom-std");
+    globalClosedChatBoxBottom.classList.remove("global-chat-box-closed-bottom-offset");
+  }
+
+  const globalChatOffsetPosition = () => {
+    globalOpenChatBox.classList.remove("global-chat-box-open-std");
+    globalOpenChatBox.classList.add("global-chat-box-open-offset");
+
+    globalClosedChatBox.classList.remove("global-chat-box-closed-std");
+    globalClosedChatBox.classList.add("global-chat-box-closed-offset");
+
+    globalClosedChatBoxBottom.classList.remove("global-chat-box-closed-bottom-std");
+    globalClosedChatBoxBottom.classList.add("global-chat-box-closed-bottom-offset");
+  }
+
   sessionClosedChatBox.onclick = () => {
     sessionOpenChatBox.classList.remove("invisible");
     sessionClosedChatBox.classList.add("invisible");
     sessionClosedChatBoxBottom.classList.add("invisible");
+
+   globalChatOffsetPosition();
   };
 
   sessionOpenChatHeader.onclick = () => {
     sessionOpenChatBox.classList.add("invisible");
     sessionClosedChatBox.classList.remove("invisible");
     sessionClosedChatBoxBottom.classList.remove("invisible");
-  };
 
-  const globalClosedChatBox = document.getElementById("global-chat-box-closed");
-  const globalClosedChatBoxBottom = document.getElementById("global-chat-box-closed-bottom");
-  const globalOpenChatBox = document.getElementById("global-chat-box-open");
-  const globalOpenChatHeader = document.getElementById("global-open-chat-header");
+    globalChatStandardPosition();
+  };
 
   globalClosedChatBox.onclick = () => {
     globalOpenChatBox.classList.remove("invisible");

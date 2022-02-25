@@ -168,7 +168,7 @@ body {
 
 /* (NEW): TODO */
 .top-setup-row{
-  margin-top: -5px;
+  margin-top: -15px;
   justify-content: space-between;
   align-items: flex-end;
 }
@@ -305,7 +305,7 @@ body {
   position: fixed;
   bottom: 0;
   right: 0;
-  width: 40vw;
+  width: 30vw;
   z-index: 4;
 }
 
@@ -318,26 +318,46 @@ body {
   cursor: pointer;
 }
 
-.global-chat-box-closed {
+.global-chat-box-closed-base {
   position: fixed;
   bottom: 30px;
-  right: 100px;
   text-align: center;
   justify-content: center;
   align-items: center;
   overflow-wrap: break-word;
 }
 
-.global-chat-box-closed-bottom {
+.global-chat-box-closed-std {
+  right: 100px;
+}
+.global-chat-box-closed-offset {
+  right: calc(30vw + 10px);
+}
+
+.global-chat-box-closed-bottom-base {
   bottom: 10.8px;
+}
+
+.global-chat-box-closed-bottom-std {
   right: 110px;
 }
 
-.global-chat-box-open {
+.global-chat-box-closed-bottom-offset {
+  right: calc(30vw + 20px);
+}
+
+.global-chat-box-open-base {
   position: fixed;
   bottom: 0;
-  right: 40vw;
-  width: 40vw;
+  width: 30vw;
+}
+
+.global-chat-box-open-std {
+  right: 100px;
+}
+
+.global-chat-box-open-offset {
+  right: 30vw;
 }
 
 .global-open-chat-header {

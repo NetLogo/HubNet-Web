@@ -18,7 +18,7 @@
       </div>
     </div>
 
-    <div id="form-frame" class="frame">
+    <div id="form-frame" class="frame hidden">
       <h1 class="host-header">Hosting</h1>
       <form id="launch-form" action="javascript:void(0);" method="POST" enctype="multipart/form-data">
 
@@ -114,7 +114,7 @@
     </div>
 
     <!-- HostB page here -->
-    <div id="nlw-frame" class="frame host-b-frame hidden">
+    <div id="nlw-frame" class="frame host-b-frame">
 
       <div id="stats-modal-container" class="modal-container modal-invis">
         <div id="stats-modal" class="modal flex-column">
@@ -253,12 +253,22 @@
 
         <div id="global-chat-container">
           <div id="global-chat-box-closed-container" class="chat-box-closed-container">
-            <div id="global-chat-box-closed" class="chat-box-closed global-chat-box-closed flex-display">
+            <div
+              id="global-chat-box-closed"
+              class="chat-box-closed global-chat-box-closed-base global-chat-box-closed-std flex-display"
+            >
               Global Chat
             </div>
-            <div id="global-chat-box-closed-bottom" class="chat-box-closed-bottom global-chat-box-closed-bottom"></div>
+            <div
+              id="global-chat-box-closed-bottom"
+              class="chat-box-closed-bottom global-chat-box-closed-bottom-base global-chat-box-closed-bottom-std"
+              >
+            </div>
           </div>
-          <div id="global-chat-box-open" class="chat-box-open global-chat-box-open invisible">
+          <div
+            id="global-chat-box-open"
+            class="chat-box-open global-chat-box-open-base global-chat-box-open-std invisible"
+          >
             <div id="global-open-chat-header" class="open-chat-header global-open-chat-header flex-display">
               <div class="popup-header-text">Global Chat</div>
               <div class="triangle-down-black"></div>
