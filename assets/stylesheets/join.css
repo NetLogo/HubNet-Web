@@ -170,10 +170,6 @@ body {
   font-weight: bold;
 }
 
-.no-select {
-  user-select: none;
-}
-
 .session-buttons {
   justify-content: space-between;
   margin-bottom: 20px;

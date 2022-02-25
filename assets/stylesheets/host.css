@@ -17,6 +17,10 @@ body {
   margin-top: 15px;
 }
 
+.host-b-frame {
+  margin-bottom: 75px;
+}
+
 .activity-text-full {
   line-height: 1.5;
   padding-right: 25px;
@@ -164,6 +168,7 @@ body {
 
 /* (NEW): TODO */
 .top-setup-row{
+  margin-top: -15px;
   justify-content: space-between;
   align-items: flex-end;
 }
@@ -228,6 +233,7 @@ body {
   width: 300px;
   height: 70px;
   background-color: lightgray;
+  transition: opacity 0.2s;
 }
 
 .command-center-closed:hover {
@@ -243,6 +249,7 @@ body {
   left: 0;
   bottom: 0;
   width: 300px;
+  transition: opacity 0.2s;
 }
 
 .command-center-header {
@@ -294,6 +301,14 @@ body {
   overflow-wrap: break-word;
 }
 
+.session-chat-box-open {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 40vw;
+  z-index: 4;
+}
+
 .session-open-chat-header {
   align-items: center;
   justify-content: center;
@@ -316,6 +331,13 @@ body {
 .global-chat-box-closed-bottom {
   bottom: 10.8px;
   right: 110px;
+}
+
+.global-chat-box-open {
+  position: fixed;
+  bottom: 0;
+  right: 40vw;
+  width: 40vw;
 }
 
 .global-open-chat-header {

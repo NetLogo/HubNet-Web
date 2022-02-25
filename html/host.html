@@ -61,6 +61,93 @@
             commandCenterOpenBox.classList.add("invisible");
             commandCenterClosedBox.classList.remove("invisible");
           };
+
+          // (NEW): TODO
+          const statsModalTab = document.getElementById("stats-modal-tab");
+          const codeModalTab = document.getElementById("code-modal-tab");
+          const modelInfoModalTab = document.getElementById("model-info-modal-tab");
+
+          const closeStatsModalButton = document.getElementById("close-stats-modal-button");
+          const closeCodeModalButton = document.getElementById("close-code-modal-button");
+          const closeModelInfoModalButton = document.getElementById("close-model-info-modal-button");
+
+          const statsModalContainer = document.getElementById("stats-modal-container");
+          const codeModalContainer = document.getElementById("code-modal-container");
+          const modelInfoModalContainer = document.getElementById("model-info-modal-container");
+          const hostBPageMain = document.getElementById("nlw-frame");
+          const hnwHeader = document.getElementById("hnw-general-header");
+
+          const showModal = (modalContainer) => {
+            modalContainer.classList.remove("modal-invis");
+            hostBPageMain.classList.add("no-select");
+          };
+
+          const hideModal = (modalContainer) => {
+            modalContainer.classList.add("modal-invis");
+            hostBPageMain.classList.remove("no-select");
+          };
+
+          const hideAllModals = () => {
+            const statsModalIsInvis = statsModalContainer.classList.contains("modal-invis");
+            const codeModalIsInvis = codeModalContainer.classList.contains("modal-invis");
+            const modelInfoModalIsInvis = modelInfoModalContainer.classList.contains("modal-invis");
+
+            if (!statsModalIsInvis) {
+              hideModal(statsModalContainer);
+            } else if (!codeModalIsInvis) {
+              hideModal(codeModalContainer);
+            } else if (!modelInfoModalIsInvis) {
+              hideModal(modelInfoModalContainer);
+            }
+          }
+
+          document.onclick = (event) => {
+            if (event.target === statsModalContainer) {
+              hideModal(statsModalContainer);
+            } else if (event.target === codeModalContainer) {
+              hideModal(codeModalContainer);
+            } else if (event.target === modelInfoModalContainer) {
+              hideModal(modelInfoModalContainer);
+            }
+          };
+
+          statsModalTab.onclick = () => {
+            hideAllModals();
+            showModal(statsModalContainer);
+          };
+
+          codeModalTab.onclick = () => {
+            hideAllModals();
+            showModal(codeModalContainer);
+          };
+
+          modelInfoModalTab.onclick = () => {
+            hideAllModals();
+            showModal(modelInfoModalContainer);
+          };
+
+          closeStatsModalButton.onclick = () => {
+            hideModal(statsModalContainer);
+          };
+
+          closeCodeModalButton.onclick = () => {
+            hideModal(codeModalContainer);
+          };
+
+          closeModelInfoModalButton.onclick = () => {
+            hideModal(modelInfoModalContainer);
+          }
+
+          document.addEventListener("keydown", (event) => {
+            const statsModalIsInvis = statsModalContainer.classList.contains("modal-invis");
+            const codeModalIsInvis = codeModalContainer.classList.contains("modal-invis");
+            const modelInfoModalIsInvis = modelInfoModalContainer.classList.contains("modal-invis");
+
+            if (event.key === "Escape") {
+              hideAllModals();
+            }
+          });
+
         });
     </script>
   </head>
@@ -176,9 +263,9 @@
     <div id="id-display"></div>
 
     <!-- HostB page here -->
-    <div id="nlw-frame" class="frame">
+    <div id="nlw-frame" class="frame host-b-frame">
 
-      <!-- <div id="stats-modal-container" class="modal-container">
+      <div id="stats-modal-container" class="modal-container modal-invis">
         <div id="stats-modal" class="modal flex-column">
           <div id="close-stats-modal-button" class="close-modal-button"></div>
           <div class="modal-body">
@@ -210,9 +297,9 @@
               </div>
           </div>
         </div>
-      </div> -->
+      </div>
 
-      <!-- <div id="code-modal-container" class="modal-container">
+      <div id="code-modal-container" class="modal-container modal-invis">
         <div id="code-modal" class="modal flex-column">
           <div id="close-code-modal-button" class="close-modal-button"></div>
           <div class="modal-body">
@@ -222,9 +309,9 @@
              </div>
           </div>
         </div>
-      </div> -->
+      </div>
 
-      <!-- <div id="model-info-modal-container" class="modal-container">
+      <div id="model-info-modal-container" class="modal-container modal-invis">
         <div id="model-info-modal" class="modal flex-column">
           <div id="close-model-info-modal-button" class="close-modal-button"></div>
           <div class="modal-body">
@@ -234,7 +321,7 @@
              </div>
           </div>
         </div>
-      </div> -->
+      </div>
 
       <div id="hnw-general-header" class="hnw-general-header hnw-host-header flex-row">
         <div class="hnw-header-text">HubNet Web</div>
@@ -244,9 +331,9 @@
             <div class="triangle-down"></div>
           </div>
           <div class="page-links-tabs">
-            <a href="/" class="page-links">Stats</a>
-            <a href="/" class="page-links">Code</a>
-            <a href="/" class="page-links">Model Info</a>
+            <div id="stats-modal-tab" class="page-links">Stats</div>
+            <div id="code-modal-tab" class="page-links">Code</div>
+            <div id="model-info-modal-tab" class="page-links">Model Info</div>
           </div>
         </div>
       </div>
@@ -290,7 +377,7 @@
             </div>
             <div id="session-chat-box-closed-bottom" class="chat-box-closed-bottom"></div>
           </div>
-          <div id="session-chat-box-open" class="chat-box-open invisible">
+          <div id="session-chat-box-open" class="chat-box-open session-chat-box-open invisible">
             <div id="session-open-chat-header" class="open-chat-header session-open-chat-header flex-display">
               <div class="popup-header-text">Session Chat</div>
               <div class="triangle-down-black"></div>
@@ -316,7 +403,7 @@
             </div>
             <div id="global-chat-box-closed-bottom" class="chat-box-closed-bottom global-chat-box-closed-bottom"></div>
           </div>
-          <div id="global-chat-box-open" class="chat-box-open invisible">
+          <div id="global-chat-box-open" class="chat-box-open global-chat-box-open invisible">
             <div id="global-open-chat-header" class="open-chat-header global-open-chat-header flex-display">
               <div class="popup-header-text">Global Chat</div>
               <div class="triangle-down-black"></div>
