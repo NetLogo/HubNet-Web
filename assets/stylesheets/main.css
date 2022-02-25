@@ -354,15 +354,11 @@
   font-weight: bold;
 }
 
-.modal-text {
+.modal-body {
   margin: 25px 25px 0px 25px;
   overflow-y: auto;
 }
 
-.session-dashboard-text {
-  font-size: 20px;
-}
+.modal-main-content {
 
-.stats-modal-bold-text {
-  font-weight: bold;
 }

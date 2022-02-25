@@ -492,31 +492,6 @@ body {
 }
 
 /* TODO: Stats modal */
-.stats-modal-container {
-  transition: opacity 0.25s;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  left: 0;
-  top: 0;
-  background-color: rgba(0, 0, 0, 0.3);
-  z-index: 1;
-}
-
-.stats-modal {
-  background-color: white;
-  justify-content: space-between;
-  position: relative;
-  top: 50%;
-  transform: translateY(-70%);
-  margin-left: auto;
-  margin-right: auto;
-  width: 70%;
-  height: 50%;
-  border: 5px solid;
-  border-radius: 20px;
-}
-
 .stats-modal-title {
   margin-top: 0;
   margin-bottom: 10px;
@@ -526,95 +501,15 @@ body {
   text-decoration: underline;
 }
 
-.close-stats-modal-button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: absolute;
-  top: 1vh;
-  right: 1vw;
-  background-color: #e04141;
-  height: 30px;
-  width: 30px;
-  min-width: 25px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.close-stats-modal-button::after {
+.session-dashboard-text {
   font-size: 20px;
-  color: white;
-  content: "\00d7"; /* Draws 'X' for close button -- Chris S. (2/1/22) */
 }
 
-.close-stats-modal-button:hover {
-  filter: brightness(0.9);
-}
-
-.close-stats-modal-button:active {
-  filter: brightness(0.8);
-}
-
-.stats-modal-text {
-  margin: 25px 25px 0px 25px;
-  overflow-y: auto;
+.stats-modal-bold-text {
+  font-weight: bold;
 }
 
 /* TODO: Code modal */
-.code-modal-container {
-  transition: opacity 0.25s;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  left: 0;
-  top: 0;
-  background-color: rgba(0, 0, 0, 0.3);
-  z-index: 1;
-}
-
-.code-modal {
-  background-color: white;
-  justify-content: space-between;
-  position: relative;
-  top: 50%;
-  transform: translateY(-70%);
-  margin-left: auto;
-  margin-right: auto;
-  width: 70%;
-  height: 50%;
-  border: 5px solid;
-  border-radius: 20px;
-}
-
-.close-code-modal-button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: absolute;
-  top: 1vh;
-  right: 1vw;
-  background-color: #e04141;
-  height: 30px;
-  width: 30px;
-  min-width: 25px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.close-code-modal-button::after {
-  font-size: 20px;
-  color: white;
-  content: "\00d7"; /* Draws 'X' for close button -- Chris S. (2/1/22) */
-}
-
-.close-code-modal-button:hover {
-  filter: brightness(0.9);
-}
-
-.close-code-modal-button:active {
-  filter: brightness(0.8);
-}
-
 .code-modal-title {
   margin-top: 0;
   margin-bottom: 10px;
@@ -624,70 +519,7 @@ body {
   text-decoration: underline;
 }
 
-.code-modal-text {
-  margin: 25px 25px 0px 25px;
-  overflow-y: auto;
-}
-
-.code-modal-main-text {
-
-}
-
 /* TODO: Model information (details) modal */
-.model-info-modal-container {
-  transition: opacity 0.25s;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  left: 0;
-  top: 0;
-  background-color: rgba(0, 0, 0, 0.3);
-  z-index: 1;
-}
-
-.model-info-modal {
-  background-color: white;
-  justify-content: space-between;
-  position: relative;
-  top: 50%;
-  transform: translateY(-70%);
-  margin-left: auto;
-  margin-right: auto;
-  width: 70%;
-  height: 50%;
-  border: 5px solid;
-  border-radius: 20px;
-}
-
-.close-model-info-modal-button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: absolute;
-  top: 1vh;
-  right: 1vw;
-  background-color: #e04141;
-  height: 30px;
-  width: 30px;
-  min-width: 25px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.close-model-info-modal-button::after {
-  font-size: 20px;
-  color: white;
-  content: "\00d7"; /* Draws 'X' for close button -- Chris S. (2/1/22) */
-}
-
-.close-model-info-modal-button:hover {
-  filter: brightness(0.9);
-}
-
-.close-model-info-modal-button:active {
-  filter: brightness(0.8);
-}
-
 .model-info-modal-title {
   margin-top: 0;
   margin-bottom: 10px;
@@ -695,13 +527,4 @@ body {
   font-size: 28px;
   font-weight: bold;
   text-decoration: underline;
-}
-
-.model-info-modal-text{
-  margin: 25px 25px 0px 25px;
-  overflow-y: auto;
-}
-
-.model-info-modal-main-text {
-
 }
