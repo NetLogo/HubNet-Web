@@ -3,12 +3,18 @@
     <meta charset="utf-8"/>
     <link href="/assets/stylesheets/main.css" rel="stylesheet">
     <link href="/assets/stylesheets/index.css" rel="stylesheet">
-    <script src="/js/index.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const hnwHeader = document.getElementById("hnw-header");
+        hnwHeader.onclick = () => { window.location.href = "/"; }
+      })
+    </script>
+    <!-- <script src="/js/index.js"></script> -->
   </head>
   <body>
 
     <div id="index-page-header" class="index-page-header flex-row">
-      <div class="hnw-header">HubNet Web</div>
+      <div class="hnw-header" id="hnw-header">HubNet Web</div>
 
       <div class="page-links-dropdown">
         <div class="activities-label">
@@ -24,29 +30,34 @@
     </div>
 
     <div id="index-page-body" class="index-page-body">
-
-      <div class="welcome-text">Welcome to HubNet Web!</div>
-      <div class="about-tab">
-        About
-      </div>
-
       <div class="hnw-description-text flex-row">
         <div class="blockquote-bar"></div>
         <div>
-          NetLogo is a programmable modeling environment. It comes with a large library of existing simulations, both participatory and traditional, that you can use and modify. Content areas include social science and economics, biology and medicine, physics and chemistry, and mathematics and computer science. You and your students can also use it to build your own simulations.
-          In traditional NetLogo simulations, the simulation runs according to rules that the simulation author specifies. HubNet adds a new dimension to NetLogo by letting simulations run not just according to rules, but by direct human participation.
-          Since HubNet builds upon NetLogo, we recommend that before trying HubNet for the first time, you become familiar with the basics of NetLogo. To get started using NetLogo models, see Tutorial #1: Running Models in the NetLogo Users Manual.
+          <p>
+            NetLogo is a programmable modeling environment. It comes with a large library of existing simulations, both participatory and traditional, that you can use and modify. Content areas include social science and economics, biology and medicine, physics and chemistry, and mathematics and computer science. You and your students can also use it to build your own simulations.
+          </p>
+          <p>
+            <a href="https://www.netlogoweb.org">In traditional NetLogo simulations</a>, the simulation runs according to rules that the simulation author specifies. HubNet adds a new dimension to NetLogo by letting simulations run not just according to rules, but by direct human participation.
+          </p>
         </div>
       </div>
 
       <div class="flex-column page-links-group">
-        <a href="join" class="page-link-container">
-          <input class="page-links-base button-base join-page-button" type="button" value="Launch a new session"></input>
+        <a href="join">
+          <input class="button-base join-page-button" type="button" value="Join a Session"></input>
         </a>
-        <a href="host" class="page-link-container">
-          <input class="page-links-base button-base host-page-button" type="button" value="Host a new session"></input>
+        <a href="host">
+          <input class="button-base host-page-button" type="button" value="Host a New Session"></input>
         </a>
-        <div class="page-links-base netlogo-text">For a single-user modeling environment, go to <a href="https://www.netlogoweb.org">NetLogo Web</a></div>
+      </div>
+
+      <div class="hnw-description-text flex-row page-end-margin">
+        <div class="blockquote-bar"></div>
+        <div>
+          <p>
+            Since HubNet builds upon NetLogo, we recommend that before trying HubNet for the first time, you become familiar with the basics of NetLogo. To get started using NetLogo models, see Tutorial #1: Running Models in the NetLogo Users Manual.
+          </p>
+        </div>
       </div>
 
     </div>
