@@ -6,9 +6,9 @@ body {
 .index-page-header {
   position: sticky;
   top: 0;
-  height: 60px;
+  height: 50px;
   padding: 0 50px;
-  background-color: rgb(25, 25, 25);
+  background-color: rgb(75, 75, 75);
   justify-content: space-between;
   align-items: center;
   font-size: 36px;
@@ -20,10 +20,10 @@ body {
 
 .hnw-header {
   cursor: pointer;
-  font-size: 40px;
+  font-size: 32px;
   color: white;
   font-family: sans-serif;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .hnw-header:hover {
@@ -40,20 +40,20 @@ body {
   display: inline-block;
 }
 
-.page-links-dropdown:hover .activities-label {
-  background-color: rgb(150, 150, 150);
+.page-links-dropdown:hover .navigate-label {
+  background-color: rgb(175, 175, 175);
 }
 
 .page-links-dropdown:hover .page-links-tabs {
   display: block;
 }
 
-.activities-label {
+.navigate-label {
   display: flex;
   direction: row;
   justify-content: center;
   align-items: center;
-  background-color: rgb(200, 200, 200);
+  background-color: rgb(225, 225, 225);
   color: black;
   width: 30vw;
   max-width: 150px;
@@ -80,7 +80,7 @@ body {
 .page-links {
   display: block;
   text-align: center;
-  background-color: rgb(225, 225, 225);
+  background-color: rgb(240, 240, 240);
   color: black;
   border: 1px solid black;
   border-collapse: collapse;
@@ -94,11 +94,11 @@ body {
 }
 
 .page-links:hover {
-  background-color: rgb(200, 200, 200);
+  background-color: rgb(225, 225, 225);
 }
 
 .page-links:active {
-  background-color: rgb(175, 175, 175);
+  background-color: rgb(200, 200, 200);
 }
 
 .index-page-body {
