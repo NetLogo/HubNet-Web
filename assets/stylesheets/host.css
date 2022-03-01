@@ -175,7 +175,8 @@ body {
 }
 
 .modal-toggle-row > input {
-  background-color: #7cacec;
+  background-color: #6da87a;
+  z-index: 5;
 }
 
 .setup-row {
