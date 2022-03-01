@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     globalClosedChatBoxBottom.classList.add("global-chat-box-closed-bottom-std");
     globalClosedChatBoxBottom.classList.remove("global-chat-box-closed-bottom-offset");
-  }
+  };
 
   const globalChatOffsetPosition = () => {
     globalOpenChatBox.classList.remove("global-chat-box-open-std");
@@ -182,48 +182,86 @@ document.addEventListener("DOMContentLoaded", () => {
 
     globalClosedChatBoxBottom.classList.remove("global-chat-box-closed-bottom-std");
     globalClosedChatBoxBottom.classList.add("global-chat-box-closed-bottom-offset");
-  }
+  };
 
-  sessionClosedChatBox.onclick = () => {
+  const openSessionChat = () => {
     sessionOpenChatBox.classList.remove("invisible");
     sessionClosedChatBox.classList.add("invisible");
     sessionClosedChatBoxBottom.classList.add("invisible");
-
-   globalChatOffsetPosition();
   };
 
-  sessionOpenChatHeader.onclick = () => {
+  const closeSessionChat = () => {
     sessionOpenChatBox.classList.add("invisible");
     sessionClosedChatBox.classList.remove("invisible");
     sessionClosedChatBoxBottom.classList.remove("invisible");
-
-    globalChatStandardPosition();
   };
 
-  globalClosedChatBox.onclick = () => {
+  const openGlobalChat = () => {
     globalOpenChatBox.classList.remove("invisible");
     globalClosedChatBox.classList.add("invisible");
     globalClosedChatBoxBottom.classList.add("invisible");
   };
 
-  globalOpenChatHeader.onclick = () => {
+  const closeGlobalChat = () => {
     globalOpenChatBox.classList.add("invisible");
     globalClosedChatBox.classList.remove("invisible");
     globalClosedChatBoxBottom.classList.remove("invisible");
   };
 
+  sessionClosedChatBox.onclick = () => {
+    openSessionChat();
+    globalChatOffsetPosition();
+  };
+
+  sessionClosedChatBoxBottom.onclick = () => {
+    openSessionChat();
+    globalChatOffsetPosition();
+  };
+
+  sessionOpenChatHeader.onclick = () => {
+    closeSessionChat();
+    globalChatStandardPosition();
+  };
+
+  globalClosedChatBox.onclick = () => {
+    openGlobalChat();
+  };
+
+  globalClosedChatBoxBottom.onclick = () => {
+    openGlobalChat();
+  }
+
+  globalOpenChatHeader.onclick = () => {
+    closeGlobalChat();
+  };
+
+  const openCommandCenter = () => {
+    commandCenterOpenBox.classList.remove("invisible");
+    commandCenterClosedBox.classList.add("invisible");
+    commandCenterClosedBottom.classList.add("invisible");
+  };
+
+  const closeCommandCenter = () => {
+    commandCenterOpenBox.classList.add("invisible");
+    commandCenterClosedBox.classList.remove("invisible");
+    commandCenterClosedBottom.classList.remove("invisible");
+  };
+
+  const commandCenterClosedBottom = document.getElementById("command-center-closed-bottom");
   const commandCenterClosedBox = document.getElementById("command-center-closed");
   const commandCenterOpenBox = document.getElementById("command-center-open");
   const commandCenterOpenHeader = document.getElementById("command-center-header");
 
   commandCenterClosedBox.onclick = () => {
-    commandCenterOpenBox.classList.remove("invisible");
-    commandCenterClosedBox.classList.add("invisible");
+    openCommandCenter();
+  };
+
+  commandCenterClosedBottom.onclick = () => {
+    openCommandCenter();
   };
 
   commandCenterOpenHeader.onclick = () => {
-    commandCenterOpenBox.classList.add("invisible");
-    commandCenterClosedBox.classList.remove("invisible");
+    closeCommandCenter();
   };
 
   // (NEW): HostB page modals
