@@ -20,6 +20,10 @@ body {
   margin-bottom: 75px;
 }
 
+.hostA-page-body {
+  margin: 0 50px;
+}
+
 .activity-text-full {
   line-height: 1.5;
   padding-right: 25px;
@@ -163,10 +167,20 @@ body {
 }
 
 .button-base {
+  cursor: pointer;
   width: 175px;
   height: 40px;
   font-size: 16px;
   border-radius: 12px;
+}
+
+.button-base:hover {
+  filter: brightness(0.9);
+}
+
+.button-base:active {
+  filter: brightness(0.7);
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
 }
 
 .modal-toggle-row {
@@ -180,8 +194,8 @@ body {
 }
 
 .setup-row {
-  margin-top: 10px;
-  margin-bottom: -15px;
+  margin-top: 5px;
+  margin-bottom: -20px;
   justify-content: space-between;
   align-items: center;
 }

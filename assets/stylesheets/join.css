@@ -1,4 +1,10 @@
 body {
+  /* margin-left: 50px; */
+  margin: 0;
+  padding: 0;
+}
+
+.joinA-page-body, .joinB-page-body {
   margin-left: 50px;
 }
 
