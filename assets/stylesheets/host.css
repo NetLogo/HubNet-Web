@@ -169,8 +169,9 @@ body {
 /* (NEW): HostB styling starts here */
 .top-setup-row{
   margin-top: -15px;
+  margin-bottom: -15px;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
 }
 
 .button-base {
@@ -188,7 +189,12 @@ body {
   align-items: center;
 }
 
-.capacity-display-text {
+.capacity-slider-container > input {
+  margin: -8px auto;
+}
+
+.capacity-slider-container > p {
+  margin: 10px auto;
   font-size: 16px;
   text-align: center;
 }

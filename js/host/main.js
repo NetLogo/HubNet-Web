@@ -149,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const capacitySlider = document.getElementById("max-num-clients-picker");
 
   capacitySlider.onchange = (e) => {
-    capacityDisplayText.innerHTML = `Session Capacity: ${e.target.value}`;
+    capacityDisplayText.innerHTML = `${e.target.value}`;
   };
 
   const sessionClosedChatBox = document.getElementById("session-chat-box-closed");
