@@ -16,10 +16,7 @@ body {
   width:  100%;
 }
 
-.host-b-frame {
-  margin-bottom: 75px;
-}
-
+/* (NEW): HostA page stylings */
 .hostA-page-body {
   margin: 0 50px;
 }
@@ -162,6 +159,10 @@ body {
 }
 
 /* (NEW): HostB styling starts here */
+.host-b-frame {
+  margin-bottom: 75px;
+}
+
 .hostB-page-body {
   margin: 0 50px;
 }
@@ -247,7 +248,7 @@ body {
   margin-right: 20px;
 }
 
-/* TODO */
+/* (NEW): Stylings for command center (similar to chat boxes for consistency) */
 .command-center-closed-container {
   cursor: pointer;
 }
