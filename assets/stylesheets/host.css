@@ -188,7 +188,6 @@ body {
   border: 1px solid black;
   width: 70%;
   margin-top: 15px;
-  /* margin-bottom: 40px; */
   position: relative;
 }
 
@@ -318,9 +317,10 @@ body {
 
 .command-center-open {
   position: fixed;
+  z-index: 1;
   left: 0;
   bottom: 0;
-  width: 300px;
+  width: 30vw;
   transition: opacity 0.2s;
 }
 
@@ -343,13 +343,22 @@ body {
 }
 
 .command-center-body {
-  height: 300px;
+  height: 50vh;
   border-right: 1px solid black;
   background-color: white;
   justify-content: space-between;
   align-items: flex-end;
   padding: 0 20px 20px 20px;
   z-index: 1;
+}
+
+.command-center-text-input {
+  width: 80%;
+  height: 40px;
+}
+
+.command-center-clear-button {
+  height: 40px;
 }
 
 .triangle-down-black {
