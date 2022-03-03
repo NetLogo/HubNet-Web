@@ -2,11 +2,67 @@
   <head>
     <meta charset="utf-8"/>
     <link href="/assets/stylesheets/main.css" rel="stylesheet">
-    <script src="/js/index.js"></script>
+    <link href="/assets/stylesheets/index.css" rel="stylesheet">
   </head>
   <body>
-    <a href="host">Be a hoster</a>
-    <a href="join">Be a joiner</a>
+
+    <div id="index-page-header" class="page-header flex-row">
+      <a href="/" class="hnw-header-link-wrapper">
+        <div class="hnw-header" id="hnw-header">HubNet Web</div>
+      </a>
+
+      <div class="page-links-dropdown">
+        <div class="navigate-label">
+          <div>Jump To</div>
+          <div class="triangle-down"></div>
+        </div>
+        <div class="page-links-tabs">
+          <a href="/join" class="page-links">Join</a>
+          <a href="/host" class="page-links">Host</a>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="index-page-body" class="index-page-body">
+      <div class="hnw-description-text flex-row">
+        <div class="blockquote-bar"></div>
+        <div>
+          <p>
+            NetLogo is a programmable modeling environment. It comes with a large library of existing simulations, both participatory and traditional, that you can use and modify. Content areas include social science and economics, biology and medicine, physics and chemistry, and mathematics and computer science. You and your students can also use it to build your own simulations.
+          </p>
+          <p>
+            <a href="https://www.netlogoweb.org">In traditional NetLogo simulations</a>, the simulation runs according to rules that the simulation author specifies. HubNet adds a new dimension to NetLogo by letting simulations run not just according to rules, but by direct human participation.
+          </p>
+          <p>
+            NetLogo was originally designed/created by <a href="http://ccl.northwestern.edu/Uri.shtml">Uri Wilensky</a> and developed at <a href="https://ccl.northwestern.edu/">CCL</a>.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex-column page-links-group">
+        <a href="join">
+          <input class="button-base join-page-button" type="button" value="Join a Session"></input>
+        </a>
+        <a href="host">
+          <input class="button-base host-page-button" type="button" value="Host a New Session"></input>
+        </a>
+      </div>
+
+      <div class="hnw-description-text flex-row page-end-margin">
+        <div class="blockquote-bar"></div>
+        <div>
+          <p>
+            HubNet simulations are based on a client/server architecture. The activity leader uses the NetLogo application to run a HubNet activity. When NetLogo is running a HubNet activity, we refer to it as a HubNet server. Participants use a client application to log in and interact with the HubNet server.
+          </p>
+          <p>
+            While HubNet is only supported via the Java Desktop clients at the moment, we hope to add support for other types of clients such as tablets and phones in the future.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
     <script src="/js/browser-compat-abort.js"></script>
   </body>
 </html>
