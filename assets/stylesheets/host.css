@@ -186,21 +186,22 @@ body {
 
 .modal-divider {
   border: 1px solid black;
-  width: 70%;
-  margin-top: 15px;
-  position: relative;
+  width: 100%;
+  margin-top: 20px;
 }
 
 .modal-toggle-row {
+  overflow-y: scroll;
   margin-left: auto;
   margin-right: auto;
   justify-content: space-between;
-  width: 60%;
+  width: 90%;
+  margin-bottom: 25px;
 }
 
 .modal-toggle-row > input {
   background-color: #6da87a;
-  z-index: 5;
+  z-index: 1;
 }
 
 .setup-row {
@@ -235,6 +236,11 @@ body {
 .max-num-clients-picker {
   width: 50vw;
   max-width: 400px;
+}
+
+.post-frame-divider {
+  border: 1px solid black;
+  margin: 30px -50px;
 }
 
 .bottom-setup-row {

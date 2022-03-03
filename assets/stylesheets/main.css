@@ -28,7 +28,7 @@
 
 .nlw-iframe {
   margin-top: 15px;
-  height: 70vh;
+  height: 65vh;
   width:  100%;
 }
 
@@ -392,7 +392,7 @@
 
 .modal-body {
   margin: 25px 25px 0px 25px;
-  max-height: 60%;
+  max-height: 70%;
   overflow-y: auto;
 }
 
