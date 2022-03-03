@@ -345,11 +345,11 @@
   justify-content: space-between;
   position: relative;
   top: 50%;
-  transform: translateY(-70%);
+  transform: translateY(-50%);
   margin-left: auto;
   margin-right: auto;
   width: 70%;
-  height: 50%;
+  height: 60%;
   border: 5px solid;
   border-radius: 20px;
 }
@@ -392,6 +392,7 @@
 
 .modal-body {
   margin: 25px 25px 0px 25px;
+  max-height: 60%;
   overflow-y: auto;
 }
 
