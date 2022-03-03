@@ -56,16 +56,14 @@
   font-weight: bold;
 }
 
-/* (NEW): Common page headers styling */
 .page-header {
   position: sticky;
   top: 0;
   height: 50px;
   padding: 0 50px;
-  background-color: rgb(75, 75, 75);
+  background-color: #343434;
   justify-content: space-between;
   align-items: center;
-  font-size: 36px;
 }
 
 .hnw-header-link-wrapper {
@@ -109,8 +107,7 @@
   align-items: center;
   background-color: rgb(225, 225, 225);
   color: black;
-  width: 30vw;
-  max-width: 150px;
+  width: 150px;
   height: 100%;
   font-size: 20px;
 }
@@ -153,6 +150,56 @@
 
 .page-links:active {
   background-color: rgb(200, 200, 200);
+}
+
+@media (max-width: 1200px) and (max-height: 750px) {
+  .page-header {
+    position: sticky;
+    top: 0;
+    height: 40px;
+    padding: 0 40px;
+    background-color: #343434;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .hnw-header {
+    cursor: pointer;
+    font-size: 28px;
+    color: white;
+    font-family: sans-serif;
+    font-weight: 600;
+  }
+
+  .navigate-label {
+    display: flex;
+    direction: row;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(225, 225, 225);
+    color: black;
+    width: 125px;
+    height: 100%;
+    font-size: 18px;
+  }
+
+  .page-links-tabs {
+    display: none;
+    position: absolute;
+    width: 125px;
+  }
+
+  .page-links {
+    display: block;
+    text-align: center;
+    background-color: rgb(240, 240, 240);
+    color: black;
+    border: 1px solid black;
+    border-collapse: collapse;
+    font-size: 18px;
+    padding: 10px 30px;
+    text-decoration: none;
+  }
 }
 
 .modal-invis {

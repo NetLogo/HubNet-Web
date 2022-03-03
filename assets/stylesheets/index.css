@@ -74,3 +74,26 @@ body {
 .page-end-margin {
   margin-bottom: 50px;
 }
+
+@media (max-width: 1200px) and (max-height: 750px) {
+  .hnw-description-text {
+    margin-top: 20px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .join-page-button {
+    width: 250px;
+    height: 60px;
+    background-color: #63ab73;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .host-page-button {
+    width: 200px;
+    height: 45px;
+    font-size: 18px;
+    background-color: #aed8f2;
+  }
+}
