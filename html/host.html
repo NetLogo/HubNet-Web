@@ -36,7 +36,7 @@
         </div>
       </div>
 
-      <div id="form-frame" class="frame">
+      <div id="form-frame" class="frame hidden">
         <h1 class="host-header">Hosting</h1>
         <form id="launch-form" action="javascript:void(0);" method="POST" enctype="multipart/form-data">
 
@@ -134,9 +134,75 @@
     </div>
 
     <!-- HostB page here -->
-    <div id="nlw-frame" class="frame host-b-frame hidden">
+    <div id="nlw-frame" class="frame host-b-frame">
 
-      <div id="stats-modal-container" class="modal-container modal-invis">
+      <div id="more-details-modal-container" class="modal-container modal-invis">
+
+        <div class="modal-toggle-row flex-row">
+          <input class="button-base" id="stats-modal-tab" type="button" value="Stats">
+          <input class="button-base" id="code-modal-tab" type="button" value="Code">
+          <input class="button-base" id="model-info-modal-tab" type="button" value="Model Info">
+        </div>
+
+        <div id="stats-modal" class="modal modal-invis flex-column">
+          <div id="close-stats-modal-button" class="close-modal-button"></div>
+          <div class="modal-body">
+            <p class="stats-modal-title">[Session Name]</p>
+             <div id="session-dashboard" class="session-dashboard-text">
+                <div>
+                  <span class="stats-modal-bold-text">- Session ID: </span>
+                  <span id="id-display"></span>
+                </div>
+                <div>
+                  <span class="stats-modal-bold-text">- Upload: </span>
+                  <span id="bandwidth-span">0 B</span>/s
+                </div>
+                <div>
+                  <span class="stats-modal-bold-text">- New Send: </span>
+                  <span id="new-send-span">0 B</span>/s
+                </div>
+                <div>
+                  <span class="stats-modal-bold-text">- # Clients: </span>
+                  <span id="num-clients-span">0</span>
+                </div>
+                <div>
+                  <span class="stats-modal-bold-text">- # TURNs: </span>
+                  <span id="num-turn-span">0</span>
+                </div>
+                <div>
+                  <span class="stats-modal-bold-text">- # Congested: </span>
+                  <span id="num-congested-span">0</span></div>
+                <div>
+                  <span class="stats-modal-bold-text">- Status: </span>
+                  <span id="activity-status-span">...</span>
+                </div>
+              </div>
+          </div>
+        </div>
+
+        <div id="code-modal" class="modal modal-invis flex-column">
+          <div id="close-code-modal-button" class="close-modal-button"></div>
+          <div class="modal-body">
+            <p class="code-modal-title">Code: [Model Name]</p>
+             <div class="modal-main-content">
+              HELLO WORLD!
+             </div>
+          </div>
+        </div>
+
+        <div id="model-info-modal" class="modal modal-invis flex-column">
+          <div id="close-model-info-modal-button" class="close-modal-button"></div>
+          <div class="modal-body">
+            <p class="model-info-modal-title">Model Infomation: [Model Name]</p>
+             <div class="model-main-content">
+              HELLO WORLD!
+             </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- <div id="stats-modal-container" class="modal-container modal-invis">
         <div id="stats-modal" class="modal flex-column">
           <div id="close-stats-modal-button" class="close-modal-button"></div>
           <div class="modal-body">
@@ -172,9 +238,9 @@
               </div>
           </div>
         </div>
-      </div>
+      </div> -->
 
-      <div id="code-modal-container" class="modal-container modal-invis">
+      <!-- <div id="code-modal-container" class="modal-container modal-invis">
         <div id="code-modal" class="modal flex-column">
           <div id="close-code-modal-button" class="close-modal-button"></div>
           <div class="modal-body">
@@ -184,9 +250,9 @@
              </div>
           </div>
         </div>
-      </div>
+      </div> -->
 
-      <div id="model-info-modal-container" class="modal-container modal-invis">
+      <!-- <div id="model-info-modal-container" class="modal-container modal-invis">
         <div id="model-info-modal" class="modal flex-column">
           <div id="close-model-info-modal-button" class="close-modal-button"></div>
           <div class="modal-body">
@@ -196,15 +262,9 @@
              </div>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <div class="hostB-page-body">
-
-        <div class="modal-toggle-row flex-row">
-          <input class="button-base" id="stats-modal-tab" type="button" value="Stats">
-          <input class="button-base" id="code-modal-tab" type="button" value="Code">
-          <input class="button-base" id="model-info-modal-tab" type="button" value="Model Info">
-        </div>
 
         <div class="setup-row flex-row">
           <input class="button-base copy-invite-button" id="copy-invite-button" type="button" value="Copy Invite Link">
@@ -213,6 +273,7 @@
             <input id="max-num-clients-picker" class="max-num-clients-picker" type="range" min="0" max="100" value="50">
             <p id="capacity-display-text">50</p>
           </div>
+          <input class="button-base more-details-button" id="more-details-button" type="button" value="More Details">
         </div>
 
         <iframe class="nlw-iframe"></iframe>

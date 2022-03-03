@@ -205,6 +205,10 @@ body {
   background-color: #e66c6c;
 }
 
+.more-details-button {
+  background-color: #6da87a;
+}
+
 .capacity-slider-container {
   align-items: center;
 }

@@ -22,7 +22,7 @@ const finishLaunch = ({ isSuccess, data }) => {
 
     const { hostID, json, nlogo } = data;
 
-    document.getElementById("id-display").innerText = hostID;
+    byEID("id-display").innerText = hostID;
 
     history.pushState({ name: "hosting" }, "hosting");
 
@@ -109,12 +109,12 @@ document.addEventListener("DOMContentLoaded", () => {
         descriptionModalContainer.classList.add("modal-invis");
       }
     } else {
-      if (event.target === statsModalContainer) {
-        hideModal(statsModalContainer);
-      } else if (event.target === codeModalContainer) {
-        hideModal(codeModalContainer);
-      } else if (event.target === modelInfoModalContainer) {
-        hideModal(modelInfoModalContainer);
+      if (event.target === statsModal) {
+        hideModal(statsModal);
+      } else if (event.target === codeModal) {
+        hideModal(codeModal);
+      } else if (event.target === modelInfoModal) {
+        hideModal(modelInfoModal);
       }
     }
   };
@@ -145,22 +145,22 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // (NEW): Chat box controls
-  const capacityDisplayText = document.getElementById("capacity-display-text");
-  const capacitySlider = document.getElementById("max-num-clients-picker");
+  const capacityDisplayText = byEID("capacity-display-text");
+  const capacitySlider = byEID("max-num-clients-picker");
 
   capacitySlider.onchange = (e) => {
     capacityDisplayText.innerHTML = `${e.target.value}`;
   };
 
-  const sessionClosedChatBox = document.getElementById("session-chat-box-closed");
-  const sessionClosedChatBoxBottom = document.getElementById("session-chat-box-closed-bottom");
-  const sessionOpenChatBox = document.getElementById("session-chat-box-open");
-  const sessionOpenChatHeader = document.getElementById("session-open-chat-header");
+  const sessionClosedChatBox = byEID("session-chat-box-closed");
+  const sessionClosedChatBoxBottom = byEID("session-chat-box-closed-bottom");
+  const sessionOpenChatBox = byEID("session-chat-box-open");
+  const sessionOpenChatHeader = byEID("session-open-chat-header");
 
-  const globalClosedChatBox = document.getElementById("global-chat-box-closed");
-  const globalClosedChatBoxBottom = document.getElementById("global-chat-box-closed-bottom");
-  const globalOpenChatBox = document.getElementById("global-chat-box-open");
-  const globalOpenChatHeader = document.getElementById("global-open-chat-header");
+  const globalClosedChatBox = byEID("global-chat-box-closed");
+  const globalClosedChatBoxBottom = byEID("global-chat-box-closed-bottom");
+  const globalOpenChatBox = byEID("global-chat-box-open");
+  const globalOpenChatHeader = byEID("global-open-chat-header");
 
   const globalChatStandardPosition = () => {
     globalOpenChatBox.classList.add("global-chat-box-open-std");
@@ -247,10 +247,10 @@ document.addEventListener("DOMContentLoaded", () => {
     commandCenterClosedBottom.classList.remove("invisible");
   };
 
-  const commandCenterClosedBottom = document.getElementById("command-center-closed-bottom");
-  const commandCenterClosedBox = document.getElementById("command-center-closed");
-  const commandCenterOpenBox = document.getElementById("command-center-open");
-  const commandCenterOpenHeader = document.getElementById("command-center-header");
+  const commandCenterClosedBottom = byEID("command-center-closed-bottom");
+  const commandCenterClosedBox = byEID("command-center-closed");
+  const commandCenterOpenBox = byEID("command-center-open");
+  const commandCenterOpenHeader = byEID("command-center-header");
 
   commandCenterClosedBox.onclick = () => {
     openCommandCenter();
@@ -265,68 +265,103 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // (NEW): HostB page modals
-  const statsModalTab = document.getElementById("stats-modal-tab");
-  const codeModalTab = document.getElementById("code-modal-tab");
-  const modelInfoModalTab = document.getElementById("model-info-modal-tab");
+  const moreDetailsButton = byEID("more-details-button");
+  const statsModalTab = byEID("stats-modal-tab");
+  const codeModalTab = byEID("code-modal-tab");
+  const modelInfoModalTab = byEID("model-info-modal-tab");
 
-  const closeStatsModalButton = document.getElementById("close-stats-modal-button");
-  const closeCodeModalButton = document.getElementById("close-code-modal-button");
-  const closeModelInfoModalButton = document.getElementById("close-model-info-modal-button");
+  const closeStatsModalButton = byEID("close-stats-modal-button");
+  const closeCodeModalButton = byEID("close-code-modal-button");
+  const closeModelInfoModalButton = byEID("close-model-info-modal-button");
 
-  const statsModalContainer = document.getElementById("stats-modal-container");
-  const codeModalContainer = document.getElementById("code-modal-container");
-  const modelInfoModalContainer = document.getElementById("model-info-modal-container");
-  const hostBPageMain = document.getElementById("nlw-frame");
+  const moreDetailsModalContainer = byEID("more-details-modal-container");
+  const statsModal = byEID("stats-modal");
+  const codeModal = byEID("code-modal");
+  const modelInfoModal = byEID("model-info-modal");
+  const hostBPageMain = byEID("nlw-frame");
 
-  const showModal = (modalContainer) => {
-    modalContainer.classList.remove("modal-invis");
+  const detailsModalContainerInvis = () => {
+    return moreDetailsModalContainer.classList.contains("modal-invis");
+  };
+
+  const openDetailsModalContainer = () => {
+    // if (detailsModalContainerInvis()) {
+      moreDetailsModalContainer.classList.remove("modal-invis");
+    // }
+  };
+
+  const closeDetailsModalContainer = () => {
+    // if (!detailsModalContainerInvis()) {
+      moreDetailsModalContainer.classList.add("modal-invis");
+    // }
+  };
+
+  const showModal = (modal) => {
+    modal.classList.remove("modal-invis");
+    modal.classList.remove("no-display");
     hostBPageMain.classList.add("no-select");
   };
 
-  const hideModal = (modalContainer) => {
-    modalContainer.classList.add("modal-invis");
+  const hideModal = (modal) => {
+    modal.classList.add("modal-invis");
+    modal.classList.add("no-display");
     hostBPageMain.classList.remove("no-select");
   };
 
+  // const modalNoDisplay = (modal) => {
+  //   modal.classList.add("no-display");
+  // };
+
   const hideAllHostBModals = () => {
-    const statsModalIsInvis = statsModalContainer.classList.contains("modal-invis");
-    const codeModalIsInvis = codeModalContainer.classList.contains("modal-invis");
-    const modelInfoModalIsInvis = modelInfoModalContainer.classList.contains("modal-invis");
+    const statsModalIsInvis = statsModal.classList.contains("modal-invis");
+    const codeModalIsInvis = codeModal.classList.contains("modal-invis");
+    const modelInfoModalIsInvis = modelInfoModal.classList.contains("modal-invis");
 
     if (!statsModalIsInvis) {
-      hideModal(statsModalContainer);
+      hideModal(statsModal);
+      // modalNoDisplay(statsModal);
     } else if (!codeModalIsInvis) {
-      hideModal(codeModalContainer);
+      hideModal(codeModal);
+      // modalNoDisplay(codeModal);
     } else if (!modelInfoModalIsInvis) {
-      hideModal(modelInfoModalContainer);
+      hideModal(modelInfoModal);
+      // modalNoDisplay(modelInfoModal);
     }
+  };
+
+  moreDetailsButton.onclick = () => {
+    openDetailsModalContainer();
+    showModal(statsModal);
   };
 
   statsModalTab.onclick = () => {
     hideAllHostBModals();
-    showModal(statsModalContainer);
+    showModal(statsModal);
   };
 
   codeModalTab.onclick = () => {
     hideAllHostBModals();
-    showModal(codeModalContainer);
+    showModal(codeModal);
   };
 
   modelInfoModalTab.onclick = () => {
     hideAllHostBModals();
-    showModal(modelInfoModalContainer);
+    showModal(modelInfoModal);
   };
 
   closeStatsModalButton.onclick = () => {
-    hideModal(statsModalContainer);
+    closeDetailsModalContainer();
+    hideAllHostBModals();
   };
 
   closeCodeModalButton.onclick = () => {
-    hideModal(codeModalContainer);
+    closeDetailsModalContainer();
+    hideAllHostBModals();
   };
 
   closeModelInfoModalButton.onclick = () => {
-    hideModal(modelInfoModalContainer);
+    closeDetailsModalContainer();
+    hideAllHostBModals();
   };
 
   nlwManager.init();
