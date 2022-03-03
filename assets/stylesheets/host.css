@@ -185,8 +185,31 @@ body {
 }
 
 .modal-toggle-row {
-  margin-top: 15px;
+  margin-top: 3vh;
+  margin-left: auto;
+  margin-right: auto;
   justify-content: space-between;
+  width: 60%;
+
+  /* position: relative;
+  top: 50%;
+  transform: translateY(-70%);
+  margin-left: auto;
+  margin-right: auto;
+  width: 70%;
+  height: 50%;
+  border: 5px solid;
+  border-radius: 20px; */
+}
+
+hr {
+  border: 0;
+  clear:both;
+  display:block;
+  width: 96%;
+  background-color:#FFFF00;
+  height: 1px;
+  z-index: 5;
 }
 
 .modal-toggle-row > input {

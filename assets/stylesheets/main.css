@@ -355,6 +355,7 @@
 }
 
 .close-modal-button {
+  cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -366,7 +367,6 @@
   width: 30px;
   min-width: 25px;
   border-radius: 50%;
-  cursor: pointer;
 }
 
 .close-modal-button::after {

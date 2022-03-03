@@ -109,12 +109,9 @@ document.addEventListener("DOMContentLoaded", () => {
         descriptionModalContainer.classList.add("modal-invis");
       }
     } else {
-      if (event.target === statsModal) {
-        hideModal(statsModal);
-      } else if (event.target === codeModal) {
-        hideModal(codeModal);
-      } else if (event.target === modelInfoModal) {
-        hideModal(modelInfoModal);
+      if (event.target === moreDetailsModalContainer) {
+        hideAllHostBModals();
+        closeDetailsModalContainer();
       }
     }
   };
@@ -129,6 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       if (event.key === "Escape") {
         hideAllHostBModals();
+        closeDetailsModalContainer();
       }
     }
   });
@@ -266,18 +264,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // (NEW): HostB page modals
   const moreDetailsButton = byEID("more-details-button");
+  const closeMoreDetailsModalButton = byEID("close-more-details-modal-button");
   const statsModalTab = byEID("stats-modal-tab");
   const codeModalTab = byEID("code-modal-tab");
   const modelInfoModalTab = byEID("model-info-modal-tab");
 
-  const closeStatsModalButton = byEID("close-stats-modal-button");
-  const closeCodeModalButton = byEID("close-code-modal-button");
-  const closeModelInfoModalButton = byEID("close-model-info-modal-button");
-
   const moreDetailsModalContainer = byEID("more-details-modal-container");
-  const statsModal = byEID("stats-modal");
-  const codeModal = byEID("code-modal");
-  const modelInfoModal = byEID("model-info-modal");
+  const statsModalBody = byEID("stats-modal-body");
+  const codeModalBody = byEID("code-modal-body");
+  const modelInfoModalBody = byEID("model-info-modal-body");
   const hostBPageMain = byEID("nlw-frame");
 
   const detailsModalContainerInvis = () => {
@@ -285,84 +280,74 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const openDetailsModalContainer = () => {
-    // if (detailsModalContainerInvis()) {
+    if (detailsModalContainerInvis()) {
       moreDetailsModalContainer.classList.remove("modal-invis");
-    // }
+    }
   };
 
   const closeDetailsModalContainer = () => {
-    // if (!detailsModalContainerInvis()) {
+    if (!detailsModalContainerInvis()) {
       moreDetailsModalContainer.classList.add("modal-invis");
-    // }
+    }
   };
 
-  const showModal = (modal) => {
-    modal.classList.remove("modal-invis");
-    modal.classList.remove("no-display");
+  const showModalBody = (modalBody) => {
+    modalBody.classList.remove("modal-invis");
+    modalBody.classList.remove("no-display");
     hostBPageMain.classList.add("no-select");
   };
 
-  const hideModal = (modal) => {
-    modal.classList.add("modal-invis");
-    modal.classList.add("no-display");
+  const hideModalBody = (modalBody) => {
+    modalBody.classList.add("modal-invis");
+    modalBody.classList.add("no-display");
     hostBPageMain.classList.remove("no-select");
   };
 
-  // const modalNoDisplay = (modal) => {
-  //   modal.classList.add("no-display");
-  // };
+  const modalBodyNoDisplay = (modalBody) => {
+    modalBody.classList.add("no-display");
+  };
 
   const hideAllHostBModals = () => {
-    const statsModalIsInvis = statsModal.classList.contains("modal-invis");
-    const codeModalIsInvis = codeModal.classList.contains("modal-invis");
-    const modelInfoModalIsInvis = modelInfoModal.classList.contains("modal-invis");
+    const statsModalIsInvis = statsModalBody.classList.contains("modal-invis");
+    const codeModalIsInvis = codeModalBody.classList.contains("modal-invis");
+    const modelInfoModalIsInvis = modelInfoModalBody.classList.contains("modal-invis");
 
     if (!statsModalIsInvis) {
-      hideModal(statsModal);
-      // modalNoDisplay(statsModal);
+      hideModalBody(statsModalBody);
+      modalBodyNoDisplay(statsModalBody);
     } else if (!codeModalIsInvis) {
-      hideModal(codeModal);
-      // modalNoDisplay(codeModal);
+      hideModalBody(codeModalBody);
+      modalBodyNoDisplay(codeModalBody);
     } else if (!modelInfoModalIsInvis) {
-      hideModal(modelInfoModal);
-      // modalNoDisplay(modelInfoModal);
+      hideModalBody(modelInfoModalBody);
+      modalBodyNoDisplay(modelInfoModalBody);
     }
   };
 
   moreDetailsButton.onclick = () => {
     openDetailsModalContainer();
-    showModal(statsModal);
+    showModalBody(statsModalBody);
   };
 
   statsModalTab.onclick = () => {
     hideAllHostBModals();
-    showModal(statsModal);
+    showModalBody(statsModalBody);
   };
 
   codeModalTab.onclick = () => {
     hideAllHostBModals();
-    showModal(codeModal);
+    showModalBody(codeModalBody);
   };
 
   modelInfoModalTab.onclick = () => {
     hideAllHostBModals();
-    showModal(modelInfoModal);
+    showModalBody(modelInfoModalBody);
   };
 
-  closeStatsModalButton.onclick = () => {
+  closeMoreDetailsModalButton.onclick = () => {
     closeDetailsModalContainer();
     hideAllHostBModals();
-  };
-
-  closeCodeModalButton.onclick = () => {
-    closeDetailsModalContainer();
-    hideAllHostBModals();
-  };
-
-  closeModelInfoModalButton.onclick = () => {
-    closeDetailsModalContainer();
-    hideAllHostBModals();
-  };
+  }
 
   nlwManager.init();
 });
