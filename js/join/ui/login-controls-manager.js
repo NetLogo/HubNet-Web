@@ -20,7 +20,7 @@ export default class LoginControlsManager {
 
       this.#button.disabled = true;
 
-      const username     = this. getUsername();
+      const username     = this.getUsername();
       const password     = this.#getPassword();
       const sessionName  = this.getSessionName();
       const activityName = this.getActivityName();

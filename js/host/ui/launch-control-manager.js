@@ -16,7 +16,7 @@ export default class LaunchControlManager {
 
   }
 
-  // (Object[Any]) => Promise[(FormData, Response)]
+  // (Object[Any]) => Promise[(FormData, Response, Object[Any])]
   launch = (conf) => {
 
     const config = { ...conf };
@@ -30,7 +30,7 @@ export default class LaunchControlManager {
 
     return awaitNlogo(config).
       then(awaitLaunch(this.#awaitLaunchHTTP)).
-      then(awaitProcessResponse(this.#elem, this.#notifyUser));
+      then(awaitProcessResponse(this.#elem, this.#notifyUser, config));
 
   };
 
@@ -92,8 +92,9 @@ const awaitLaunch = (awaitLaunchHTTP) => (config) => {
 
 };
 
-// (Element, (String) => Unit) => (Response) => Promise[Object[Any]]
-const awaitProcessResponse = (frame, notifyUser) => (response) => {
+// (TODO): Note before merging - Want to make sure that this type header is correct?
+// (Element, (String) => Unit, Object[Any]) => (Response) => Promise[Object[Any]]
+const awaitProcessResponse = (frame, notifyUser, config) => (response) => {
 
   if (response.status === 200) {
 
@@ -106,7 +107,7 @@ const awaitProcessResponse = (frame, notifyUser) => (response) => {
 
         frame.classList.add("hidden");
 
-        return { isSuccess: true, data: { hostID, json, nlogo } };
+        return { isSuccess: true, data: { hostID, json, nlogo }, config: config };
 
       }
     );

@@ -455,7 +455,6 @@ body {
   justify-content: center;
 }
 
-/* (NEW): TODO */
 @media (max-width: 800px) {
   .triangle-down-black {
     width: 0;

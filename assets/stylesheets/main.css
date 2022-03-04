@@ -396,10 +396,6 @@
   overflow-y: auto;
 }
 
-.modal-main-content {
-  /* TODO */
-}
-
 .chat-box-closed-container {
   cursor: pointer;
 }

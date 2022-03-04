@@ -16,7 +16,7 @@ const onNLWManError = (subtype) => {
 };
 
 // (Object[Any]) => Unit
-const finishLaunch = ({ isSuccess, data }) => {
+const finishLaunch = ({ isSuccess, data, config }) => {
 
   if (isSuccess) {
 
@@ -26,7 +26,7 @@ const finishLaunch = ({ isSuccess, data }) => {
 
     history.pushState({ name: "hosting" }, "hosting");
 
-    nlwManager.show();
+    nlwManager.show(config);
     nlwManager.becomeOracle(hostID, json, nlogo);
 
     connMan.connect(hostID);
@@ -164,8 +164,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const singlePopupThreshold = 600;
 
   window.onresize = () => {
-    // console.log("width:", window.innerWidth);
-
     if (commandCenterOpen()) {
       accomodatePopupNarrowScreen("commandCenter");
     } else if (globalChatOpen()) {
@@ -259,8 +257,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const openSessionChat = () => {
-    console.log("width:", window.innerWidth);
-
     sessionOpenChatBox.classList.remove("invisible");
     sessionClosedChatBox.classList.add("invisible");
     sessionClosedChatBoxBottom.classList.add("invisible");
@@ -273,8 +269,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const openGlobalChat = () => {
-    console.log("width:", window.innerWidth);
-
     globalOpenChatBox.classList.remove("invisible");
     globalClosedChatBox.classList.add("invisible");
     globalClosedChatBoxBottom.classList.add("invisible");
@@ -318,8 +312,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const openCommandCenter = () => {
-    console.log("width:", window.innerWidth);
-
     commandCenterOpenBox.classList.remove("invisible");
     commandCenterClosedBox.classList.add("invisible");
     commandCenterClosedBottom.classList.add("invisible");
