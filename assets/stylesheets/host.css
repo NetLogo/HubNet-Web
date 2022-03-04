@@ -234,8 +234,7 @@ body {
 }
 
 .max-num-clients-picker {
-  width: 50vw;
-  max-width: 400px;
+  width: 40vw;
 }
 
 .post-frame-divider {
@@ -420,6 +419,7 @@ body {
 .global-chat-box-closed-std {
   right: 100px;
 }
+
 .global-chat-box-closed-offset {
   right: calc(30vw + 10px);
 }
@@ -454,6 +454,119 @@ body {
   align-items: center;
   justify-content: center;
 }
+
+/* (NEW): TODO */
+@media (max-width: 800px) {
+  .popup-header-text {
+    font-size: 16px;
+    margin-right: 10px;
+  }
+
+  .triangle-down-black {
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 14px solid black;
+  }
+
+  .triangle-up-black {
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 14px solid black;
+  }
+
+  .button-base {
+    cursor: pointer;
+    width: 125px;
+    height: 40px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  .capacity-slider-container > p {
+    margin: 10px auto;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .command-center-closed {
+    position: fixed;
+    bottom: 30px;
+    left: 10px;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    border-radius: 15px;
+    width: 80px;
+    height: 50px;
+    color: black;
+    font-size: 14px;
+    z-index: 3;
+    transition: opacity 0.2s;
+    background-color: lightgray;
+  }
+
+  .command-center-open {
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    bottom: 0;
+    width: 40vw;
+    transition: opacity 0.2s;
+  }
+
+  .command-center-body {
+    height: 50vh;
+    border-right: 1px solid black;
+    background-color: white;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 10px 10px 10px;
+    z-index: 1;
+  }
+
+  .command-center-text-input {
+    width: 100%;
+    height: 25px;
+  }
+
+  .command-center-clear-button {
+    width: 50px;
+    height: 25px;
+  }
+
+  .session-chat-box-open {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 40vw;
+    z-index: 4;
+  }
+
+  .global-chat-box-closed-offset {
+    right: calc(40vw + 10px);
+  }
+
+
+  .global-chat-box-closed-bottom-offset {
+    right: calc(40vw + 20px);
+  }
+
+  .global-chat-box-open-base {
+    position: fixed;
+    bottom: 0;
+    width: 40vw;
+  }
+
+  .global-chat-box-open-offset {
+    right: 40vw;
+  }
+
+}
+
 
 /* (NEW): Specific / custom modal styling */
 .stats-modal-title {

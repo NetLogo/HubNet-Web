@@ -536,3 +536,32 @@
   height: 6vh;
   padding-left: 10px;
 }
+
+@media (max-width: 800px) {
+  .chat-box-closed {
+    position: fixed;
+    bottom: 30px;
+    right: 10px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    width: 70px;
+    height: 35px;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 3;
+    transition: opacity 0.2s;
+    background-color: gray;
+  }
+
+  .collapse-chat-arrow {
+    margin-left: 100px;
+    margin-bottom: 3px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 12px solid black;
+  }
+}
