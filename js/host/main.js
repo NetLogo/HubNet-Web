@@ -142,6 +142,13 @@ document.addEventListener("DOMContentLoaded", () => {
     descriptionModalContainer.classList.add("modal-invis");
   };
 
+  // TODO: Currently a bug here - will fix next week though
+  const copyInviteButton = byEID("copy-invite-button");
+  copyInviteButton.onclick = () => {
+    alert("Invite copied!");
+    navigator.clipboard.writeText(`http://localhost:8080/join#${byEID("id-display").innerHTML}`);
+  };
+
   // (NEW): Chat box controls
   const capacityDisplayText = byEID("capacity-display-text");
   const capacitySlider = byEID("max-num-clients-picker");
