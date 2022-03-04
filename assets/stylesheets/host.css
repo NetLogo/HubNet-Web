@@ -73,8 +73,8 @@ body {
   bottom: 30px;
   background-color: #aed8f2;
   height: 20px;
-  width: 20px;
-  padding: 4px 10px 4px 10px;
+  width: 50px;
+  padding: 4px 0;
   border: 1px solid gray;
   border-radius: 0 8px 8px 0;
   pointer-events: none;
@@ -457,11 +457,6 @@ body {
 
 /* (NEW): TODO */
 @media (max-width: 800px) {
-  .popup-header-text {
-    font-size: 16px;
-    margin-right: 10px;
-  }
-
   .triangle-down-black {
     width: 0;
     height: 0;
@@ -476,6 +471,27 @@ body {
     border-left: 8px solid transparent;
     border-right: 8px solid transparent;
     border-bottom: 14px solid black;
+  }
+
+  .custom-select-arrow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    float: right;
+    bottom: 30px;
+    background-color: #aed8f2;
+    height: 20px;
+    width: 30px;
+    padding: 4px 0;
+    border: 1px solid gray;
+    border-radius: 0 8px 8px 0;
+    pointer-events: none;
+  }
+
+  .popup-header-text {
+    font-size: 16px;
+    margin-right: 10px;
   }
 
   .button-base {
@@ -573,13 +589,9 @@ body {
   margin-top: 0;
   margin-bottom: 10px;
   text-align: center;
-  font-size: 36px;
+  font-size: 28px;
   font-weight: bold;
   text-decoration: underline;
-}
-
-.session-dashboard-text {
-  font-size: 20px;
 }
 
 .stats-modal-bold-text {
