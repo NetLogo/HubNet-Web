@@ -36,7 +36,7 @@
         </div>
       </div>
 
-      <div id="form-frame" class="frame">
+      <div id="form-frame" class="frame hidden">
         <h1 class="host-header">Hosting</h1>
         <form id="launch-form" action="javascript:void(0);" method="POST" enctype="multipart/form-data">
 
@@ -134,7 +134,7 @@
     </div>
 
     <!-- HostB page here -->
-    <div id="nlw-frame" class="frame host-b-frame hidden">
+    <div id="nlw-frame" class="frame host-b-frame ">
 
       <div id="more-details-modal-container" class="modal-container modal-invis">
         <div id="more-details-modal" class="modal flex-column">
@@ -214,8 +214,11 @@
         <hr class="post-frame-divider" />
 
         <div class="bottom-setup-row flex-row">
-          <input class="button-base setup-button" id="setup-button" type="button" value="Setup">
-          <input class="button-base go-button" id="go-button" type="button" value="Go">
+          <div class="button-base setup-button" id="setup-button">Setup</div>
+          <div class="button-base flex-row" id="go-button">
+            <input class="go-button-checkbox" type="checkbox">
+            <div>Go</div>
+          </div>
         </div>
 
         <div id="command-center-container">

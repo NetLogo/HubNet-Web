@@ -247,13 +247,25 @@ body {
   justify-content: center;
 }
 
-.setup-button {
+.bottom-setup-row > div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  border: 2px solid black;
   background-color: #7cacec;
+}
+
+.setup-button {
   margin-right: 50px;
 }
 
-.go-button {
-  background-color: #7cacec;
+.go-button-checkbox {
+  width: 20px;
+  height: 20px;
+  margin-right: 15px;
+  outline: 1px solid black;
+  border: none !important;
 }
 
 .invisible {
@@ -581,7 +593,6 @@ body {
   }
 
 }
-
 
 /* (NEW): Specific / custom modal styling */
 .stats-modal-title {
