@@ -195,7 +195,8 @@ body {
   margin-right: auto;
   justify-content: space-between;
   width: 90%;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
+  padding: 10px;
 }
 
 .modal-toggle-row > input {

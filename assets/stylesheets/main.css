@@ -392,7 +392,7 @@
 
 .modal-body {
   margin: 25px 25px 0px 25px;
-  max-height: 70%;
+  height: 60%;
   overflow-y: auto;
 }
 
