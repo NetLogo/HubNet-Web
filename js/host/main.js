@@ -160,6 +160,41 @@ document.addEventListener("DOMContentLoaded", () => {
   const globalOpenChatBox = byEID("global-chat-box-open");
   const globalOpenChatHeader = byEID("global-open-chat-header");
 
+  const singleChatThreshold = 1000;
+  const singlePopupThreshold = 600;
+
+  window.onresize = () => {
+    // console.log("width:", window.innerWidth);
+
+    if (commandCenterOpen()) {
+      accomodatePopupNarrowScreen("commandCenter");
+    } else if (globalChatOpen()) {
+      accomodatePopupNarrowScreen("globalChat");
+    } else if (sessionChatOpen()) {
+      accomodatePopupNarrowScreen("sessionChat");
+    }
+  };
+
+  const singleChatView = () => {
+    return window.innerWidth <= singleChatThreshold;
+  };
+
+  const singlePopupView = () => {
+    return window.innerWidth <= singlePopupThreshold;
+  };
+
+  const sessionChatOpen = () => {
+    return !sessionOpenChatBox.classList.contains("invisible");
+  };
+
+  const globalChatOpen  = () => {
+    return !globalOpenChatBox.classList.contains("invisible");
+  };
+
+  const commandCenterOpen = () => {
+    return !commandCenterOpenBox.classList.contains("invisible");
+  };
+
   const globalChatStandardPosition = () => {
     globalOpenChatBox.classList.add("global-chat-box-open-std");
     globalOpenChatBox.classList.remove("global-chat-box-open-offset");
@@ -182,7 +217,50 @@ document.addEventListener("DOMContentLoaded", () => {
     globalClosedChatBoxBottom.classList.add("global-chat-box-closed-bottom-offset");
   };
 
+  const accomodatePopupNarrowScreen = (popupType) => {
+    if (popupType === "sessionChat") {
+      if (singlePopupView()) {
+        if (globalChatOpen()) {
+          closeGlobalChat();
+        }
+
+        if (commandCenterOpen()) {
+          closeCommandCenter();
+        }
+      } else if (singleChatView() && globalChatOpen()) {
+        closeGlobalChat();
+      }
+    } else if (popupType === "globalChat") {
+      if (singlePopupView()) {
+        if (sessionChatOpen()) {
+          closeSessionChat();
+          globalChatStandardPosition();
+        }
+
+        if (commandCenterOpen()) {
+          closeCommandCenter();
+        }
+      } else if (singleChatView() && sessionChatOpen()) {
+        closeSessionChat();
+        globalChatStandardPosition();
+      }
+    } else {
+      if (singlePopupView()) {
+        if (sessionChatOpen()) {
+          closeSessionChat();
+          globalChatStandardPosition();
+        }
+
+        if (globalChatOpen()) {
+          closeGlobalChat();
+        }
+      }
+    }
+  };
+
   const openSessionChat = () => {
+    console.log("width:", window.innerWidth);
+
     sessionOpenChatBox.classList.remove("invisible");
     sessionClosedChatBox.classList.add("invisible");
     sessionClosedChatBoxBottom.classList.add("invisible");
@@ -195,6 +273,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const openGlobalChat = () => {
+    console.log("width:", window.innerWidth);
+
     globalOpenChatBox.classList.remove("invisible");
     globalClosedChatBox.classList.add("invisible");
     globalClosedChatBoxBottom.classList.add("invisible");
@@ -207,11 +287,13 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   sessionClosedChatBox.onclick = () => {
+    accomodatePopupNarrowScreen("sessionChat");
     openSessionChat();
     globalChatOffsetPosition();
   };
 
   sessionClosedChatBoxBottom.onclick = () => {
+    accomodatePopupNarrowScreen("sessionChat");
     openSessionChat();
     globalChatOffsetPosition();
   };
@@ -222,10 +304,12 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   globalClosedChatBox.onclick = () => {
+    accomodatePopupNarrowScreen("globalChat");
     openGlobalChat();
   };
 
   globalClosedChatBoxBottom.onclick = () => {
+    accomodatePopupNarrowScreen("globalChat");
     openGlobalChat();
   }
 
@@ -234,6 +318,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const openCommandCenter = () => {
+    console.log("width:", window.innerWidth);
+
     commandCenterOpenBox.classList.remove("invisible");
     commandCenterClosedBox.classList.add("invisible");
     commandCenterClosedBottom.classList.add("invisible");
@@ -251,10 +337,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const commandCenterOpenHeader = byEID("command-center-header");
 
   commandCenterClosedBox.onclick = () => {
+    accomodatePopupNarrowScreen("commandCenter");
     openCommandCenter();
   };
 
   commandCenterClosedBottom.onclick = () => {
+    accomodatePopupNarrowScreen("commandCenter");
     openCommandCenter();
   };
 
