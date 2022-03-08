@@ -24,9 +24,13 @@ const finishLaunch = ({ isSuccess, data, config }) => {
 
     byEID("id-display").innerText = hostID;
 
+    byEID("stats-modal-title").innerHTML = `Session Stats: ${config.sessionName}`;
+    byEID("code-modal-title").innerHTML = `Code: ${config.model}`;
+    byEID("model-info-modal-title").innerHTML = `Model Information: ${config.model}`;
+
     history.pushState({ name: "hosting" }, "hosting");
 
-    nlwManager.show(config);
+    nlwManager.show();
     nlwManager.becomeOracle(hostID, json, nlogo);
 
     connMan.connect(hostID);
@@ -145,8 +149,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // TODO: Currently a bug here - will fix next week though
   const copyInviteButton = byEID("copy-invite-button");
   copyInviteButton.onclick = () => {
-    alert("Invite copied!");
-    navigator.clipboard.writeText(`http://localhost:8080/join#${byEID("id-display").innerHTML}`);
+    const inviteLink = `http://localhost:8080/join#${byEID("id-display").innerHTML}`;
+
+    navigator.clipboard.writeText(inviteLink)
+      .then(() => {
+        alert("Invite link copied!");
+      })
+      .catch((err) => {
+        alert("Error with copying link :(");
+      });
   };
 
   // (NEW): Chat box controls

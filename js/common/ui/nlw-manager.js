@@ -39,16 +39,8 @@ export default class NLWManager {
     this.#withNLWID = (msg) => ({ ...msg, id: idMan.next(""), source: "hnw" });
   };
 
-  // (Object[Any]) => Unit
-  show = (config) => {
-    const statsModalTitle = this.#outerFrame.querySelector("#stats-modal-title");
-    const codeModalTitle = this.#outerFrame.querySelector("#code-modal-title");
-    const modelInfoModalTitle = this.#outerFrame.querySelector("#model-info-modal-title");
-
-    statsModalTitle.innerHTML = `Session Stats: ${config.sessionName}`;
-    codeModalTitle.innerHTML = `Code: ${config.model}`;
-    modelInfoModalTitle.innerHTML = `Model Information: ${config.model}`;
-
+  // () => Unit
+  show = () => {
     this.#outerFrame.classList.remove("hidden");
     this._show();
   };
