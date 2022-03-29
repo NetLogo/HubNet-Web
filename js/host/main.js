@@ -445,7 +445,20 @@ document.addEventListener("DOMContentLoaded", () => {
   closeMoreDetailsModalButton.onclick = () => {
     closeDetailsModalContainer();
     hideAllHostBModals();
+  };
+
+  // (NEW): TODO
+  const setupButton = document.getElementById("hnw-setup-button");
+  const goCheckbox = document.getElementById("hnw-go");
+
+  setupButton.onclick = () => {
+    nlwManager.relay({type: "hnw-setup-button"});
+  };
+
+  goCheckbox.onclick = () => {
+    nlwManager.relay({type: "hnw-go-checkbox"});
   }
+
 
   nlwManager.init();
 });
