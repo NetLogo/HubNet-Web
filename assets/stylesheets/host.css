@@ -545,26 +545,6 @@ body {
     transition: opacity 0.2s;
   }
 
-  .command-center-body {
-    height: 50vh;
-    border-right: 1px solid black;
-    background-color: white;
-    justify-content: space-between;
-    align-items: flex-end;
-    padding: 0 10px 10px 10px;
-    z-index: 1;
-  }
-
-  .command-center-text-input {
-    width: 100%;
-    height: 25px;
-  }
-
-  .command-center-clear-button {
-    width: 50px;
-    height: 25px;
-  }
-
   .session-chat-box-open {
     position: fixed;
     bottom: 0;

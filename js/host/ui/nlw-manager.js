@@ -53,20 +53,44 @@ export default class HostNLWManager extends NLWManager {
 
     iframe.src = `${this._galaURL}/hnw-host`;
 
-    // (NEW): TODO
-    this._setBabyMonitor(babyMonitorChannel.port2);
+    // (NEW): Command center iframe setup
+    this._setBabyMonitor(babyMonitorChannel.port2); // TODO: Maybe wrong???
 
     const commandCenterFrame = this._getCommandCenterFrame();
 
     commandCenterFrame.onload = () => {
       const msg     = { type: "hnw-set-up-command-center" };
       const conWind = commandCenterFrame.contentWindow;
-      conWind.postMessage(msg, this._galaURL, [babyMonitorChannel.port1]);
+      conWind.postMessage(msg, this._galaURL, [babyMonitorChannel.port1]); // TODO: Maybe wrong???
     };
 
     commandCenterFrame.src = `${this._galaURL}/command-center`;
 
+    // (NEW): Code modal iframe setup
+    this._setBabyMonitor(babyMonitorChannel.port1); // TODO: Maybe wrong???
 
+    const codeModalFrame = this._getCodeModalFrame();
+
+    codeModalFrame.onload = () => {
+      const msg     = { type: "hnw-set-up-code-modal" };
+      const conWind = codeModalFrame.contentWindow;
+      conWind.postMessage(msg, this._galaURL, [babyMonitorChannel.port2]); // TODO: Maybe wrong???
+    };
+
+    codeModalFrame.src = `${this._galaURL}/code-modal`;
+
+    // (NEW): Info modal iframe setup
+    this._setBabyMonitor(babyMonitorChannel.port2); // TODO: Maybe wrong???
+
+    const infoModalFrame = this._getInfoModalFrame();
+
+    infoModalFrame.onload = () => {
+      const msg     = { type: "hnw-set-up-info-modal" };
+      const conWind = infoModalFrame.contentWindow;
+      conWind.postMessage(msg, this._galaURL, [babyMonitorChannel.port1]); // TODO: Maybe wrong???
+    };
+
+    infoModalFrame.src = `${this._galaURL}/info-modal`;
   };
 
   // () => Unit

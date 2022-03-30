@@ -98,7 +98,6 @@ const connMan =
                        , launchControlManager.passwordMatches, getCapacity()
                        , notifyUser);
 
-// (NEW): TODO
 const nlwManager =
   new NLWManager( byEID("nlw-frame"), connMan.broadcast
                 , connMan.narrowcast, onNLWManError);
@@ -448,7 +447,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideAllHostBModals();
   };
 
-  // (NEW): TODO
+  // (NEW): Pass message to inner iframe on setup & go
   const setupButton = document.getElementById("hnw-setup-button");
   const goCheckbox = document.getElementById("hnw-go");
 
@@ -459,7 +458,6 @@ document.addEventListener("DOMContentLoaded", () => {
   goCheckbox.onclick = () => {
     nlwManager.relay({type: "hnw-go-checkbox"});
   }
-
 
   nlwManager.init();
 });

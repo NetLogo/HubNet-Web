@@ -32,7 +32,6 @@
   width:  100%;
 }
 
-/* (NEW): TODO */
 .command-center-iframe {
   height: 50vh;
   border: 1px solid black;
@@ -40,6 +39,11 @@
   padding: 0 20px 20px 20px;
   z-index: 1;
   box-shadow: none !important;
+}
+
+.code-modal-iframe, .info-modal-iframe {
+  height: 100vh;
+  width: 100vw;
 }
 
 /* (NEW): Common page headers styling */

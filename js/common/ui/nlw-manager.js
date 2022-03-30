@@ -84,8 +84,18 @@ export default class NLWManager {
   };
 
   // (NEW): TODO
+
+  // () => HTMLIFrameElement
   _getCommandCenterFrame = () => {
     return this.#outerFrame.querySelector("#command-center-iframe");
+  };
+
+  _getCodeModalFrame = () => {
+    return this.#outerFrame.querySelector("#code-modal-iframe");
+  };
+
+  _getInfoModalFrame = () => {
+    return this.#outerFrame.querySelector("#info-modal-iframe");
   };
 
   // () => Unit
