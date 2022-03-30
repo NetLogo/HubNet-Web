@@ -61,7 +61,7 @@ export default class HostNLWManager extends NLWManager {
     commandCenterFrame.onload = () => {
       const msg     = { type: "hnw-set-up-command-center" };
       const conWind = commandCenterFrame.contentWindow;
-      conWind.postMessage(msg, this._galaURL, [babyMonitorChannel.port1]); // TODO: Maybe wrong???
+      conWind.postMessage(msg, this._galaURL, [babyMonitorChannel.port2]); // TODO: Maybe wrong???
     };
 
     commandCenterFrame.src = `${this._galaURL}/command-center`;

@@ -146,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
     descriptionModalContainer.classList.add("modal-invis");
   };
 
-  // TODO: Currently a bug here - will fix next week though
+  // (NEW): Copy invite link functionality
   const copyInviteButton = byEID("copy-invite-button");
   copyInviteButton.onclick = () => {
     const inviteLink = `http://localhost:8080/join#${byEID("id-display").innerHTML}`;

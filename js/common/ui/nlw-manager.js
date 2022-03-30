@@ -83,17 +83,17 @@ export default class NLWManager {
     return this.#outerFrame.querySelector("#nlw-iframe-external");
   };
 
-  // (NEW): TODO
-
   // () => HTMLIFrameElement
   _getCommandCenterFrame = () => {
     return this.#outerFrame.querySelector("#command-center-iframe");
   };
 
+  // () => HTMLIFrameElement
   _getCodeModalFrame = () => {
     return this.#outerFrame.querySelector("#code-modal-iframe");
   };
 
+  // () => HTMLIFrameElement
   _getInfoModalFrame = () => {
     return this.#outerFrame.querySelector("#info-modal-iframe");
   };
