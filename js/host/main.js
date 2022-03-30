@@ -98,6 +98,7 @@ const connMan =
                        , launchControlManager.passwordMatches, getCapacity()
                        , notifyUser);
 
+// (NEW): TODO
 const nlwManager =
   new NLWManager( byEID("nlw-frame"), connMan.broadcast
                 , connMan.narrowcast, onNLWManError);

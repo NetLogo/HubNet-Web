@@ -53,6 +53,20 @@ export default class HostNLWManager extends NLWManager {
 
     iframe.src = `${this._galaURL}/hnw-host`;
 
+    // (NEW): TODO
+    this._setBabyMonitor(babyMonitorChannel.port2);
+
+    const commandCenterFrame = this._getCommandCenterFrame();
+
+    commandCenterFrame.onload = () => {
+      const msg     = { type: "hnw-set-up-command-center" };
+      const conWind = commandCenterFrame.contentWindow;
+      conWind.postMessage(msg, this._galaURL, [babyMonitorChannel.port1]);
+    };
+
+    commandCenterFrame.src = `${this._galaURL}/command-center`;
+
+
   };
 
   // () => Unit
