@@ -15,8 +15,21 @@ export default (rootBundle) => (connBundle) => {
 
   };
 
-  const setConnectionType = (ct) => {
-    byEID("connection-type-span").innerHTML = ct;
+  // ((Boolean, Boolean)) => Unit
+  const setConnectionType = ([receivesOverTURN, sendsOverTURN]) => {
+
+    const rx = receivesOverTURN;
+    const tx =    sendsOverTURN;
+
+    const [clazz, text] =
+      (rx  &&  tx) ? ["conn-worst",  "Fully Server-Based"] :
+      (rx  && !tx) ? ["conn-worse", "Mostly Server-Based"] :
+      (!rx &&  tx) ? ["conn-bad"  , "Mostly Peer-to-Peer"] :
+                     ["conn-good" ,  "Fully Peer-to-Peer"];
+
+    byEID("connection-type-span").className = clazz;
+    byEID("connection-type-span").innerText = text;
+
   };
 
   const setLatency = (lat) => {

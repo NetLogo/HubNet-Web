@@ -7,17 +7,28 @@ const byteSizeLabel = (n, precision = 2) => {
                       `${trunc(n)} B`;
 };
 
-// (RTCStatReport) => Boolean
-const checkIsTURN = (stats) => {
-  return Array.from(stats.values()).some(
-    (v) =>
-      v.type === "candidate-pair" &&
-        v.state === "succeeded" &&
-        ((v. localCandidateId &&
-          stats.get(v. localCandidateId).candidateType === "relay") ||
-         (v.remoteCandidateId &&
-          stats.get(v.remoteCandidateId).candidateType === "relay"))
-  );
+// (RTCStatReport) => (Boolean, Boolean)
+const checkTURNiness = (stats) => {
+
+  const pair =
+    Array.from(stats.values()).find(
+      (v) =>
+        v.type  === "candidate-pair" &&
+        v.state === "succeeded"      &&
+        v. localCandidateId          &&
+        v.removeCandidateId
+    );
+
+  const receivesOverTURN =
+    pair !== undefined &&
+    stats.get(pair. localCandidateId).candidateType === "relay";
+
+  const sendsOverTURN =
+    pair !== undefined &&
+    stats.get(pair.remoteCandidateId).candidateType === "relay";
+
+  return [receivesOverTURN, sendsOverTURN];
+
 };
 
 // () => UUID
@@ -58,4 +69,4 @@ const typeIsOOB = (type) => {
   return ["bye-bye", "keep-alive", "ping", "pong"].includes(type);
 };
 
-export { byteSizeLabel, checkIsTURN, genUUID, typeIsOOB, uuidToRTCID };
+export { byteSizeLabel, checkTURNiness, genUUID, typeIsOOB, uuidToRTCID };

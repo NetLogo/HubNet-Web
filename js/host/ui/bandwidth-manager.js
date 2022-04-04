@@ -1,4 +1,4 @@
-import { byteSizeLabel, checkIsTURN } from "/js/common/util.js";
+import { byteSizeLabel, checkTURNiness } from "/js/common/util.js";
 
 export default class BandwidthManager {
 
@@ -97,8 +97,17 @@ export default class BandwidthManager {
   updateTURNs = (connStats) => {
     Promise.all(connStats).then(
       (allStats) => {
-        const turners = allStats.filter(checkIsTURN);
-        this.#setNumTURNs(turners.length);
+
+        const combineTURNStats =
+          ([rxNum, txNum], stats) => {
+            const [rxBool, txBool] = checkTURNiness(stats);
+            return [rxNum + (rxBool ? 1 : 0), txNum + (txBool ? 1 : 0)];
+          };
+
+        const [rx, tx] = allStats.reduce(combineTURNStats, [0, 0]);
+
+        this.#setNumTURNs(`${rx} incoming, ${tx} outgoing, of ${allStats.length}`);
+
       }
     );
   };
