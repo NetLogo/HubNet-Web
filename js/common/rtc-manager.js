@@ -2,6 +2,8 @@ import { typeIsOOB } from "./util.js";
 
 import SerializerPoolParty from "/js/serialize/serializer-pool-party.js";
 
+import { version } from "/js/static/version.js";
+
 import BandwidthMonitor from "./bandwidth-monitor.js";
 import IDManager        from "./id-manager.js";
 
@@ -121,6 +123,12 @@ export default class RTCManager {
 
     }
 
+  };
+
+  // (RTCDataChannel) => Unit
+  sendGreeting = (channel) => {
+    const baseMsg = { protocolVersion: version };
+    this.send(channel)("connection-established", baseMsg);
   };
 
   // (Object[Any]) => Promise[Any]

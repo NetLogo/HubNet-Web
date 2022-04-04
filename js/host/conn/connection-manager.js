@@ -1,5 +1,5 @@
-import RxQueue                      from "/js/common/rx-queue.js";
-import { checkIsTURN, uuidToRTCID } from "/js/common/util.js";
+import RxQueue         from "/js/common/rx-queue.js";
+import { uuidToRTCID } from "/js/common/util.js";
 
 import { version } from "/js/static/version.js";
 
@@ -24,7 +24,6 @@ export default class ConnectionManager {
   #passwordMatches  = undefined; // (String) => Boolean
   #registerPingTime = undefined; // (UUID, Number) => Unit
   #relay            = undefined; // (Object[Any]) => Unit
-  #retrialsObj      = undefined; // Object[UUID, Number]
   #rtcManager       = undefined; // RTCManager
   #sessionManager   = undefined; // SessionManager
   #statusSocket     = undefined; // StatusSocket
@@ -46,7 +45,6 @@ export default class ConnectionManager {
     this.#passwordMatches  = passwordMatches;
     this.#registerPingTime = registerPing;
     this.#relay            = relay;
-    this.#retrialsObj      = {};
     this.#rtcManager       = new RTCManager(true);
     this.#sessionManager   = new SessionManager(maxCapacity, onConnStatChange);
     this.#statusSocket     = new StatusSocket();
@@ -174,16 +172,11 @@ export default class ConnectionManager {
     const props   = { negotiated: true, id: rtcID };
     const channel = connection.createDataChannel("hubnet-web", props);
 
-    const onRun      = this.#onChannelMessage(joinerID, channel, connection);
+    const onRun      = this.#onChannelMessage(joinerID, channel);
     const msgHandler = { reset: () => {}, run: onRun };
     const rxQueue    = new RxQueue(msgHandler, true);
 
-    const sendGreeting = () => {
-      const msg = { protocolVersion: version };
-      this.#rtcManager.send(channel)("connection-established", msg);
-    };
-
-    channel.onopen    = sendGreeting;
+    channel.onopen    = () => { this.#rtcManager.sendGreeting(channel); };
     channel.onmessage = rxQueue.enqueue;
     channel.onclose   = () => { this.#disown(joinerID); };
 
@@ -221,8 +214,8 @@ export default class ConnectionManager {
 
   };
 
-  // (UUID, RTCDataChannel, RTCPeerConnection) => (Object[Any]) => Unit
-  #onChannelMessage = (joinerID, channel, connection) => (datum) => {
+  // (UUID, RTCDataChannel) => (Object[Any]) => Unit
+  #onChannelMessage = (joinerID, channel) => (datum) => {
 
     switch (datum.type) {
 
@@ -244,47 +237,11 @@ export default class ConnectionManager {
       }
 
       case "connection-established": {
-
-        const { protocolVersion, usesTURN, uuid } = datum;
-
-        if (protocolVersion !== version) {
+        if (datum.protocolVersion !== version) {
           const id = this.#sessionManager.invalidate(joinerID);
-          this.#notifyUser(`HubNet protocol version mismatch!  You are using protocol version '${version}', while client '${id}' is using version '${protocolVersion}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and refresh the page.  The offending client has been disconnected.`);
+          this.#notifyUser(`HubNet protocol version mismatch!  You are using protocol version '${version}', while client '${id}' is using version '${datum.protocolVersion}'.  To ensure that you and the client are using the same version of HubNet Web, all parties should clear their browser cache and refresh the page.  The offending client has been disconnected.`);
         }
-
-        if (this.#retrialsObj[uuid] === undefined) {
-          this.#retrialsObj[uuid] = 0;
-        }
-
-        connection.getStats().then(
-          (stats) => {
-
-            const imUsingTURN = checkIsTURN(stats);
-
-            if (this.#retrialsObj[uuid] < 10 && (usesTURN || imUsingTURN)) {
-
-              this.#retrialsObj[uuid]++;
-              console.warn(`Joiner '${uuid}' is renegotiating, due to TURN usage #${this.#retrialsObj[uuid]}.`);
-              const msg = { isApproved: false };
-              this.#rtcManager.send(channel)("connection-validation", msg);
-
-              setTimeout(() => {
-                if (channel.readyState === "open") {
-                  channel.close(1000, "Terminated due to TURN usage");
-                }
-              }, 10000);
-
-            } else {
-              this.#retrialsObj[uuid] = 0;
-              const msg = { isApproved: true };
-              this.#rtcManager.send(channel)("connection-validation", msg);
-            }
-
-          }
-        );
-
         break;
-
       }
 
       case "login": {
