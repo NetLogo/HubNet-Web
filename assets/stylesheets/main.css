@@ -203,7 +203,7 @@
 }
 
 .modal-container {
-  transition: opacity 0.25s;
+  transition: opacity 0.12s;
   position: fixed;
   width: 100%;
   height: 100%;
