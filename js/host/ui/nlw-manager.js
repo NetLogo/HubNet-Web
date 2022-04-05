@@ -54,40 +54,42 @@ export default class HostNLWManager extends NLWManager {
     iframe.src = `${this._galaURL}/hnw-host`;
 
     // (NEW): Command center iframe setup
-    this._setBabyMonitor(babyMonitorChannel.port2); // TODO: Maybe wrong???
-
+    const commandCenterChannel = new MessageChannel();
     const commandCenterFrame = this._getCommandCenterFrame();
+
+    // TODO: Currently unused, but will be a bit later for "interactive" message passing
+    const commandCenterPort1 = commandCenterChannel.port1;
 
     commandCenterFrame.onload = () => {
       const msg     = { type: "hnw-set-up-command-center" };
       const conWind = commandCenterFrame.contentWindow;
-      conWind.postMessage(msg, this._galaURL, [babyMonitorChannel.port2]); // TODO: Maybe wrong???
+      conWind.postMessage(msg, this._galaURL, [commandCenterChannel.port2]);
     };
 
     commandCenterFrame.src = `${this._galaURL}/command-center`;
 
     // (NEW): Code modal iframe setup
-    this._setBabyMonitor(babyMonitorChannel.port1); // TODO: Maybe wrong???
-
+    const codeModalChannel = new MessageChannel();
     const codeModalFrame = this._getCodeModalFrame();
+    const codeModalPort1 = codeModalChannel.port1;
 
     codeModalFrame.onload = () => {
       const msg     = { type: "hnw-set-up-code-modal" };
       const conWind = codeModalFrame.contentWindow;
-      conWind.postMessage(msg, this._galaURL, [babyMonitorChannel.port2]); // TODO: Maybe wrong???
+      conWind.postMessage(msg, this._galaURL, [codeModalChannel.port2]); // TODO: Maybe wrong???
     };
 
     codeModalFrame.src = `${this._galaURL}/code-modal`;
 
     // (NEW): Info modal iframe setup
-    this._setBabyMonitor(babyMonitorChannel.port2); // TODO: Maybe wrong???
-
+    const infoModalChannel = new MessageChannel();
     const infoModalFrame = this._getInfoModalFrame();
+    const infoModalPort1 = infoModalChannel.port1;
 
     infoModalFrame.onload = () => {
       const msg     = { type: "hnw-set-up-info-modal" };
       const conWind = infoModalFrame.contentWindow;
-      conWind.postMessage(msg, this._galaURL, [babyMonitorChannel.port1]); // TODO: Maybe wrong???
+      conWind.postMessage(msg, this._galaURL, [infoModalChannel.port2]); // TODO: Maybe wrong???
     };
 
     infoModalFrame.src = `${this._galaURL}/info-modal`;
