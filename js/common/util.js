@@ -16,7 +16,7 @@ const checkTURNiness = (stats) => {
         v.type  === "candidate-pair" &&
         v.state === "succeeded"      &&
         v. localCandidateId          &&
-        v.removeCandidateId
+        v.remoteCandidateId
     );
 
   const receivesOverTURN =
