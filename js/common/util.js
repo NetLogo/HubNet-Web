@@ -7,7 +7,7 @@ const byteSizeLabel = (n, precision = 2) => {
                       `${trunc(n)} B`;
 };
 
-// (RTCStatReport) => (Boolean, Boolean)
+// (RTCStatReport) => (Boolean?, Boolean?)
 const checkTURNiness = (stats) => {
 
   const pair =
@@ -27,7 +27,11 @@ const checkTURNiness = (stats) => {
     pair !== undefined &&
     stats.get(pair.remoteCandidateId).candidateType === "relay";
 
-  return [receivesOverTURN, sendsOverTURN];
+  const out =
+    (pair === undefined) ? [undefined       , undefined    ]
+                         : [receivesOverTURN, sendsOverTURN];
+
+  return out;
 
 };
 
