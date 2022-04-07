@@ -66,7 +66,6 @@ export default class HostNLWManager extends NLWManager {
     this.#commandCenterPort1 = commandCenterChannel.port1;
 
     commandCenterFrame.onload = () => {
-      console.log("COMMAND CENTER LOADED");
       const msg     = { type: "hnw-set-up-command-center" };
       const conWind = commandCenterFrame.contentWindow;
       conWind.postMessage(msg, this._galaURL, [commandCenterChannel.port2]);
@@ -128,9 +127,14 @@ export default class HostNLWManager extends NLWManager {
 
       // (NEW): TODO
       case "nlw-model-code": {
-        console.log("RECEIVED MODEL CODE IN HNW")
-        const msg = { type: "hnw-model-code", code: data.code }
+        const msg = { type: "hnw-model-code", code: data.code };
         this.#codeModalPort1.postMessage(msg);
+      }
+
+      // (NEW): TODO
+      case "nlw-model-info": {
+        const msg = { type: "hnw-model-info", info: data.info };
+        this.#infoModalPort1.postMessage(msg);
       }
 
       case "nlw-state-update": {
