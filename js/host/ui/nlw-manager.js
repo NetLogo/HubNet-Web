@@ -6,7 +6,7 @@ export default class HostNLWManager extends NLWManager {
   #narrowcast  = undefined; // () => Array[RTCDataChannel]
   #onError     = undefined; // (String) => Unit
 
-  // (NEW): TODO
+  // (NEW): Ports from HNW outer frame to inner (accordion) iframes
   #commandCenterPort1 = undefined;
   #codeModalPort1 = undefined;
   #infoModalPort1 = undefined;
@@ -125,13 +125,11 @@ export default class HostNLWManager extends NLWManager {
 
     switch (data.type) {
 
-      // (NEW): TODO
       case "nlw-model-code": {
         const msg = { type: "hnw-model-code", code: data.code };
         this.#codeModalPort1.postMessage(msg);
       }
 
-      // (NEW): TODO
       case "nlw-model-info": {
         const msg = { type: "hnw-model-info", info: data.info };
         this.#infoModalPort1.postMessage(msg);

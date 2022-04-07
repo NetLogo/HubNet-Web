@@ -447,7 +447,6 @@ document.addEventListener("DOMContentLoaded", () => {
     hideAllHostBModals();
   };
 
-  // (NEW): Pass message to inner iframe on setup & go
   const setupButton = document.getElementById("hnw-setup-button");
   const goCheckbox = document.getElementById("hnw-go");
 
