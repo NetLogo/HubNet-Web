@@ -6,6 +6,11 @@ export default class HostNLWManager extends NLWManager {
   #narrowcast  = undefined; // () => Array[RTCDataChannel]
   #onError     = undefined; // (String) => Unit
 
+  // (NEW): TODO
+  #commandCenterPort1 = undefined;
+  #codeModalPort1 = undefined;
+  #infoModalPort1 = undefined;
+
   // (Element, (String, Object[Any]?) => Unit, () => Array[RTCDataChannel], (String) => Unit) => HostNLWManager
   constructor(outerFrame, broadcast, narrowcast, onError) {
     super(outerFrame);
@@ -58,9 +63,10 @@ export default class HostNLWManager extends NLWManager {
     const commandCenterFrame = this._getCommandCenterFrame();
 
     // TODO: Currently unused, but will be a bit later for "interactive" message passing
-    const commandCenterPort1 = commandCenterChannel.port1;
+    this.#commandCenterPort1 = commandCenterChannel.port1;
 
     commandCenterFrame.onload = () => {
+      console.log("COMMAND CENTER LOADED");
       const msg     = { type: "hnw-set-up-command-center" };
       const conWind = commandCenterFrame.contentWindow;
       conWind.postMessage(msg, this._galaURL, [commandCenterChannel.port2]);
@@ -71,12 +77,12 @@ export default class HostNLWManager extends NLWManager {
     // (NEW): Code modal iframe setup
     const codeModalChannel = new MessageChannel();
     const codeModalFrame = this._getCodeModalFrame();
-    const codeModalPort1 = codeModalChannel.port1;
+    this.#codeModalPort1 = codeModalChannel.port1;
 
     codeModalFrame.onload = () => {
       const msg     = { type: "hnw-set-up-code-modal" };
       const conWind = codeModalFrame.contentWindow;
-      conWind.postMessage(msg, this._galaURL, [codeModalChannel.port2]); // TODO: Maybe wrong???
+      conWind.postMessage(msg, this._galaURL, [codeModalChannel.port2]);
     };
 
     codeModalFrame.src = `${this._galaURL}/code-modal`;
@@ -84,12 +90,12 @@ export default class HostNLWManager extends NLWManager {
     // (NEW): Info modal iframe setup
     const infoModalChannel = new MessageChannel();
     const infoModalFrame = this._getInfoModalFrame();
-    const infoModalPort1 = infoModalChannel.port1;
+    this.#infoModalPort1 = infoModalChannel.port1;
 
     infoModalFrame.onload = () => {
       const msg     = { type: "hnw-set-up-info-modal" };
       const conWind = infoModalFrame.contentWindow;
-      conWind.postMessage(msg, this._galaURL, [infoModalChannel.port2]); // TODO: Maybe wrong???
+      conWind.postMessage(msg, this._galaURL, [infoModalChannel.port2]);
     };
 
     infoModalFrame.src = `${this._galaURL}/info-modal`;
@@ -119,6 +125,13 @@ export default class HostNLWManager extends NLWManager {
   _onBabyMonitorMessage = (data) => {
 
     switch (data.type) {
+
+      // (NEW): TODO
+      case "nlw-model-code": {
+        console.log("RECEIVED MODEL CODE IN HNW")
+        const msg = { type: "hnw-model-code", code: data.code }
+        this.#codeModalPort1.postMessage(msg);
+      }
 
       case "nlw-state-update": {
         if (data.isNarrowcast)
