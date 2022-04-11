@@ -58,7 +58,6 @@ export default class HostNLWManager extends NLWManager {
 
     iframe.src = `${this._galaURL}/hnw-host`;
 
-    // (NEW): Command center iframe setup
     const commandCenterChannel = new MessageChannel();
     const commandCenterFrame = this._getCommandCenterFrame();
 
@@ -73,7 +72,6 @@ export default class HostNLWManager extends NLWManager {
 
     commandCenterFrame.src = `${this._galaURL}/command-center`;
 
-    // (NEW): Code modal iframe setup
     const codeModalChannel = new MessageChannel();
     const codeModalFrame = this._getCodeModalFrame();
     this.#codeModalPort1 = codeModalChannel.port1;
@@ -86,7 +84,6 @@ export default class HostNLWManager extends NLWManager {
 
     codeModalFrame.src = `${this._galaURL}/code-modal`;
 
-    // (NEW): Info modal iframe setup
     const infoModalChannel = new MessageChannel();
     const infoModalFrame = this._getInfoModalFrame();
     this.#infoModalPort1 = infoModalChannel.port1;
