@@ -49,6 +49,7 @@
 
 /* (NEW): Common page headers styling */
 .page-header {
+  z-index: 1;
   position: sticky;
   top: 0;
   height: 50px;
@@ -146,6 +147,7 @@
 
 @media (max-width: 1200px) and (max-height: 750px) {
   .page-header {
+    z-index: 1;
     position: sticky;
     top: 0;
     height: 40px;
@@ -195,6 +197,7 @@
 }
 
 .page-header {
+  z-index: 1;
   position: sticky;
   top: 0;
   height: 50px;
@@ -287,6 +290,7 @@
 
 @media (max-width: 1200px) and (max-height: 750px) {
   .page-header {
+    z-index: 1;
     position: sticky;
     top: 0;
     height: 40px;
