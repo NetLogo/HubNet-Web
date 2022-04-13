@@ -39,13 +39,12 @@ export default class HostNLWManager extends NLWManager {
     const commandCenterChannel = new MessageChannel();
     const commandCenterFrame = this._getCommandCenterFrame();
 
-    // TODO: Currently unused, but will be a bit later for "interactive" message passing
     this.#commandCenterPort1 = commandCenterChannel.port1;
     this.#commandCenterPort1.onmessage = ({ data }) => {
 
         switch (data.type) {
 
-          case "hnw-console-run": {
+          case "nlw-console-run": {
             const msg = { type: "hnw-console-run", code: data.code };
             this.relay(msg);
             break;
@@ -58,7 +57,6 @@ export default class HostNLWManager extends NLWManager {
       }
     }
 
-
     commandCenterFrame.onload = () => {
       const msg     = { type: "hnw-set-up-command-center", nlogo };
       const conWind = commandCenterFrame.contentWindow;
@@ -69,7 +67,30 @@ export default class HostNLWManager extends NLWManager {
 
     const codeModalChannel = new MessageChannel();
     const codeModalFrame = this._getCodeModalFrame();
+
     this.#codeModalPort1 = codeModalChannel.port1;
+    this.#codeModalPort1.onmessage = ({ data }) => {
+
+      switch (data.type) {
+
+        case "nlw-recompile": {
+          const msg = { type: "hnw-recompile", code: data.callback };
+          this.relay(msg);
+          break;
+        }
+
+        case "nlw-recompile-lite": {
+          const msg = { type: "hnw-recompile-lite", code: data.callback };
+          this.relay(msg);
+          break;
+        }
+
+        default: {
+          console.warn("Unknown command center monitor message type:", data);
+        }
+
+    }
+  }
 
     codeModalFrame.onload = () => {
       const msg     = { type: "hnw-set-up-code-modal", nlogo };
