@@ -35,6 +35,61 @@ export default class HostNLWManager extends NLWManager {
   becomeOracle = (uuid, props, nlogo) => {
     this._post({ ...props, type: "hnw-become-oracle", nlogo });
     this._post({ type: "nlw-subscribe-to-updates", uuid });
+
+    const commandCenterChannel = new MessageChannel();
+    const commandCenterFrame = this._getCommandCenterFrame();
+
+    // TODO: Currently unused, but will be a bit later for "interactive" message passing
+    this.#commandCenterPort1 = commandCenterChannel.port1;
+    this.#commandCenterPort1.onmessage = ({ data }) => {
+
+        switch (data.type) {
+
+          case "hnw-console-run": {
+            const msg = { type: "hnw-console-run", code: data.code };
+            this.relay(msg);
+            break;
+          }
+
+          default: {
+            console.warn("Unknown command center monitor message type:", data);
+          }
+
+      }
+    }
+
+
+    commandCenterFrame.onload = () => {
+      const msg     = { type: "hnw-set-up-command-center", nlogo };
+      const conWind = commandCenterFrame.contentWindow;
+      conWind.postMessage(msg, this._galaURL, [commandCenterChannel.port2]);
+    };
+
+    commandCenterFrame.src = `${this._galaURL}/command-center`;
+
+    const codeModalChannel = new MessageChannel();
+    const codeModalFrame = this._getCodeModalFrame();
+    this.#codeModalPort1 = codeModalChannel.port1;
+
+    codeModalFrame.onload = () => {
+      const msg     = { type: "hnw-set-up-code-modal", nlogo };
+      const conWind = codeModalFrame.contentWindow;
+      conWind.postMessage(msg, this._galaURL, [codeModalChannel.port2]);
+    };
+
+    codeModalFrame.src = `${this._galaURL}/code-modal`;
+
+    const infoModalChannel = new MessageChannel();
+    const infoModalFrame = this._getInfoModalFrame();
+    this.#infoModalPort1 = infoModalChannel.port1;
+
+    infoModalFrame.onload = () => {
+      const msg     = { type: "hnw-set-up-info-modal", nlogo };
+      const conWind = infoModalFrame.contentWindow;
+      conWind.postMessage(msg, this._galaURL, [infoModalChannel.port2]);
+    };
+
+    infoModalFrame.src = `${this._galaURL}/info-modal`;
   };
 
   // (UUID) => Unit
@@ -57,44 +112,6 @@ export default class HostNLWManager extends NLWManager {
     };
 
     iframe.src = `${this._galaURL}/hnw-host`;
-
-    const commandCenterChannel = new MessageChannel();
-    const commandCenterFrame = this._getCommandCenterFrame();
-
-    // TODO: Currently unused, but will be a bit later for "interactive" message passing
-    this.#commandCenterPort1 = commandCenterChannel.port1;
-
-    commandCenterFrame.onload = () => {
-      const msg     = { type: "hnw-set-up-command-center" };
-      const conWind = commandCenterFrame.contentWindow;
-      conWind.postMessage(msg, this._galaURL, [commandCenterChannel.port2]);
-    };
-
-    commandCenterFrame.src = `${this._galaURL}/command-center`;
-
-    const codeModalChannel = new MessageChannel();
-    const codeModalFrame = this._getCodeModalFrame();
-    this.#codeModalPort1 = codeModalChannel.port1;
-
-    codeModalFrame.onload = () => {
-      const msg     = { type: "hnw-set-up-code-modal" };
-      const conWind = codeModalFrame.contentWindow;
-      conWind.postMessage(msg, this._galaURL, [codeModalChannel.port2]);
-    };
-
-    codeModalFrame.src = `${this._galaURL}/code-modal`;
-
-    const infoModalChannel = new MessageChannel();
-    const infoModalFrame = this._getInfoModalFrame();
-    this.#infoModalPort1 = infoModalChannel.port1;
-
-    infoModalFrame.onload = () => {
-      const msg     = { type: "hnw-set-up-info-modal" };
-      const conWind = infoModalFrame.contentWindow;
-      conWind.postMessage(msg, this._galaURL, [infoModalChannel.port2]);
-    };
-
-    infoModalFrame.src = `${this._galaURL}/info-modal`;
   };
 
   // () => Unit
@@ -125,11 +142,18 @@ export default class HostNLWManager extends NLWManager {
       case "nlw-model-code": {
         const msg = { type: "hnw-model-code", code: data.code };
         this.#codeModalPort1.postMessage(msg);
+        break;
       }
 
       case "nlw-model-info": {
         const msg = { type: "hnw-model-info", info: data.info };
         this.#infoModalPort1.postMessage(msg);
+        break;
+      }
+
+      case "nlw-command-center-output": {
+        const msg = { type: "hnw-command-center-output", newOutputLine: data.newOutputLine };
+        this.#commandCenterPort1.postMessage(msg);
       }
 
       case "nlw-state-update": {
