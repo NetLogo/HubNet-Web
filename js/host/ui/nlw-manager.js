@@ -160,7 +160,6 @@ export default class HostNLWManager extends NLWManager {
 
     switch (data.type) {
 
-      // (NEW): TODO
       case "nlw-code-modal-errors": {
         const msg = {type: "hnw-code-modal-errors", messages: data.messages}
         this.#codeModalPort1.postMessage(msg);
