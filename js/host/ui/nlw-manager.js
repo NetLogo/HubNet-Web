@@ -74,13 +74,7 @@ export default class HostNLWManager extends NLWManager {
       switch (data.type) {
 
         case "nlw-recompile": {
-          const msg = { type: "hnw-recompile", code: data.callback };
-          this.relay(msg);
-          break;
-        }
-
-        case "nlw-recompile-lite": {
-          const msg = { type: "hnw-recompile-lite", code: data.callback };
+          const msg = { type: "hnw-recompile", code: data.code };
           this.relay(msg);
           break;
         }
