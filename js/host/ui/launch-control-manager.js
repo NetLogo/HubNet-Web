@@ -107,7 +107,7 @@ const awaitProcessResponse = (frame, notifyUser, config) => (response) => {
 
         frame.classList.add("hidden");
 
-        return { isSuccess: true, data: { hostID, json, nlogo }, config: config };
+        return { isSuccess: true, data: { hostID, json, nlogo }, config };
 
       }
     );

@@ -55,7 +55,7 @@ export default class HostNLWManager extends NLWManager {
           }
 
       }
-    }
+    };
 
     commandCenterFrame.onload = () => {
       const msg     = { type: "hnw-set-up-command-center", nlogo };
@@ -84,7 +84,7 @@ export default class HostNLWManager extends NLWManager {
         }
 
     }
-  }
+  };
 
     codeModalFrame.onload = () => {
       const msg     = { type: "hnw-set-up-code-modal", nlogo };
@@ -181,6 +181,7 @@ export default class HostNLWManager extends NLWManager {
       case "nlw-command-center-output": {
         const msg = { type: "hnw-command-center-output", newOutputLine: data.newOutputLine };
         this.#commandCenterPort1.postMessage(msg);
+        break;
       }
 
       case "nlw-state-update": {

@@ -151,11 +151,9 @@ document.addEventListener("DOMContentLoaded", () => {
   copyInviteButton.onclick = () => {
     const inviteLink = `http://localhost:8080/join#${byEID("id-display").innerHTML}`;
 
-    navigator.clipboard.writeText(inviteLink)
-      .then(() => {
+    navigator.clipboard.writeText(inviteLink).then(() => {
         alert("Invite link copied!");
-      })
-      .catch((err) => {
+      }).catch(() => {
         alert("Error with copying link :(");
       });
   };
@@ -323,7 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
   globalClosedChatBoxBottom.onclick = () => {
     accomodatePopupNarrowScreen("globalChat");
     openGlobalChat();
-  }
+  };
 
   globalOpenChatHeader.onclick = () => {
     closeGlobalChat();
@@ -451,12 +449,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const goCheckbox = document.getElementById("hnw-go");
 
   setupButton.onclick = () => {
-    nlwManager.relay({type: "hnw-setup-button"});
+    nlwManager.relay({ type: "hnw-setup-button" });
   };
 
   goCheckbox.onclick = () => {
-    nlwManager.relay({type: "hnw-go-checkbox", goStatus: goCheckbox.checked});
-  }
+    nlwManager.relay({ type: "hnw-go-checkbox", goStatus: goCheckbox.checked });
+  };
 
   nlwManager.init();
 });
