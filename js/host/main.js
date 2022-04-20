@@ -455,7 +455,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   goCheckbox.onclick = () => {
-    nlwManager.relay({type: "hnw-go-checkbox"});
+    nlwManager.relay({type: "hnw-go-checkbox", goStatus: goCheckbox.checked});
   }
 
   nlwManager.init();
