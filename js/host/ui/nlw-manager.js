@@ -154,8 +154,15 @@ export default class HostNLWManager extends NLWManager {
 
     switch (data.type) {
 
-      case "nlw-code-modal-errors": {
-        const msg = {type: "hnw-code-modal-errors", messages: data.messages}
+      // (NEW): TODO
+      case "nlw-recompile-success": {
+        const msg = { type: "hnw-recompile-success", code: data.code };
+        this.#codeModalPort1.postMessage(msg);
+        break;
+      }
+
+      case "nlw-recompile-failure": {
+        const msg = { type: "hnw-recompile-failure", messages: data.messages };
         this.#codeModalPort1.postMessage(msg);
         break;
       }
