@@ -197,15 +197,18 @@
 
         <div class="setup-row flex-row">
           <input class="button-base copy-invite-button" id="copy-invite-button" type="button" value="Copy Invite Link">
-          <div class="capacity-slider-container flex-column">
-            <p>Session Capacity</p>
-            <input id="max-num-clients-picker" class="max-num-clients-picker" type="range" min="0" max="100" value="50">
-            <p id="capacity-display-text">50</p>
-          </div>
           <input class="button-base more-details-button" id="more-details-button" type="button" value="More Details">
         </div>
 
-        <iframe id="nlw-iframe-external" class="nlw-iframe"></iframe>
+        <div class="nlw-iframe-row flex-row">
+          <iframe id="nlw-iframe-external" class="nlw-iframe"></iframe>
+          <div class="capacity-slider-container flex-column">
+            <p>Session</p>
+            <p>Capacity</p>
+            <input id="max-num-clients-picker" class="max-num-clients-picker" type="range" orient="vertical" min="0" max="100" value="50">
+            <p id="capacity-display-text">50</p>
+          </div>
+        </div>
 
         <hr class="post-frame-divider" />
 

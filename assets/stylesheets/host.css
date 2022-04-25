@@ -205,8 +205,7 @@ body {
 }
 
 .setup-row {
-  margin-top: 5px;
-  margin-bottom: -20px;
+  margin-top: 15px;
   justify-content: space-between;
   align-items: center;
 }
@@ -219,22 +218,27 @@ body {
   background-color: #6da87a;
 }
 
-.capacity-slider-container {
+.nlw-iframe-row {
+  margin-top: 15px;
   align-items: center;
+  justify-content: center;
 }
 
-.capacity-slider-container > input {
-  margin: -8px auto;
+.capacity-slider-container {
+  margin-left: 10px;
 }
 
 .capacity-slider-container > p {
-  margin: 10px auto;
+  margin: 0 auto;
   font-size: 16px;
   text-align: center;
 }
 
 .max-num-clients-picker {
-  width: 40vw;
+  -webkit-appearance: slider-vertical;
+  height: 35vh;
+  max-width: 6vw;
+  margin: 8px auto;
 }
 
 .post-frame-divider {
