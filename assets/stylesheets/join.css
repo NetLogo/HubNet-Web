@@ -202,7 +202,7 @@ body {
   height: 40px;
   font-size: 16px;
   border-radius: 12px;
-  background-color: #e66c6c;
+  background-color: rgba(255, 80, 80, 0.7);
 }
 
 .disconnect-button:hover {
