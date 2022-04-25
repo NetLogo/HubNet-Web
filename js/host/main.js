@@ -148,15 +148,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // (NEW): Copy invite link functionality
   const copyInviteButton = byEID("copy-invite-button");
+  const inviteMessageDiv = byEID("invite-link-message-div");
+  const dismissButton = byEID("dismiss-button");
+
   copyInviteButton.onclick = () => {
+    if (! inviteMessageDiv.classList.contains("hidden")) {
+      alert("Invite link already copied");
+      return;
+    }
+
     const inviteLink = `http://localhost:8080/join#${byEID("id-display").innerHTML}`;
 
     navigator.clipboard.writeText(inviteLink).then(() => {
-        alert("Invite link copied!");
+        inviteMessageDiv.classList.remove("hidden");
+
+        setTimeout(() => {
+          inviteMessageDiv.classList.add("hidden");
+        }, 5000);
       }).catch(() => {
-        alert("Error with copying link :(");
+        alert("Error with copying link");
       });
   };
+
+  dismissButton.onclick = () => {
+    inviteMessageDiv.classList.add("hidden");
+  }
 
   // (NEW): Chat box controls
   const capacityDisplayText = byEID("capacity-display-text");

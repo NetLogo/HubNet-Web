@@ -204,6 +204,42 @@ body {
   z-index: 1;
 }
 
+.invite-link-message-div {
+  align-items: center;
+  width: 175px;
+}
+
+.invite-link-message {
+  font-family: sans-serif;
+  font-size: 14px;
+  margin-top: 15px;
+  margin-bottom: 5px;
+}
+
+.dismiss-button {
+  background-color: lightgray;
+  color: black;
+  border: 1px solid black;
+  width: 100px;
+  height: 30px;
+  border-radius: 10px;
+  font-family: sans-serif;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.dismiss-button:hover {
+  filter: brightness(0.9);
+}
+
+.dismiss-button:active {
+  filter: brightness(0.8);
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
+}
+
 .setup-row {
   margin-top: 15px;
   justify-content: space-between;
