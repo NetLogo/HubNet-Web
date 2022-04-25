@@ -241,13 +241,8 @@ body {
   margin: 8px auto;
 }
 
-.post-frame-divider {
-  border: 1px solid black;
-  margin: 30px -50px;
-}
-
 .bottom-setup-row {
-  margin-top: 15px;
+  margin-top: 25px;
   justify-content: center;
 }
 
