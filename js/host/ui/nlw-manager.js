@@ -33,9 +33,6 @@ export default class HostNLWManager extends NLWManager {
 
   // (UUID, Object[Any], String) => Unit
   becomeOracle = (uuid, props, nlogo) => {
-    this._post({ ...props, type: "hnw-become-oracle", nlogo });
-    this._post({ type: "nlw-subscribe-to-updates", uuid });
-
     const commandCenterChannel = new MessageChannel();
     const commandCenterFrame = this._getCommandCenterFrame();
 
@@ -105,6 +102,9 @@ export default class HostNLWManager extends NLWManager {
     };
 
     infoModalFrame.src = `${this._galaURL}/info-modal`;
+
+    this._post({ ...props, type: "hnw-become-oracle", nlogo });
+    this._post({ type: "nlw-subscribe-to-updates", uuid });
   };
 
   // (UUID) => Unit

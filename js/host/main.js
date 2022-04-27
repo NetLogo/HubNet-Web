@@ -148,31 +148,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // (NEW): Copy invite link functionality
   const copyInviteButton = byEID("copy-invite-button");
-  const inviteMessageDiv = byEID("invite-link-message-div");
-  const dismissButton = byEID("dismiss-button");
 
   copyInviteButton.onclick = () => {
-    if (! inviteMessageDiv.classList.contains("hidden")) {
-      alert("Invite link already copied");
-      return;
-    }
-
     const inviteLink = `http://localhost:8080/join#${byEID("id-display").innerHTML}`;
 
     navigator.clipboard.writeText(inviteLink).then(() => {
-        inviteMessageDiv.classList.remove("hidden");
+        copyInviteButton.classList.remove("copy-invite-button-standard");
+        copyInviteButton.classList.add("copy-invite-button-active");
+        copyInviteButton.value = "Copied!";
 
         setTimeout(() => {
-          inviteMessageDiv.classList.add("hidden");
-        }, 5000);
+          copyInviteButton.classList.remove("copy-invite-button-active");
+          copyInviteButton.classList.add("copy-invite-button-standard");
+          copyInviteButton.value = "Copy Invite Link";
+        }, 3000);
       }).catch(() => {
         alert("Error with copying link");
       });
   };
-
-  dismissButton.onclick = () => {
-    inviteMessageDiv.classList.add("hidden");
-  }
 
   // (NEW): Chat box controls
   const capacityDisplayText = byEID("capacity-display-text");
@@ -462,14 +455,25 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const setupButton = document.getElementById("hnw-setup-button");
-  const goCheckbox = document.getElementById("hnw-go");
+  const goButton = document.getElementById("hnw-go-button");
 
   setupButton.onclick = () => {
     nlwManager.relay({ type: "hnw-setup-button" });
   };
 
-  goCheckbox.onclick = () => {
-    nlwManager.relay({ type: "hnw-go-checkbox", goStatus: goCheckbox.checked });
+  goButton.onclick = () => {
+    if (goButton.classList.contains("go-button-active")) {
+      goButton.classList.remove("go-button-active");
+      goButton.classList.add("go-button-standard");
+      goButton.innerText = "Go";
+      nlwManager.relay({ type: "hnw-go-checkbox", goStatus: false });
+      return;
+    }
+
+    goButton.classList.remove("go-button-standard");
+    goButton.classList.add("go-button-active");
+    goButton.innerText = "Stop";
+    nlwManager.relay({ type: "hnw-go-checkbox", goStatus: true });
   };
 
   nlwManager.init();
