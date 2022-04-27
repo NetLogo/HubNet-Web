@@ -459,6 +459,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const drawerOpen = byEID("drawer-open");
   const drawerOptions = document.querySelectorAll(".drawer-text-container");
 
+  const commandCenter = byEID("command-center-open");
+  // const modelInfoContainer = byEID("");
+  // const modelCodeContainer = byEID("");
+  const globalChat = byEID("global-chat-box-open");
+  const sessionChat = byEID("session-chat-box-open");
+
   drawerClosed.onmouseover = () => {
     drawerClosed.classList.add("invisible");
     drawerOpen.classList.remove("invisible");
@@ -473,7 +479,7 @@ document.addEventListener("DOMContentLoaded", () => {
     option.onclick = () => {
       switch(option.dataset.type) {
         case "command-center":
-          // show command center
+          commandCenter.classList.remove("invisible");
           break;
         case "info":
           // show model info
@@ -482,10 +488,10 @@ document.addEventListener("DOMContentLoaded", () => {
           // show model code
           break;
         case "global-chat":
-          // show global chat
+          globalChat.classList.remove("invisible");
           break;
         case "session-chat":
-          // show session chat
+          sessionChat.classList.remove("invisible");
           break;
       }
     }

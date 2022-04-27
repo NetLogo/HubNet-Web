@@ -310,6 +310,7 @@ body {
   bottom: 0;
   background-color: lightgray;
   cursor: pointer;
+  z-index: 5;
 }
 
 .drawer-closed:hover {
@@ -347,6 +348,7 @@ body {
   left: 0;
   bottom: 0;
   background-color: lightgray;
+  z-index: 5;
 }
 
 .drawer-text-container {
