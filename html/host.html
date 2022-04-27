@@ -216,36 +216,40 @@
         </div>
 
         <!-- (NEW): TODO -->
-        <div class="drawer-closed hidden">
-          <p class="drawer-closed-text">Menu</p>
-          <div class="drawer-expand-arrow"></div>
-        </div>
+        <div id="drawer-container">
 
-        <div class="drawer-open">
-          <div class="drawer-text-container">
-            <span>Command</span>
-            <span>Center</span>
+          <div id="drawer-closed" class="drawer-closed">
+            <p class="drawer-closed-text">Menu</p>
+            <div class="drawer-expand-arrow"></div>
           </div>
-          <div class="vertical-divider"></div>
-          <div class="drawer-text-container">
-            <span>Model</span>
-            <span>Info</span>
+
+          <div id="drawer-open" class="drawer-open invisible">
+            <div data-type="command-center" class="drawer-text-container">
+              <span>Command</span>
+              <span>Center</span>
+            </div>
+            <div class="vertical-divider"></div>
+            <div data-type="info" class="drawer-text-container">
+              <span>Model</span>
+              <span>Info</span>
+            </div>
+            <div class="vertical-divider"></div>
+            <div data-type="code" class="drawer-text-container">
+              <span>Model</span>
+              <span>Code</span>
+            </div>
+            <div class="vertical-divider"></div>
+            <div data-type="global-chat" class="drawer-text-container">
+              <span>Global</span>
+              <span>Chat</span>
+            </div>
+            <div class="vertical-divider"></div>
+            <div data-type="session-chat" class="drawer-text-container">
+              <span>Session</span>
+              <span>Chat</span>
+            </div>
           </div>
-          <div class="vertical-divider"></div>
-          <div class="drawer-text-container">
-            <span>Model</span>
-            <span>Code</span>
-          </div>
-          <div class="vertical-divider"></div>
-          <div class="drawer-text-container">
-            <span>Global</span>
-            <span>Chat</span>
-          </div>
-          <div class="vertical-divider"></div>
-          <div class="drawer-text-container">
-            <span>Session</span>
-            <span>Chat</span>
-          </div>
+
         </div>
 
         <div class="hidden" id="command-center-container">
@@ -264,6 +268,7 @@
             </div>
             <iframe id="command-center-iframe" class="command-center-iframe flex-display"></iframe>
           </div>
+
         </div>
 
         <div class="chat-wrapper">

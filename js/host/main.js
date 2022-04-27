@@ -454,8 +454,45 @@ document.addEventListener("DOMContentLoaded", () => {
     hideAllHostBModals();
   };
 
-  const setupButton = document.getElementById("hnw-setup-button");
-  const goButton = document.getElementById("hnw-go-button");
+  // (NEW): TODO
+  const drawerClosed = byEID("drawer-closed");
+  const drawerOpen = byEID("drawer-open");
+  const drawerOptions = document.querySelectorAll(".drawer-text-container");
+
+  drawerClosed.onmouseover = () => {
+    drawerClosed.classList.add("invisible");
+    drawerOpen.classList.remove("invisible");
+  };
+
+  drawerOpen.onmouseleave = () => {
+    drawerClosed.classList.remove("invisible");
+    drawerOpen.classList.add("invisible");
+  };
+
+  drawerOptions.forEach((option) => {
+    option.onclick = () => {
+      switch(option.dataset.type) {
+        case "command-center":
+          // show command center
+          break;
+        case "info":
+          // show model info
+          break;
+        case "code":
+          // show model code
+          break;
+        case "global-chat":
+          // show global chat
+          break;
+        case "session-chat":
+          // show session chat
+          break;
+      }
+    }
+  })
+
+  const setupButton = byEID("hnw-setup-button");
+  const goButton = byEID("hnw-go-button");
 
   setupButton.onclick = () => {
     nlwManager.relay({ type: "hnw-setup-button" });
