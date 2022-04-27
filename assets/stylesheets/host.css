@@ -297,6 +297,44 @@ body {
   font-weight: bold;
 }
 
+.drawer-closed {
+  border-radius: 0 100% 0 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  height: 100px;
+  width: 125px;
+  left: 0;
+  bottom: 0;
+  background-color: lightgray;
+  cursor: pointer;
+}
+
+.drawer-closed:hover {
+  filter: brightness(0.9);
+}
+
+.drawer-closed:active {
+  filter: brightness(0.8);
+  box-shadow: 3px -3px 3px rgba(0, 0, 0, 0.8);
+}
+
+.drawer-closed-text {
+  transform: translate(-15px, 12px);
+  font-size: 20px;
+}
+
+.drawer-expand-arrow {
+  transform: translate(-5px, 12px);
+  width: 0;
+  height: 0;
+  border-top: 15px solid transparent;
+  border-bottom: 15px solid transparent;
+  border-left: 25px solid black;
+}
+
 .invisible {
   opacity: 0;
   visibility: hidden;
