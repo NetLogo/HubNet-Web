@@ -77,7 +77,6 @@ export default class RTCManager {
     });
   };
 
-
   // (RTCDataChannel*) => (String, Any) => Unit
   sendBurst = (...channels) => (type, msg) => {
 
