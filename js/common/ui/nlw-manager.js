@@ -90,12 +90,12 @@ export default class NLWManager {
 
   // () => HTMLIFrameElement
   _getCodeModalFrame = () => {
-    return this.#outerFrame.querySelector("#code-modal-iframe");
+    return this.#outerFrame.querySelector("#model-code-iframe");
   };
 
   // () => HTMLIFrameElement
   _getInfoModalFrame = () => {
-    return this.#outerFrame.querySelector("#info-modal-iframe");
+    return this.#outerFrame.querySelector("#model-info-iframe");
   };
 
   // () => Unit

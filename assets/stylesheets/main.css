@@ -42,11 +42,6 @@
   align-items: flex-end;
 }
 
-.code-modal-iframe, .info-modal-iframe {
-  height: 100%;
-  width: 99.5%;
-}
-
 /* (NEW): Common page headers styling */
 .page-header {
   z-index: 1;

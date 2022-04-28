@@ -173,23 +173,13 @@
               </div>
           </div>
 
-          <div id="code-modal-body" class="modal-body modal-invis no-display">
-            <p id="code-modal-title" class="code-modal-title">Code: [Model Name]</p>
-            <iframe id="code-modal-iframe" class="code-modal-iframe"></iframe>
-          </div>
-
-          <div id="model-info-modal-body" class="modal-body modal-invis no-display">
-            <p id="model-info-modal-title" class="model-info-modal-title">Model Infomation: [Model Name]</p>
-            <iframe id="info-modal-iframe" class="info-modal-iframe"></iframe>
-          </div>
-
-          <hr class="modal-divider" />
+          <!-- <hr class="modal-divider" />
 
           <div class="modal-toggle-row flex-row">
             <input class="button-base" id="stats-modal-tab" type="button" value="Stats">
             <input class="button-base" id="code-modal-tab" type="button" value="Code">
             <input class="button-base" id="model-info-modal-tab" type="button" value="Model Info">
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -252,92 +242,69 @@
 
         </div>
 
-        <div id="command-center-container">
-
-          <div id="command-center-closed-container" class="command-center-closed-container">
-            <div id="command-center-closed" class="command-center-closed flex-display">
-              Command Center
-            </div>
-            <div id="command-center-closed-bottom" class="command-center-closed-bottom"></div>
+        <!--  Command center -->
+        <div id="command-center-container" class="menu-option-container flex-column invisible">
+          <div id="command-center-header" class="command-center-header flex-row">
+            <div class="popup-header-text">Command Center</div>
+            <div class="triangle-down-black"></div>
           </div>
-
-          <div id="command-center-open" class="command-center-open flex-column invisible">
-            <div id="command-center-header" class="command-center-header flex-row">
-              <div class="popup-header-text">Command Center</div>
-              <div class="triangle-down-black"></div>
-            </div>
-            <iframe id="command-center-iframe" class="command-center-iframe flex-display"></iframe>
-          </div>
-
+          <iframe id="command-center-iframe" class="command-center-iframe flex-display"></iframe>
         </div>
 
-        <div class="chat-wrapper">
+        <!-- Model code -->
+        <div id="model-code-container" class="menu-option-container invisible">
+          <p id="model-code-title" class="model-code-title">Code: [Model Name]</p>
+          <iframe id="model-code-iframe" class="model-code-iframe"></iframe>
+        </div>
 
-          <div id="session-chat-container">
-            <div id="session-chat-box-closed-container" class="chat-box-closed-container">
-              <div id="session-chat-box-closed" class="chat-box-closed session-chat-box-closed flex-display">
-                Session Chat
-              </div>
-              <div id="session-chat-box-closed-bottom" class="chat-box-closed-bottom"></div>
-            </div>
-            <div id="session-chat-box-open" class="chat-box-open session-chat-box-open invisible">
-              <div id="session-open-chat-header" class="open-chat-header session-open-chat-header flex-display">
-                <div class="popup-header-text">Session Chat</div>
-                <div class="triangle-down-black"></div>
-              </div>
+        <!-- Model info -->
+        <div id="model-info-container" class="menu-option-container invisible">
+          <p id="model-info-title" class="model-info-modal-title">Model Infomation: [Model Name]</p>
+          <iframe id="model-info-iframe" class="model-info-iframe"></iframe>
+        </div>
 
-              <div id="session-chat">
-                <div id="session-chat-output" class="open-chat-body"></div>
-                <input
-                  id="session-chat-input"
-                  class="open-chat-input"
-                  type="text"
-                  value=""
-                  placeholder="Send a message"
-                />
-              </div>
-            </div>
+        <!-- Session chat -->
+        <div id="session-chat-container" class="menu-option-container invisible">
+          <div id="session-chat-header" class="open-chat-header session-open-chat-header flex-display">
+            <div class="popup-header-text">Session Chat</div>
+            <div class="triangle-down-black"></div>
           </div>
 
-          <div id="global-chat-container">
-            <div id="global-chat-box-closed-container" class="chat-box-closed-container">
-              <div
-                id="global-chat-box-closed"
-                class="chat-box-closed global-chat-box-closed-base global-chat-box-closed-std flex-display"
-              >
-                Global Chat
-              </div>
-              <div
-                id="global-chat-box-closed-bottom"
-                class="chat-box-closed-bottom global-chat-box-closed-bottom-base global-chat-box-closed-bottom-std"
-                >
-              </div>
-            </div>
-            <div
-              id="global-chat-box-open"
-              class="chat-box-open global-chat-box-open-base global-chat-box-open-std invisible"
-            >
-              <div id="global-open-chat-header" class="open-chat-header global-open-chat-header flex-display">
-                <div class="popup-header-text">Global Chat</div>
-                <div class="triangle-down-black"></div>
-              </div>
+          <div id="session-chat">
+            <div id="session-chat-output" class="open-chat-body"></div>
+            <input
+              id="session-chat-input"
+              class="open-chat-input"
+              type="text"
+              value=""
+              placeholder="Send a message"
+            />
+          </div>
+        </div>
 
-              <div id="global-chat">
-                <div id="global-chat-output" class="open-chat-body"></div>
-                <input
-                  id="global-chat-input"
-                  class="open-chat-input"
-                  type="text"
-                  value=""
-                  placeholder="Send a message"
-                />
-              </div>
-            </div>
+        <!-- Global chat -->
+        <div
+          id="global-chat-container"
+          class="menu-option-container invisible"
+        >
+          <div id="global-chat-header" class="open-chat-header global-open-chat-header flex-display">
+            <div class="popup-header-text">Global Chat</div>
+            <div class="triangle-down-black"></div>
+          </div>
+
+          <div id="global-chat">
+            <div id="global-chat-output" class="open-chat-body"></div>
+            <input
+              id="global-chat-input"
+              class="open-chat-input"
+              type="text"
+              value=""
+              placeholder="Send a message"
+            />
           </div>
         </div>
 
       </div>
-
     </div>
 
     <script src="/js/browser-compat-abort.js"></script>

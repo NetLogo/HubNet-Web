@@ -183,7 +183,7 @@ body {
   box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
 }
 
-.modal-divider {
+/* .modal-divider {
   border: 1px solid black;
   width: 100%;
   margin-top: 20px;
@@ -202,7 +202,7 @@ body {
 .modal-toggle-row > input {
   background-color: #6da87a;
   z-index: 1;
-}
+} */
 
 .dismiss-button {
   background-color: lightgray;
@@ -370,6 +370,15 @@ body {
   margin: 0 15px;
 }
 
+/* (NEW): TODO */
+.menu-option-container {
+  position: fixed;
+  bottom: 0;
+  width: 30vw;
+  z-index: 2;
+  transition: opacity 0.2s;
+}
+
 .invisible {
   opacity: 0;
   visibility: hidden;
@@ -381,68 +390,6 @@ body {
 }
 
 /* (NEW): Stylings for command center (similar to chat boxes for consistency) */
-.command-center-closed-container {
-  cursor: pointer;
-}
-
-.command-center-closed-container:hover .command-center-closed {
-  filter: brightness(0.9);
-}
-
-.command-center-closed-container:hover .command-center-closed-bottom {
-  filter: brightness(0.9);
-}
-
-.command-center-closed-container:active .command-center-closed {
-  filter: brightness(0.8);
-  box-shadow: -3px 3px rgba(0, 0, 0, 0.9);
-}
-
-.command-center-closed-container:active .command-center-closed-bottom {
-  filter: brightness(0.8);
-  box-shadow: -3px 0 rgba(0, 0, 0, 0.9);
-}
-
-.command-center-closed {
-  position: fixed;
-  bottom: 30px;
-  left: 10px;
-  text-align: center;
-  justify-content: center;
-  align-items: center;
-  border-radius: 15px;
-  width: 120px;
-  height: 75px;
-  color: black;
-  font-size: 20px;
-  z-index: 3;
-  transition: opacity 0.2s;
-  background-color: lightgray;
-}
-
-.command-center-closed-bottom {
-  position: fixed;
-  width: 0;
-  height: 0;
-  border-left: 0;
-  border-right: 25px solid transparent;
-  border-bottom: 0;
-  bottom: 10.8px;
-  left: 20px;
-  z-index: 3;
-  transition: opacity 0.1s;
-  border-top: 25px solid lightgray;
-}
-
-.command-center-open {
-  position: fixed;
-  z-index: 1;
-  left: 0;
-  bottom: 0;
-  width: 35vw;
-  transition: opacity 0.2s;
-}
-
 .command-center-header {
   cursor: pointer;
   justify-content: center;
@@ -461,7 +408,7 @@ body {
   filter: brightness(0.8);
 }
 
-.command-center-body {
+/* .command-center-body {
   height: 50vh;
   border-right: 1px solid black;
   background-color: white;
@@ -478,7 +425,7 @@ body {
 
 .command-center-clear-button {
   height: 40px;
-}
+} */
 
 .triangle-down-black {
   width: 0;
@@ -497,7 +444,7 @@ body {
 }
 
 /* Custom chat box styling for HostB page */
-.session-chat-box-closed {
+/* .session-chat-box-closed {
   text-align: center;
   justify-content: center;
   align-items: center;
@@ -510,14 +457,14 @@ body {
   right: 0;
   width: 30vw;
   z-index: 4;
-}
+} */
 
 .session-open-chat-header {
   align-items: center;
   justify-content: center;
 }
 
-.global-chat-box-closed-container {
+/* .global-chat-box-closed-container {
   cursor: pointer;
 }
 
@@ -548,9 +495,9 @@ body {
 
 .global-chat-box-closed-bottom-offset {
   right: calc(30vw + 20px);
-}
+} */
 
-.global-chat-box-open-base {
+/* .global-chat-box-open-base {
   position: fixed;
   bottom: 0;
   width: 30vw;
@@ -562,7 +509,7 @@ body {
 
 .global-chat-box-open-offset {
   right: 30vw;
-}
+} */
 
 .global-open-chat-header {
   align-items: center;
@@ -621,7 +568,7 @@ body {
     text-align: center;
   }
 
-  .command-center-closed {
+  /* .command-center-closed {
     position: fixed;
     bottom: 30px;
     left: 10px;
@@ -645,9 +592,9 @@ body {
     bottom: 0;
     width: 40vw;
     transition: opacity 0.2s;
-  }
+  } */
 
-  .session-chat-box-open {
+  /* .session-chat-box-open {
     position: fixed;
     bottom: 0;
     right: 0;
@@ -672,7 +619,7 @@ body {
 
   .global-chat-box-open-offset {
     right: 40vw;
-  }
+  } */
 
 }
 
@@ -690,7 +637,8 @@ body {
   font-weight: bold;
 }
 
-.code-modal-title {
+/* (NEW): TODO */
+.model-code-title {
   margin-top: 0;
   margin-bottom: 10px;
   text-align: center;
@@ -699,11 +647,16 @@ body {
   text-decoration: underline;
 }
 
-.model-info-modal-title {
+.model-info-title {
   margin-top: 0;
   margin-bottom: 10px;
   text-align: center;
   font-size: 28px;
   font-weight: bold;
   text-decoration: underline;
+}
+
+.model-code-iframe, .model-info-iframe {
+  height: 100%;
+  width: 99.5%;
 }
