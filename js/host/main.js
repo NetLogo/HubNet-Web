@@ -465,6 +465,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const sessionChat = byEID("session-chat-container");
   const globalChat = byEID("global-chat-container");
 
+  const datasetToId = {
+    "command-center": "command-center-container",
+    "code": "model-code-container",
+    "info": "model-info-container",
+    "session-chat": "session-chat-container",
+    "global-chat": "global-chat-container"
+  }
+
   drawerClosed.onmouseover = () => {
     drawerClosed.classList.add("invisible");
     drawerOpen.classList.remove("invisible");
@@ -487,44 +495,57 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const openContainersOrdered = new Array(openContainers.length);
-    console.log("open containers (unordered):", openContainers);
+    const openContainerIdsOrdered = new Array(openContainers.length);
 
     switch(openContainers.length) {
       case 0:
-        return []
+        return { "containers": [], "ids": [] };
       case 1:
-        return openContainers;
+        return { "containers": openContainers, "ids": [openContainers[0].id] };
       case 2:
         openContainers.forEach((container) => {
+          console.log(container.id)
           if (container.classList.contains("offset-one-container")) {
-            console.log("test0")
             openContainersOrdered[0] = container;
+            openContainerIdsOrdered[0] = container.id;
           } else {
             openContainersOrdered[1] = container;
+            openContainerIdsOrdered[1] = container.id;
           }
         });
-        return openContainersOrdered;
+        return { "containers": openContainersOrdered, "ids": openContainerIdsOrdered };
       case 3:
         openContainers.forEach((container) => {
           if (container.classList.contains("offset-two-containers")) {
-            console.log("test1")
             openContainersOrdered[0] = container;
+            openContainerIdsOrdered[0] = container.id;
           } else if (container.classList.contains("offset-one-container")) {
-            console.log("test2")
             openContainersOrdered[1] = container;
+            openContainerIdsOrdered[1] = container.id;
           } else {
             openContainersOrdered[2] = container;
+            openContainerIdsOrdered[2] = container.id;
           }
         });
-        return openContainersOrdered;
+        return { "containers": openContainersOrdered, "ids": openContainerIdsOrdered };
     }
+  };
+
+  const computeContainerPosition = (option) => {
+
   };
 
   drawerOptions.forEach((option) => {
     option.onclick = () => {
-      // console.log("open containers (ordered):", computeOpenContainers());
-      const openContainers = computeOpenContainers();
-      console.log("open containers (ordered):", openContainers);
+      const openContainersObj = computeOpenContainers();
+      const openContainers = openContainersObj["containers"];
+      const openContainerIds = openContainersObj["ids"];
+      const currentOptionId = datasetToId[option.dataset.type];
+
+      if (openContainerIds.includes(currentOptionId)) {
+        console.log("option already open");
+        return;
+      }
 
       if (openContainers.length === 3) {
         openContainers[0].classList.remove("offset-two-containers");
