@@ -6,7 +6,7 @@ export default class PoolParty {
   // abstract type OutType
 
   #mainMsg = undefined; // String
-  #pool    = undefined; // Worker[SerializerPool]
+  #pool    = undefined; // Worker[XSerializerPool]
 
   // (String, String, String) => PoolParty
   constructor(workerURL, mainMsg, desc) {
