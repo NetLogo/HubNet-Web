@@ -459,11 +459,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const drawerOpen = byEID("drawer-open");
   const drawerOptions = document.querySelectorAll(".drawer-text-container");
 
-  const commandCenter = byEID("command-center-open");
-  // const modelInfoContainer = byEID("");
-  // const modelCodeContainer = byEID("");
-  const globalChat = byEID("global-chat-box-open");
-  const sessionChat = byEID("session-chat-box-open");
+  const commandCenter = byEID("command-center-container");
+  const modelCodeContainer = byEID("model-code-container");
+  const modelInfoContainer = byEID("model-info-container");
+  const sessionChat = byEID("session-chat-container");
+  const globalChat = byEID("global-chat-container");
 
   drawerClosed.onmouseover = () => {
     drawerClosed.classList.add("invisible");
@@ -475,23 +475,93 @@ document.addEventListener("DOMContentLoaded", () => {
     drawerOpen.classList.add("invisible");
   };
 
+  // (NEW): TODO
+  const computeOpenContainers = () => {
+    const allContainers = [...document.querySelectorAll(".menu-option-container")];
+    const openContainers = [];
+
+    allContainers.forEach((container) => {
+      if (![...container.classList].includes("invisible")) {
+        openContainers.push(container);
+      };
+    });
+
+    const openContainersOrdered = new Array(openContainers.length);
+    console.log("open containers (unordered):", openContainers);
+
+    switch(openContainers.length) {
+      case 0:
+        return []
+      case 1:
+        return openContainers;
+      case 2:
+        openContainers.forEach((container) => {
+          if (container.classList.contains("offset-one-container")) {
+            console.log("test0")
+            openContainersOrdered[0] = container;
+          } else {
+            openContainersOrdered[1] = container;
+          }
+        });
+        return openContainersOrdered;
+      case 3:
+        openContainers.forEach((container) => {
+          if (container.classList.contains("offset-two-containers")) {
+            console.log("test1")
+            openContainersOrdered[0] = container;
+          } else if (container.classList.contains("offset-one-container")) {
+            console.log("test2")
+            openContainersOrdered[1] = container;
+          } else {
+            openContainersOrdered[2] = container;
+          }
+        });
+        return openContainersOrdered;
+    }
+  };
+
   drawerOptions.forEach((option) => {
     option.onclick = () => {
+      // console.log("open containers (ordered):", computeOpenContainers());
+      const openContainers = computeOpenContainers();
+      console.log("open containers (ordered):", openContainers);
+
+      if (openContainers.length === 3) {
+        openContainers[0].classList.remove("offset-two-containers");
+        openContainers[0].classList.add("invisible");
+
+        openContainers[1].classList.remove("offset-one-container");
+        openContainers[1].classList.add("offset-two-containers");
+
+        openContainers[2].classList.add("offset-one-container");
+      };
+
+      if (openContainers.length === 2) {
+        openContainers[0].classList.remove("offset-one-container");
+        openContainers[0].classList.add("offset-two-containers");
+
+        openContainers[1].classList.add("offset-one-container");
+      };
+
+      if (openContainers.length === 1) {
+        openContainers[0].classList.add("offset-one-container");
+      }
+
       switch(option.dataset.type) {
         case "command-center":
           commandCenter.classList.remove("invisible");
           break;
-        case "info":
-          // show model info
-          break;
         case "code":
-          // show model code
+          modelCodeContainer.classList.remove("invisible");
           break;
-        case "global-chat":
-          globalChat.classList.remove("invisible");
+        case "info":
+          modelInfoContainer.classList.remove("invisible");
           break;
         case "session-chat":
           sessionChat.classList.remove("invisible");
+          break;
+        case "global-chat":
+          globalChat.classList.remove("invisible");
           break;
       }
     }

@@ -374,9 +374,18 @@ body {
 .menu-option-container {
   position: fixed;
   bottom: 0;
+  right: 0;
   width: 30vw;
   z-index: 2;
   transition: opacity 0.2s;
+}
+
+.offset-one-container {
+  transform: translateX(-30vw);
+}
+
+.offset-two-containers {
+  transform: translateX(-60vw);
 }
 
 .invisible {
