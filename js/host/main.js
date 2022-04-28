@@ -465,6 +465,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const sessionChat = byEID("session-chat-container");
   const globalChat = byEID("global-chat-container");
 
+  const containerHeaders = [
+    byEID("command-center-header"), byEID("model-code-header"),
+    byEID("model-info-header"), byEID("session-chat-header"),
+    byEID("global-chat-header")
+  ]
+
+  containerHeaders.forEach((header) => {
+    header.onclick = () => {
+      const openContainers = computeOpenContainers();
+      const containerPosition = computeContainerPosition(header.parentNode.id);
+      closeContainer(openContainers, containerPosition);
+    }
+  });
+
   const datasetToId = {
     "command-center": "command-center-container",
     "code": "model-code-container",
@@ -597,7 +611,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const computeContainerPosition = (currentOptionId) => {
     const openContainerIds = computeOpenContainerIds();
-    console.log("openContainerIds:", openContainerIds);
 
     if (openContainerIds.length === 0) {
       return -1;

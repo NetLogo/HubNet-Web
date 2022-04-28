@@ -410,7 +410,7 @@ body {
 }
 
 /* (NEW): Stylings for command center (similar to chat boxes for consistency) */
-.command-center-header {
+.command-center-header, .model-code-header, .model-info-header {
   cursor: pointer;
   justify-content: center;
   align-items: center;
@@ -420,11 +420,11 @@ body {
   border: 1px solid black;
 }
 
-.command-center-header:hover {
+.command-center-header:hover, .model-code-header:hover, .model-info-header:hover {
   filter: brightness(0.9);
 }
 
-.command-center-header:active {
+.command-center-header:active, .model-code-header:active, .model-info-header:active {
   filter: brightness(0.8);
 }
 
