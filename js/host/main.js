@@ -161,13 +161,12 @@ document.addEventListener("DOMContentLoaded", () => {
           copyInviteButton.classList.remove("copy-invite-button-active");
           copyInviteButton.classList.add("copy-invite-button-standard");
           copyInviteButton.value = "Copy Invite Link";
-        }, 3000);
+        }, 1000);
       }).catch(() => {
         alert("Error with copying link");
       });
   };
 
-  // (NEW): TODO
   const capacityDisplayText = byEID("capacity-display-text");
   const capacitySlider = byEID("max-num-clients-picker");
 
@@ -234,7 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideStatsModal();
   };
 
-  // (NEW): TODO
+  // (NEW): Functionality with opening / closing menu containers
   const drawerClosed = byEID("drawer-closed");
   const drawerOpen = byEID("drawer-open");
   const drawerOptions = document.querySelectorAll(".drawer-text-container");
@@ -277,7 +276,6 @@ document.addEventListener("DOMContentLoaded", () => {
     drawerOpen.classList.add("invisible");
   };
 
-  // (NEW): TODO
   const computeOpenContainerObj = () => {
     const allContainers = [...document.querySelectorAll(".menu-option-container")];
     const openContainers = [];

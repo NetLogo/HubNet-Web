@@ -370,7 +370,6 @@ body {
   margin: 0 15px;
 }
 
-/* (NEW): TODO */
 .menu-option-container {
   position: fixed;
   bottom: 0;
@@ -381,11 +380,11 @@ body {
 }
 
 .offset-one-container {
-  transform: translateX(-30vw);
+  transform: translateX(calc(-30vw - 5px));
 }
 
 .offset-two-containers {
-  transform: translateX(-60vw);
+  transform: translateX(calc(-60vw - 10px));
 }
 
 .command-center-iframe, .model-code-iframe, .model-info-iframe {
@@ -657,7 +656,6 @@ body {
   font-weight: bold;
 }
 
-/* (NEW): TODO */
 .model-code-title {
   margin-top: 0;
   margin-bottom: 10px;
