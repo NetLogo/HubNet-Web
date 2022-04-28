@@ -8,7 +8,7 @@ const workerPool = [];
 
 // (String) => Unit
 const initWorker = (workerPath) => {
-  const worker = new Worker(`${workerPath}`, { type: "module" });
+  const worker = new Worker(workerPath, { type: "module" });
   workerPool.push({ worker, isIdle: true });
 };
 
