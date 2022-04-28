@@ -24,9 +24,9 @@ const finishLaunch = ({ isSuccess, data, config }) => {
 
     byEID("id-display").innerText = hostID;
 
-    // byEID("stats-modal-title").innerHTML = `Session Stats: ${config.sessionName}`;
-    // byEID("code-modal-title").innerHTML = `Code: ${config.model}`;
-    // byEID("model-info-modal-title").innerHTML = `Model Information: ${config.model}`;
+    byEID("stats-modal-title").innerHTML = `Session Stats: ${config.sessionName}`;
+    byEID("model-code-title").innerHTML = `Code: ${config.model}`;
+    byEID("model-info-title").innerHTML = `Model Information: ${config.model}`;
 
     history.pushState({ name: "hosting" }, "hosting");
 
@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } else {
       if (event.target === moreDetailsModalContainer) {
-        hideAllHostBModals();
+        hideStatsModal();
         closeDetailsModalContainer();
       }
     }
@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } else {
       if (event.key === "Escape") {
-        hideAllHostBModals();
+        hideStatsModal();
         closeDetailsModalContainer();
       }
     }
@@ -167,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   };
 
-  // (NEW): Chat box controls
+  // (NEW): TODO
   const capacityDisplayText = byEID("capacity-display-text");
   const capacitySlider = byEID("max-num-clients-picker");
 
@@ -175,209 +175,12 @@ document.addEventListener("DOMContentLoaded", () => {
     capacityDisplayText.innerHTML = `${e.target.value}`;
   };
 
-  // const sessionClosedChatBox = byEID("session-chat-box-closed");
-  // const sessionClosedChatBoxBottom = byEID("session-chat-box-closed-bottom");
-  // const sessionOpenChatBox = byEID("session-chat-box-open");
-  // const sessionOpenChatHeader = byEID("session-open-chat-header");
-
-  // const globalClosedChatBox = byEID("global-chat-box-closed");
-  // const globalClosedChatBoxBottom = byEID("global-chat-box-closed-bottom");
-  // const globalOpenChatBox = byEID("global-chat-box-open");
-  // const globalOpenChatHeader = byEID("global-open-chat-header");
-
-  // const singleChatThreshold = 1000;
-  // const singlePopupThreshold = 600;
-
-  // window.onresize = () => {
-  //   if (commandCenterOpen()) {
-  //     accomodatePopupNarrowScreen("commandCenter");
-  //   } else if (globalChatOpen()) {
-  //     accomodatePopupNarrowScreen("globalChat");
-  //   } else if (sessionChatOpen()) {
-  //     accomodatePopupNarrowScreen("sessionChat");
-  //   }
-  // };
-
-  // const singleChatView = () => {
-  //   return window.innerWidth <= singleChatThreshold;
-  // };
-
-  // const singlePopupView = () => {
-  //   return window.innerWidth <= singlePopupThreshold;
-  // };
-
-  // const sessionChatOpen = () => {
-  //   return !sessionOpenChatBox.classList.contains("invisible");
-  // };
-
-  // const globalChatOpen  = () => {
-  //   return !globalOpenChatBox.classList.contains("invisible");
-  // };
-
-  // const commandCenterOpen = () => {
-  //   return !commandCenterOpenBox.classList.contains("invisible");
-  // };
-
-  // const globalChatStandardPosition = () => {
-  //   globalOpenChatBox.classList.add("global-chat-box-open-std");
-  //   globalOpenChatBox.classList.remove("global-chat-box-open-offset");
-
-  //   globalClosedChatBox.classList.add("global-chat-box-closed-std");
-  //   globalClosedChatBox.classList.remove("global-chat-box-closed-offset");
-
-  //   globalClosedChatBoxBottom.classList.add("global-chat-box-closed-bottom-std");
-  //   globalClosedChatBoxBottom.classList.remove("global-chat-box-closed-bottom-offset");
-  // };
-
-  // const globalChatOffsetPosition = () => {
-  //   globalOpenChatBox.classList.remove("global-chat-box-open-std");
-  //   globalOpenChatBox.classList.add("global-chat-box-open-offset");
-
-  //   globalClosedChatBox.classList.remove("global-chat-box-closed-std");
-  //   globalClosedChatBox.classList.add("global-chat-box-closed-offset");
-
-  //   globalClosedChatBoxBottom.classList.remove("global-chat-box-closed-bottom-std");
-  //   globalClosedChatBoxBottom.classList.add("global-chat-box-closed-bottom-offset");
-  // };
-
-  // const accomodatePopupNarrowScreen = (popupType) => {
-  //   if (popupType === "sessionChat") {
-  //     if (singlePopupView()) {
-  //       if (globalChatOpen()) {
-  //         closeGlobalChat();
-  //       }
-
-  //       if (commandCenterOpen()) {
-  //         closeCommandCenter();
-  //       }
-  //     } else if (singleChatView() && globalChatOpen()) {
-  //       closeGlobalChat();
-  //     }
-  //   } else if (popupType === "globalChat") {
-  //     if (singlePopupView()) {
-  //       if (sessionChatOpen()) {
-  //         closeSessionChat();
-  //         globalChatStandardPosition();
-  //       }
-
-  //       if (commandCenterOpen()) {
-  //         closeCommandCenter();
-  //       }
-  //     } else if (singleChatView() && sessionChatOpen()) {
-  //       closeSessionChat();
-  //       globalChatStandardPosition();
-  //     }
-  //   } else {
-  //     if (singlePopupView()) {
-  //       if (sessionChatOpen()) {
-  //         closeSessionChat();
-  //         globalChatStandardPosition();
-  //       }
-
-  //       if (globalChatOpen()) {
-  //         closeGlobalChat();
-  //       }
-  //     }
-  //   }
-  // };
-
-  // const openSessionChat = () => {
-  //   sessionOpenChatBox.classList.remove("invisible");
-  //   sessionClosedChatBox.classList.add("invisible");
-  //   sessionClosedChatBoxBottom.classList.add("invisible");
-  // };
-
-  // const closeSessionChat = () => {
-  //   sessionOpenChatBox.classList.add("invisible");
-  //   sessionClosedChatBox.classList.remove("invisible");
-  //   sessionClosedChatBoxBottom.classList.remove("invisible");
-  // };
-
-  // const openGlobalChat = () => {
-  //   globalOpenChatBox.classList.remove("invisible");
-  //   globalClosedChatBox.classList.add("invisible");
-  //   globalClosedChatBoxBottom.classList.add("invisible");
-  // };
-
-  // const closeGlobalChat = () => {
-  //   globalOpenChatBox.classList.add("invisible");
-  //   globalClosedChatBox.classList.remove("invisible");
-  //   globalClosedChatBoxBottom.classList.remove("invisible");
-  // };
-
-  // sessionClosedChatBox.onclick = () => {
-  //   accomodatePopupNarrowScreen("sessionChat");
-  //   openSessionChat();
-  //   globalChatOffsetPosition();
-  // };
-
-  // sessionClosedChatBoxBottom.onclick = () => {
-  //   accomodatePopupNarrowScreen("sessionChat");
-  //   openSessionChat();
-  //   globalChatOffsetPosition();
-  // };
-
-  // sessionOpenChatHeader.onclick = () => {
-  //   closeSessionChat();
-  //   globalChatStandardPosition();
-  // };
-
-  // globalClosedChatBox.onclick = () => {
-  //   accomodatePopupNarrowScreen("globalChat");
-  //   openGlobalChat();
-  // };
-
-  // globalClosedChatBoxBottom.onclick = () => {
-  //   accomodatePopupNarrowScreen("globalChat");
-  //   openGlobalChat();
-  // };
-
-  // globalOpenChatHeader.onclick = () => {
-  //   closeGlobalChat();
-  // };
-
-  // const openCommandCenter = () => {
-  //   commandCenterOpenBox.classList.remove("invisible");
-  //   commandCenterClosedBox.classList.add("invisible");
-  //   commandCenterClosedBottom.classList.add("invisible");
-  // };
-
-  // const closeCommandCenter = () => {
-  //   commandCenterOpenBox.classList.add("invisible");
-  //   commandCenterClosedBox.classList.remove("invisible");
-  //   commandCenterClosedBottom.classList.remove("invisible");
-  // };
-
-  // const commandCenterClosedBottom = byEID("command-center-closed-bottom");
-  // const commandCenterClosedBox = byEID("command-center-closed");
-  // const commandCenterOpenBox = byEID("command-center-open");
-  // const commandCenterOpenHeader = byEID("command-center-header");
-
-  // commandCenterClosedBox.onclick = () => {
-  //   accomodatePopupNarrowScreen("commandCenter");
-  //   openCommandCenter();
-  // };
-
-  // commandCenterClosedBottom.onclick = () => {
-  //   accomodatePopupNarrowScreen("commandCenter");
-  //   openCommandCenter();
-  // };
-
-  // commandCenterOpenHeader.onclick = () => {
-  //   closeCommandCenter();
-  // };
-
   // (NEW): HostB page modals
   const moreDetailsButton = byEID("more-details-button");
   const closeMoreDetailsModalButton = byEID("close-more-details-modal-button");
-  // const statsModalTab = byEID("stats-modal-tab");
-  // const codeModalTab = byEID("code-modal-tab");
-  // const modelInfoModalTab = byEID("model-info-modal-tab");
 
   const moreDetailsModalContainer = byEID("more-details-modal-container");
   const statsModalBody = byEID("stats-modal-body");
-  // const codeModalBody = byEID("code-modal-body");
-  // const modelInfoModalBody = byEID("model-info-modal-body");
   const hostBPageMain = byEID("nlw-frame");
 
   const detailsModalContainerInvis = () => {
@@ -412,46 +215,23 @@ document.addEventListener("DOMContentLoaded", () => {
     modalBody.classList.add("no-display");
   };
 
-  // const hideAllHostBModals = () => {
-  //   const statsModalIsInvis = statsModalBody.classList.contains("modal-invis");
-  //   const codeModalIsInvis = codeModalBody.classList.contains("modal-invis");
-  //   const modelInfoModalIsInvis = modelInfoModalBody.classList.contains("modal-invis");
+  const hideStatsModal = () => {
+    const statsModalIsInvis = statsModalBody.classList.contains("modal-invis");
 
-  //   if (!statsModalIsInvis) {
-  //     hideModalBody(statsModalBody);
-  //     modalBodyNoDisplay(statsModalBody);
-  //   } else if (!codeModalIsInvis) {
-  //     hideModalBody(codeModalBody);
-  //     modalBodyNoDisplay(codeModalBody);
-  //   } else if (!modelInfoModalIsInvis) {
-  //     hideModalBody(modelInfoModalBody);
-  //     modalBodyNoDisplay(modelInfoModalBody);
-  //   }
-  // };
+    if (!statsModalIsInvis) {
+      hideModalBody(statsModalBody);
+      modalBodyNoDisplay(statsModalBody);
+    };
+  };
 
   moreDetailsButton.onclick = () => {
     openDetailsModalContainer();
     showModalBody(statsModalBody);
   };
 
-  // statsModalTab.onclick = () => {
-  //   hideAllHostBModals();
-  //   showModalBody(statsModalBody);
-  // };
-
-  // codeModalTab.onclick = () => {
-  //   hideAllHostBModals();
-  //   showModalBody(codeModalBody);
-  // };
-
-  // modelInfoModalTab.onclick = () => {
-  //   hideAllHostBModals();
-  //   showModalBody(modelInfoModalBody);
-  // };
-
   closeMoreDetailsModalButton.onclick = () => {
     closeDetailsModalContainer();
-    hideAllHostBModals();
+    hideStatsModal();
   };
 
   // (NEW): TODO
@@ -518,7 +298,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return { "containers": openContainers, "ids": [openContainers[0].id] };
       case 2:
         openContainers.forEach((container) => {
-          console.log(container.id)
           if (container.classList.contains("offset-one-container")) {
             openContainersOrdered[0] = container;
             openContainerIdsOrdered[0] = container.id;
