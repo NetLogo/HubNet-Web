@@ -471,7 +471,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "info": "model-info-container",
     "session-chat": "session-chat-container",
     "global-chat": "global-chat-container"
-  }
+  };
 
   drawerClosed.onmouseover = () => {
     drawerClosed.classList.add("invisible");
@@ -532,13 +532,10 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const closeContainer = (openContainers, containerPosition) => {
-    // debugger
     const numOpenContainers = openContainers.length;
     const container = openContainers[containerPosition];
 
     if (numOpenContainers === 3) {
-      debugger
-
       if (containerPosition === 0) {
         container.classList.remove("offset-two-containers");
         container.classList.add("invisible");
@@ -615,10 +612,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const openContainers = computeOpenContainers();
       const currentOptionId = datasetToId[option.dataset.type];
       const containerPosition = computeContainerPosition(currentOptionId);
-    // ole.log("containerPosition:", containerPosition);
 
       if (containerPosition !== -1) {
-        console.log("closing an open container?");
         closeContainer(openContainers, containerPosition);
         return;
       }
@@ -662,7 +657,7 @@ document.addEventListener("DOMContentLoaded", () => {
           break;
       }
     }
-  })
+  });
 
   const setupButton = byEID("hnw-setup-button");
   const goButton = byEID("hnw-go-button");

@@ -388,6 +388,17 @@ body {
   transform: translateX(-60vw);
 }
 
+.command-center-iframe, .model-code-iframe, .model-info-iframe {
+  height: 60vh;
+  width: 99.5%;
+  border: 1px solid black;
+  background-color: white;
+  padding: 0;
+  z-index: 1;
+  box-shadow: none !important;
+  align-items: flex-end;
+}
+
 .invisible {
   opacity: 0;
   visibility: hidden;
@@ -663,9 +674,4 @@ body {
   font-size: 28px;
   font-weight: bold;
   text-decoration: underline;
-}
-
-.model-code-iframe, .model-info-iframe {
-  height: 100%;
-  width: 99.5%;
 }
