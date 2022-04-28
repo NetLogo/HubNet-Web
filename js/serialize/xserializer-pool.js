@@ -60,7 +60,7 @@ const handleMessage = (reqMsgType, innerMsgType, workerPath, poolDesc) => {
       }
       case "shutdown": {
         workerPool.forEach((w) => w.worker.terminate());
-        postMessage({ type: "shutdown-complete" });
+        self.notifyParent({ type: "shutdown-complete" });
         break;
       }
       default: {
@@ -70,4 +70,12 @@ const handleMessage = (reqMsgType, innerMsgType, workerPath, poolDesc) => {
   };
 };
 
-export { handleMessage };
+// () => Unit
+const terminate = () => {
+  workerPool.forEach((worker) => worker.terminate());
+  while (workerPool.length > 0) {
+    workerPool.pop();
+  }
+};
+
+export { handleMessage, terminate };
