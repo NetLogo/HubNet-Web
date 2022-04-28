@@ -6,16 +6,20 @@ const maxNumWorkers = Math.max(1, navigator.hardwareConcurrency);
 // Array[{ isIdle: Boolean, worker: WebWorker }]
 const workerPool = [];
 
-// (String) => Unit
-const initWorker = (workerPath) => {
+// (String, String) => Unit
+const initWorker = (workerPath, msgType) => {
   const worker = new Worker(workerPath, { type: "module" });
+  worker.messageType = msgType;
   workerPool.push({ worker, isIdle: true });
 };
 
 // (Object[Any], Boolean, MessagePort, String) => Unit
 const xserialize = (parcel, isHost, port, type) => {
 
-  const workerBundle = workerPool.find((bundle) => bundle.isIdle);
+  const workerBundle =
+    workerPool.find(
+      (bundle) => bundle.isIdle && bundle.worker.messageType === type
+    );
 
   if (workerBundle !== undefined) {
 
@@ -38,7 +42,7 @@ const xserialize = (parcel, isHost, port, type) => {
 
 // (String, String, String, String) => (MessageEvent) => Unit
 const handleMessage = (reqMsgType, innerMsgType, workerPath, poolDesc) => {
-  initWorker(workerPath);
+  initWorker(workerPath, innerMsgType);
   return (e) => {
     switch (e.data.type) {
       case "client-connect": {
