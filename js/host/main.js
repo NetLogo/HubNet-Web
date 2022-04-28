@@ -484,7 +484,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // (NEW): TODO
-  const computeOpenContainers = () => {
+  const computeOpenContainerObj = () => {
     const allContainers = [...document.querySelectorAll(".menu-option-container")];
     const openContainers = [];
 
@@ -531,19 +531,95 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  const computeContainerPosition = (option) => {
+  const closeContainer = (openContainers, containerPosition) => {
+    // debugger
+    const numOpenContainers = openContainers.length;
+    const container = openContainers[containerPosition];
 
+    if (numOpenContainers === 3) {
+      debugger
+
+      if (containerPosition === 0) {
+        container.classList.remove("offset-two-containers");
+        container.classList.add("invisible");
+        return;
+      }
+
+      if (containerPosition === 1) {
+        container.classList.remove("offset-one-container");
+        container.classList.add("invisible");
+
+        openContainers[0].classList.remove("offset-two-containers");
+        openContainers[0].classList.add("offset-one-container");
+        return;
+      }
+
+      if (containerPosition === 2) {
+        container.classList.add("invisible");
+
+        openContainers[0].classList.remove("offset-two-containers");
+        openContainers[0].classList.add("offset-one-container");
+
+        openContainers[1].classList.remove("offset-one-container");
+        return;
+      }
+    }
+
+    if (numOpenContainers === 2) {
+      if (containerPosition === 0) {
+        container.classList.remove("offset-one-container");
+        container.classList.add("invisible");
+        return;
+      }
+
+      if (containerPosition === 1) {
+        container.classList.add("invisible");
+
+        openContainers[0].classList.remove("offset-one-container");
+        return;
+      }
+    }
+
+    if (numOpenContainers === 1) {
+      container.classList.add("invisible");
+      return;
+    }
+  };
+
+  const computeOpenContainers = () => {
+    return computeOpenContainerObj()["containers"];
+  };
+
+  const computeOpenContainerIds = () => {
+    return computeOpenContainerObj()["ids"];
+  };
+
+  const computeNumContainers = () => {
+    return computeOpenContainerObj().length;
+  };
+
+  const computeContainerPosition = (currentOptionId) => {
+    const openContainerIds = computeOpenContainerIds();
+    console.log("openContainerIds:", openContainerIds);
+
+    if (openContainerIds.length === 0) {
+      return -1;
+    }
+
+    const containerPosition = openContainerIds.indexOf(currentOptionId);
+    return containerPosition;
   };
 
   drawerOptions.forEach((option) => {
     option.onclick = () => {
-      const openContainersObj = computeOpenContainers();
-      const openContainers = openContainersObj["containers"];
-      const openContainerIds = openContainersObj["ids"];
+      const openContainers = computeOpenContainers();
       const currentOptionId = datasetToId[option.dataset.type];
+      const containerPosition = computeContainerPosition(currentOptionId);
+    // ole.log("containerPosition:", containerPosition);
 
-      if (openContainerIds.includes(currentOptionId)) {
-        console.log("option already open");
+      if (containerPosition !== -1) {
+        console.log("closing an open container?");
+        closeContainer(openContainers, containerPosition);
         return;
       }
 
