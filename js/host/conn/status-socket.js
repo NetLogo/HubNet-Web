@@ -1,4 +1,5 @@
 import { awaitWorker } from "/js/common/await.js";
+import genWorker       from "/js/common/worker.js";
 
 import { hnw, wsProto } from "/js/static/domain.js";
 
@@ -8,8 +9,7 @@ export default class StatusSocket {
 
   // () => StatusSocket
   constructor() {
-    const url    = "js/host/conn/status-socket-worker.js";
-    this.#worker = new Worker(url, { type: "module" });
+    this.#worker = genWorker("js/host/conn/status-socket-worker.js");
   }
 
   // (String) => Promise[_]

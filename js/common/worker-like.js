@@ -1,3 +1,5 @@
+import genWorker from "/js/common/worker.js";
+
 // This was created because Safari does not support Workers spawning Workers.
 //
 // See this ticket (from 2009!) (and its linked issues) for more info:
@@ -16,14 +18,10 @@ class SafariNonWorker {
   #onmessage = () => {};  // (String) => Unit
   #promise   = undefined; // Promise[_]
 
-  // (String, Object[String]) => SafariNonWorker[_]
-  constructor(url, options) {
+  // (String) => SafariNonWorker[_]
+  constructor(url) {
     console.log("We're using the Safari worker!");
-    if (options.type === "module") {
-      this.#promise = import(url).then((obj) => obj.default);
-    } else {
-      throw new Error("All Workers must be implemented as modules in order for Safari compatibility to work.  Please report this to the HubNet Web developers by e-mailing bugs@ccl.northwestern.edu .");
-    }
+    this.#promise = import(url).then((obj) => obj.default);
   }
 
   // (Object[Any]) => Unit
@@ -58,8 +56,7 @@ class SafariNonWorker {
 
 }
 
-// (String, Object[String]) => WorkerLike[_]
-export default function genWorkerLike(url, options) {
-  return !isSafari ? new Worker(url, options)
-                   : new SafariNonWorker(url, options);
+// (String) => WorkerLike[_]
+export default function genWorkerLike(url) {
+  return !isSafari ? genWorker(url) : new SafariNonWorker(url);
 }

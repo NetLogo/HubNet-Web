@@ -1,4 +1,5 @@
 import { awaitWorker } from "/js/common/await.js";
+import genWorker       from "/js/common/worker.js";
 
 // Number
 const maxNumWorkers = Math.max(1, navigator.hardwareConcurrency);
@@ -8,7 +9,7 @@ const workerPool = [];
 
 // (String, String) => Unit
 const initWorker = (workerPath, msgType) => {
-  const worker = new Worker(workerPath, { type: "module" });
+  const worker = genWorker(workerPath);
   worker.messageType = msgType;
   workerPool.push({ worker, isIdle: true });
 };

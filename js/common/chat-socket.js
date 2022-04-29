@@ -1,4 +1,5 @@
 import { awaitWorker } from "./await.js";
+import genWorker       from "/js/common/worker.js";
 
 export default class ChatSocket {
 
@@ -7,8 +8,7 @@ export default class ChatSocket {
   // (ChatManager) => ChatSocket
   constructor(chatManager) {
 
-    const url    = "js/common/chat-socket-worker.js";
-    this.#worker = new Worker(url, { type: "module" });
+    this.#worker = genWorker("js/common/chat-socket-worker.js");
 
     this.#worker.onmessage = ({ data }) => {
       const datum = JSON.parse(data);

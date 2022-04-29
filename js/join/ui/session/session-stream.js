@@ -1,11 +1,12 @@
+import genWorker from "/js/common/worker.js";
+
 export default class SessionStream {
 
   #worker = undefined; // Worker[SessionStreamWorker]
 
   // ((Object[Any]) => Unit) => SessionStream
   constructor(onmessage) {
-    const buddyURL = "js/join/ui/session/session-stream-worker.js";
-    this.#worker   = new Worker(buddyURL, { type: "module" });
+    this.#worker = genWorker("js/join/ui/session/session-stream-worker.js");
     this.connect();
     this.#worker.onmessage = onmessage;
   }

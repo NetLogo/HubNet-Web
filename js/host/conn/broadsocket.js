@@ -1,6 +1,7 @@
 import { rtcConfig } from "./webrtc.js";
 
 import { awaitWorker } from "/js/common/await.js";
+import genWorker       from "/js/common/worker.js";
 
 import { hnw, wsProto } from "/js/static/domain.js";
 
@@ -12,8 +13,7 @@ export default class BroadSocket {
 
   // () => BroadSocket
   constructor() {
-    const url    = "js/host/conn/broadsocket-worker.js";
-    this.#worker = new Worker(url, { type: "module" });
+    this.#worker = genWorker("js/host/conn/broadsocket-worker.js");
   }
 
   // (String) => Promise[_]

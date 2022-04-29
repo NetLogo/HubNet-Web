@@ -1,11 +1,12 @@
 import { awaitWorker } from "/js/common/await.js";
+import genWorker       from "/js/common/worker.js";
 
 export default class Base64Encoder {
 
   #worker = undefined; // Worker[Base64EncoderWorker]
 
   constructor() {
-    this.#worker = new Worker("base64-encoder-worker.js", { type: "module" });
+    this.#worker = genWorker("base64-encoder-worker.js");
   }
 
   // (Blob) => Promise[String]
