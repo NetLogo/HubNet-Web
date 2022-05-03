@@ -352,9 +352,7 @@ document.addEventListener("DOMContentLoaded", () => {
         container.style.transform = null;
 
         const offsetIndexZero = parseInt(openContainers[2].style.width.slice(0, -2));
-        openContainers[0].dataset.offset = "one";
-        openContainers[0].style.transform = `translateX(-${offsetIndexZero}vw)`;
-        openContainers[0].style.marginRight = "5px";
+        updateElementByOffset(openContainers[0], "one", offsetIndexZero);
         return;
       }
 
@@ -364,9 +362,7 @@ document.addEventListener("DOMContentLoaded", () => {
         container.style.transform = null;
 
         const offsetIndexZero = parseInt(openContainers[1].style.width.slice(0, -2));
-        openContainers[0].dataset.offset = "one";
-        openContainers[0].style.transform = `translateX(-${offsetIndexZero}vw)`;
-        openContainers[0].style.marginRight = "5px";
+        updateElementByOffset(openContainers[0], "one", offsetIndexZero);
 
         openContainers[1].dataset.offset = "zero";
         openContainers[1].style.transform = null;
@@ -422,10 +418,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return widths;
   };
 
-  const computeNumContainers = () => {
-    return computeOpenContainerObj().length;
-  };
-
   const computeContainerPosition = (currentOptionId) => {
     const openContainerIds = computeOpenContainerIds();
 
@@ -437,15 +429,35 @@ document.addEventListener("DOMContentLoaded", () => {
     return containerPosition;
   };
 
+  const updateElementByOffset = (element, datasetOffset, elementOffset) => {
+    element.dataset.offset = datasetOffset;
+    element.style.transform = `translateX(-${elementOffset}vw)`;
+
+    if (datasetOffset === "two") {
+      element.style.marginRight = "10px";
+      return;
+    }
+
+    if (datasetOffset === "one") {
+      element.style.marginRight = "5px";
+      return;
+    }
+  };
+
+  const initElementZeroOffset = (element, elementWidth) => {
+    element.dataset.offset = "zero";
+    element.classList.remove("invisible");
+    element.style.width = `${elementWidth}vw`;
+    element.style.transform = null;
+    element.style.marginRight = null;
+  };
+
   drawerOptions.forEach((option) => {
     option.onclick = () => {
       const openContainers = computeOpenContainers();
       const currentOptionId = datasetToId[option.dataset.type];
       const currentOptionWidth = idToWidth[currentOptionId];
       const containerPosition = computeContainerPosition(currentOptionId);
-
-      console.log("openContainers:", computeOpenContainers());
-      console.log("openContainerWidths:", computeOpenContainerWidths());
 
       if (containerPosition !== -1) {
         closeContainer(openContainers, containerPosition);
@@ -458,68 +470,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let offsetIndexOne = parseInt(openContainers[2].style.width.slice(0, -2));
         offsetIndexOne += currentOptionWidth;
-        openContainers[1].dataset.offset = "two";
-        openContainers[1].style.transform = `translateX(-${offsetIndexOne}vw)`;
-        openContainers[1].style.marginRight = "10px";
 
-        openContainers[2].dataset.offset = "one";
-        openContainers[2].style.transform = `translateX(-${currentOptionWidth}vw)`;
-        openContainers[2].style.marginRight = "5px";
+        updateElementByOffset(openContainers[1], "two", offsetIndexOne);
+        updateElementByOffset(openContainers[2], "one", currentOptionWidth);
       };
 
       if (openContainers.length === 2) {
         let offsetIndexZero = parseInt(openContainers[1].style.width.slice(0, -2));
         offsetIndexZero += currentOptionWidth;
-        openContainers[0].dataset.offset = "two";
-        openContainers[0].style.transform = `translateX(-${offsetIndexZero}vw)`;
-        openContainers[0].style.marginRight = "10px";
 
-        openContainers[1].dataset.offset = "one";
-        openContainers[1].style.transform = `translateX(-${currentOptionWidth}vw)`;
-        openContainers[1].style.marginRight = "5px";
+        updateElementByOffset(openContainers[0], "two", offsetIndexZero);
+        updateElementByOffset(openContainers[1], "one", currentOptionWidth);
       };
 
       if (openContainers.length === 1) {
-        openContainers[0].dataset.offset = "one";
-        openContainers[0].style.transform = `translateX(-${currentOptionWidth}vw)`;
-        openContainers[0].style.marginRight = "5px";
+        updateElementByOffset(openContainers[0], "one", currentOptionWidth);
       }
 
       switch(option.dataset.type) {
         case "command-center":
-          commandCenter.dataset.offset = "zero";
-          commandCenter.classList.remove("invisible");
-          commandCenter.style.width = `${currentOptionWidth}vw`;
-          commandCenter.style.transform = null;
-          commandCenter.style.marginRight = null;
+          initElementZeroOffset(commandCenter, currentOptionWidth);
           break;
         case "code":
-          modelCodeContainer.dataset.offset = "zero";
-          modelCodeContainer.classList.remove("invisible");
-          modelCodeContainer.style.width = `${currentOptionWidth}vw`;
-          modelCodeContainer.style.transform = null;
-          modelCodeContainer.style.marginRight = null;
+          initElementZeroOffset(modelCodeContainer, currentOptionWidth);
           break;
         case "info":
-          modelInfoContainer.dataset.offset = "zero";
-          modelInfoContainer.classList.remove("invisible");
-          modelInfoContainer.style.width = `${currentOptionWidth}vw`;
-          modelInfoContainer.style.transform = null;
-          modelInfoContainer.style.marginRight = null;
+          initElementZeroOffset(modelInfoContainer, currentOptionWidth);
           break;
         case "session-chat":
-          sessionChat.dataset.offset = "zero";
-          sessionChat.classList.remove("invisible");
-          sessionChat.style.width = `${currentOptionWidth}vw`;
-          sessionChat.style.transform = null;
-          sessionChat.style.marginRight = null;
+          initElementZeroOffset(sessionChat, currentOptionWidth);
           break;
         case "global-chat":
-          globalChat.dataset.offset = "zero";
-          globalChat.classList.remove("invisible");
-          globalChat.style.width = `${currentOptionWidth}vw`;
-          globalChat.style.transform = null;
-          globalChat.style.marginRight = null;
+          initElementZeroOffset(globalChat, currentOptionWidth);
           break;
       }
     }
