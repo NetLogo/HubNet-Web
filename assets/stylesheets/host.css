@@ -378,14 +378,6 @@ body {
   transition: opacity 0.2s;
 }
 
-.offset-one-container {
-  transform: translateX(calc(-30vw - 5px));
-}
-
-.offset-two-containers {
-  transform: translateX(calc(-60vw - 10px));
-}
-
 .command-center-iframe, .model-code-iframe, .model-info-iframe {
   height: 60vh;
   width: 99.5%;
