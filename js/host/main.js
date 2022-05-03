@@ -274,7 +274,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "global-chat-container": 20
   }
 
-  const idToWidthMini = {
+  const idToWidthNarrow = {
     "command-center-container": 35,
     "model-code-container": 55,
     "model-info-container": 35,
@@ -282,7 +282,27 @@ document.addEventListener("DOMContentLoaded", () => {
     "global-chat-container": 30
   }
 
+  const idToWidthVeryNarrow = {
+    "command-center-container": 60,
+    "model-code-container": 80,
+    "model-info-container": 60,
+    "session-chat-container": 50,
+    "global-chat-container": 50
+  };
+
   let currentWindowWidth = window.innerWidth;
+
+  const windowCategory = (width) => {
+    if (width <= 500) {
+      return "veryNarrow";
+    };
+
+    if (width <= 900) {
+      return "narrow";
+    };
+
+    return "normal";
+  };
 
   const veryNarrowWindow = () => {
     return window.innerWidth <= 500;
@@ -306,34 +326,37 @@ document.addEventListener("DOMContentLoaded", () => {
     const priorWindowWidth = currentWindowWidth;
     const newWindowWidth = window.innerWidth;
 
-    if (priorWindowWidth > 900 && newWindowWidth <= 900) {
-      const openContainers = computeOpenContainers();
-      const openContainerIds = computeOpenContainerIds();
+    if (windowCategory(priorWindowWidth) === windowCategory(newWindowWidth)) {
+      return;
+    };
 
+    const openContainers = computeOpenContainers();
+    const openContainerIds = computeOpenContainerIds();
+
+    // Normal to narrow
+    if (windowCategory(priorWindowWidth) === "normal" && windowCategory(newWindowWidth) === "narrow") {
       if (openContainers.length === 3) {
         hideElement(openContainers[0]);
 
-        const newWidthIndexOne = idToWidthMini[openContainerIds[1]];
-        const newWidthIndexTwo = idToWidthMini[openContainerIds[2]];
+        const newWidthIndexOne = idToWidthNarrow[openContainerIds[1]];
+        const newWidthIndexTwo = idToWidthNarrow[openContainerIds[2]];
         resizeTwoContainers(openContainers[1], openContainers[2], newWidthIndexOne, newWidthIndexTwo);
       };
 
       if (openContainers.length === 2) {
-        const newWidthIndexZero = idToWidthMini[openContainerIds[0]];
-        const newWidthIndexOne = idToWidthMini[openContainerIds[1]];
+        const newWidthIndexZero = idToWidthNarrow[openContainerIds[0]];
+        const newWidthIndexOne = idToWidthNarrow[openContainerIds[1]];
         resizeTwoContainers(openContainers[0], openContainers[1], newWidthIndexZero, newWidthIndexOne);
       };
 
       if (openContainers.length === 1) {
-        const newWidthIndexZero = idToWidthMini[openContainerIds[0]];
+        const newWidthIndexZero = idToWidthNarrow[openContainerIds[0]];
         resizeOneContainer(openContainers[0], newWidthIndexZero);
       };
     };
 
-    if (priorWindowWidth <= 900 && newWindowWidth > 900) {
-      const openContainers = computeOpenContainers();
-      const openContainerIds = computeOpenContainerIds();
-
+    // Narrow to normal
+    if (windowCategory(priorWindowWidth) === "narrow" && windowCategory(newWindowWidth) === "normal") {
       if (openContainers.length === 2) {
         const newWidthIndexZero = idToWidth[openContainerIds[0]];
         const newWidthIndexOne = idToWidth[openContainerIds[1]];
@@ -346,23 +369,89 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     };
 
+    // Narrow to very narrow
+    if (windowCategory(priorWindowWidth) === "narrow" && windowCategory(newWindowWidth) === "veryNarrow") {
+      if (openContainers.length === 2) {
+        hideElement(openContainers[0]);
+        const newWidthIndexOne = idToWidthVeryNarrow[openContainerIds[1]];
+        resizeOneContainer(openContainers[1], newWidthIndexOne);
+      };
+
+      if (openContainers.length === 1) {
+        const newWidthIndexZero = idToWidthVeryNarrow[openContainerIds[0]];
+        resizeOneContainer(openContainers[0], newWidthIndexZero);
+      };
+    };
+
+    // Very narrow to narrow
+    if (windowCategory(priorWindowWidth) === "veryNarrow" && windowCategory(newWindowWidth) === "narrow") {
+      if (openContainers.length === 1) {
+        const newWidthIndexZero = idToWidthNarrow[openContainerIds[0]];
+        resizeOneContainer(openContainers[0], newWidthIndexZero);
+      };
+    };
+
+    // Normal to very narrow
+    if (windowCategory(priorWindowWidth) === "normal" && windowCategory(newWindowWidth) === "veryNarrow") {
+      if (openContainers.length === 3) {
+        hideElement(openContainers[0]);
+        hideElement(openContainers[1]);
+
+        const newWidthIndexTwo = idToWidthVeryNarrow[openContainerIds[2]];
+        resizeOneContainer(openContainers[2], newWidthIndexTwo);
+      };
+
+      if (openContainers.length === 2) {
+        hideElement(openContainers[0]);
+
+        const newWidthIndexOne = idToWidthVeryNarrow[openContainerIds[1]];
+        resizeOneContainer(openContainers[1], newWidthIndexOne);
+      };
+
+      if (openContainers.length === 0) {
+        const newWidthIndexZero = idToWidthVeryNarrow[openContainerIds[0]];
+        resizeOneContainer(openContainers[0], newWidthIndexZero);
+      };
+    };
+
+    // Very narrow to normal
+    if (windowCategory(priorWindowWidth) === "veryNarrow" && windowCategory(newWindowWidth) === "normal") {
+      if (openContainers.length === 1) {
+        const newWidthIndexZero = idToWidth[openContainerIds[0]];
+        resizeOneContainer(openContainers[0], newWidthIndexZero);
+      };
+    };
+
     currentWindowWidth = window.innerWidth;
   };
 
   drawerOptions.forEach((option) => {
     option.onclick = () => {
-      const narrowWindowStatus = narrowWindow();
       const openContainers = computeOpenContainers();
       const currentOptionId = datasetToId[option.dataset.type];
-      const currentOptionWidth = (narrowWindowStatus ? idToWidthMini[currentOptionId] : idToWidth[currentOptionId]);
       const containerPosition = computeContainerPosition(currentOptionId);
 
       if (containerPosition !== -1) {
         closeContainer(openContainers, containerPosition);
         return;
-      }
+      };
 
-      if (!narrowWindowStatus) {
+      const windowWidthStatus = windowCategory(currentWindowWidth);
+      let currentOptionWidth;
+
+      if (windowWidthStatus === "normal") {
+        currentOptionWidth = idToWidth[currentOptionId];
+      };
+
+      if (windowWidthStatus === "narrow") {
+        currentOptionWidth = idToWidthNarrow[currentOptionId];
+      };
+
+      if (windowWidthStatus === "veryNarrow") {
+        currentOptionWidth = idToWidthVeryNarrow[currentOptionId];
+      };
+
+      if (windowWidthStatus === "normal") {
         if (openContainers.length === 3) {
           hideElement(openContainers[0]);
 
@@ -384,7 +473,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (openContainers.length === 1) {
           updateElementByOffset(openContainers[0], "one", currentOptionWidth);
         };
-      } else {
+      };
+
+      if (windowWidthStatus === "narrow") {
         if (openContainers.length === 2) {
           hideElement(openContainers[0]);
           updateElementByOffset(openContainers[1], "one", currentOptionWidth);
@@ -393,7 +484,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (openContainers.length === 1) {
           updateElementByOffset(openContainers[0], "one", currentOptionWidth);
         };
-      }
+      };
+
+      if (windowWidthStatus == "veryNarrow") {
+        if (openContainers.length === 1) {
+          hideElement(openContainers[0]);
+        }
+      };
 
       switch(option.dataset.type) {
         case "command-center":
