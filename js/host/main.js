@@ -274,6 +274,20 @@ document.addEventListener("DOMContentLoaded", () => {
     "global-chat-container": 20
   }
 
+  const idToWidthMini = {
+    "command-center-container": 35,
+    "model-code-container": 55,
+    "model-info-container": 35,
+    "session-chat-container": 30,
+    "global-chat-container": 30
+  }
+
+  let currentWindowWidth = window.innerWidth;
+
+  const smallWindow = () => {
+    return window.innerWidth <= 900;
+  };
+
   drawerClosed.onmouseover = () => {
     drawerClosed.classList.add("invisible");
     drawerOpen.classList.remove("invisible");
@@ -284,11 +298,81 @@ document.addEventListener("DOMContentLoaded", () => {
     drawerOpen.classList.add("invisible");
   };
 
+  window.onresize = () => {
+    const priorWindowWidth = currentWindowWidth;
+    const newWindowWidth = window.innerWidth;
+
+
+    console.log("old width:", priorWindowWidth)
+    console.log("new width:", newWindowWidth)
+
+    if (priorWindowWidth > 900 && newWindowWidth <= 900) {
+      console.log("sizing up....")
+      const openContainers = computeOpenContainers();
+      const openContainerIds = computeOpenContainerIds();
+
+      if (openContainers.length === 3) {
+        hideElement(openContainers[0]);
+
+        const newWidthIndexOne = idToWidthMini[openContainerIds[1]];
+        const newWidthIndexTwo = idToWidthMini[openContainerIds[2]];
+
+        console.log("newWidthIndexOne:", newWidthIndexOne);
+        console.log("newWidthIndexTwo:", newWidthIndexTwo);
+
+        openContainers[1].style.width = `${newWidthIndexOne}vw`;
+        openContainers[1].style.transform = `translateX(-${newWidthIndexTwo}vw)`;
+
+        openContainers[2].style.width = `${newWidthIndexTwo}vw`;
+      };
+
+      if (openContainers.length === 2) {
+        const newWidthIndexZero = idToWidthMini[openContainerIds[0]];
+        const newWidthIndexOne = idToWidthMini[openContainerIds[1]];
+
+        openContainers[0].style.width = `${newWidthIndexZero}vw`;
+        openContainers[0].style.transform = `translateX(-${newWidthIndexOne}vw)`;
+
+        openContainers[1].style.width = `${newWidthIndexOne}vw`;
+      };
+
+      if (openContainers.length === 1) {
+        const newWidthIndexZero = idToWidthMini[openContainerIds[0]];
+        openContainers[0].style.width = `${newWidthIndexZero}vw`;
+      };
+    };
+
+    if (priorWindowWidth <= 900 && newWindowWidth > 900) {
+      console.log("sizing down...")
+
+      const openContainers = computeOpenContainers();
+      const openContainerIds = computeOpenContainerIds();
+
+      if (openContainers.length === 2) {
+        const newWidthIndexZero = idToWidth[openContainerIds[0]];
+        const newWidthIndexOne = idToWidth[openContainerIds[1]];
+
+        openContainers[0].style.width = `${newWidthIndexZero}vw`;
+        openContainers[0].style.transform = `translateX(-${newWidthIndexOne}vw)`;
+
+        openContainers[1].style.width = `${newWidthIndexOne}vw`;
+      };
+
+      if (openContainers.length === 1) {
+        const newWidthIndexZero = idToWidth[openContainerIds[0]];
+        openContainers[0].style.width = `${newWidthIndexZero}vw`;
+      };
+    };
+
+    currentWindowWidth = window.innerWidth;
+  };
+
   drawerOptions.forEach((option) => {
     option.onclick = () => {
+      const smallWindowStatus = smallWindow();
       const openContainers = computeOpenContainers();
       const currentOptionId = datasetToId[option.dataset.type];
-      const currentOptionWidth = idToWidth[currentOptionId];
+      const currentOptionWidth = (smallWindowStatus ? idToWidthMini[currentOptionId] : idToWidth[currentOptionId]);
       const containerPosition = computeContainerPosition(currentOptionId);
 
       if (containerPosition !== -1) {
@@ -296,26 +380,37 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      if (openContainers.length === 3) {
-        hideElement(openContainers[0]);
+      if (!smallWindowStatus) {
+        if (openContainers.length === 3) {
+          hideElement(openContainers[0]);
 
-        let offsetIndexOne = parseInt(openContainers[2].style.width.slice(0, -2));
-        offsetIndexOne += currentOptionWidth;
+          let offsetIndexOne = parseInt(openContainers[2].style.width.slice(0, -2));
+          offsetIndexOne += currentOptionWidth;
 
-        updateElementByOffset(openContainers[1], "two", offsetIndexOne);
-        updateElementByOffset(openContainers[2], "one", currentOptionWidth);
-      };
+          updateElementByOffset(openContainers[1], "two", offsetIndexOne);
+          updateElementByOffset(openContainers[2], "one", currentOptionWidth);
+        };
 
-      if (openContainers.length === 2) {
-        let offsetIndexZero = parseInt(openContainers[1].style.width.slice(0, -2));
-        offsetIndexZero += currentOptionWidth;
+        if (openContainers.length === 2) {
+          let offsetIndexZero = parseInt(openContainers[1].style.width.slice(0, -2));
+          offsetIndexZero += currentOptionWidth;
 
-        updateElementByOffset(openContainers[0], "two", offsetIndexZero);
-        updateElementByOffset(openContainers[1], "one", currentOptionWidth);
-      };
+          updateElementByOffset(openContainers[0], "two", offsetIndexZero);
+          updateElementByOffset(openContainers[1], "one", currentOptionWidth);
+        };
 
-      if (openContainers.length === 1) {
-        updateElementByOffset(openContainers[0], "one", currentOptionWidth);
+        if (openContainers.length === 1) {
+          updateElementByOffset(openContainers[0], "one", currentOptionWidth);
+        };
+      } else {
+        if (openContainers.length === 2) {
+          hideElement(openContainers[0]);
+          updateElementByOffset(openContainers[1], "one", currentOptionWidth);
+        };
+
+        if (openContainers.length === 1) {
+          updateElementByOffset(openContainers[0], "one", currentOptionWidth);
+        };
       }
 
       switch(option.dataset.type) {
@@ -358,8 +453,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return { "containers": openContainers, "ids": [openContainers[0].id] };
       case 2:
         openContainers.forEach((container) => {
-          console.log("dataset-offset:", container.dataset.offset)
-
           if (container.dataset.offset === "one") {
             openContainersOrdered[0] = container;
             openContainerIdsOrdered[0] = container.id;
@@ -371,8 +464,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return { "containers": openContainersOrdered, "ids": openContainerIdsOrdered };
       case 3:
         openContainers.forEach((container) => {
-          console.log("dataset-offset:", container.dataset.offset)
-
           if (container.dataset.offset === "two") {
             openContainersOrdered[0] = container;
             openContainerIdsOrdered[0] = container.id;
