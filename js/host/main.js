@@ -284,6 +284,60 @@ document.addEventListener("DOMContentLoaded", () => {
     drawerOpen.classList.add("invisible");
   };
 
+  drawerOptions.forEach((option) => {
+    option.onclick = () => {
+      const openContainers = computeOpenContainers();
+      const currentOptionId = datasetToId[option.dataset.type];
+      const currentOptionWidth = idToWidth[currentOptionId];
+      const containerPosition = computeContainerPosition(currentOptionId);
+
+      if (containerPosition !== -1) {
+        closeContainer(openContainers, containerPosition);
+        return;
+      }
+
+      if (openContainers.length === 3) {
+        hideElement(openContainers[0]);
+
+        let offsetIndexOne = parseInt(openContainers[2].style.width.slice(0, -2));
+        offsetIndexOne += currentOptionWidth;
+
+        updateElementByOffset(openContainers[1], "two", offsetIndexOne);
+        updateElementByOffset(openContainers[2], "one", currentOptionWidth);
+      };
+
+      if (openContainers.length === 2) {
+        let offsetIndexZero = parseInt(openContainers[1].style.width.slice(0, -2));
+        offsetIndexZero += currentOptionWidth;
+
+        updateElementByOffset(openContainers[0], "two", offsetIndexZero);
+        updateElementByOffset(openContainers[1], "one", currentOptionWidth);
+      };
+
+      if (openContainers.length === 1) {
+        updateElementByOffset(openContainers[0], "one", currentOptionWidth);
+      }
+
+      switch(option.dataset.type) {
+        case "command-center":
+          initElementZeroOffset(commandCenter, currentOptionWidth);
+          break;
+        case "code":
+          initElementZeroOffset(modelCodeContainer, currentOptionWidth);
+          break;
+        case "info":
+          initElementZeroOffset(modelInfoContainer, currentOptionWidth);
+          break;
+        case "session-chat":
+          initElementZeroOffset(sessionChat, currentOptionWidth);
+          break;
+        case "global-chat":
+          initElementZeroOffset(globalChat, currentOptionWidth);
+          break;
+      }
+    }
+  });
+
   const computeOpenContainerObj = () => {
     const allContainers = [...document.querySelectorAll(".menu-option-container")];
     const openContainers = [];
@@ -340,16 +394,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (numOpenContainers === 3) {
       if (containerPosition === 0) {
-        delete container.dataset.offset;
-        container.classList.add("invisible");
-        container.style.transform = null;
+        hideElement(container);
         return;
       }
 
       if (containerPosition === 1) {
-        delete container.dataset.offset;
-        container.classList.add("invisible");
-        container.style.transform = null;
+        hideElement(container);
 
         const offsetIndexZero = parseInt(openContainers[2].style.width.slice(0, -2));
         updateElementByOffset(openContainers[0], "one", offsetIndexZero);
@@ -357,9 +407,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (containerPosition === 2) {
-        delete container.dataset.offset;
-        container.classList.add("invisible");
-        container.style.transform = null;
+        hideElement(container);
 
         const offsetIndexZero = parseInt(openContainers[1].style.width.slice(0, -2));
         updateElementByOffset(openContainers[0], "one", offsetIndexZero);
@@ -373,14 +421,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (numOpenContainers === 2) {
       if (containerPosition === 0) {
-        delete container.dataset.offset;
-        container.classList.add("invisible");
+        hideElement(container);
         return;
       }
 
       if (containerPosition === 1) {
-        delete container.dataset.offset;
-        container.classList.add("invisible");
+        hideElement(container);
 
         openContainers[0].dataset.offset = "zero";
         openContainers[0].style.transform = null;
@@ -390,43 +436,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (numOpenContainers === 1) {
-      delete container.dataset.offset;
-      container.classList.add("invisible");
+      hideElement(container);
       return;
     }
   };
 
-  const computeOpenContainers = () => {
-    return computeOpenContainerObj()["containers"];
-  };
-
-  const computeOpenContainerIds = () => {
-    return computeOpenContainerObj()["ids"];
-  };
-
-  const computeOpenContainerWidths = () => {
-    return containerIdsToWidths(computeOpenContainerObj()["ids"]);
-  };
-
-  const containerIdsToWidths = (idList) => {
-    const widths = [];
-
-    idList.forEach((id) => {
-      widths.push(idToWidth[id]);
-    });
-
-    return widths;
-  };
-
-  const computeContainerPosition = (currentOptionId) => {
-    const openContainerIds = computeOpenContainerIds();
-
-    if (openContainerIds.length === 0) {
-      return -1;
-    }
-
-    const containerPosition = openContainerIds.indexOf(currentOptionId);
-    return containerPosition;
+  const hideElement = (element) => {
+    delete element.dataset.offset;
+    element.classList.add("invisible");
+    element.style.transform = null;
+    element.style.marginRight = null;
   };
 
   const updateElementByOffset = (element, datasetOffset, elementOffset) => {
@@ -448,64 +467,26 @@ document.addEventListener("DOMContentLoaded", () => {
     element.dataset.offset = "zero";
     element.classList.remove("invisible");
     element.style.width = `${elementWidth}vw`;
-    element.style.transform = null;
-    element.style.marginRight = null;
   };
 
-  drawerOptions.forEach((option) => {
-    option.onclick = () => {
-      const openContainers = computeOpenContainers();
-      const currentOptionId = datasetToId[option.dataset.type];
-      const currentOptionWidth = idToWidth[currentOptionId];
-      const containerPosition = computeContainerPosition(currentOptionId);
+  const computeOpenContainers = () => {
+    return computeOpenContainerObj()["containers"];
+  };
 
-      if (containerPosition !== -1) {
-        closeContainer(openContainers, containerPosition);
-        return;
-      }
+  const computeOpenContainerIds = () => {
+    return computeOpenContainerObj()["ids"];
+  };
 
-      if (openContainers.length === 3) {
-        delete openContainers[0].dataset.offset;
-        openContainers[0].classList.add("invisible");
+  const computeContainerPosition = (currentOptionId) => {
+    const openContainerIds = computeOpenContainerIds();
 
-        let offsetIndexOne = parseInt(openContainers[2].style.width.slice(0, -2));
-        offsetIndexOne += currentOptionWidth;
-
-        updateElementByOffset(openContainers[1], "two", offsetIndexOne);
-        updateElementByOffset(openContainers[2], "one", currentOptionWidth);
-      };
-
-      if (openContainers.length === 2) {
-        let offsetIndexZero = parseInt(openContainers[1].style.width.slice(0, -2));
-        offsetIndexZero += currentOptionWidth;
-
-        updateElementByOffset(openContainers[0], "two", offsetIndexZero);
-        updateElementByOffset(openContainers[1], "one", currentOptionWidth);
-      };
-
-      if (openContainers.length === 1) {
-        updateElementByOffset(openContainers[0], "one", currentOptionWidth);
-      }
-
-      switch(option.dataset.type) {
-        case "command-center":
-          initElementZeroOffset(commandCenter, currentOptionWidth);
-          break;
-        case "code":
-          initElementZeroOffset(modelCodeContainer, currentOptionWidth);
-          break;
-        case "info":
-          initElementZeroOffset(modelInfoContainer, currentOptionWidth);
-          break;
-        case "session-chat":
-          initElementZeroOffset(sessionChat, currentOptionWidth);
-          break;
-        case "global-chat":
-          initElementZeroOffset(globalChat, currentOptionWidth);
-          break;
-      }
+    if (openContainerIds.length === 0) {
+      return -1;
     }
-  });
+
+    const containerPosition = openContainerIds.indexOf(currentOptionId);
+    return containerPosition;
+  };
 
   const setupButton = byEID("hnw-setup-button");
   const goButton = byEID("hnw-go-button");
