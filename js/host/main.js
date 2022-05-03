@@ -266,6 +266,14 @@ document.addEventListener("DOMContentLoaded", () => {
     "global-chat": "global-chat-container"
   };
 
+  const idToWidth = {
+    "command-center-container": 25,
+    "model-code-container": 45,
+    "model-info-container": 25,
+    "session-chat-container": 20,
+    "global-chat-container": 20
+  }
+
   drawerClosed.onmouseover = () => {
     drawerClosed.classList.add("invisible");
     drawerOpen.classList.remove("invisible");
@@ -296,7 +304,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return { "containers": openContainers, "ids": [openContainers[0].id] };
       case 2:
         openContainers.forEach((container) => {
-          if (container.classList.contains("offset-one-container")) {
+          console.log("dataset-offset:", container.dataset.offset)
+
+          if (container.dataset.offset === "one") {
             openContainersOrdered[0] = container;
             openContainerIdsOrdered[0] = container.id;
           } else {
@@ -307,10 +317,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return { "containers": openContainersOrdered, "ids": openContainerIdsOrdered };
       case 3:
         openContainers.forEach((container) => {
-          if (container.classList.contains("offset-two-containers")) {
+          console.log("dataset-offset:", container.dataset.offset)
+
+          if (container.dataset.offset === "two") {
             openContainersOrdered[0] = container;
             openContainerIdsOrdered[0] = container.id;
-          } else if (container.classList.contains("offset-one-container")) {
+          } else if (container.dataset.offset === "one") {
             openContainersOrdered[1] = container;
             openContainerIdsOrdered[1] = container.id;
           } else {
@@ -328,47 +340,57 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (numOpenContainers === 3) {
       if (containerPosition === 0) {
-        container.classList.remove("offset-two-containers");
+        delete container.dataset.offset;
         container.classList.add("invisible");
+        container.style.transform = null;
         return;
       }
 
       if (containerPosition === 1) {
-        container.classList.remove("offset-one-container");
+        delete container.dataset.offset;
         container.classList.add("invisible");
+        container.style.transform = null;
 
-        openContainers[0].classList.remove("offset-two-containers");
-        openContainers[0].classList.add("offset-one-container");
+        const offsetIndexZero = parseInt(openContainers[2].style.width.slice(0, -2));
+        openContainers[0].dataset.offset = "one";
+        openContainers[0].style.transform = `translateX(-${offsetIndexZero}vw)`;
         return;
       }
 
       if (containerPosition === 2) {
+        delete container.dataset.offset;
         container.classList.add("invisible");
+        container.style.transform = null;
 
-        openContainers[0].classList.remove("offset-two-containers");
-        openContainers[0].classList.add("offset-one-container");
+        const offsetIndexZero = parseInt(openContainers[1].style.width.slice(0, -2));
+        openContainers[0].dataset.offset = "one";
+        openContainers[0].style.transform = `translateX(-${offsetIndexZero}vw)`;
 
-        openContainers[1].classList.remove("offset-one-container");
+        openContainers[1].dataset.offset = "zero";
+        openContainers[1].style.transform = null;
         return;
       }
     }
 
     if (numOpenContainers === 2) {
       if (containerPosition === 0) {
-        container.classList.remove("offset-one-container");
+        delete container.dataset.offset;
         container.classList.add("invisible");
         return;
       }
 
       if (containerPosition === 1) {
+        delete container.dataset.offset;
         container.classList.add("invisible");
 
-        openContainers[0].classList.remove("offset-one-container");
+        openContainers[0].dataset.offset = "zero";
+        openContainers[0].style.transform = null;
         return;
       }
     }
 
     if (numOpenContainers === 1) {
+      delete container.dataset.offset;
       container.classList.add("invisible");
       return;
     }
@@ -380,6 +402,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const computeOpenContainerIds = () => {
     return computeOpenContainerObj()["ids"];
+  };
+
+  const computeOpenContainerWidths = () => {
+    return containerIdsToWidths(computeOpenContainerObj()["ids"]);
+  };
+
+  const containerIdsToWidths = (idList) => {
+    const widths = [];
+
+    idList.forEach((id) => {
+      widths.push(idToWidth[id]);
+    });
+
+    return widths;
   };
 
   const computeNumContainers = () => {
@@ -401,7 +437,11 @@ document.addEventListener("DOMContentLoaded", () => {
     option.onclick = () => {
       const openContainers = computeOpenContainers();
       const currentOptionId = datasetToId[option.dataset.type];
+      const currentOptionWidth = idToWidth[currentOptionId];
       const containerPosition = computeContainerPosition(currentOptionId);
+
+      console.log("openContainers:", computeOpenContainers());
+      console.log("openContainerWidths:", computeOpenContainerWidths());
 
       if (containerPosition !== -1) {
         closeContainer(openContainers, containerPosition);
@@ -409,41 +449,63 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (openContainers.length === 3) {
-        openContainers[0].classList.remove("offset-two-containers");
+        delete openContainers[0].dataset.offset;
         openContainers[0].classList.add("invisible");
 
-        openContainers[1].classList.remove("offset-one-container");
-        openContainers[1].classList.add("offset-two-containers");
+        let offsetIndexOne = parseInt(openContainers[2].style.width.slice(0, -2));
+        offsetIndexOne += currentOptionWidth;
+        openContainers[1].dataset.offset = "two";
+        openContainers[1].style.transform = `translateX(-${offsetIndexOne}vw)`;
 
-        openContainers[2].classList.add("offset-one-container");
+        openContainers[2].dataset.offset = "one";
+        openContainers[2].style.transform = `translateX(-${currentOptionWidth}vw)`;
       };
 
       if (openContainers.length === 2) {
-        openContainers[0].classList.remove("offset-one-container");
-        openContainers[0].classList.add("offset-two-containers");
+        let offsetIndexZero = parseInt(openContainers[1].style.width.slice(0, -2));
+        offsetIndexZero += currentOptionWidth;
+        openContainers[0].dataset.offset = "two";
+        openContainers[0].style.transform = `translateX(-${offsetIndexZero}vw)`;
 
-        openContainers[1].classList.add("offset-one-container");
+        openContainers[1].dataset.offset = "one";
+        openContainers[1].style.transform = `translateX(-${currentOptionWidth}vw)`;
       };
 
       if (openContainers.length === 1) {
-        openContainers[0].classList.add("offset-one-container");
+        openContainers[0].dataset.offset = "one";
+        openContainers[0].style.transform = `translateX(-${currentOptionWidth}vw)`;
       }
 
       switch(option.dataset.type) {
         case "command-center":
+          commandCenter.dataset.offset = "zero";
           commandCenter.classList.remove("invisible");
+          commandCenter.style.width = `${currentOptionWidth}vw`;
+          commandCenter.style.transform = null;
           break;
         case "code":
+          modelCodeContainer.dataset.offset = "zero";
           modelCodeContainer.classList.remove("invisible");
+          modelCodeContainer.style.width = `${currentOptionWidth}vw`;
+          modelCodeContainer.style.transform = null;
           break;
         case "info":
+          modelInfoContainer.dataset.offset = "zero";
           modelInfoContainer.classList.remove("invisible");
+          modelInfoContainer.style.width = `${currentOptionWidth}vw`;
+          modelInfoContainer.style.transform = null;
           break;
         case "session-chat":
+          sessionChat.dataset.offset = "zero";
           sessionChat.classList.remove("invisible");
+          sessionChat.style.width = `${currentOptionWidth}vw`;
+          sessionChat.style.transform = null;
           break;
         case "global-chat":
+          globalChat.dataset.offset = "zero";
           globalChat.classList.remove("invisible");
+          globalChat.style.width = `${currentOptionWidth}vw`;
+          globalChat.style.transform = null;
           break;
       }
     }

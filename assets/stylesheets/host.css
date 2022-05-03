@@ -374,7 +374,6 @@ body {
   position: fixed;
   bottom: 0;
   right: 0;
-  width: 30vw;
   z-index: 2;
   transition: opacity 0.2s;
 }
