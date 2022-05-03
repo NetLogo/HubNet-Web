@@ -284,7 +284,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentWindowWidth = window.innerWidth;
 
-  const smallWindow = () => {
+  const veryNarrowWindow = () => {
+    return window.innerWidth <= 500;
+  };
+
+  const narrowWindow = () => {
     return window.innerWidth <= 900;
   };
 
@@ -302,12 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const priorWindowWidth = currentWindowWidth;
     const newWindowWidth = window.innerWidth;
 
-
-    console.log("old width:", priorWindowWidth)
-    console.log("new width:", newWindowWidth)
-
     if (priorWindowWidth > 900 && newWindowWidth <= 900) {
-      console.log("sizing up....")
       const openContainers = computeOpenContainers();
       const openContainerIds = computeOpenContainerIds();
 
@@ -316,51 +315,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const newWidthIndexOne = idToWidthMini[openContainerIds[1]];
         const newWidthIndexTwo = idToWidthMini[openContainerIds[2]];
-
-        console.log("newWidthIndexOne:", newWidthIndexOne);
-        console.log("newWidthIndexTwo:", newWidthIndexTwo);
-
-        openContainers[1].style.width = `${newWidthIndexOne}vw`;
-        openContainers[1].style.transform = `translateX(-${newWidthIndexTwo}vw)`;
-
-        openContainers[2].style.width = `${newWidthIndexTwo}vw`;
+        resizeTwoContainers(openContainers[1], openContainers[2], newWidthIndexOne, newWidthIndexTwo);
       };
 
       if (openContainers.length === 2) {
         const newWidthIndexZero = idToWidthMini[openContainerIds[0]];
         const newWidthIndexOne = idToWidthMini[openContainerIds[1]];
-
-        openContainers[0].style.width = `${newWidthIndexZero}vw`;
-        openContainers[0].style.transform = `translateX(-${newWidthIndexOne}vw)`;
-
-        openContainers[1].style.width = `${newWidthIndexOne}vw`;
+        resizeTwoContainers(openContainers[0], openContainers[1], newWidthIndexZero, newWidthIndexOne);
       };
 
       if (openContainers.length === 1) {
         const newWidthIndexZero = idToWidthMini[openContainerIds[0]];
-        openContainers[0].style.width = `${newWidthIndexZero}vw`;
+        resizeOneContainer(openContainers[0], newWidthIndexZero);
       };
     };
 
     if (priorWindowWidth <= 900 && newWindowWidth > 900) {
-      console.log("sizing down...")
-
       const openContainers = computeOpenContainers();
       const openContainerIds = computeOpenContainerIds();
 
       if (openContainers.length === 2) {
         const newWidthIndexZero = idToWidth[openContainerIds[0]];
         const newWidthIndexOne = idToWidth[openContainerIds[1]];
-
-        openContainers[0].style.width = `${newWidthIndexZero}vw`;
-        openContainers[0].style.transform = `translateX(-${newWidthIndexOne}vw)`;
-
-        openContainers[1].style.width = `${newWidthIndexOne}vw`;
+        resizeTwoContainers(openContainers[0], openContainers[1], newWidthIndexZero, newWidthIndexOne);
       };
 
       if (openContainers.length === 1) {
         const newWidthIndexZero = idToWidth[openContainerIds[0]];
-        openContainers[0].style.width = `${newWidthIndexZero}vw`;
+        resizeOneContainer(openContainers[0], newWidthIndexZero);
       };
     };
 
@@ -369,10 +351,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   drawerOptions.forEach((option) => {
     option.onclick = () => {
-      const smallWindowStatus = smallWindow();
+      const narrowWindowStatus = narrowWindow();
       const openContainers = computeOpenContainers();
       const currentOptionId = datasetToId[option.dataset.type];
-      const currentOptionWidth = (smallWindowStatus ? idToWidthMini[currentOptionId] : idToWidth[currentOptionId]);
+      const currentOptionWidth = (narrowWindowStatus ? idToWidthMini[currentOptionId] : idToWidth[currentOptionId]);
       const containerPosition = computeContainerPosition(currentOptionId);
 
       if (containerPosition !== -1) {
@@ -380,7 +362,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      if (!smallWindowStatus) {
+      if (!narrowWindowStatus) {
         if (openContainers.length === 3) {
           hideElement(openContainers[0]);
 
@@ -530,6 +512,16 @@ document.addEventListener("DOMContentLoaded", () => {
       hideElement(container);
       return;
     }
+  };
+
+  const resizeTwoContainers = (c1, c2, width1, width2) => {
+    c1.style.width = `${width1}vw`;
+    c1.style.transform = `translateX(-${width2}vw)`;
+    c2.style.width = `${width2}vw`;
+  };
+
+  const resizeOneContainer = (container, width) => {
+    container.style.width = `${width}vw`;
   };
 
   const hideElement = (element) => {
