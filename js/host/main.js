@@ -293,23 +293,15 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentWindowWidth = window.innerWidth;
 
   const windowCategory = (width) => {
-    if (width <= 500) {
+    if (width <= 800) {
       return "veryNarrow";
     };
 
-    if (width <= 900) {
+    if (width <= 1100) {
       return "narrow";
     };
 
     return "normal";
-  };
-
-  const veryNarrowWindow = () => {
-    return window.innerWidth <= 500;
-  };
-
-  const narrowWindow = () => {
-    return window.innerWidth <= 900;
   };
 
   drawerClosed.onmouseover = () => {
@@ -508,8 +500,8 @@ document.addEventListener("DOMContentLoaded", () => {
         case "global-chat":
           initElementZeroOffset(globalChat, currentOptionWidth);
           break;
-      }
-    }
+      };
+    };
   });
 
   const computeOpenContainerObj = () => {
