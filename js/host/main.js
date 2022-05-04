@@ -274,6 +274,17 @@ document.addEventListener("DOMContentLoaded", () => {
     "global-chat-container": 350,
   }
 
+  const ids = Object.keys(idToWidth);
+  let widths = [];
+  ids.forEach((id) => {
+    widths.push(idToWidth[id]);
+  });
+  const maxWidth = Math.max(...widths);
+
+  console.log("ids:", ids)
+  console.log("widths:", widths)
+  console.log("maxWidth:", maxWidth)
+
   drawerClosed.onmouseover = () => {
     drawerClosed.classList.add("invisible");
     drawerOpen.classList.remove("invisible");
@@ -284,10 +295,31 @@ document.addEventListener("DOMContentLoaded", () => {
     drawerOpen.classList.add("invisible");
   };
 
+  window.onload = () => {
+    const menuDrawer = byEID("drawer-container");
+
+    if (window.innerWidth < maxWidth) {
+      menuDrawer.classList.add("invisible");
+    }
+  };
+
   window.onresize = () => {
     const openContainers = computeOpenContainers();
     const openContainerIds = computeOpenContainerIds();
     let totalContainerWidth = sumContainerWidths(openContainers, 0, openContainers.length);
+    const menuDrawer = byEID("drawer-container");
+
+    console.log(window.innerWidth);
+    console.log(maxWidth);
+    console.log(window.innerWidth < maxWidth);
+
+    if (window.innerWidth < maxWidth) {
+      menuDrawer.classList.add("invisible");
+    }
+
+    if ([...menuDrawer.classList].includes("invisible") && window.innerWidth >= maxWidth) {
+      menuDrawer.classList.remove("invisible");
+    }
 
     if (totalContainerWidth < window.innerWidth) {
       return;
@@ -318,17 +350,6 @@ document.addEventListener("DOMContentLoaded", () => {
         closeContainer(openContainers, containerPosition);
         return;
       };
-
-      if (currentOptionWidth >= window.innerWidth) {
-        const containerErrorMessage = byEID("container-error-message");
-        containerErrorMessage.classList.remove("invisible");
-
-        setTimeout(() => {
-          containerErrorMessage.classList.add("invisible");
-        }, 500);
-
-        return;
-      }
 
       if (openContainers.length === 4) {
         let currentTotalWidth = sumContainerWidths(openContainers, 0, 4);
