@@ -267,42 +267,12 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const idToWidth = {
-    "command-center-container": 25,
-    "model-code-container": 45,
-    "model-info-container": 25,
-    "session-chat-container": 20,
-    "global-chat-container": 20
+    "command-center-container": 400,
+    "model-code-container": 600,
+    "model-info-container": 400,
+    "session-chat-container": 350,
+    "global-chat-container": 350,
   }
-
-  const idToWidthNarrow = {
-    "command-center-container": 35,
-    "model-code-container": 55,
-    "model-info-container": 35,
-    "session-chat-container": 30,
-    "global-chat-container": 30
-  }
-
-  const idToWidthVeryNarrow = {
-    "command-center-container": 60,
-    "model-code-container": 80,
-    "model-info-container": 60,
-    "session-chat-container": 50,
-    "global-chat-container": 50
-  };
-
-  let currentWindowWidth = window.innerWidth;
-
-  const windowCategory = (width) => {
-    if (width <= 800) {
-      return "veryNarrow";
-    };
-
-    if (width <= 1100) {
-      return "narrow";
-    };
-
-    return "normal";
-  };
 
   drawerClosed.onmouseover = () => {
     drawerClosed.classList.add("invisible");
@@ -315,106 +285,25 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.onresize = () => {
-    const priorWindowWidth = currentWindowWidth;
-    const newWindowWidth = window.innerWidth;
-
-    if (windowCategory(priorWindowWidth) === windowCategory(newWindowWidth)) {
-      return;
-    };
-
     const openContainers = computeOpenContainers();
     const openContainerIds = computeOpenContainerIds();
+    let totalContainerWidth = sumContainerWidths(openContainers, 0, openContainers.length);
 
-    // Normal to narrow
-    if (windowCategory(priorWindowWidth) === "normal" && windowCategory(newWindowWidth) === "narrow") {
-      if (openContainers.length === 3) {
-        hideElement(openContainers[0]);
+    if (totalContainerWidth < window.innerWidth) {
+      return;
+    }
 
-        const newWidthIndexOne = idToWidthNarrow[openContainerIds[1]];
-        const newWidthIndexTwo = idToWidthNarrow[openContainerIds[2]];
-        resizeTwoContainers(openContainers[1], openContainers[2], newWidthIndexOne, newWidthIndexTwo);
-      };
+    for (let i = 0; i < openContainers.length; i++) {
+      const currentContainerId = openContainerIds[i];
+      totalContainerWidth -= idToWidth[currentContainerId];
 
-      if (openContainers.length === 2) {
-        const newWidthIndexZero = idToWidthNarrow[openContainerIds[0]];
-        const newWidthIndexOne = idToWidthNarrow[openContainerIds[1]];
-        resizeTwoContainers(openContainers[0], openContainers[1], newWidthIndexZero, newWidthIndexOne);
-      };
-
-      if (openContainers.length === 1) {
-        const newWidthIndexZero = idToWidthNarrow[openContainerIds[0]];
-        resizeOneContainer(openContainers[0], newWidthIndexZero);
-      };
-    };
-
-    // Narrow to normal
-    if (windowCategory(priorWindowWidth) === "narrow" && windowCategory(newWindowWidth) === "normal") {
-      if (openContainers.length === 2) {
-        const newWidthIndexZero = idToWidth[openContainerIds[0]];
-        const newWidthIndexOne = idToWidth[openContainerIds[1]];
-        resizeTwoContainers(openContainers[0], openContainers[1], newWidthIndexZero, newWidthIndexOne);
-      };
-
-      if (openContainers.length === 1) {
-        const newWidthIndexZero = idToWidth[openContainerIds[0]];
-        resizeOneContainer(openContainers[0], newWidthIndexZero);
-      };
-    };
-
-    // Narrow to very narrow
-    if (windowCategory(priorWindowWidth) === "narrow" && windowCategory(newWindowWidth) === "veryNarrow") {
-      if (openContainers.length === 2) {
-        hideElement(openContainers[0]);
-        const newWidthIndexOne = idToWidthVeryNarrow[openContainerIds[1]];
-        resizeOneContainer(openContainers[1], newWidthIndexOne);
-      };
-
-      if (openContainers.length === 1) {
-        const newWidthIndexZero = idToWidthVeryNarrow[openContainerIds[0]];
-        resizeOneContainer(openContainers[0], newWidthIndexZero);
-      };
-    };
-
-    // Very narrow to narrow
-    if (windowCategory(priorWindowWidth) === "veryNarrow" && windowCategory(newWindowWidth) === "narrow") {
-      if (openContainers.length === 1) {
-        const newWidthIndexZero = idToWidthNarrow[openContainerIds[0]];
-        resizeOneContainer(openContainers[0], newWidthIndexZero);
-      };
-    };
-
-    // Normal to very narrow
-    if (windowCategory(priorWindowWidth) === "normal" && windowCategory(newWindowWidth) === "veryNarrow") {
-      if (openContainers.length === 3) {
-        hideElement(openContainers[0]);
-        hideElement(openContainers[1]);
-
-        const newWidthIndexTwo = idToWidthVeryNarrow[openContainerIds[2]];
-        resizeOneContainer(openContainers[2], newWidthIndexTwo);
-      };
-
-      if (openContainers.length === 2) {
-        hideElement(openContainers[0]);
-
-        const newWidthIndexOne = idToWidthVeryNarrow[openContainerIds[1]];
-        resizeOneContainer(openContainers[1], newWidthIndexOne);
-      };
-
-      if (openContainers.length === 0) {
-        const newWidthIndexZero = idToWidthVeryNarrow[openContainerIds[0]];
-        resizeOneContainer(openContainers[0], newWidthIndexZero);
-      };
-    };
-
-    // Very narrow to normal
-    if (windowCategory(priorWindowWidth) === "veryNarrow" && windowCategory(newWindowWidth) === "normal") {
-      if (openContainers.length === 1) {
-        const newWidthIndexZero = idToWidth[openContainerIds[0]];
-        resizeOneContainer(openContainers[0], newWidthIndexZero);
-      };
-    };
-
-    currentWindowWidth = window.innerWidth;
+      if (totalContainerWidth < window.innerWidth) {
+        for (let j = 0; j <= i; j++) {
+          closeContainer(openContainers, j);
+        }
+        return;
+      }
+    }
   };
 
   drawerOptions.forEach((option) => {
@@ -422,65 +311,122 @@ document.addEventListener("DOMContentLoaded", () => {
       const openContainers = computeOpenContainers();
       const currentOptionId = datasetToId[option.dataset.type];
       const containerPosition = computeContainerPosition(currentOptionId);
+      const currentOptionWidth = idToWidth[currentOptionId];
 
       if (containerPosition !== -1) {
         closeContainer(openContainers, containerPosition);
         return;
       };
 
-      const windowWidthStatus = windowCategory(currentWindowWidth);
-      let currentOptionWidth;
+      if (openContainers.length === 4) {
+        let possibleNewTotalWidth = sumContainerWidths(openContainers, 1, 4);
+        possibleNewTotalWidth += currentOptionWidth;
 
-      if (windowWidthStatus === "normal") {
-        currentOptionWidth = idToWidth[currentOptionId];
-      };
+        if (possibleNewTotalWidth + 15 >= window.innerWidth) {
+          alert("ERROR");
+          return;
+        }
 
-      if (windowWidthStatus === "narrow") {
-        currentOptionWidth = idToWidthNarrow[currentOptionId];
-      };
+        hideElement(openContainers[0]);
 
-      if (windowWidthStatus === "veryNarrow") {
-        currentOptionWidth = idToWidthVeryNarrow[currentOptionId];
-      };
+        let offsetIndexOne = sumContainerWidths(openContainers, 2, 4);
+        let offsetIndexTwo = sumContainerWidths(openContainers, 3, 4);
+        let offsetIndexThree = 0;
 
-      if (windowWidthStatus === "normal") {
-        if (openContainers.length === 3) {
+        offsetIndexOne += currentOptionWidth;
+        offsetIndexTwo += currentOptionWidth;
+        offsetIndexThree += currentOptionWidth;
+
+        updateElementByOffset(openContainers[1], "three", offsetIndexOne);
+        updateElementByOffset(openContainers[2], "two", offsetIndexTwo);
+        updateElementByOffset(openContainers[3], "one", offsetIndexThree);
+      }
+
+      if (openContainers.length === 3) {
+        let possibleNewTotalWidth1 = sumContainerWidths(openContainers, 0, 3);
+        possibleNewTotalWidth1 += currentOptionWidth;
+
+        // Add new, 4th container
+        if (possibleNewTotalWidth1 + 15 < window.innerWidth) {
+          let offsetIndexZero = sumContainerWidths(openContainers, 1, 3);
+          let offsetIndexOne = sumContainerWidths(openContainers, 2, 3);
+          let offsetIndexTwo = 0;
+
+          offsetIndexZero += currentOptionWidth;
+          offsetIndexOne += currentOptionWidth;
+          offsetIndexTwo += currentOptionWidth;
+
+          updateElementByOffset(openContainers[0], "three", offsetIndexZero);
+          updateElementByOffset(openContainers[1], "two", offsetIndexOne);
+          updateElementByOffset(openContainers[2], "one", offsetIndexTwo);
+        } else { // Close first container before adding new one
+          let possibleNewTotalWidth2 = sumContainerWidths(openContainers, 1, 3);
+          possibleNewTotalWidth2 += currentOptionWidth;
+
+          if (possibleNewTotalWidth2 + 10 >= window.innerWidth) {
+            alert("ERROR");
+            return;
+          }
+
           hideElement(openContainers[0]);
 
-          let offsetIndexOne = parseInt(openContainers[2].style.width.slice(0, -2));
+          let offsetIndexOne = sumContainerWidths(openContainers, 2, 3);
+          let offsetIndexTwo = 0;
+
           offsetIndexOne += currentOptionWidth;
+          offsetIndexTwo += currentOptionWidth;
 
           updateElementByOffset(openContainers[1], "two", offsetIndexOne);
-          updateElementByOffset(openContainers[2], "one", currentOptionWidth);
-        };
+          updateElementByOffset(openContainers[2], "one", offsetIndexTwo);
+        }
+      };
 
-        if (openContainers.length === 2) {
+      if (openContainers.length === 2) {
+        let possibleNewTotalWidth1 = sumContainerWidths(openContainers, 0, 2);
+        possibleNewTotalWidth1 += currentOptionWidth;
+
+        // Add new, 3rd container
+        if (possibleNewTotalWidth1 + 10 < window.innerWidth) {
           let offsetIndexZero = parseInt(openContainers[1].style.width.slice(0, -2));
           offsetIndexZero += currentOptionWidth;
 
           updateElementByOffset(openContainers[0], "two", offsetIndexZero);
           updateElementByOffset(openContainers[1], "one", currentOptionWidth);
-        };
+        } else { // Close first container before adding new one
+          let possibleNewTotalWidth2 = sumContainerWidths(openContainers, 1, 2);
+          possibleNewTotalWidth2 += currentOptionWidth;
 
-        if (openContainers.length === 1) {
-          updateElementByOffset(openContainers[0], "one", currentOptionWidth);
-        };
-      };
+          if (possibleNewTotalWidth2 + 5 >= window.innerWidth) {
+            alert("ERROR");
+            return;
+          }
 
-      if (windowWidthStatus === "narrow") {
-        if (openContainers.length === 2) {
           hideElement(openContainers[0]);
           updateElementByOffset(openContainers[1], "one", currentOptionWidth);
-        };
-
-        if (openContainers.length === 1) {
-          updateElementByOffset(openContainers[0], "one", currentOptionWidth);
-        };
+        }
       };
 
-      if (windowWidthStatus == "veryNarrow") {
-        if (openContainers.length === 1) {
+      if (openContainers.length === 1) {
+        let possibleNewTotalWidth1 = sumContainerWidths(openContainers, 0, 1);
+        possibleNewTotalWidth1 += currentOptionWidth;
+
+        // Add new, 2nd container
+        if (possibleNewTotalWidth1 + 5 < window.innerWidth) {
+          updateElementByOffset(openContainers[0], "one", currentOptionWidth);
+        } else { // Close first (and only) container before adding new one
+          if (currentOptionWidth >= window.innerWidth) {
+            alert("ERROR");
+            return;
+          }
+
           hideElement(openContainers[0]);
+        }
+      };
+
+      if (openContainers.length === 0) {
+        if (currentOptionWidth >= window.innerWidth) {
+          alert("ERROR");
+          return;
         }
       };
 
@@ -527,7 +473,9 @@ document.addEventListener("DOMContentLoaded", () => {
           if (container.dataset.offset === "one") {
             openContainersOrdered[0] = container;
             openContainerIdsOrdered[0] = container.id;
-          } else {
+          }
+
+          if (container.dataset.offset === "zero") {
             openContainersOrdered[1] = container;
             openContainerIdsOrdered[1] = container.id;
           }
@@ -538,12 +486,39 @@ document.addEventListener("DOMContentLoaded", () => {
           if (container.dataset.offset === "two") {
             openContainersOrdered[0] = container;
             openContainerIdsOrdered[0] = container.id;
-          } else if (container.dataset.offset === "one") {
+          }
+
+          if (container.dataset.offset === "one") {
             openContainersOrdered[1] = container;
             openContainerIdsOrdered[1] = container.id;
-          } else {
+          }
+
+          if (container.dataset.offset === "zero") {
             openContainersOrdered[2] = container;
             openContainerIdsOrdered[2] = container.id;
+          }
+        });
+        return { "containers": openContainersOrdered, "ids": openContainerIdsOrdered };
+      case 4:
+        openContainers.forEach((container) => {
+          if (container.dataset.offset === "three") {
+            openContainersOrdered[0] = container;
+            openContainerIdsOrdered[0] = container.id;
+          }
+
+          if (container.dataset.offset === "two") {
+            openContainersOrdered[1] = container;
+            openContainerIdsOrdered[1] = container.id;
+          }
+
+          if (container.dataset.offset === "one") {
+            openContainersOrdered[2] = container;
+            openContainerIdsOrdered[2] = container.id;
+          }
+
+          if (container.dataset.offset === "zero") {
+            openContainersOrdered[3] = container;
+            openContainerIdsOrdered[3] = container.id;
           }
         });
         return { "containers": openContainersOrdered, "ids": openContainerIdsOrdered };
@@ -553,6 +528,44 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeContainer = (openContainers, containerPosition) => {
     const numOpenContainers = openContainers.length;
     const container = openContainers[containerPosition];
+
+    if (numOpenContainers === 4) {
+      if (containerPosition === 0) {
+        hideElement(container);
+        return;
+      }
+
+      if (containerPosition === 1) {
+        hideElement(container);
+
+        const offsetIndexZero = sumContainerWidths(openContainers, 2, 4);
+        updateElementByOffset(openContainers[0], "two", offsetIndexZero);
+        return;
+      }
+
+      if (containerPosition === 2) {
+        hideElement(container);
+
+        const containerWidths = parseContainersToWidths(openContainers);
+        const offsetIndexZero = containerWidths[1] + containerWidths[3];
+        const offsetIndexOne = containerWidths[3];
+
+        updateElementByOffset(openContainers[0], "two", offsetIndexZero);
+        updateElementByOffset(openContainers[1], "one", offsetIndexOne);
+      }
+
+      if (containerPosition === 3) {
+        hideElement(container);
+
+        const containerWidths = parseContainersToWidths(openContainers);
+        const offsetIndexZero = containerWidths[1] + containerWidths[2];
+        const offsetIndexOne = containerWidths[2];
+
+        updateElementByOffset(openContainers[0], "two", offsetIndexZero);
+        updateElementByOffset(openContainers[1], "one", offsetIndexOne);
+        moveElementToZeroOffset(openContainers[2]);
+      }
+    }
 
     if (numOpenContainers === 3) {
       if (containerPosition === 0) {
@@ -574,9 +587,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const offsetIndexZero = parseInt(openContainers[1].style.width.slice(0, -2));
         updateElementByOffset(openContainers[0], "one", offsetIndexZero);
 
-        openContainers[1].dataset.offset = "zero";
-        openContainers[1].style.transform = null;
-        openContainers[1].style.marginRight = null;
+        moveElementToZeroOffset(openContainers[1]);
         return;
       }
     }
@@ -589,10 +600,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (containerPosition === 1) {
         hideElement(container);
-
-        openContainers[0].dataset.offset = "zero";
-        openContainers[0].style.transform = null;
-        openContainers[0].style.marginRight = null;
+        moveElementToZeroOffset(openContainers[0]);
         return;
       }
     }
@@ -603,14 +611,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  const resizeTwoContainers = (c1, c2, width1, width2) => {
-    c1.style.width = `${width1}vw`;
-    c1.style.transform = `translateX(-${width2}vw)`;
-    c2.style.width = `${width2}vw`;
+  const sumContainerWidths = (containerList, start, end) => {
+    let totalWidth = 0;
+
+    for (let i = start; i < end; i++) {
+      // console.log(containerList[i]);
+      const currentContainerWidth = parseInt(containerList[i].style.width.slice(0, -2));
+      totalWidth += currentContainerWidth;
+    }
+
+    return totalWidth;
   };
 
-  const resizeOneContainer = (container, width) => {
-    container.style.width = `${width}vw`;
+  const parseContainersToWidths = (containers) => {
+    const widths = [];
+
+    containers.forEach((container) => {
+      const width = parseInt(container.style.width.slice(0, -2));
+      widths.push(width);
+    });
+
+    return widths;
+  };
+
+  const moveElementToZeroOffset = (element) => {
+    element.dataset.offset = "zero";
+    element.style.transform = null;
+    element.style.marginRight = null;
   };
 
   const hideElement = (element) => {
@@ -621,8 +648,16 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const updateElementByOffset = (element, datasetOffset, elementOffset) => {
+    // console.log(element.id);
+    // console.log(datasetOffset);
+    // console.log(elementOffset)
+
     element.dataset.offset = datasetOffset;
-    element.style.transform = `translateX(-${elementOffset}vw)`;
+    element.style.transform = `translateX(-${elementOffset}px)`;
+
+    if (datasetOffset === "three") {
+      element.style.marginRight = "15px";
+    }
 
     if (datasetOffset === "two") {
       element.style.marginRight = "10px";
@@ -638,7 +673,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const initElementZeroOffset = (element, elementWidth) => {
     element.dataset.offset = "zero";
     element.classList.remove("invisible");
-    element.style.width = `${elementWidth}vw`;
+    element.style.width = `${elementWidth}px`;
   };
 
   const computeOpenContainers = () => {
