@@ -299,7 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (totalContainerWidth < window.innerWidth) {
         for (let j = 0; j <= i; j++) {
-          closeContainer(openContainers, j);
+          hideElement(openContainers[j]);
         }
         return;
       }
@@ -309,6 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
   drawerOptions.forEach((option) => {
     option.onclick = () => {
       const openContainers = computeOpenContainers();
+      const openContainerIds = computeOpenContainerIds();
       const currentOptionId = datasetToId[option.dataset.type];
       const containerPosition = computeContainerPosition(currentOptionId);
       const currentOptionWidth = idToWidth[currentOptionId];
@@ -318,28 +319,60 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       };
 
-      if (openContainers.length === 4) {
-        let possibleNewTotalWidth = sumContainerWidths(openContainers, 1, 4);
-        possibleNewTotalWidth += currentOptionWidth;
+      // TODO
+      if (currentOptionWidth >= window.innerWidth) {
+        alert("ERROR");
+        return;
+      }
 
-        if (possibleNewTotalWidth + 15 >= window.innerWidth) {
-          alert("ERROR");
-          return;
+      if (openContainers.length === 4) {
+        let currentTotalWidth = sumContainerWidths(openContainers, 0, 4);
+        currentTotalWidth += currentOptionWidth;
+        let lastClosedIndex = 0;
+
+        if (currentTotalWidth + 20 >= window.innerWidth) {
+          for (let i = 0; i < openContainers.length; i++) {
+            const currentContainerId = openContainerIds[i];
+            currentTotalWidth -= idToWidth[currentContainerId];
+
+            if (currentTotalWidth + 5 * (3 - i) < window.innerWidth) {
+              lastClosedIndex = i;
+              for (let j = 0; j <= i; j++) {
+                hideElement(openContainers[j]);
+              }
+              break;
+            }
+          }
         }
 
-        hideElement(openContainers[0]);
+        switch (lastClosedIndex) {
+          case 0:
+            let offsetIndexOne = sumContainerWidths(openContainers, 2, 4);
+            let offsetIndexTwo = sumContainerWidths(openContainers, 3, 4);
+            let offsetIndexThree = 0;
 
-        let offsetIndexOne = sumContainerWidths(openContainers, 2, 4);
-        let offsetIndexTwo = sumContainerWidths(openContainers, 3, 4);
-        let offsetIndexThree = 0;
+            offsetIndexOne += currentOptionWidth;
+            offsetIndexTwo += currentOptionWidth;
+            offsetIndexThree += currentOptionWidth;
 
-        offsetIndexOne += currentOptionWidth;
-        offsetIndexTwo += currentOptionWidth;
-        offsetIndexThree += currentOptionWidth;
+            updateElementByOffset(openContainers[1], "three", offsetIndexOne);
+            updateElementByOffset(openContainers[2], "two", offsetIndexTwo);
+            updateElementByOffset(openContainers[3], "one", offsetIndexThree);
+            break;
+          case 1:
+            let offsetIndexTwo2 = parseInt(openContainers[3].style.width.slice(0, -2));
+            let offsetIndexThree2 = 0;
 
-        updateElementByOffset(openContainers[1], "three", offsetIndexOne);
-        updateElementByOffset(openContainers[2], "two", offsetIndexTwo);
-        updateElementByOffset(openContainers[3], "one", offsetIndexThree);
+            offsetIndexTwo2 += currentOptionWidth;
+            offsetIndexThree2 += currentOptionWidth;
+
+            updateElementByOffset(openContainers[2], "two", offsetIndexTwo2);
+            updateElementByOffset(openContainers[3], "one", offsetIndexThree2);
+            break;
+          case 2:
+            updateElementByOffset(openContainers[3], "one", currentOptionWidth);
+            break;
+        }
       }
 
       if (openContainers.length === 3) {
@@ -359,25 +392,41 @@ document.addEventListener("DOMContentLoaded", () => {
           updateElementByOffset(openContainers[0], "three", offsetIndexZero);
           updateElementByOffset(openContainers[1], "two", offsetIndexOne);
           updateElementByOffset(openContainers[2], "one", offsetIndexTwo);
-        } else { // Close first container before adding new one
-          let possibleNewTotalWidth2 = sumContainerWidths(openContainers, 1, 3);
-          possibleNewTotalWidth2 += currentOptionWidth;
+        } else { // Close containers before adding new one
+          let currentTotalWidth = sumContainerWidths(openContainers, 0, 3);
+          currentTotalWidth += currentOptionWidth;
+          let lastClosedIndex = 0;
 
-          if (possibleNewTotalWidth2 + 10 >= window.innerWidth) {
-            alert("ERROR");
-            return;
+          if (currentTotalWidth + 15 >= window.innerWidth) {
+            for (let i = 0; i < openContainers.length; i++) {
+              const currentContainerId = openContainerIds[i];
+              currentTotalWidth -= idToWidth[currentContainerId];
+
+              if (currentTotalWidth + 5 * (2 - i) < window.innerWidth) {
+                lastClosedIndex = i;
+                for (let j = 0; j <= i; j++) {
+                  hideElement(openContainers[j]);
+                }
+                break;
+              }
+            }
           }
 
-          hideElement(openContainers[0]);
+          switch (lastClosedIndex) {
+            case 0:
+              let offsetIndexOne = sumContainerWidths(openContainers, 2, 3);
+              let offsetIndexTwo = 0;
 
-          let offsetIndexOne = sumContainerWidths(openContainers, 2, 3);
-          let offsetIndexTwo = 0;
+              offsetIndexOne += currentOptionWidth;
+              offsetIndexTwo += currentOptionWidth;
 
-          offsetIndexOne += currentOptionWidth;
-          offsetIndexTwo += currentOptionWidth;
-
-          updateElementByOffset(openContainers[1], "two", offsetIndexOne);
-          updateElementByOffset(openContainers[2], "one", offsetIndexTwo);
+              updateElementByOffset(openContainers[1], "two", offsetIndexOne);
+              updateElementByOffset(openContainers[2], "one", offsetIndexTwo);
+              break;
+            case 1:
+              updateElementByOffset(openContainers[2], "one", currentOptionWidth);
+              break;
+          }
         }
       };
 
@@ -392,17 +441,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
           updateElementByOffset(openContainers[0], "two", offsetIndexZero);
           updateElementByOffset(openContainers[1], "one", currentOptionWidth);
-        } else { // Close first container before adding new one
-          let possibleNewTotalWidth2 = sumContainerWidths(openContainers, 1, 2);
-          possibleNewTotalWidth2 += currentOptionWidth;
+        } else { // Close containers before adding new one
+          let currentTotalWidth = sumContainerWidths(openContainers, 0, 2);
+          currentTotalWidth += currentOptionWidth;
+          let lastClosedIndex = 0;
 
-          if (possibleNewTotalWidth2 + 5 >= window.innerWidth) {
-            alert("ERROR");
-            return;
+          if (currentTotalWidth + 10 >= window.innerWidth) {
+            for (let i = 0; i < openContainers.length; i++) {
+              const currentContainerId = openContainerIds[i];
+              currentTotalWidth -= idToWidth[currentContainerId];
+
+              if (currentTotalWidth + 5 * (1 - i) < window.innerWidth) {
+                lastClosedIndex = i;
+                for (let j = 0; j <= i; j++) {
+                  hideElement(openContainers[j]);
+                }
+                break;
+              }
+            }
           }
 
-          hideElement(openContainers[0]);
-          updateElementByOffset(openContainers[1], "one", currentOptionWidth);
+          switch (lastClosedIndex) {
+            case 0:
+              updateElementByOffset(openContainers[1], "one", currentOptionWidth);
+              break;
+          }
         }
       };
 
@@ -414,19 +477,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (possibleNewTotalWidth1 + 5 < window.innerWidth) {
           updateElementByOffset(openContainers[0], "one", currentOptionWidth);
         } else { // Close first (and only) container before adding new one
-          if (currentOptionWidth >= window.innerWidth) {
-            alert("ERROR");
-            return;
-          }
-
           hideElement(openContainers[0]);
-        }
-      };
-
-      if (openContainers.length === 0) {
-        if (currentOptionWidth >= window.innerWidth) {
-          alert("ERROR");
-          return;
         }
       };
 
@@ -615,7 +666,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let totalWidth = 0;
 
     for (let i = start; i < end; i++) {
-      // console.log(containerList[i]);
       const currentContainerWidth = parseInt(containerList[i].style.width.slice(0, -2));
       totalWidth += currentContainerWidth;
     }
@@ -648,10 +698,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const updateElementByOffset = (element, datasetOffset, elementOffset) => {
-    // console.log(element.id);
-    // console.log(datasetOffset);
-    // console.log(elementOffset)
-
     element.dataset.offset = datasetOffset;
     element.style.transform = `translateX(-${elementOffset}px)`;
 
