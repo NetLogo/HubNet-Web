@@ -319,9 +319,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       };
 
-      // TODO
       if (currentOptionWidth >= window.innerWidth) {
-        alert("ERROR");
+        const containerErrorMessage = byEID("container-error-message");
+        containerErrorMessage.classList.remove("invisible");
+
+        setTimeout(() => {
+          containerErrorMessage.classList.add("invisible");
+        }, 500);
+
         return;
       }
 
