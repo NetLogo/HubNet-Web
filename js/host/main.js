@@ -368,7 +368,6 @@ document.addEventListener("DOMContentLoaded", () => {
         let possibleNewTotalWidth = sumContainerWidths(openContainers, 0, 4);
         possibleNewTotalWidth += currentOptionWidth;
 
-        // Add new, 5th container
         if (possibleNewTotalWidth + 20 < window.innerWidth) {
           let offsetIndexZero = sumContainerWidths(openContainers, 1, 4);
           let offsetIndexOne = sumContainerWidths(openContainers, 2, 4);
@@ -384,7 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
           updateElementByOffset(openContainers[1], "three", offsetIndexOne);
           updateElementByOffset(openContainers[2], "two", offsetIndexTwo);
           updateElementByOffset(openContainers[3], "one", offsetIndexThree);
-        } else { // Close containers before adding one
+        } else {
           let currentTotalWidth = sumContainerWidths(openContainers, 0, 4);
           currentTotalWidth += currentOptionWidth;
           let lastClosedIndex = 0;
@@ -440,7 +439,6 @@ document.addEventListener("DOMContentLoaded", () => {
         let possibleNewTotalWidth1 = sumContainerWidths(openContainers, 0, 3);
         possibleNewTotalWidth1 += currentOptionWidth;
 
-        // Add new, 4th container
         if (possibleNewTotalWidth1 + 15 < window.innerWidth) {
           let offsetIndexZero = sumContainerWidths(openContainers, 1, 3);
           let offsetIndexOne = sumContainerWidths(openContainers, 2, 3);
@@ -453,7 +451,7 @@ document.addEventListener("DOMContentLoaded", () => {
           updateElementByOffset(openContainers[0], "three", offsetIndexZero);
           updateElementByOffset(openContainers[1], "two", offsetIndexOne);
           updateElementByOffset(openContainers[2], "one", offsetIndexTwo);
-        } else { // Close containers before adding new one
+        } else {
           let currentTotalWidth = sumContainerWidths(openContainers, 0, 3);
           currentTotalWidth += currentOptionWidth;
           let lastClosedIndex = 0;
@@ -496,14 +494,13 @@ document.addEventListener("DOMContentLoaded", () => {
         let possibleNewTotalWidth1 = sumContainerWidths(openContainers, 0, 2);
         possibleNewTotalWidth1 += currentOptionWidth;
 
-        // Add new, 3rd container
         if (possibleNewTotalWidth1 + 10 < window.innerWidth) {
           let offsetIndexZero = parseInt(openContainers[1].style.width.slice(0, -2));
           offsetIndexZero += currentOptionWidth;
 
           updateElementByOffset(openContainers[0], "two", offsetIndexZero);
           updateElementByOffset(openContainers[1], "one", currentOptionWidth);
-        } else { // Close containers before adding new one
+        } else {
           let currentTotalWidth = sumContainerWidths(openContainers, 0, 2);
           currentTotalWidth += currentOptionWidth;
           let lastClosedIndex = 0;
@@ -536,10 +533,9 @@ document.addEventListener("DOMContentLoaded", () => {
         let possibleNewTotalWidth1 = sumContainerWidths(openContainers, 0, 1);
         possibleNewTotalWidth1 += currentOptionWidth;
 
-        // Add new, 2nd container
         if (possibleNewTotalWidth1 + 5 < window.innerWidth) {
           updateElementByOffset(openContainers[0], "one", currentOptionWidth);
-        } else { // Close first (and only) container before adding new one
+        } else {
           hideElement(openContainers[0]);
           markClosedContainer(byEID(openMenuIds[0]));
         }
@@ -678,26 +674,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = openContainers[containerPosition];
     const menuObj = byEID(containerToMenuId[container.id]);
 
+    hideElement(container);
+    markClosedContainer(menuObj);
+
+    if (containerPosition === 0) {
+      return;
+    }
+
     if (numOpenContainers === 5) {
-      if (containerPosition === 0) {
-        hideElement(container);
-        markClosedContainer(menuObj);
-        return;
-      }
-
       if (containerPosition === 1) {
-        hideElement(container);
-        markClosedContainer(menuObj);
-
         const offsetIndexZero = sumContainerWidths(openContainers, 2, 5);
         updateElementByOffset(openContainers[0], "three", offsetIndexZero);
         return;
       }
 
       if (containerPosition === 2) {
-        hideElement(container);
-        markClosedContainer(menuObj);
-
         const containerWidths = parseContainersToWidths(openContainers);
         const offsetIndexZero = containerWidths[1] + containerWidths[3] + containerWidths[4];
         const offsetIndexOne = containerWidths[3] + containerWidths[4];
@@ -707,9 +698,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (containerPosition === 3) {
-        hideElement(container);
-        markClosedContainer(menuObj);
-
         const containerWidths = parseContainersToWidths(openContainers);
         const offsetIndexZero = containerWidths[1] + containerWidths[2] + containerWidths[4];
         const offsetIndexOne = containerWidths[2] + containerWidths[4];
@@ -721,9 +709,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (containerPosition === 4) {
-        hideElement(container);
-        markClosedContainer(menuObj);
-
         const offsetIndexZero = sumContainerWidths(openContainers, 1, 4);
         const offsetIndexOne = sumContainerWidths(openContainers, 2, 4);
         const offsetIndexTwo = sumContainerWidths(openContainers, 3, 4);
@@ -736,25 +721,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (numOpenContainers === 4) {
-      if (containerPosition === 0) {
-        hideElement(container);
-        markClosedContainer(menuObj);
-        return;
-      }
-
       if (containerPosition === 1) {
-        hideElement(container);
-        markClosedContainer(menuObj);
-
         const offsetIndexZero = sumContainerWidths(openContainers, 2, 4);
         updateElementByOffset(openContainers[0], "two", offsetIndexZero);
         return;
       }
 
       if (containerPosition === 2) {
-        hideElement(container);
-        markClosedContainer(menuObj);
-
         const containerWidths = parseContainersToWidths(openContainers);
         const offsetIndexZero = containerWidths[1] + containerWidths[3];
         const offsetIndexOne = containerWidths[3];
@@ -764,9 +737,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (containerPosition === 3) {
-        hideElement(container);
-        markClosedContainer(menuObj);
-
         const containerWidths = parseContainersToWidths(openContainers);
         const offsetIndexZero = containerWidths[1] + containerWidths[2];
         const offsetIndexOne = containerWidths[2];
@@ -778,25 +748,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (numOpenContainers === 3) {
-      if (containerPosition === 0) {
-        hideElement(container);
-        markClosedContainer(menuObj);
-        return;
-      }
-
       if (containerPosition === 1) {
-        hideElement(container);
-        markClosedContainer(menuObj);
-
         const offsetIndexZero = parseInt(openContainers[2].style.width.slice(0, -2));
         updateElementByOffset(openContainers[0], "one", offsetIndexZero);
         return;
       }
 
       if (containerPosition === 2) {
-        hideElement(container);
-        markClosedContainer(menuObj);
-
         const offsetIndexZero = parseInt(openContainers[1].style.width.slice(0, -2));
         updateElementByOffset(openContainers[0], "one", offsetIndexZero);
 
@@ -806,24 +764,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (numOpenContainers === 2) {
-      if (containerPosition === 0) {
-        hideElement(container);
-        markClosedContainer(menuObj);
-        return;
-      }
-
       if (containerPosition === 1) {
-        hideElement(container);
-        markClosedContainer(menuObj);
         moveElementToZeroOffset(openContainers[0]);
         return;
       }
-    }
-
-    if (numOpenContainers === 1) {
-      hideElement(container);
-      markClosedContainer(menuObj);
-      return;
     }
   };
 
