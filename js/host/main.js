@@ -104,7 +104,6 @@ const nlwManager =
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  // (NEW): Modal responses to clicks & 'Esc' key
   document.onclick = (event) => {
     const onHostAPage = byEID("nlw-frame").classList.contains("hidden");
 
@@ -135,7 +134,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // (NEW): HostA page modal
   const descriptionModalContainer = byEID("description-modal-container");
 
   byEID("read-more-button").onclick = () => {
@@ -146,7 +144,6 @@ document.addEventListener("DOMContentLoaded", () => {
     descriptionModalContainer.classList.add("modal-invis");
   };
 
-  // (NEW): Copy invite link functionality
   const copyInviteButton = byEID("copy-invite-button");
 
   copyInviteButton.onclick = () => {
@@ -171,10 +168,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const capacitySlider = byEID("max-num-clients-picker");
 
   capacitySlider.onchange = (e) => {
-    capacityDisplayText.innerHTML = `${e.target.value}`;
+    capacityDisplayText.innerHTML = e.target.value;
   };
 
-  // (NEW): HostB page modals
   const moreDetailsButton = byEID("more-details-button");
   const closeMoreDetailsModalButton = byEID("close-more-details-modal-button");
 
@@ -233,7 +229,6 @@ document.addEventListener("DOMContentLoaded", () => {
     hideStatsModal();
   };
 
-  // (NEW): Functionality with opening / closing menu containers
   const drawerClosed = byEID("drawer-closed");
   const drawerOpen = byEID("drawer-open");
   const drawerOptions = document.querySelectorAll(".drawer-text-container");

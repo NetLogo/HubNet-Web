@@ -157,8 +157,7 @@ body {
   box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
 }
 
-/* (NEW): HostB styling starts here */
-.host-b-frame {
+.hostB-frame {
   margin-bottom: 75px;
 }
 
@@ -182,27 +181,6 @@ body {
   filter: brightness(0.7);
   box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
 }
-
-/* .modal-divider {
-  border: 1px solid black;
-  width: 100%;
-  margin-top: 20px;
-}
-
-.modal-toggle-row {
-  overflow-y: scroll;
-  margin-left: auto;
-  margin-right: auto;
-  justify-content: space-between;
-  width: 90%;
-  margin-bottom: 20px;
-  padding: 20px;
-}
-
-.modal-toggle-row > input {
-  background-color: #6da87a;
-  z-index: 1;
-} */
 
 .dismiss-button {
   background-color: lightgray;
@@ -255,9 +233,10 @@ body {
 
 .capacity-slider-container {
   margin-left: 10px;
+  align-items: center;
 }
 
-.capacity-slider-container > p {
+capacity-slider-text {
   margin: 0 auto;
   font-size: 16px;
   text-align: center;
@@ -275,7 +254,7 @@ body {
   justify-content: center;
 }
 
-.bottom-setup-row > div {
+.setup-row-button {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -408,7 +387,7 @@ body {
   background-color: white;
   padding: 0;
   z-index: 1;
-  box-shadow: none !important;
+  box-shadow: none;
   align-items: flex-end;
 }
 
@@ -422,7 +401,6 @@ body {
   margin-right: 20px;
 }
 
-/* (NEW): Stylings for command center (similar to chat boxes for consistency) */
 .command-center-header, .model-code-header, .model-info-header {
   cursor: pointer;
   justify-content: center;
@@ -441,25 +419,6 @@ body {
   filter: brightness(0.8);
 }
 
-/* .command-center-body {
-  height: 50vh;
-  border-right: 1px solid black;
-  background-color: white;
-  justify-content: space-between;
-  align-items: flex-end;
-  padding: 0 20px 20px 20px;
-  z-index: 1;
-}
-
-.command-center-text-input {
-  width: 80%;
-  height: 40px;
-}
-
-.command-center-clear-button {
-  height: 40px;
-} */
-
 .triangle-down-black {
   width: 0;
   height: 0;
@@ -476,73 +435,10 @@ body {
   border-bottom: 18px solid black;
 }
 
-/* Custom chat box styling for HostB page */
-/* .session-chat-box-closed {
-  text-align: center;
-  justify-content: center;
-  align-items: center;
-  overflow-wrap: break-word;
-}
-
-.session-chat-box-open {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  width: 30vw;
-  z-index: 4;
-} */
-
 .session-open-chat-header {
   align-items: center;
   justify-content: center;
 }
-
-/* .global-chat-box-closed-container {
-  cursor: pointer;
-}
-
-.global-chat-box-closed-base {
-  position: fixed;
-  bottom: 30px;
-  text-align: center;
-  justify-content: center;
-  align-items: center;
-  overflow-wrap: break-word;
-}
-
-.global-chat-box-closed-std {
-  right: 100px;
-}
-
-.global-chat-box-closed-offset {
-  right: calc(30vw + 10px);
-}
-
-.global-chat-box-closed-bottom-base {
-  bottom: 10.8px;
-}
-
-.global-chat-box-closed-bottom-std {
-  right: 110px;
-}
-
-.global-chat-box-closed-bottom-offset {
-  right: calc(30vw + 20px);
-} */
-
-/* .global-chat-box-open-base {
-  position: fixed;
-  bottom: 0;
-  width: 30vw;
-}
-
-.global-chat-box-open-std {
-  right: 100px;
-}
-
-.global-chat-box-open-offset {
-  right: 30vw;
-} */
 
 .global-open-chat-header {
   align-items: center;
@@ -595,68 +491,13 @@ body {
     border-radius: 12px;
   }
 
-  .capacity-slider-container > p {
+  capacity-slider-text {
     margin: 10px auto;
     font-size: 14px;
     text-align: center;
   }
-
-  /* .command-center-closed {
-    position: fixed;
-    bottom: 30px;
-    left: 10px;
-    text-align: center;
-    justify-content: center;
-    align-items: center;
-    border-radius: 15px;
-    width: 80px;
-    height: 50px;
-    color: black;
-    font-size: 14px;
-    z-index: 3;
-    transition: opacity 0.2s;
-    background-color: lightgray;
-  }
-
-  .command-center-open {
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    bottom: 0;
-    width: 40vw;
-    transition: opacity 0.2s;
-  } */
-
-  /* .session-chat-box-open {
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    width: 40vw;
-    z-index: 4;
-  }
-
-  .global-chat-box-closed-offset {
-    right: calc(40vw + 10px);
-  }
-
-
-  .global-chat-box-closed-bottom-offset {
-    right: calc(40vw + 20px);
-  }
-
-  .global-chat-box-open-base {
-    position: fixed;
-    bottom: 0;
-    width: 40vw;
-  }
-
-  .global-chat-box-open-offset {
-    right: 40vw;
-  } */
-
 }
 
-/* (NEW): Specific / custom modal styling */
 .stats-modal-title {
   margin-top: 0;
   margin-bottom: 10px;

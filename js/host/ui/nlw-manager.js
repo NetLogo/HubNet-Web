@@ -6,10 +6,9 @@ export default class HostNLWManager extends NLWManager {
   #narrowcast  = undefined; // () => Array[RTCDataChannel]
   #onError     = undefined; // (String) => Unit
 
-  // (NEW): Ports from HNW outer frame to inner (accordion) iframes
-  #commandCenterPort1 = undefined;
-  #codeModalPort1 = undefined;
-  #infoModalPort1 = undefined;
+  #commandCenterPort1 = undefined; // MessagePort
+  #codeModalPort1     = undefined; // MessagePort
+  #infoModalPort1     = undefined; // MessagePort
 
   // (Element, (String, Object[Any]?) => Unit, () => Array[RTCDataChannel], (String) => Unit) => HostNLWManager
   constructor(outerFrame, broadcast, narrowcast, onError) {
@@ -215,9 +214,6 @@ export default class HostNLWManager extends NLWManager {
       default: {
         console.warn("Unknown baby monitor message type:", data);
       }
-
     }
-
   };
-
 }

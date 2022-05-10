@@ -134,7 +134,7 @@
     </div>
 
     <!-- HostB page here -->
-    <div id="nlw-frame" class="frame host-b-frame hidden">
+    <div id="nlw-frame" class="frame hostB-frame hidden">
 
       <div id="more-details-modal-container" class="modal-container modal-invis">
         <div id="more-details-modal" class="modal flex-column">
@@ -186,16 +186,16 @@
         <div class="nlw-iframe-row flex-row">
           <iframe id="nlw-iframe-external" class="nlw-iframe"></iframe>
           <div class="capacity-slider-container flex-column">
-            <p>Session</p>
-            <p>Capacity</p>
+            <p class="capacity-slider-text">Session</p>
+            <p class="capacity-slider-text">Capacity</p>
             <input id="max-num-clients-picker" class="max-num-clients-picker" type="range" orient="vertical" min="0" max="100" value="50">
-            <p id="capacity-display-text">50</p>
+            <p id="capacity-display-text" class="capacity-slider-text">50</p>
           </div>
         </div>
 
         <div class="bottom-setup-row flex-row">
-          <div class="button-base setup-button" id="hnw-setup-button">Setup</div>
-          <div class="button-base go-button-standard" id="hnw-go-button">Go</div>
+          <div class="button-base setup-row-button setup-button" id="hnw-setup-button">Setup</div>
+          <div class="button-base setup-row-button go-button-standard" id="hnw-go-button">Go</div>
         </div>
 
         <div id="container-error-message" class="container-error-message invisible">Please expand your browser window width.</div>
