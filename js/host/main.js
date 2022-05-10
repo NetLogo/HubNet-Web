@@ -258,6 +258,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  const containerToMenuId = {
+    "command-center-container": "command-center-select",
+    "model-code-container": "code-select",
+    "model-info-container": "info-select",
+    "session-chat-container": "session-chat-select",
+    "global-chat-container": "global-chat-select"
+  };
+
   const datasetToId = {
     "command-center": "command-center-container",
     "code": "model-code-container",
@@ -281,10 +289,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   const maxWidth = Math.max(...widths);
 
-  console.log("ids:", ids)
-  console.log("widths:", widths)
-  console.log("maxWidth:", maxWidth)
-
   drawerClosed.onmouseover = () => {
     drawerClosed.classList.add("invisible");
     drawerOpen.classList.remove("invisible");
@@ -306,12 +310,9 @@ document.addEventListener("DOMContentLoaded", () => {
   window.onresize = () => {
     const openContainers = computeOpenContainers();
     const openContainerIds = computeOpenContainerIds();
+    const openMenuIds = computeOpenMenuIds(openContainerIds);
     let totalContainerWidth = sumContainerWidths(openContainers, 0, openContainers.length);
     const menuDrawer = byEID("drawer-container");
-
-    console.log(window.innerWidth);
-    console.log(maxWidth);
-    console.log(window.innerWidth < maxWidth);
 
     if (window.innerWidth < maxWidth) {
       menuDrawer.classList.add("invisible");
@@ -332,16 +333,28 @@ document.addEventListener("DOMContentLoaded", () => {
       if (totalContainerWidth < window.innerWidth) {
         for (let j = 0; j <= i; j++) {
           hideElement(openContainers[j]);
+          markClosedContainer(byEID(openMenuIds[j]));
         }
         return;
       }
     }
   };
 
+  const computeOpenMenuIds = (openContainerIds) => {
+    let openMenuIds = [];
+    openContainerIds.forEach((containerId) => {
+      openMenuIds.push(containerToMenuId[containerId]);
+    });
+
+    return openMenuIds;
+  };
+
   drawerOptions.forEach((option) => {
     option.onclick = () => {
       const openContainers = computeOpenContainers();
       const openContainerIds = computeOpenContainerIds();
+      const openMenuIds = computeOpenMenuIds(openContainerIds);
+
       const currentOptionId = datasetToId[option.dataset.type];
       const containerPosition = computeContainerPosition(currentOptionId);
       const currentOptionWidth = idToWidth[currentOptionId];
@@ -365,6 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
               lastClosedIndex = i;
               for (let j = 0; j <= i; j++) {
                 hideElement(openContainers[j]);
+                markClosedContainer(byEID(openMenuIds[j]));
               }
               break;
             }
@@ -432,6 +446,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 lastClosedIndex = i;
                 for (let j = 0; j <= i; j++) {
                   hideElement(openContainers[j]);
+                  markClosedContainer(byEID(openMenuIds[j]));
                 }
                 break;
               }
@@ -481,6 +496,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 lastClosedIndex = i;
                 for (let j = 0; j <= i; j++) {
                   hideElement(openContainers[j]);
+                  markClosedContainer(byEID(openMenuIds[j]));
                 }
                 break;
               }
@@ -504,24 +520,30 @@ document.addEventListener("DOMContentLoaded", () => {
           updateElementByOffset(openContainers[0], "one", currentOptionWidth);
         } else { // Close first (and only) container before adding new one
           hideElement(openContainers[0]);
+          markClosedContainer(byEID(openMenuIds[0]));
         }
       };
 
       switch(option.dataset.type) {
         case "command-center":
           initElementZeroOffset(commandCenter, currentOptionWidth);
+          markOpenContainer(byEID("command-center-select"));
           break;
         case "code":
           initElementZeroOffset(modelCodeContainer, currentOptionWidth);
+          markOpenContainer(byEID("code-select"));
           break;
         case "info":
           initElementZeroOffset(modelInfoContainer, currentOptionWidth);
+          markOpenContainer(byEID("info-select"));
           break;
         case "session-chat":
           initElementZeroOffset(sessionChat, currentOptionWidth);
+          markOpenContainer(byEID("session-chat-select"));
           break;
         case "global-chat":
           initElementZeroOffset(globalChat, currentOptionWidth);
+          markOpenContainer(byEID("global-chat-select"));
           break;
       };
     };
@@ -605,15 +627,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeContainer = (openContainers, containerPosition) => {
     const numOpenContainers = openContainers.length;
     const container = openContainers[containerPosition];
+    const menuObj = byEID(containerToMenuId[container.id]);
 
     if (numOpenContainers === 4) {
       if (containerPosition === 0) {
         hideElement(container);
+        markClosedContainer(menuObj);
         return;
       }
 
       if (containerPosition === 1) {
         hideElement(container);
+        markClosedContainer(menuObj);
 
         const offsetIndexZero = sumContainerWidths(openContainers, 2, 4);
         updateElementByOffset(openContainers[0], "two", offsetIndexZero);
@@ -622,6 +647,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (containerPosition === 2) {
         hideElement(container);
+        markClosedContainer(menuObj);
 
         const containerWidths = parseContainersToWidths(openContainers);
         const offsetIndexZero = containerWidths[1] + containerWidths[3];
@@ -633,6 +659,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (containerPosition === 3) {
         hideElement(container);
+        markClosedContainer(menuObj);
 
         const containerWidths = parseContainersToWidths(openContainers);
         const offsetIndexZero = containerWidths[1] + containerWidths[2];
@@ -647,11 +674,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (numOpenContainers === 3) {
       if (containerPosition === 0) {
         hideElement(container);
+        markClosedContainer(menuObj);
         return;
       }
 
       if (containerPosition === 1) {
         hideElement(container);
+        markClosedContainer(menuObj);
 
         const offsetIndexZero = parseInt(openContainers[2].style.width.slice(0, -2));
         updateElementByOffset(openContainers[0], "one", offsetIndexZero);
@@ -660,6 +689,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (containerPosition === 2) {
         hideElement(container);
+        markClosedContainer(menuObj);
 
         const offsetIndexZero = parseInt(openContainers[1].style.width.slice(0, -2));
         updateElementByOffset(openContainers[0], "one", offsetIndexZero);
@@ -672,11 +702,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (numOpenContainers === 2) {
       if (containerPosition === 0) {
         hideElement(container);
+        markClosedContainer(menuObj);
         return;
       }
 
       if (containerPosition === 1) {
         hideElement(container);
+        markClosedContainer(menuObj);
         moveElementToZeroOffset(openContainers[0]);
         return;
       }
@@ -684,6 +716,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (numOpenContainers === 1) {
       hideElement(container);
+      markClosedContainer(menuObj);
       return;
     }
   };
@@ -740,6 +773,14 @@ document.addEventListener("DOMContentLoaded", () => {
       element.style.marginRight = "5px";
       return;
     }
+  };
+
+  const markOpenContainer = (element) => {
+    element.classList.add("open-container");
+  };
+
+  const markClosedContainer = (element) => {
+    element.classList.remove("open-container");
   };
 
   const initElementZeroOffset = (element, elementWidth) => {

@@ -372,8 +372,11 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   font-size: 18px;
   cursor: pointer;
+  height: 100%;
+  width: 100%;
 }
 
 .drawer-text-container:hover {
@@ -381,10 +384,13 @@ body {
   font-weight: 600;
 }
 
+.open-container {
+  background-color: #6da87a;
+}
+
 .vertical-divider {
   border-left: 3px solid black;
   height: 70px;
-  margin: 0 15px;
 }
 
 .menu-option-container {

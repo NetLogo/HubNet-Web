@@ -303,13 +303,9 @@ body {
 }
 
 .open-chat-header {
-  align-items: center;
-  justify-content: end;
+  height: 70px;
   cursor: pointer;
-  border-radius: 15px 15px 0 0;
-  height: 6vh;
-  padding-top: 10px;
-  padding-right: 25px;
+  border-radius: 25px 25px 0 0;
   background-color: #aed8f2;
   border: 1px solid black;
   color: black;
@@ -336,7 +332,7 @@ body {
 }
 
 .open-chat-body {
-  height: 60vh;
+  height: 53vh;
   padding: 5px;
   background-color: white;
   border: 1px solid black;
