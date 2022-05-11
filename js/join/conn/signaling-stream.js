@@ -1,3 +1,5 @@
+import genWorker from "/js/common/worker.js";
+
 export default class SignalingStream {
 
   #worker = undefined; // Worker[JoinerSignalingWorker]
@@ -5,8 +7,7 @@ export default class SignalingStream {
   // ( String, String, RTCSessionDescriptionInit
   // , (RTCSessionDescription) => Unit, (RTCIceCandidate) => Unit, () => Unit) => SignalingStream
   constructor(hostID, joinerID, offer, setRTCDesc, addRTCICE, notifyFull) {
-    const buddyURL = "js/join/conn/signaling-worker.js";
-    this.#worker   = new Worker(buddyURL, { type: "module" });
+    this.#worker = genWorker("js/join/conn/signaling-worker.js");
     this.#connect(hostID, joinerID, offer);
     this.#worker.onmessage =
       onSignalingMessage(setRTCDesc, addRTCICE, notifyFull, this.terminate);

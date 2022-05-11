@@ -1,4 +1,5 @@
 import { awaitWorker } from "/js/common/await.js";
+import genWorker       from "/js/common/worker.js";
 
 // Number
 const maxNumWorkers = Math.max(1, navigator.hardwareConcurrency);
@@ -6,16 +7,20 @@ const maxNumWorkers = Math.max(1, navigator.hardwareConcurrency);
 // Array[{ isIdle: Boolean, worker: WebWorker }]
 const workerPool = [];
 
-// (String) => Unit
-const initWorker = (workerPath) => {
-  const worker = new Worker(`${workerPath}`, { type: "module" });
+// (String, String) => Unit
+const initWorker = (workerPath, msgType) => {
+  const worker = genWorker(workerPath);
+  worker.messageType = msgType;
   workerPool.push({ worker, isIdle: true });
 };
 
 // (Object[Any], Boolean, MessagePort, String) => Unit
 const xserialize = (parcel, isHost, port, type) => {
 
-  const workerBundle = workerPool.find((bundle) => bundle.isIdle);
+  const workerBundle =
+    workerPool.find(
+      (bundle) => bundle.isIdle && bundle.worker.messageType === type
+    );
 
   if (workerBundle !== undefined) {
 
@@ -38,7 +43,7 @@ const xserialize = (parcel, isHost, port, type) => {
 
 // (String, String, String, String) => (MessageEvent) => Unit
 const handleMessage = (reqMsgType, innerMsgType, workerPath, poolDesc) => {
-  initWorker(workerPath);
+  initWorker(workerPath, innerMsgType);
   return (e) => {
     switch (e.data.type) {
       case "client-connect": {
@@ -56,7 +61,7 @@ const handleMessage = (reqMsgType, innerMsgType, workerPath, poolDesc) => {
       }
       case "shutdown": {
         workerPool.forEach((w) => w.worker.terminate());
-        postMessage({ type: "shutdown-complete" });
+        self.notifyParent({ type: "shutdown-complete" });
         break;
       }
       default: {
@@ -66,4 +71,12 @@ const handleMessage = (reqMsgType, innerMsgType, workerPath, poolDesc) => {
   };
 };
 
-export { handleMessage };
+// () => Unit
+const terminate = () => {
+  workerPool.forEach((worker) => worker.terminate());
+  while (workerPool.length > 0) {
+    workerPool.pop();
+  }
+};
+
+export { handleMessage, terminate };

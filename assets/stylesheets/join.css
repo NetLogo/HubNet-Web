@@ -7,6 +7,24 @@ body {
   margin-left: 50px;
 }
 
+.conn-worst {
+  animation: blink 0.6s cubic-bezier(1, 0, 0, 1) infinite alternate;
+  color:     red;
+}
+
+.conn-worse {
+  animation: blink 0.6s cubic-bezier(1, 0, 0, 1) infinite alternate;
+  color:     blueviolet;
+}
+
+.conn-bad {
+  color: orange;
+}
+
+@keyframes blink {
+  to { opacity: 0; }
+}
+
 .session-status {
   margin-bottom: 10px;
 }

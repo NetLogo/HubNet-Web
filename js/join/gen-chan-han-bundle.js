@@ -15,8 +15,24 @@ export default (rootBundle) => (connBundle) => {
 
   };
 
-  const setConnectionType = (ct) => {
-    byEID("connection-type-span").innerHTML = ct;
+  // ((Boolean?, Boolean?)) => Unit
+  const setConnectionType = ([receivesOverTURN, sendsOverTURN]) => {
+
+    const rx = receivesOverTURN;
+    const tx =    sendsOverTURN;
+
+    const isValid = rx !== undefined && tx !== undefined;
+
+    const [clazz, text] =
+      (rx  &&  tx) ? ["conn-worst",  "Fully Server-Based"] :
+      (rx  && !tx) ? ["conn-worse", "Mostly Server-Based"] :
+      (!rx &&  tx) ? ["conn-bad"  , "Mostly Peer-to-Peer"] :
+      isValid      ? ["conn-good" ,  "Fully Peer-to-Peer"] :
+                     ["conn-worst",    "Unable to Detect"];
+
+    byEID("connection-type-span").className = clazz;
+    byEID("connection-type-span").innerText = text;
+
   };
 
   const setLatency = (lat) => {
@@ -33,9 +49,7 @@ export default (rootBundle) => (connBundle) => {
          , handleUsernameIsTaken:   rootBundle.unlockUI
          , notifyUser:              (s) => { alert(s); }
          , resetConn:               connBundle.resetConn
-         , retryConn:               connBundle.retryConn
          , send:                    connBundle.send
-         , sendLogIn:               connBundle.sendLogIn
          , setConnectionType
          , setLatency
          , statusManager:           rootBundle.statusManager

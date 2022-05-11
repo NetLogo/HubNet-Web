@@ -1,6 +1,6 @@
 import { version } from "/js/static/version.js";
 
-import { checkIsTURN } from "/js/common/util.js";
+import { checkTURNiness } from "/js/common/util.js";
 
 export default class ChannelHandler {
 
@@ -37,11 +37,6 @@ export default class ChannelHandler {
 
       case "connection-established": {
         handleConnEst(b)(datum);
-        break;
-      }
-
-      case "connection-validation": {
-        handleConnVal(b)(datum);
         break;
       }
 
@@ -136,21 +131,8 @@ const handleConnEst = (bundle) => ({ protocolVersion }) => {
 
   bundle.getConnectionStats().then(
     (stats) => {
-      const usesTURN        = checkIsTURN(stats);
-      const serverBasedSpan = "<span class='conn-warn'>Server-based</span>";
-      const desc            = usesTURN ? serverBasedSpan : "Peer-to-Peer";
-      bundle.setConnectionType(desc);
+      bundle.setConnectionType(checkTURNiness(stats));
     }
   );
 
-};
-
-// (Object[Any]) => (Object[Any]) => Unit
-const handleConnVal = (bundle) => ({ isApproved }) => {
-  if (isApproved) {
-    bundle.sendLogIn();
-  } else {
-    console.warn("Connection was rejected for TURN usage.  Retrying....");
-    bundle.retryConn();
-  }
 };

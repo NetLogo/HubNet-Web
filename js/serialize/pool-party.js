@@ -1,4 +1,5 @@
 import { awaitWorker } from "/js/common/await.js";
+import genWorkerLike   from "/js/common/worker-like.js";
 
 export default class PoolParty {
 
@@ -6,12 +7,12 @@ export default class PoolParty {
   // abstract type OutType
 
   #mainMsg = undefined; // String
-  #pool    = undefined; // Worker[SerializerPool]
+  #pool    = undefined; // WorkerLike[XSerializerPool]
 
   // (String, String, String) => PoolParty
   constructor(workerURL, mainMsg, desc) {
     this.#mainMsg        = mainMsg;
-    this.#pool           = new Worker(workerURL, { type: "module" });
+    this.#pool           = genWorkerLike(workerURL, { type: "module" });
     this.#pool.onmessage = handleMessage(desc);
   }
 

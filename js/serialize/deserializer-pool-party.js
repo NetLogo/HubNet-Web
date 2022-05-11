@@ -7,7 +7,7 @@ export default class DeserializerPoolParty extends PoolParty {
 
   // () => DeserializerPoolParty
   constructor() {
-    super("js/serialize/deserializer-pool.js", "deserialize", "deserializer");
+    super("/js/serialize/deserializer-pool.js", "deserialize", "deserializer");
   }
 
 }

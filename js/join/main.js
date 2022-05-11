@@ -86,15 +86,11 @@ const onLogIn = (username, password, sessionName, activityName) => {
 
   window.localStorage.setItem(usernameLSKey, username);
 
-  const estabConn = () => {
-    fetch(`/rtc/join/${hostID}`).
-      then((response) => response.text()).
-      then(connMan.logIn( hostID, username, password, genCHBundle
-                        , statusManager.loggingIn, statusManager.iceConnectionLost
-                        , onDoorbell, alert, notifyFull, cleanupSession, estabConn));
-  };
-
-  estabConn();
+  fetch(`/rtc/join/${hostID}`).
+    then((response) => response.text()).
+    then(connMan.logIn( hostID, username, password, genCHBundle
+                      , statusManager.loggingIn, statusManager.iceConnectionLost
+                      , onDoorbell, alert, notifyFull, cleanupSession));
 
 };
 
