@@ -303,7 +303,7 @@ capacity-slider-text {
   justify-content: center;
   position: fixed;
   height: 100px;
-  width: 125px;
+  width: 150px;
   left: 0;
   bottom: 0;
   background-color: lightgray;
@@ -322,7 +322,7 @@ capacity-slider-text {
 
 .drawer-closed-text {
   transform: translate(-15px, 12px);
-  font-size: 20px;
+  font-size: 32px;
 }
 
 .drawer-expand-arrow {
@@ -369,6 +369,11 @@ capacity-slider-text {
   background-color: #6da87a;
 }
 
+.open-container-final {
+  background-color: #6da87a;
+  border-radius: 0 30px 0 0;
+}
+
 .vertical-divider {
   border-left: 3px solid black;
   height: 70px;
@@ -379,7 +384,7 @@ capacity-slider-text {
   bottom: 0;
   right: 0;
   z-index: 2;
-  transition: opacity 0.2s;
+  transition: opacity 0.1s;
 }
 
 .command-center-iframe, .model-code-iframe, .model-info-iframe {
@@ -401,17 +406,34 @@ capacity-slider-text {
 .popup-header-text {
   font-size: 20px;
   margin-right: 20px;
+  font-weight: bold;
+  grid-column-start: 1;
+  grid-row-start: 1;
+  justify-self: center;
 }
 
 .command-center-header, .model-code-header, .model-info-header {
   cursor: pointer;
-  justify-content: center;
-  align-items: center;
   border-radius: 25px 25px 0 0;
   height: 70px;
   background-color: lightgray;
   border: 1px solid black;
+  display: grid;
+  align-content: center;
+  padding: 0 20px;
 }
+
+.global-chat-header, .session-chat-header {
+  cursor: pointer;
+  border-radius: 25px 25px 0 0;
+  height: 70px;
+  background-color: lightblue;
+  border: 1px solid black;
+  display: grid;
+  align-content: center;
+  padding: 0 20px;
+}
+
 
 .command-center-header:hover, .model-code-header:hover, .model-info-header:hover {
   filter: brightness(0.9);
@@ -427,6 +449,9 @@ capacity-slider-text {
   border-left: 11px solid transparent;
   border-right: 11px solid transparent;
   border-top: 18px solid black;
+  grid-column-start: 1;
+  grid-row-start: 1;
+  justify-self: right;
 }
 
 .triangle-up-black {
@@ -435,16 +460,6 @@ capacity-slider-text {
   border-left: 11px solid transparent;
   border-right: 11px solid transparent;
   border-bottom: 18px solid black;
-}
-
-.session-open-chat-header {
-  align-items: center;
-  justify-content: center;
-}
-
-.global-open-chat-header {
-  align-items: center;
-  justify-content: center;
 }
 
 @media (max-width: 800px) {

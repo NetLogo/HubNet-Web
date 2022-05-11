@@ -336,7 +336,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (totalContainerWidth < window.innerWidth) {
         for (let j = 0; j <= i; j++) {
           hideElement(openContainers[j]);
-          markClosedContainer(byEID(openMenuIds[j]));
+          markClosedContainer(
+            byEID(openMenuIds[j]),
+            openMenuIds[j] === "session-chat-select"
+          );
         }
         return;
       }
@@ -400,7 +403,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 lastClosedIndex = i;
                 for (let j = 0; j <= i; j++) {
                   hideElement(openContainers[j]);
-                  markClosedContainer(byEID(openMenuIds[j]));
+                  markClosedContainer(
+                    byEID(openMenuIds[j]),
+                    openMenuIds[j] === "session-chat-select"
+                  );
                 }
                 break;
               }
@@ -468,7 +474,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 lastClosedIndex = i;
                 for (let j = 0; j <= i; j++) {
                   hideElement(openContainers[j]);
-                  markClosedContainer(byEID(openMenuIds[j]));
+                  markClosedContainer(
+                    byEID(openMenuIds[j]),
+                    openMenuIds[j] === "session-chat-select"
+                  );
                 }
                 break;
               }
@@ -517,7 +526,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 lastClosedIndex = i;
                 for (let j = 0; j <= i; j++) {
                   hideElement(openContainers[j]);
-                  markClosedContainer(byEID(openMenuIds[j]));
+                  markClosedContainer(
+                    byEID(openMenuIds[j]),
+                    openMenuIds[j] === "session-chat-select"
+                  );
                 }
                 break;
               }
@@ -540,30 +552,33 @@ document.addEventListener("DOMContentLoaded", () => {
           updateElementByOffset(openContainers[0], "one", currentOptionWidth);
         } else {
           hideElement(openContainers[0]);
-          markClosedContainer(byEID(openMenuIds[0]));
+          markClosedContainer(
+            byEID(openMenuIds[0]),
+            openMenuIds[0] === "session-chat-select"
+          );
         }
       };
 
       switch(option.dataset.type) {
         case "command-center":
           initElementZeroOffset(commandCenter, currentOptionWidth);
-          markOpenContainer(byEID("command-center-select"));
+          markOpenContainer(byEID("command-center-select"), false);
           break;
         case "code":
           initElementZeroOffset(modelCodeContainer, currentOptionWidth);
-          markOpenContainer(byEID("code-select"));
+          markOpenContainer(byEID("code-select"), false);
           break;
         case "info":
           initElementZeroOffset(modelInfoContainer, currentOptionWidth);
-          markOpenContainer(byEID("info-select"));
+          markOpenContainer(byEID("info-select"), false);
           break;
         case "session-chat":
           initElementZeroOffset(sessionChat, currentOptionWidth);
-          markOpenContainer(byEID("session-chat-select"));
+          markOpenContainer(byEID("session-chat-select"), true);
           break;
         case "global-chat":
           initElementZeroOffset(globalChat, currentOptionWidth);
-          markOpenContainer(byEID("global-chat-select"));
+          markOpenContainer(byEID("global-chat-select"), false);
           break;
       };
     };
@@ -675,10 +690,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeContainer = (openContainers, containerPosition) => {
     const numOpenContainers = openContainers.length;
     const container = openContainers[containerPosition];
-    const menuObj = byEID(containerToMenuId[container.id]);
+    const menuId = containerToMenuId[container.id];
+    const menuObj = byEID(menuId);
 
     hideElement(container);
-    markClosedContainer(menuObj);
+    markClosedContainer(
+      menuObj,
+      menuId === "session-chat-select"
+    );
 
     if (containerPosition === 0) {
       return;
@@ -832,11 +851,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  const markOpenContainer = (element) => {
+  const markOpenContainer = (element, finalPopup) => {
+    if (finalPopup) {
+      element.classList.add("open-container-final");
+      return;
+    }
+
     element.classList.add("open-container");
   };
 
-  const markClosedContainer = (element) => {
+  const markClosedContainer = (element, finalPopup) => {
+    if (finalPopup) {
+      element.classList.remove("open-container-final");
+      return;
+    }
+
     element.classList.remove("open-container");
   };
 
