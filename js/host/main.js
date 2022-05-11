@@ -224,7 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!statsModalIsInvis) {
       hideModalBody(statsModalBody);
       modalBodyNoDisplay(statsModalBody);
-    };
+    }
   };
 
   moreDetailsButton.onclick = () => {
@@ -248,45 +248,45 @@ document.addEventListener("DOMContentLoaded", () => {
   const globalChat = byEID("global-chat-container");
 
   const containerHeaders = [
-    byEID("command-center-header"), byEID("model-code-header"),
-    byEID("model-info-header"), byEID("session-chat-header"),
-    byEID("global-chat-header")
-  ]
+    byEID("command-center-header"), byEID("model-code-header")
+    ,byEID("model-info-header"), byEID("session-chat-header")
+    ,byEID("global-chat-header")
+  ];
 
   containerHeaders.forEach((header) => {
     header.onclick = () => {
       const openContainers = computeOpenContainers();
       const containerPosition = computeContainerPosition(header.parentNode.id);
       closeContainer(openContainers, containerPosition);
-    }
+    };
   });
 
   const containerToMenuId = {
-    "command-center-container": "command-center-select",
-    "model-code-container": "code-select",
-    "model-info-container": "info-select",
-    "session-chat-container": "session-chat-select",
-    "global-chat-container": "global-chat-select"
+    "command-center-container": "command-center-select"
+    ,"model-code-container": "code-select"
+    ,"model-info-container": "info-select"
+    ,"session-chat-container": "session-chat-select"
+    ,"global-chat-container": "global-chat-select"
   };
 
   const datasetToId = {
-    "command-center": "command-center-container",
-    "code": "model-code-container",
-    "info": "model-info-container",
-    "session-chat": "session-chat-container",
-    "global-chat": "global-chat-container"
+    "command-center": "command-center-container"
+    ,"code": "model-code-container"
+    ,"info": "model-info-container"
+    ,"session-chat": "session-chat-container"
+    ,"global-chat": "global-chat-container"
   };
 
   const idToWidth = {
-    "command-center-container": 400,
-    "model-code-container": 600,
-    "model-info-container": 400,
-    "session-chat-container": 350,
-    "global-chat-container": 350,
-  }
+    "command-center-container": 400
+    ,"model-code-container": 600
+    ,"model-info-container": 400
+    ,"session-chat-container": 350
+    ,"global-chat-container": 350,
+  };
 
   const ids = Object.keys(idToWidth);
-  let widths = [];
+  const widths = [];
   ids.forEach((id) => {
     widths.push(idToWidth[id]);
   });
@@ -347,7 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const computeOpenMenuIds = (openContainerIds) => {
-    let openMenuIds = [];
+    const openMenuIds = [];
     openContainerIds.forEach((containerId) => {
       openMenuIds.push(containerToMenuId[containerId]);
     });
@@ -368,7 +368,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (containerPosition !== -1) {
         closeContainer(openContainers, containerPosition);
         return;
-      };
+      }
 
       if (openContainers.length === 4) {
         let possibleNewTotalWidth = sumContainerWidths(openContainers, 0, 4);
@@ -414,7 +414,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
           switch (lastClosedIndex) {
-            case 0:
+            case 0: {
               let offsetIndexOne = sumContainerWidths(openContainers, 2, 4);
               let offsetIndexTwo = sumContainerWidths(openContainers, 3, 4);
               let offsetIndexThree = 0;
@@ -427,7 +427,8 @@ document.addEventListener("DOMContentLoaded", () => {
               updateElementByOffset(openContainers[2], "two", offsetIndexTwo);
               updateElementByOffset(openContainers[3], "one", offsetIndexThree);
               break;
-            case 1:
+            }
+            case 1: {
               let offsetIndexTwo2 = parseInt(openContainers[3].style.width.slice(0, -2));
               let offsetIndexThree2 = 0;
 
@@ -437,9 +438,14 @@ document.addEventListener("DOMContentLoaded", () => {
               updateElementByOffset(openContainers[2], "two", offsetIndexTwo2);
               updateElementByOffset(openContainers[3], "one", offsetIndexThree2);
               break;
-            case 2:
+            }
+            case 2: {
               updateElementByOffset(openContainers[3], "one", currentOptionWidth);
               break;
+            }
+            default: {
+              console.warn("Error with opening / closing menu containers");
+            }
           }
         }
       }
@@ -485,7 +491,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
           switch (lastClosedIndex) {
-            case 0:
+            case 0: {
               let offsetIndexOne = sumContainerWidths(openContainers, 2, 3);
               let offsetIndexTwo = 0;
 
@@ -495,12 +501,17 @@ document.addEventListener("DOMContentLoaded", () => {
               updateElementByOffset(openContainers[1], "two", offsetIndexOne);
               updateElementByOffset(openContainers[2], "one", offsetIndexTwo);
               break;
-            case 1:
+            }
+            case 1: {
               updateElementByOffset(openContainers[2], "one", currentOptionWidth);
               break;
+            }
+            default: {
+              console.warn("Error with opening / closing menu containers");
+            }
           }
         }
-      };
+      }
 
       if (openContainers.length === 2) {
         let possibleNewTotalWidth1 = sumContainerWidths(openContainers, 0, 2);
@@ -540,9 +551,11 @@ document.addEventListener("DOMContentLoaded", () => {
             case 0:
               updateElementByOffset(openContainers[1], "one", currentOptionWidth);
               break;
+            default:
+              console.warn("Error with opening / closing menu containers");
           }
         }
-      };
+      }
 
       if (openContainers.length === 1) {
         let possibleNewTotalWidth1 = sumContainerWidths(openContainers, 0, 1);
@@ -557,9 +570,9 @@ document.addEventListener("DOMContentLoaded", () => {
             openMenuIds[0] === "session-chat-select"
           );
         }
-      };
+      }
 
-      switch(option.dataset.type) {
+      switch (option.dataset.type) {
         case "command-center":
           initElementZeroOffset(commandCenter, currentOptionWidth);
           markOpenContainer(byEID("command-center-select"), false);
@@ -580,7 +593,9 @@ document.addEventListener("DOMContentLoaded", () => {
           initElementZeroOffset(globalChat, currentOptionWidth);
           markOpenContainer(byEID("global-chat-select"), false);
           break;
-      };
+        default:
+          console.warn("Invalid menu option");
+      }
     };
   });
 
@@ -591,13 +606,13 @@ document.addEventListener("DOMContentLoaded", () => {
     allContainers.forEach((container) => {
       if (![...container.classList].includes("invisible")) {
         openContainers.push(container);
-      };
+      }
     });
 
     const openContainersOrdered = new Array(openContainers.length);
     const openContainerIdsOrdered = new Array(openContainers.length);
 
-    switch(openContainers.length) {
+    switch (openContainers.length) {
       case 0:
         return { "containers": [], "ids": [] };
       case 1:
@@ -684,6 +699,9 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
         return { "containers": openContainersOrdered, "ids": openContainerIdsOrdered };
+      default:
+        console.warn("Invalid number of open containers");
+        return null;
     }
   };
 
@@ -788,7 +806,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (numOpenContainers === 2) {
       if (containerPosition === 1) {
         moveElementToZeroOffset(openContainers[0]);
-        return;
+
       }
     }
   };
@@ -805,14 +823,14 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const parseContainersToWidths = (containers) => {
-    const widths = [];
+    const containerWidths = [];
 
     containers.forEach((container) => {
       const width = parseInt(container.style.width.slice(0, -2));
-      widths.push(width);
+      containerWidths.push(width);
     });
 
-    return widths;
+    return containerWidths;
   };
 
   const moveElementToZeroOffset = (element) => {
@@ -847,7 +865,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (datasetOffset === "one") {
       element.style.marginRight = "5px";
-      return;
+
     }
   };
 
@@ -876,11 +894,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const computeOpenContainers = () => {
-    return computeOpenContainerObj()["containers"];
+    return computeOpenContainerObj().containers;
   };
 
   const computeOpenContainerIds = () => {
-    return computeOpenContainerObj()["ids"];
+    return computeOpenContainerObj().ids;
   };
 
   const computeContainerPosition = (currentOptionId) => {
