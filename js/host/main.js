@@ -69,6 +69,13 @@ const setIT = (id) => (text) => {
   byEID(id).innerText = text;
 };
 
+// (String) => Unit
+const setSessionCapacity = (numClients) => {
+  const capacityDisplayText = byEID("capacity-display-text");
+  const capacity = capacityDisplayText.innerText.split("/")[1];
+  capacityDisplayText.innerText = `${numClients}/${capacity}`;
+};
+
 // () => Number
 const getCapacity = () => {
   return Math.max(0, Math.min(999, parseInt(byEID("max-num-clients-picker").value)));
@@ -158,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
           copyInviteButton.classList.remove("copy-invite-button-active");
           copyInviteButton.classList.add("copy-invite-button-standard");
           copyInviteButton.value = "Copy Invite Link";
-        }, 1000);
+        }, 500);
       }).catch(() => {
         alert("Error with copying link");
       });
@@ -168,7 +175,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const capacitySlider = byEID("max-num-clients-picker");
 
   capacitySlider.onchange = (e) => {
-    capacityDisplayText.innerHTML = e.target.value;
+    const numClients = capacityDisplayText.innerText.split("/")[0];
+    capacityDisplayText.innerText = `${numClients}/${e.target.value}`;
   };
 
   const moreDetailsButton = byEID("more-details-button");
@@ -886,7 +894,8 @@ const bandwidthManager =
     new BandwidthManager( setIT("bandwidth-span"), setIT("new-send-span")
                         , setIT("num-clients-span"), setIT("num-congested-span")
                         , setIT("activity-status-span"), setIT("num-turn-span")
-                        , nlwManager.notifyCongested, nlwManager.notifyUncongested);
+                        , setSessionCapacity, nlwManager.notifyCongested
+                        , nlwManager.notifyUncongested);
 
 byEID("max-num-clients-picker").addEventListener("change", () => {
   connMan.updateFullness(getCapacity());

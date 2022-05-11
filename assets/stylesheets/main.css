@@ -87,6 +87,8 @@
   width: 150px;
   height: 100%;
   font-size: 20px;
+  user-select: none;
+  cursor: pointer;
 }
 
 .page-links-tabs {
@@ -149,6 +151,8 @@
     width: 125px;
     height: 100%;
     font-size: 18px;
+    user-select: none;
+    cursor: pointer;
   }
 
   .page-links-tabs {
@@ -220,6 +224,8 @@
   width: 150px;
   height: 100%;
   font-size: 20px;
+  user-select: none;
+  cursor: pointer;
 }
 
 .triangle-down {
@@ -292,6 +298,8 @@
     width: 125px;
     height: 100%;
     font-size: 18px;
+    user-select: none;
+    cursor: pointer;
   }
 
   .page-links-tabs {
@@ -391,6 +399,7 @@
 
 .chat-box-closed-container {
   cursor: pointer;
+  user-select: none;
 }
 
 .chat-box-closed-container:hover .chat-box-closed {
@@ -486,6 +495,7 @@
   color: black;
   font-size: 18px;
   font-weight: bold;
+  user-select: none;
 }
 
 .collapse-chat-arrow {

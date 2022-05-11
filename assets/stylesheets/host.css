@@ -171,6 +171,7 @@ body {
   height: 40px;
   font-size: 16px;
   border-radius: 12px;
+  user-select: none;
 }
 
 .button-base:hover {
@@ -260,6 +261,7 @@ capacity-slider-text {
   align-items: center;
   font-size: 18px;
   border: 2px solid black;
+  user-select: none;
 }
 
 .setup-button {

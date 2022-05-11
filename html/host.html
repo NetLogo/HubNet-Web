@@ -143,33 +143,36 @@
           <div id="stats-modal-body" class="modal-body modal-invis no-display">
             <p id="stats-modal-title" class="stats-modal-title">Session Stats: [Session Name]</p>
              <div id="session-dashboard">
-                <div>
-                  <span class="stats-modal-bold-text">- Session ID: </span>
+               <ul>
+                <li>
+                  <span class="stats-modal-bold-text">Session ID: </span>
                   <span id="id-display"></span>
-                </div>
-                <div>
-                  <span class="stats-modal-bold-text">- Upload: </span>
+                </li>
+                <li>
+                  <span class="stats-modal-bold-text">Upload: </span>
                   <span id="bandwidth-span">0 B</span>/s
-                </div>
-                <div>
-                  <span class="stats-modal-bold-text">- New Send: </span>
+                </li>
+                <li>
+                  <span class="stats-modal-bold-text">New Send: </span>
                   <span id="new-send-span">0 B</span>/s
-                </div>
-                <div>
-                  <span class="stats-modal-bold-text">- # Clients: </span>
+                </li>
+                <li>
+                  <span class="stats-modal-bold-text">Number of Clients: </span>
                   <span id="num-clients-span">0</span>
-                </div>
-                <div>
-                  <span class="stats-modal-bold-text">- # TURNs: </span>
+                </li>
+                <li>
+                  <span class="stats-modal-bold-text">Number of TURNs: </span>
                   <span id="num-turn-span">0</span>
-                </div>
-                <div>
-                  <span class="stats-modal-bold-text">- # Congested: </span>
-                  <span id="num-congested-span">0</span></div>
-                <div>
-                  <span class="stats-modal-bold-text">- Status: </span>
+                </li>
+                <li>
+                  <span class="stats-modal-bold-text">Number Congested: </span>
+                  <span id="num-congested-span">0</span>
+                </li>
+                <li>
+                  <span class="stats-modal-bold-text">Status: </span>
                   <span id="activity-status-span">...</span>
-                </div>
+                </li>
+               </ul>
               </div>
           </div>
 
@@ -189,7 +192,7 @@
             <p class="capacity-slider-text">Session</p>
             <p class="capacity-slider-text">Capacity</p>
             <input id="max-num-clients-picker" class="max-num-clients-picker" type="range" orient="vertical" min="0" max="100" value="50">
-            <p id="capacity-display-text" class="capacity-slider-text">50</p>
+            <p id="capacity-display-text" class="capacity-slider-text">0/50</p>
           </div>
         </div>
 

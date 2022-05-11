@@ -2,31 +2,33 @@ import { byteSizeLabel, checkIsTURN } from "/js/common/util.js";
 
 export default class BandwidthManager {
 
-  #congestionDuration = undefined; // Number
-  #recentBuffers      = undefined; // Object[UUID, Array[Number]]
-  #notifyCongested    = undefined; // () => Unit
-  #notifyUncongested  = undefined; // () => Unit
-  #setBandwidthDOM    = undefined; // (String) => Unit
-  #setNewSendDOM      = undefined; // (String) => Unit
-  #setNumClientsDOM   = undefined; // (String) => Unit
-  #setNumCongestedDOM = undefined; // (String) => Unit
-  #setNumTURNs        = undefined; // (String) => Unit
-  #setStatusDOM       = undefined; // (String) => Unit
+  #congestionDuration   = undefined; // Number
+  #recentBuffers         = undefined; // Object[UUID, Array[Number]]
+  #notifyCongested       = undefined; // () => Unit
+  #notifyUncongested     = undefined; // () => Unit
+  #setBandwidthDOM       = undefined; // (String) => Unit
+  #setNewSendDOM         = undefined; // (String) => Unit
+  #setNumClientsDOM      = undefined; // (String) => Unit
+  #setNumCongestedDOM    = undefined; // (String) => Unit
+  #setNumTURNs           = undefined; // (String) => Unit
+  #setStatusDOM          = undefined; // (String) => Unit
+  #setSessionCapacityDOM = undefined; // (String) => Unit
 
   // ( (String) => Unit, (String) => Unit, (String) => Unit, (String) => Unit, (String) => Unit
-  // , (String) => Unit, () => Unit, () => Unit) => BandwidthManager
+  // , (String) => Unit, (String) => Unit, () => Unit, () => Unit) => BandwidthManager
   constructor( setBandwidth, setNewSend, setNumClients, setNumCongested, setStatus
-             , setNumTURNs, notifyCongested, notifyUncongested) {
-    this.#congestionDuration = 0;
-    this.#notifyCongested    = notifyCongested;
-    this.#notifyUncongested  = notifyUncongested;
-    this.#recentBuffers      = {};
-    this.#setBandwidthDOM    = setBandwidth;
-    this.#setNewSendDOM      = setNewSend;
-    this.#setNumClientsDOM   = setNumClients;
-    this.#setNumCongestedDOM = setNumCongested;
-    this.#setNumTURNs        = setNumTURNs;
-    this.#setStatusDOM       = setStatus;
+             , setNumTURNs, setSessionCapacity, notifyCongested, notifyUncongested) {
+    this.#congestionDuration    = 0;
+    this.#notifyCongested       = notifyCongested;
+    this.#notifyUncongested     = notifyUncongested;
+    this.#recentBuffers         = {};
+    this.#setBandwidthDOM       = setBandwidth;
+    this.#setNewSendDOM         = setNewSend;
+    this.#setNumClientsDOM      = setNumClients;
+    this.#setNumCongestedDOM    = setNumCongested;
+    this.#setNumTURNs           = setNumTURNs;
+    this.#setStatusDOM          = setStatus;
+    this.#setSessionCapacityDOM = setSessionCapacity;
   }
 
   // (Promise[Array[Number]], Number) => Unit
@@ -85,6 +87,11 @@ export default class BandwidthManager {
         this.#notifyUncongested();
       }
       this.#congestionDuration = 0;
+    }
+
+    const prevClients = parseInt(document.getElementById("num-clients-span").innerText);
+    if (prevClients !== numClients) {
+      this.#setSessionCapacityDOM(numClients);
     }
 
     this.#setNumClientsDOM  (numClients);
