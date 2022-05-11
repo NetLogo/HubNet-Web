@@ -165,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
           copyInviteButton.classList.remove("copy-invite-button-active");
           copyInviteButton.classList.add("copy-invite-button-standard");
           copyInviteButton.value = "Copy Invite Link";
-        }, 500);
+        }, 600);
       }).catch(() => {
         alert("Error with copying link");
       });
@@ -174,7 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const capacityDisplayText = byEID("capacity-display-text");
   const capacitySlider = byEID("max-num-clients-picker");
 
-  capacitySlider.onchange = (e) => {
+  capacitySlider.oninput = (e) => {
     const numClients = capacityDisplayText.innerText.split("/")[0];
     capacityDisplayText.innerText = `${numClients}/${e.target.value}`;
   };

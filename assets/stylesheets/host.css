@@ -239,7 +239,7 @@ body {
 
 capacity-slider-text {
   margin: 0 auto;
-  font-size: 16px;
+  font-size: 50px;
   text-align: center;
 }
 
@@ -375,8 +375,8 @@ capacity-slider-text {
 }
 
 .vertical-divider {
-  border-left: 3px solid black;
-  height: 70px;
+  border-left: 1px solid black;
+  height: 100px;
 }
 
 .menu-option-container {
@@ -519,9 +519,13 @@ capacity-slider-text {
   margin-top: 0;
   margin-bottom: 10px;
   text-align: center;
-  font-size: 28px;
+  font-size: 36px;
   font-weight: bold;
   text-decoration: underline;
+}
+
+.session-dashboard {
+  font-size: 24px;
 }
 
 .stats-modal-bold-text {

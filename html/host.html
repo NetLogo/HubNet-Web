@@ -142,7 +142,7 @@
 
           <div id="stats-modal-body" class="modal-body modal-invis no-display">
             <p id="stats-modal-title" class="stats-modal-title">Session Stats: [Session Name]</p>
-             <div id="session-dashboard">
+             <div id="session-dashboard" class="session-dashboard">
                <ul>
                 <li>
                   <span class="stats-modal-bold-text">Session ID: </span>
@@ -189,10 +189,10 @@
         <div class="nlw-iframe-row flex-row">
           <iframe id="nlw-iframe-external" class="nlw-iframe"></iframe>
           <div class="capacity-slider-container flex-column">
-            <p class="capacity-slider-text">Session</p>
-            <p class="capacity-slider-text">Capacity</p>
+            <div class="capacity-slider-text">Session</div>
+            <div class="capacity-slider-text">Capacity</div>
             <input id="max-num-clients-picker" class="max-num-clients-picker" type="range" orient="vertical" min="0" max="100" value="50">
-            <p id="capacity-display-text" class="capacity-slider-text">0/50</p>
+            <div id="capacity-display-text" class="capacity-slider-text">0/50</div>
           </div>
         </div>
 

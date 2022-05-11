@@ -334,8 +334,8 @@ body {
 }
 
 .open-chat-body {
-  height: 53vh;
-  padding: 5px;
+  height: calc(55vh - 5px);
+  padding: 5px 0 0 5px;
   background-color: white;
   border: 1px solid black;
   overflow-y: auto;
