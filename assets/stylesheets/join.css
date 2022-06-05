@@ -1,4 +1,9 @@
 body {
+  margin: 0;
+  padding: 0;
+}
+
+.joinA-page-body, .joinB-page-body {
   margin-left: 50px;
 }
 
@@ -188,10 +193,6 @@ body {
   font-weight: bold;
 }
 
-.no-select {
-  user-select: none;
-}
-
 .session-buttons {
   justify-content: space-between;
   margin-bottom: 20px;
@@ -219,7 +220,7 @@ body {
   height: 40px;
   font-size: 16px;
   border-radius: 12px;
-  background-color: #e66c6c;
+  background-color: rgba(255, 80, 80, 0.7);
 }
 
 .disconnect-button:hover {
@@ -233,6 +234,7 @@ body {
 
 .chat-box-closed-container {
   cursor: pointer;
+  user-select: none;
 }
 
 .chat-box-closed-container:hover .chat-box-closed {
@@ -320,18 +322,15 @@ body {
 }
 
 .open-chat-header {
-  align-items: center;
-  justify-content: end;
+  height: 70px;
   cursor: pointer;
-  border-radius: 15px 15px 0 0;
-  height: 6vh;
-  padding-top: 10px;
-  padding-right: 25px;
+  border-radius: 25px 25px 0 0;
   background-color: #aed8f2;
   border: 1px solid black;
   color: black;
   font-size: 18px;
   font-weight: bold;
+  user-select: none;
 }
 
 .collapse-chat-arrow {
@@ -353,8 +352,8 @@ body {
 }
 
 .open-chat-body {
-  height: 60vh;
-  padding: 5px;
+  height: calc(55vh - 5px);
+  padding: 5px 0 0 5px;
   background-color: white;
   border: 1px solid black;
   overflow-y: auto;
