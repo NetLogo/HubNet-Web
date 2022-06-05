@@ -6,7 +6,24 @@
   </head>
   <body>
 
-    <div id="session-browser-frame" class="flex-column">
+    <div class="page-header flex-row">
+      <a href="/" class="hnw-header-link-wrapper">
+        <div class="hnw-header" id="hnw-header">HubNet Web</div>
+      </a>
+
+      <div class="page-links-dropdown">
+        <div class="navigate-label">
+          <div>Navigate</div>
+          <div class="triangle-down"></div>
+        </div>
+        <div class="page-links-tabs">
+          <a href="/join" class="page-links">Join</a>
+          <a href="/host" class="page-links">Host</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="session-browser-frame" class="joinA-page-body" class="flex-column">
 
       <div>
         <h1>Join a Session</h1>
@@ -91,17 +108,18 @@
           </form>
         </div>
       </div>
+
     </div>
 
   <!-- JoinB page here -->
-  <div id="nlw-frame" class="frame hidden">
+  <div id="nlw-frame" class="frame joinB-page-body hidden">
 
     <div id="modal-container" class="modal-container modal-invis">
 
       <div id="session-details-modal" class="modal flex-column">
         <div id="close-modal-button" class="close-modal-button"></div>
 
-        <div class="modal-text">
+        <div class="modal-body">
           <p class="modal-session-name" id="modal-session-name"></p>
           <div class="session-button">
             <div class="session-detail">
@@ -119,7 +137,7 @@
     </div>
 
     <div id="join-b-page">
-      <h1><span id="activity-name""></span></h1>
+      <h1><span id="activity-name"></span></h1>
       <div class="session-buttons flex-row">
         <input class="view-details-button" id="view-details-button" type="button" value="View Session Details">
         <input class="disconnect-button" id="disconnect-button" type="button" value="Disconnect">
