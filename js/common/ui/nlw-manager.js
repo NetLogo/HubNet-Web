@@ -80,7 +80,12 @@ export default class NLWManager {
 
   // () => HTMLIFrameElement
   _getFrame = () => {
-    return this.#outerFrame.querySelector("iframe");
+    return this.#outerFrame.querySelector(".nlw-iframe");
+  };
+
+  // () => HTMLElement
+  _querySelector = (selector) => {
+    return this.#outerFrame.querySelector(selector);
   };
 
   // () => Unit

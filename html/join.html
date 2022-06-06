@@ -74,11 +74,8 @@
         </div>
 
         <div class="right-column">
-          <img
-            id="session-preview-image"
-            class="session-preview-image"
-            draggable=false
-          />
+          <img id="session-preview-image" class="session-preview-image"
+               draggable=false />
         </div>
       </div>
 
@@ -111,78 +108,77 @@
 
     </div>
 
-  <!-- JoinB page here -->
-  <div id="nlw-frame" class="frame joinB-page-body hidden">
+    <div id="nlw-frame" class="frame joinB-page-body hidden">
 
-    <div id="modal-container" class="modal-container modal-invis">
+      <div id="modal-container" class="modal-container modal-invis">
 
-      <div id="session-details-modal" class="modal flex-column">
-        <div id="close-modal-button" class="close-modal-button"></div>
+        <div id="session-details-modal" class="modal flex-column">
+          <div id="close-modal-button" class="close-modal-button"></div>
 
-        <div class="modal-body">
-          <p class="modal-session-name" id="modal-session-name"></p>
-          <div class="session-button">
-            <div class="session-detail">
-              <span class="bold">Connection Type: </span>
-              <span id="connection-type-span">(N/A)</span>
-            </div>
-            <div class="session-detail">
-              <span class="bold">Latency: </span>
-              <span id="latency-span">(N/A)</span>ms
+          <div class="modal-body">
+            <p class="modal-session-name" id="modal-session-name"></p>
+            <div class="session-button">
+              <div class="session-detail">
+                <span class="bold">Connection Type: </span>
+                <span id="connection-type-span">(N/A)</span>
+              </div>
+              <div class="session-detail">
+                <span class="bold">Latency: </span>
+                <span id="latency-span">(N/A)</span>ms
+              </div>
             </div>
           </div>
         </div>
+
       </div>
 
-    </div>
-
-    <div id="join-b-page">
-      <h1><span id="activity-name"></span></h1>
-      <div class="session-buttons flex-row">
-        <input class="view-details-button" id="view-details-button" type="button" value="View Session Details">
-        <input class="disconnect-button" id="disconnect-button" type="button" value="Disconnect">
-      </div>
-      <iframe class="nlw-iframe"></iframe>
-    </div>
-
-  </div>
-
-  <div id="chat-box">
-    <div id="chat-box-closed-container" class="chat-box-closed-container">
-      <div id="chat-box-closed" class="chat-box-closed flex-display">
-        Chat
-      </div>
-      <div id="chat-box-closed-bottom" class="chat-box-closed-bottom"></div>
-    </div>
-
-    <div id="chat-box-open" class="chat-box-open invisible">
-      <div id="open-chat-header" class="open-chat-header flex-display">
-        <div class="collapse-chat-arrow"></div>
-      </div>
-      <div>
-        <div id="global-chat">
-          <div id="global-chat-output" class="open-chat-body"></div>
-          <input
-            id="global-chat-input"
-            class="open-chat-input"
-            type="text"
-            value=""
-            placeholder="Send a message"
-          />
+      <div id="join-b-page">
+        <h1><span id="activity-name"></span></h1>
+        <div class="session-buttons flex-row">
+          <input class="view-details-button" id="view-details-button" type="button" value="View Session Details">
+          <input class="disconnect-button" id="disconnect-button" type="button" value="Disconnect">
         </div>
-        <div id="session-chat" class="hidden">
-          <div id="session-chat-output" class="open-chat-body"></div>
-          <input
-            id="session-chat-input"
-            class="open-chat-input"
-            type="text"
-            value=""
-            placeholder="Send a message"
-          />
+        <iframe class="nlw-iframe"></iframe>
+      </div>
+
+    </div>
+
+    <div id="chat-box">
+      <div id="chat-box-closed-container" class="chat-box-closed-container">
+        <div id="chat-box-closed" class="chat-box-closed flex-display">
+          Chat
+        </div>
+        <div id="chat-box-closed-bottom" class="chat-box-closed-bottom"></div>
+      </div>
+
+      <div id="chat-box-open" class="chat-box-open invisible">
+        <div id="open-chat-header" class="open-chat-header flex-display">
+          <div class="collapse-chat-arrow"></div>
+        </div>
+        <div>
+          <div id="global-chat">
+            <div id="global-chat-output" class="open-chat-body"></div>
+            <input
+              id="global-chat-input"
+              class="open-chat-input"
+              type="text"
+              value=""
+              placeholder="Send a message"
+            />
+          </div>
+          <div id="session-chat" class="hidden">
+            <div id="session-chat-output" class="open-chat-body"></div>
+            <input
+              id="session-chat-input"
+              class="open-chat-input"
+              type="text"
+              value=""
+              placeholder="Send a message"
+            />
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
   </body>
   <script src="/js/browser-compat-abort.js"></script>

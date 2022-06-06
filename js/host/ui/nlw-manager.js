@@ -1,17 +1,31 @@
 import NLWManager from "/js/common/ui/nlw-manager.js";
 
+// type Button = HTMLButtonElement
+// type Frame  = HTMLIFrameElement
+
 export default class HostNLWManager extends NLWManager {
 
   #broadcast   = undefined; // (UUID, Boolean?) => RTCDataChannel?
   #narrowcast  = undefined; // () => Array[RTCDataChannel]
   #onError     = undefined; // (String) => Unit
 
-  // (Element, (String, Object[Any]?) => Unit, () => Array[RTCDataChannel], (String) => Unit) => HostNLWManager
-  constructor(outerFrame, broadcast, narrowcast, onError) {
+  #comCenPort   = undefined; // MessagePort
+  #codePanePort = undefined; // MessagePort
+  #infoPanePort = undefined; // MessagePort
+
+  // ( Element, Button, Button, (String, Object[Any]?) => Unit
+  // , () => Array[RTCDataChannel], (String) => Unit) => HostNLWManager
+  constructor(outerFrame, setupButton, goButton, broadcast, narrowcast, onError) {
+
     super(outerFrame);
+
     this.#broadcast   = broadcast;
     this.#narrowcast  = narrowcast;
     this.#onError     = onError;
+
+    setUpSetup(setupButton, this.relay);
+    setUpGo   (   goButton, this.relay);
+
   }
 
   // (UUID, String) => Promise[Object[Any]]
@@ -28,8 +42,19 @@ export default class HostNLWManager extends NLWManager {
 
   // (UUID, Object[Any], String) => Unit
   becomeOracle = (uuid, props, nlogo) => {
+
+    const ccFrame = this._querySelector("#command-center-iframe");
+    this.#comCenPort = setUpComCen(nlogo, ccFrame, this._galaURL, this.relay);
+
+    const codeFrame = this._querySelector("#model-code-iframe");
+    this.#codePanePort = setUpCodePane(nlogo, codeFrame, this._galaURL, this.relay);
+
+    const infoFrame = this._querySelector("#model-info-iframe");
+    this.#infoPanePort = setUpInfoPane(nlogo, infoFrame, this._galaURL);
+
     this._post({ ...props, type: "hnw-become-oracle", nlogo });
     this._post({ type: "nlw-subscribe-to-updates", uuid });
+
   };
 
   // (UUID) => Unit
@@ -80,6 +105,37 @@ export default class HostNLWManager extends NLWManager {
 
     switch (data.type) {
 
+      case "nlw-recompile-success": {
+        const msg = { type: "hnw-recompile-success", code: data.code };
+        this.#codePanePort.postMessage(msg);
+        break;
+      }
+
+      case "nlw-recompile-failure": {
+        const msg = { type: "hnw-recompile-failure", messages: data.messages };
+        this.#codePanePort.postMessage(msg);
+        break;
+      }
+
+      case "nlw-model-code": {
+        const msg = { type: "hnw-model-code", code: data.code };
+        this.#codePanePort.postMessage(msg);
+        break;
+      }
+
+      case "nlw-model-info": {
+        const msg = { type: "hnw-model-info", info: data.info };
+        this.#infoPanePort.postMessage(msg);
+        break;
+      }
+
+      case "nlw-command-center-output": {
+        const type = "hnw-command-center-output";
+        const msg  = { type, newOutputLine: data.newOutputLine };
+        this.#comCenPort.postMessage(msg);
+        break;
+      }
+
       case "nlw-state-update": {
         if (data.isNarrowcast)
           this.#narrowcast(data.recipient, "state-update", { update: data.update });
@@ -117,3 +173,104 @@ export default class HostNLWManager extends NLWManager {
   };
 
 }
+
+// (String, Frame, String, (Object[Any]) => Unit, String, String) => MessagePort
+const setUpPane = (nlogo, frame, url, onMsg, onloadType, urlSuffix) => {
+
+  const channel = new MessageChannel();
+  const port    = channel.port1;
+
+  if (onMsg !== undefined) {
+    port.onmessage = onMsg;
+  }
+
+  frame.onload = () => {
+    const msg = { type: onloadType, nlogo };
+    frame.contentWindow.postMessage(msg, url, [channel.port2]);
+  };
+
+  frame.src = `${url}/${urlSuffix}`;
+
+  return port;
+
+};
+
+// (String, Frame, String) => MessagePort
+const setUpInfoPane = (nlogo, frame, url) => {
+  const onloadType = "hnw-set-up-info-pane";
+  const urlSuffix  = "info-pane";
+  return setUpPane(nlogo, frame, url, undefined, onloadType, urlSuffix);
+};
+
+// (String, Frame, String, (Object[Any]) => Unit) => MessagePort
+const setUpCodePane = (nlogo, frame, url, relay) => {
+
+  const onMsg = ({ data }) => {
+    switch (data.type) {
+      case "nlw-recompile": {
+        const msg = { type: "hnw-recompile", code: data.code };
+        relay(msg);
+        break;
+      }
+      default: {
+        console.warn("Unknown code pane message type:", data.type, data);
+      }
+    }
+  };
+
+  const onloadType = "hnw-set-up-code-pane";
+  const urlSuffix  = "code-pane";
+
+  return setUpPane(nlogo, frame, url, onMsg, onloadType, urlSuffix);
+
+};
+
+// (String, Frame, String, (Object[Any]) => Unit) => MessagePort
+const setUpComCen = (nlogo, frame, url, relay) => {
+
+  const onMsg = ({ data }) => {
+    switch (data.type) {
+      case "nlw-console-run": {
+        const msg = { type: "hnw-console-run", code: data.code };
+        relay(msg);
+        break;
+      }
+      default: {
+        console.warn("Unknown command center message type:", data.type, data);
+      }
+    }
+  };
+
+  const onloadType = "hnw-set-up-command-center";
+  const urlSuffix  = "command-center-pane";
+
+  return setUpPane(nlogo, frame, url, onMsg, onloadType, urlSuffix);
+
+};
+
+// (Button, (Object[Any]) => Unit) => Unit
+const setUpSetup = (setupButton, relay) => {
+  setupButton.onclick = () => {
+    relay({ type: "hnw-setup-button" });
+  };
+};
+
+// (Button, (Object[Any]) => Unit) => Unit
+const setUpGo = (goButton, relay) => {
+
+  goButton.onclick = () => {
+
+    const goWasActive = goButton.classList.contains("go-button-active");
+
+    const [remove, add, text, goStatus] =
+      goWasActive ? ["go-button-active"  , "go-button-standard", "Go"  , false]
+                  : ["go-button-standard", "go-button-active"  , "Stop", true ];
+
+    goButton.classList.remove(remove);
+    goButton.classList.add   (add);
+    goButton.innerText = text;
+    relay({ type: "hnw-go-checkbox", goStatus });
+
+  };
+
+};

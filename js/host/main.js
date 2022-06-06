@@ -2,6 +2,8 @@ import ConnectionManager from "./conn/connection-manager.js";
 
 import BandwidthManager     from "./ui/bandwidth-manager.js";
 import LaunchControlManager from "./ui/launch-control-manager.js";
+import MenuManager          from "./ui/menu-manager.js";
+import ModalManager         from "./ui/modal-manager.js";
 import NLWManager           from "./ui/nlw-manager.js";
 
 import ChatManager from "/js/common/ui/chat-manager.js";
@@ -16,13 +18,15 @@ const onNLWManError = (subtype) => {
 };
 
 // (Object[Any]) => Unit
-const finishLaunch = ({ isSuccess, data }) => {
+const finishLaunch = ({ isSuccess, data, config }) => {
 
   if (isSuccess) {
 
     const { hostID, json, nlogo } = data;
 
-    document.getElementById("id-display").innerText = hostID;
+    setIT("id-display"        )(hostID);
+    setIT("model-title-header")(config.model);
+    setIT("stats-session-name")(config.sessionName);
 
     history.pushState({ name: "hosting" }, "hosting");
 
@@ -65,9 +69,15 @@ const setIT = (id) => (text) => {
   byEID(id).innerText = text;
 };
 
+// (String) => Unit
+const setNumClients = (numClients) => {
+  setIT("num-clients-span"  )(numClients);
+  setIT("slider-num-clients")(numClients);
+};
+
 // () => Number
 const getCapacity = () => {
-  return Math.max(0, Math.min(999, parseInt(byEID("max-num-clients-picker").value)));
+  return Math.max(0, Math.min(999, parseInt(byEID("max-num-clients-slider").value)));
 };
 
 const launchControlManager =
@@ -95,44 +105,79 @@ const connMan =
                        , notifyUser);
 
 const nlwManager =
-  new NLWManager( byEID("nlw-frame"), connMan.broadcast
-                , connMan.narrowcast, onNLWManError);
+  new NLWManager( byEID("nlw-frame"), byEID("hnw-setup-button")
+                , byEID("hnw-go-button"), connMan.broadcast, connMan.narrowcast
+                , onNLWManError);
 
 document.addEventListener("DOMContentLoaded", () => {
-  const modalContainer = byEID("modal-container");
 
-  window.onclick = (event) => {
-    if (event.target === modalContainer) {
-      modalContainer.classList.add("hidden");
-    }
+  byEID("max-num-clients-slider").addEventListener("change", () => {
+    connMan.updateFullness(getCapacity());
+  });
+
+  byEID("max-num-clients-slider").addEventListener("input", (e) => {
+    setIT("slider-max-clients")(e.target.value);
+  });
+
+  byEID("copy-invite-button").onclick = (event) => {
+
+    const self = event.target;
+
+    const origin     = window.location.origin;
+    const hash       = byEID("id-display").innerText;
+    const inviteLink = `${origin}/join#${hash}`;
+
+    navigator.clipboard.writeText(inviteLink).then(
+      () => {
+        self.classList.add("active");
+        self.value = "Copied!";
+        setTimeout(() => {
+          self.classList.remove("active");
+          self.value = "Copy Invite Link";
+        }, 600);
+      }
+    ).catch(
+      (error) => {
+        alert(`Error with copying link: ${JSON.stringify(error)}`);
+      }
+    );
+
   };
 
-  byEID("read-more-button").onclick = () => {
-    modalContainer.classList.remove("hidden");
-  };
+  const modalManager =
+    new ModalManager( () => byEID("nlw-frame").classList.contains("hidden")
+                    , byEID("description-modal-container")
+                    , byEID("more-details-modal-container")
+                    , byEID("stats-modal-body")
+                    , byEID("more-details-button")
+                    , byEID("close-more-details-modal-button")
+                    , byEID("read-more-button")
+                    , byEID("close-description-modal-button")
+                    );
 
-  byEID("close-modal-button").onclick = () => {
-    modalContainer.classList.add("hidden");
+  document.onclick = (event) => {
+    modalManager.onDocumentClick(event);
   };
 
   document.addEventListener("keydown", (event) => {
-    if (!modalContainer.classList.contains("hidden") && event.key === "Escape") {
-      modalContainer.classList.add("hidden");
-    }
+    modalManager.onKeydown(event);
   });
 
+  const menuManager = new MenuManager(byEID("drawer-root"), window.innerWidth);
+
+  window.onresize = () => {
+    menuManager.registerResize(window.innerWidth);
+  };
+
   nlwManager.init();
+
 });
 
 const bandwidthManager =
     new BandwidthManager( setIT("bandwidth-span"), setIT("new-send-span")
-                        , setIT("num-clients-span"), setIT("num-congested-span")
+                        , setNumClients, setIT("num-congested-span")
                         , setIT("activity-status-span"), setIT("num-turn-span")
                         , nlwManager.notifyCongested, nlwManager.notifyUncongested);
-
-byEID("max-num-clients-picker").addEventListener("change", () => {
-  connMan.updateFullness(getCapacity());
-});
 
 window.addEventListener("message", ({ data }) => {
   switch (data.type) {

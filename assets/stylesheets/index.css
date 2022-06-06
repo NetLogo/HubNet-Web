@@ -45,6 +45,7 @@ body {
   cursor: pointer;
   border-radius: 15px;
   white-space: normal;
+  user-select: none;
 }
 
 .button-base:hover {

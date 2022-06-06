@@ -229,16 +229,13 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const modalContainer = byEID("modal-container");
-  const joinBPageMain = byEID("join-b-page");
 
   const showModal = () => {
     modalContainer.classList.remove("modal-invis");
-    joinBPageMain.classList.add("no-select");
   };
 
   const hideModal = () => {
     modalContainer.classList.add("modal-invis");
-    joinBPageMain.classList.remove("no-select");
   };
 
   window.onclick = (event) => {

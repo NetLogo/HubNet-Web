@@ -6,155 +6,311 @@
   </head>
   <body>
 
-    <div id="modal-container" class="modal-container hidden">
+    <div class="page-header flex-row">
+      <a href="/" class="hnw-header-link-wrapper">
+        <div class="hnw-header" id="hnw-header">HubNet Web</div>
+      </a>
 
-      <div id="full-description-modal" class="modal flex-column">
-        <div id="close-modal-button" class="close-modal-button"></div>
-        <div class="modal-text">
-          <p class="modal-activity-title">Disease</p>
-          <p id="activity-text-full" class="activity-text-full">
-            This is placeholder text for a full activity description.
-          </p>
+      <div class="page-links-dropdown">
+        <div class="navigate-label">
+          <div>Navigate</div>
+          <div class="triangle-down"></div>
+        </div>
+        <div class="page-links-tabs">
+          <a href="/join" class="page-links">Join</a>
+          <a href="/host" class="page-links">Host</a>
         </div>
       </div>
-
     </div>
 
-    <div id="form-frame" class="frame">
-      <h1 class="host-header">Hosting</h1>
-      <form id="launch-form" action="javascript:void(0);" method="POST" enctype="multipart/form-data">
+    <div class="hostA-page-body">
 
-        <div class="activity-selection">
+      <div id="form-frame" class="frame">
+        <form id="launch-form" action="javascript:void(0);" method="POST"
+              enctype="multipart/form-data">
 
-          <div class="activity-description">
-
-            <div class="library-model-container" class="library-model-container">
-              <select class="library-model" id="library-model" name="libraryModel" type="chooser">
-                <option>[5] Example</option>
-                <option>[5] Template</option>
-                <option>[4] Client Perspective Example</option>
-                <option selected>[4] Disease</option>
-                <option>[4] Function</option>
-                <option>[4] Investments</option>
-                <option>[4] Predator Prey Game</option>
-                <option>[4] Root Beer Game</option>
-                <option>[3] Bug Hunters Camouflage</option>
-                <option>[3] Disease With Android Avoidance</option>
-                <option>[3] Minority Game</option>
-                <option>[3] Tragedy of the Commons</option>
-                <option>[3] Walking</option>
-                <option>[2] Disease Doctors</option>
-                <option>[2] Memory</option>
-                <option>[2] Oil Cartel Alternate</option>
-                <option>[2] Public Good</option>
-                <option>[1] BeeSmart</option>
-                <option>[1] Bug Hunters Adaptations</option>
-                <option>[1] Bug Hunters Competition</option>
-                <option>[1] Dice Stalagmite</option>
-                <option>[1] Fish Spotters</option>
-                <option>[1] Gridlock</option>
-                <option>[1] Guppy Spots</option>
-                <option>[1] PANDA BEAR</option>
-                <option>[1] Polling</option>
-                <option>[1] Polling Advanced</option>
-                <option>[1] Prisoners Dilemma</option>
-
-                <option>[a] Oil Cartel</option> <!-- requires narrowcast plots -->
-
-                <option>[0] Restaurants</option> <!-- makes no distinction between AI restaurants and player-owned ones -->
-
-                <option>[0] Bird Breeders</option> <!-- requires spectator clients -->
-                <option>[0] Gridlock Alternate</option> <!-- requires spectator clients -->
-
-                <option>[0] Client Overrides Example</option> <!-- requires view overrides -->
-                <option>[0] Critter Designers</option> <!-- requires view overrides -->
-                <option>[0] Current in a Wire</option> <!-- requires view overrides -->
-                <option>[0] MTG 1 Equal Opportunities</option> <!-- requires view overrides -->
-                <option>[0] MTG 2 Random Assignment</option> <!-- requires view overrides -->
-                <option>[0] MTG 3 Feedback Loop</option> <!-- requires view overrides -->
-                <option>[0] Sampler</option> <!-- requires view overrides -->
-              </select>
-
-              <div class="custom-select-arrow">
-                <div class="triangle-down"></div>
+          <div class="top-section">
+            <div id="description-modal-container"
+                 class="modal-container modal-invis">
+              <div id="description-modal" class="modal flex-column">
+                <div id="close-description-modal-button" class="close-modal-button">
+                </div>
+                <div class="modal-body">
+                  <p class="modal-activity-title">Disease</p>
+                  <p id="activity-text-full" class="activity-text-full">
+                    This is placeholder text for a full activity description.
+                  </p>
+                </div>
               </div>
-
             </div>
 
-            <p id="activity-text-short" class="activity-text-short">
-              This is a placeholder for a condensed activity description.
-            </p>
-            <input type="button" id="read-more-button" class="read-more-button" value="Read More">
+            <h1 class="host-header">Hosting</h1>
+
+            <div class="activity-selection">
+              <div class="activity-description">
+                <div class="library-model-container" class="library-model-container">
+                  <select class="library-model" id="library-model"
+                          name="libraryModel" type="chooser">
+                    <option>[5] Example</option>
+                    <option>[5] Template</option>
+                    <option>[4] Client Perspective Example</option>
+                    <option selected>[4] Disease</option>
+                    <option>[4] Function</option>
+                    <option>[4] Investments</option>
+                    <option>[4] Predator Prey Game</option>
+                    <option>[4] Root Beer Game</option>
+                    <option>[3] Bug Hunters Camouflage</option>
+                    <option>[3] Disease With Android Avoidance</option>
+                    <option>[3] Minority Game</option>
+                    <option>[3] Tragedy of the Commons</option>
+                    <option>[3] Walking</option>
+                    <option>[2] Disease Doctors</option>
+                    <option>[2] Memory</option>
+                    <option>[2] Oil Cartel Alternate</option>
+                    <option>[2] Public Good</option>
+                    <option>[1] BeeSmart</option>
+                    <option>[1] Bug Hunters Adaptations</option>
+                    <option>[1] Bug Hunters Competition</option>
+                    <option>[1] Dice Stalagmite</option>
+                    <option>[1] Fish Spotters</option>
+                    <option>[1] Gridlock</option>
+                    <option>[1] Guppy Spots</option>
+                    <option>[1] PANDA BEAR</option>
+                    <option>[1] Polling</option>
+                    <option>[1] Polling Advanced</option>
+                    <option>[1] Prisoners Dilemma</option>
+
+                    <option>[a] Oil Cartel</option> <!-- requires narrowcast plots -->
+
+                    <option>[0] Restaurants</option> <!-- makes no distinction between AI restaurants and player-owned ones -->
+
+                    <option>[0] Bird Breeders</option> <!-- requires spectator clients -->
+                    <option>[0] Gridlock Alternate</option> <!-- requires spectator clients -->
+
+                    <option>[0] Client Overrides Example</option> <!-- requires view overrides -->
+                    <option>[0] Critter Designers</option> <!-- requires view overrides -->
+                    <option>[0] Current in a Wire</option> <!-- requires view overrides -->
+                    <option>[0] MTG 1 Equal Opportunities</option> <!-- requires view overrides -->
+                    <option>[0] MTG 2 Random Assignment</option> <!-- requires view overrides -->
+                    <option>[0] MTG 3 Feedback Loop</option> <!-- requires view overrides -->
+                    <option>[0] Sampler</option> <!-- requires view overrides -->
+                  </select>
+
+                  <div class="custom-select-arrow">
+                    <div class="triangle-down-black"></div>
+                  </div>
+                </div>
+
+                <p id="activity-text-short" class="activity-text-short">
+                  This is a placeholder for a condensed activity description.
+                </p>
+                <input type="button" id="read-more-button" class="read-more-button"
+                       value="Read More">
+              </div>
+
+              <div class="image-wrapper">
+                <img id="preview-image" class="preview-image"
+                     alt="Activity Image" draggable="false"
+                     src="/assets/images/disease-model-placeholder-image.png">
+              </div>
+            </div>
           </div>
 
-          <div class="image-wrapper">
-            <img
-              id="preview-image"
-              class="preview-image"
-              src=" http://ccl.northwestern.edu/netlogo/models/models/Curricular%20Models/epiDEM/epiDEM%20Basic.png"
-              alt="Activity Image"
-            >
-          </div>
-        </div>
+          <hr class="horizontal-divider"></hr>
 
-        <div class="form-input-wrapper">
-          <div>
-            <label class="form-label">Session Name
-              <input class="form-input" name="sessionName" type="text" pattern="\w.*" required>
-            </label>
+          <div class="bottom-section">
+            <div class="form-input-wrapper">
+              <div>
+                <label class="form-label">Session Name
+                  <input class="form-input" name="sessionName" type="text"
+                         pattern="\w.*" required>
+                </label>
+              </div>
+              <div class="center-input">
+                <label class="form-label">Password
+                  <input class="form-input" name="password" type="text">
+                </label>
+              </div>
+              <input class="button-general launch-button" type="submit"
+                     value="Launch">
+            </div>
           </div>
-          <div class="center-input">
-            <label class="form-label">Password
-              <input class="form-input" name="password" type="text">
-            </label>
-          </div>
-          <input class="button-general launch-button" type="submit" value="Launch">
-        </div>
 
-      </form>
+        </form>
+      </div>
 
     </div>
 
-    <div id="id-display"></div>
+    <div id="nlw-frame" class="frame hostB-frame hidden">
 
-    <div id="nlw-frame" class="frame hidden">
+      <div id="more-details-modal-container" class="modal-container modal-invis">
+        <div id="more-details-modal" class="modal flex-column">
+          <div id="close-more-details-modal-button" class="close-modal-button"></div>
 
-      <div style="display: flex; flex-direction: row;">
-
-        <div id="session-dashboard">
-          <div>Upload: <span id="bandwidth-span">0 B</span>/s</div>
-          <div>New Send: <span id="new-send-span">0 B</span>/s</div>
-          <div style="display: flex; flex-direction: row;">
-            <div># Clients: <span id="num-clients-span">0</span></div>
-            <div style="margin: 0 10px;">|</div>
-            <label>Max # Clients:
-              <input id="max-num-clients-picker" type="number"
-                     min="0" max="999" step="1" value="50"
-                     oninput="this.value = Math.max(0, Math.min(999, parseInt(this.value)))" />
-            </label>
+          <div id="stats-modal-body" class="modal-body modal-invis no-display">
+            <p id="stats-modal-title" class="stats-modal-title">
+              Session Stats: <span id="stats-session-name"></span>
+            </p>
+            <div id="session-dashboard" class="session-dashboard">
+              <ul>
+                <li>
+                  <span class="stats-modal-bold-text">Session ID: </span>
+                  <span id="id-display"></span>
+                </li>
+                <li>
+                  <span class="stats-modal-bold-text">Upload: </span>
+                  <span id="bandwidth-span">0 B</span>/s
+                </li>
+                <li>
+                  <span class="stats-modal-bold-text">New Send: </span>
+                  <span id="new-send-span">0 B</span>/s
+                </li>
+                <li>
+                  <span class="stats-modal-bold-text">Number of Clients: </span>
+                  <span id="num-clients-span">0</span>
+                </li>
+                <li>
+                  <span class="stats-modal-bold-text">Number of TURNs: </span>
+                  <span id="num-turn-span">0</span>
+                </li>
+                <li>
+                  <span class="stats-modal-bold-text">Number Congested: </span>
+                  <span id="num-congested-span">0</span>
+                </li>
+                <li>
+                  <span class="stats-modal-bold-text">Status: </span>
+                  <span id="activity-status-span">...</span>
+                </li>
+              </ul>
+            </div>
           </div>
-          <div># TURNs: <span id="num-turn-span">0</span></div>
-          <div># Congested: <span id="num-congested-span">0</span></div>
-          <div>Status: <span id="activity-status-span">...</span></div>
+
+        </div>
+      </div>
+
+      <div class="hostB-page-body">
+
+        <div class="setup-row flex-row">
+          <input id="copy-invite-button" class="button-base copy-invite-button"
+                 type="button" value="Copy Invite Link">
+          <div id="model-title-header" class="model-title-header"></div>
+          <input id="more-details-button" class="button-base more-details-button"
+                 type="button" value="More Details">
         </div>
 
-        <div class="chat-wrapper">
-          <div id="global-chat-container" class="chat-container">
-            <div id="global-chat-output" class="chat-output"></div>
-            <input id="global-chat-input" class="chat-input" type="text" value=""
-                   placeholder="Send a message" />
+        <div class="nlw-iframe-row flex-row">
+          <iframe id="nlw-iframe-external" class="nlw-iframe"></iframe>
+          <div class="capacity-slider-container flex-column">
+            <div class="capacity-slider-text">Session</div>
+            <div class="capacity-slider-text">Capacity</div>
+            <input id="max-num-clients-slider" class="max-num-clients-slider"
+                   type="range" orient="vertical" min="0" max="100" value="50">
+            <div id="capacity-display-text" class="capacity-slider-text">
+              <span id="slider-num-clients">0</span>/<span id="slider-max-clients">50</span>
+            </div>
           </div>
-          <div id="session-chat-container" class="chat-container">
-            <div id="session-chat-output" class="chat-output"></div>
-            <input id="session-chat-input" class="chat-input" type="text" value=""
-                   placeholder="Send a message" />
+        </div>
+
+        <div class="bottom-setup-row flex-row">
+          <div id="hnw-setup-button"
+               class="button-base setup-row-button setup-button">Setup</div>
+          <div id="hnw-go-button"
+               class="button-base setup-row-button go-button-standard">Go</div>
+        </div>
+
+        <div id="drawer-root">
+
+          <div id="drawer-container">
+            <div id="drawer-closed" class="drawer-closed">
+              <p class="drawer-closed-text">Menu</p>
+              <div class="drawer-expand-arrow"></div>
+            </div>
+
+            <div id="drawer-open" class="drawer-open invisible">
+              <div id="menu-pin-container" class="menu-pin-container">
+                <img id="menu-pin-image" class="menu-pin-image">
+              </div>
+              <div class="vertical-divider"></div>
+              <div id="command-center-select" data-type="command-center"
+                   class="drawer-text-container">
+                <div>Command Center</div>
+              </div>
+              <div class="vertical-divider"></div>
+              <div id="model-info-select" class="drawer-text-container"
+                   data-type="model-info">
+                <div>Model Info</div>
+              </div>
+              <div class="vertical-divider"></div>
+              <div id="model-code-select" class="drawer-text-container"
+                   data-type="model-code">
+                <div>Model Code</div>
+              </div>
+              <div class="vertical-divider"></div>
+              <div id="global-chat-select" data-type="global-chat"
+                   class="drawer-text-container">
+                <div>Global Chat</div>
+              </div>
+              <div class="vertical-divider"></div>
+              <div id="session-chat-select" data-type="session-chat"
+                   class="drawer-text-container">
+                <div>Session Chat</div>
+              </div>
+            </div>
           </div>
+
+          <div id="command-center-container"
+               class="menu-option-container flex-column invisible">
+            <div id="command-center-header" class="command-center-header">
+              <div class="popup-header-text">Command Center</div>
+              <div class="triangle-down-black"></div>
+            </div>
+            <iframe id="command-center-iframe"
+                    class="command-center-iframe flex-display"></iframe>
+          </div>
+
+          <div id="model-code-container" class="menu-option-container invisible">
+            <div id="model-code-header" class="model-code-header flex-row">
+              <div id="model-code-title" class="popup-header-text">Code</div>
+              <div class="triangle-down-black"></div>
+            </div>
+            <iframe id="model-code-iframe" class="model-code-iframe"></iframe>
+          </div>
+
+          <div id="model-info-container" class="menu-option-container invisible">
+            <div id="model-info-header" class="model-info-header flex-row">
+              <div id="model-info-title" class="popup-header-text">Info</div>
+              <div class="triangle-down-black"></div>
+            </div>
+            <iframe id="model-info-iframe" class="model-info-iframe"></iframe>
+          </div>
+
+          <div id="session-chat-container" class="menu-option-container invisible">
+            <div id="session-chat-header" class="session-chat-header flex-row">
+              <div class="popup-header-text">Session Chat</div>
+              <div class="triangle-down-black"></div>
+            </div>
+            <div id="session-chat">
+              <div id="session-chat-output" class="open-chat-body"></div>
+              <input id="session-chat-input" class="open-chat-input" type="text"
+                     value="" placeholder="Send a message">
+            </div>
+          </div>
+
+          <div id="global-chat-container" class="menu-option-container invisible">
+            <div id="global-chat-header" class="global-chat-header flex-row">
+              <div class="popup-header-text">Global Chat</div>
+              <div class="triangle-down-black"></div>
+            </div>
+            <div id="global-chat">
+              <div id="global-chat-output" class="open-chat-body"></div>
+              <input id="global-chat-input" class="open-chat-input" type="text"
+                     value="" placeholder="Send a message">
+            </div>
+          </div>
+
         </div>
 
       </div>
-
-      <iframe class="nlw-iframe"></iframe>
-
     </div>
 
     <script src="/js/browser-compat-abort.js"></script>
