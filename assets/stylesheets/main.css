@@ -1,5 +1,5 @@
 :root {
-  --super-light-gray: #f9f9f9;
+  --super-light-gray: #f2f2f2;
   --light-gray: #e5e5e5;
   --light2-gray: #c7c7c7;
   --light3-gray: #bfbfbf;
@@ -8,7 +8,7 @@
   --modal-background: rgba(0, 0, 0, 0.3);
 
   --light-green: #36a36b;
-  --medium-green: #2bc273;
+  --medium-green: #24aa64;
   --dark-green: #288454;
   --green-gray: #65ae88;
 
@@ -16,14 +16,13 @@
   --light-blue: #b4c4dc;
   --light-baby-blue: #aed8f2;
   --medium-blue: #61a3ee;
-  --strong-blue: #3087ea;
   --dark-blue: #387ccc;
   --blue-gray: #7992b3;
 
-  --salmon: #ec575d;
-  --light-orange: #fadeaf;
+  --salmon: #f3676d;
+  --light-orange: #ffedce;
   --medium-orange: #f2c476;
-  --orange: #fca512;
+  --orange: #f5b03c;
   --yellow: #f0e40a;
   --red: #e04141;
 }
@@ -59,8 +58,7 @@
 .nlw-iframe {
   height: 75vh;
   width:  100%;
-  border: 2px solid black;
-  background-color: var(--super-light-gray);
+  border: 3px solid black;
 }
 
 .page-header {
@@ -106,21 +104,6 @@
 
 .page-links-dropdown:hover .page-links-tabs {
   display: block;
-}
-
-.navigate-label {
-  display: flex;
-  direction: row;
-  justify-content: center;
-  align-items: center;
-  background-color: var(--light-gray);
-  color: black;
-  width: 150px;
-  height: 100%;
-  font-size: 20px;
-  user-select: none;
-  cursor: pointer;
-  box-shadow: inset 0 -1px 0 #343434;
 }
 
 .page-links-tabs {
@@ -326,10 +309,7 @@
     align-items: center;
     color: black;
     width: 125px;
-    height: 100%;
     font-size: 18px;
-    user-select: none;
-    cursor: pointer;
   }
 
   .page-links-tabs {
@@ -387,21 +367,6 @@
 
 .page-links-dropdown:hover .page-links-tabs {
   display: block;
-}
-
-.navigate-label {
-  display: flex;
-  direction: row;
-  justify-content: center;
-  align-items: center;
-  background-color: rgb(225, 225, 225);
-  color: black;
-  width: 150px;
-  height: 100%;
-  font-size: 20px;
-  user-select: none;
-  cursor: pointer;
-  box-shadow: inset 0 -1px 0 #343434;
 }
 
 .triangle-down {
@@ -547,6 +512,7 @@
   font-size: 20px;
   color: white;
   content: "\00d7"; /* Draws 'X' for close button -- Chris S. (2/1/22) */
+  margin-top: -2px;
 }
 
 .close-modal-button:hover {
@@ -659,14 +625,35 @@
   transition: opacity 0.1s;
 }
 
-.collapse-chat-arrow {
-  margin-left: 100px;
-  margin-bottom: 3px;
+.open-chat-header {
+  cursor: pointer;
+  border-radius: 25px 25px 0 0;
+  height: 70px;
+  background-color: lightblue;
+  border: 1px solid black;
+  display: grid;
+  align-content: center;
+  padding: 0 20px;
+}
+
+.popup-header-text {
+  font-size: 20px;
+  margin-right: 20px;
+  font-weight: bold;
+  grid-column-start: 1;
+  grid-row-start: 1;
+  justify-self: center;
+}
+
+.triangle-down-black {
   width: 0;
   height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 15px solid black;
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-top: 18px solid black;
+  grid-column-start: 1;
+  grid-row-start: 1;
+  justify-self: right;
 }
 
 .open-chat-header:hover {
@@ -694,6 +681,16 @@
 }
 
 @media (max-width: 800px) {
+  .popup-header-text {
+    font-size: 18px;
+  }
+
+  .triangle-down-black {
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 14px solid black;
+  }
+
   .chat-box-closed {
     position: fixed;
     bottom: 30px;
@@ -709,15 +706,5 @@
     z-index: 3;
     transition: opacity 0.1s;
     background-color: gray;
-  }
-
-  .collapse-chat-arrow {
-    margin-left: 100px;
-    margin-bottom: 3px;
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 12px solid black;
   }
 }

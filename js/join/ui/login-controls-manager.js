@@ -1,11 +1,11 @@
 export default class LoginControlsManager {
 
   #button          = undefined; // HTMLButtonElement
-  #usernameInput   = undefined; // HTMLInputElement
+  #lastUUID        = null;      // UUID
+  #nlwFrameDataset = undefined; // HTMLElementDataset
   #passwordInput   = undefined; // HTMLInputElement
   #roleSelect      = undefined; // HTMLSelectElement
-  #nlwFrameDataset = undefined; // HTMLElementDataset
-  #lastUUID = null; // UUID
+  #usernameInput   = undefined; // HTMLInputElement
 
   // (Element, HTMLElementDataset, (String, String) => Unit) => LoginControlsManager
   constructor(joinForm, nlwFrameDataset, onLogIn) {
@@ -53,6 +53,18 @@ export default class LoginControlsManager {
     this.#button       .disabled = !hasActive;
     this.#roleSelect   .disabled = !hasActive;
 
+    if (!this.#passwordInput.disabled) {
+      this.#passwordInput.classList.remove("disabled");
+    }
+
+    if (!this.#button.disabled) {
+      this.#button.classList.remove("disabled");
+    }
+
+    if (!this.#roleSelect.disabled) {
+      this.#roleSelect.classList.remove("disabled");
+    }
+
     this.#nlwFrameDataset.sessionName = session === null ? "" : session.name;
     this.#nlwFrameDataset.activityName = session === null ? "" : session.modelName;
 
@@ -79,6 +91,7 @@ export default class LoginControlsManager {
   // () => Unit
   reset = () => {
     this.#button.disabled = false;
+    this.#button.classList.remove("disabled");
   };
 
   // (String) => Unit

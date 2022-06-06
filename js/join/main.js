@@ -17,15 +17,16 @@ const byEID = (eid) => document.getElementById(eid);
 // String
 const usernameLSKey = "hnw.global.username";
 
-const closedChatBox       = byEID("chat-box-closed");        // Element
-const closedChatBoxBottom = byEID("chat-box-closed-bottom"); // Element
-const openChatBox         = byEID("chat-box-open");          // Element
-const openChatHeader      = byEID("open-chat-header");       // Element
+const closedChatBox    = byEID("chat-box-closed");               // Element
+const chatBottom       = byEID("chat-box-closed-bottom");        // Element
+const chatBottomBorder = byEID("chat-box-closed-bottom-border"); // Element
+const openChatBox      = byEID("chat-box-open");                 // Element
+const openChatHeader   = byEID("open-chat-header");              // Element
 
 const updateChatUnread = (isRelevant, chatManager) => {
   if (isRelevant) {
     closedChatBox.classList.add("unread");
-    closedChatBoxBottom.classList.add("unread");
+    chatBottom   .classList.add("unread");
     closedChatBox.innerHTML =
       `Unread: ${chatManager.getUnreadMessages().toString()}`;
   }
@@ -46,7 +47,7 @@ const updateSessionChatUnread = () => {
 // () => Unit
 const updateChatRead = () => {
   closedChatBox.classList.remove("unread");
-  closedChatBoxBottom.classList.remove("unread");
+  chatBottom   .classList.remove("unread");
   closedChatBox.innerHTML = "Chat";
 };
 
@@ -208,10 +209,11 @@ const statusManager  = new     AppStatusManager(byEID("status-value"));
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  closedChatBox.onclick = () => {
+  const expandChatBox = () => {
     openChatBox.classList.remove("invisible");
-    closedChatBox.classList.add("invisible");
-    closedChatBoxBottom.classList.add("invisible");
+    closedChatBox   .classList.add("invisible");
+    chatBottom      .classList.add("invisible");
+    chatBottomBorder.classList.add("invisible");
 
     const globalChatView = byEID("nlw-frame").classList.contains("hidden");
 
@@ -222,10 +224,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  closedChatBox   .onclick = () => expandChatBox();
+  chatBottom      .onclick = () => expandChatBox();
+  chatBottomBorder.onclick = () => expandChatBox();
+
   openChatHeader.onclick = () => {
-    openChatBox.classList.add("invisible");
-    closedChatBox.classList.remove("invisible");
-    closedChatBoxBottom.classList.remove("invisible");
+    openChatBox     .classList.add("invisible");
+    closedChatBox   .classList.remove("invisible");
+    chatBottom      .classList.remove("invisible");
+    chatBottomBorder.classList.remove("invisible");
   };
 
   const modalContainer = byEID("modal-container");
