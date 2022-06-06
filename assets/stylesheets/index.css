@@ -1,6 +1,7 @@
 body {
   margin: 0;
   padding: 0;
+  font-family: sans-serif;
 }
 
 .index-page-body {
@@ -8,23 +9,22 @@ body {
 }
 
 .hnw-description-text {
-  margin-top: 20px;
-  font-size: 20px;
+  width: 90vw;
+  background-color: var(--light-gray);
+  padding: 20px;
+  border: 3px solid black;
+  border-radius: 30px;
+  margin: 30px auto 0 auto;
+  font-size: 18px;
   line-height: 1.5;
 }
 
-.hnw-description-text p:first-child {
-  margin-top: 0;
+.hnw-description-text div:first-child {
+  margin-bottom: 15px;
 }
 
-.hnw-description-text p:last-child {
-  margin-bottom: 0;
-}
-
-.blockquote-bar {
-  min-width: 15px;
-  margin-right: 20px;
-  background-color: lightgray;
+.hnw-description-text div:last-child {
+  margin-top: 15px;
 }
 
 .page-links-group {
@@ -60,7 +60,8 @@ body {
 .join-page-button {
   width: 350px;
   height: 80px;
-  background-color: #63ab73;
+  background-color: var(--light-green);
+  border: 3px solid black;
   font-size: 32px;
   font-weight: bold;
 }
@@ -69,7 +70,8 @@ body {
   width: 250px;
   height: 60px;
   font-size: 20px;
-  background-color: #aed8f2;
+  background-color: var(--medium-blue);
+  border: 2px solid black;
 }
 
 .page-end-margin {
@@ -86,15 +88,12 @@ body {
   .join-page-button {
     width: 250px;
     height: 60px;
-    background-color: #63ab73;
     font-size: 28px;
-    font-weight: bold;
   }
 
   .host-page-button {
     width: 200px;
     height: 45px;
     font-size: 18px;
-    background-color: #aed8f2;
   }
 }
