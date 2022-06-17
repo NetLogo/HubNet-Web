@@ -48,8 +48,9 @@ const refreshSelection = (parent, seshData, notifyNewSelection) => {
 const genSessionNode = (parent, seshData, statusManager, previewManager, notifySel) =>
                        ({ modelName, name, oracleID, roleInfo: [[ , numClients]] }) => {
 
-  const container = descByID(parent, "session-row-container");
-  const node = descByID(container, "session-row-template").content.cloneNode(true);
+  const container = descByID(parent,    "session-row-container");
+  const template  = descByID(container, "session-row-template" );
+  const node      = template.content.cloneNode(true);
 
   node.querySelector(".session-name").textContent       = name;
   node.querySelector(".session-model-name").textContent = modelName;
@@ -84,10 +85,10 @@ const populate = (parent, seshData, statusManager, previewManager, notifySel) =>
   const genNode = genSessionNode(parent, seshData, statusManager, previewManager, notifySel);
   const nodes   = seshData.get().sort(comp).map(genNode);
 
-  const container = descByID(parent, "session-row-container");
+  const container   = descByID(parent,    "session-row-container");
   const sessionRows = descByID(container, "session-rows");
-  const labels    = Array.from(container.querySelectorAll(".session-row"));
-  const selected  = labels.find((l) => l.querySelector(".session-option").checked);
+  const labels      = Array.from(container.querySelectorAll(".session-row"));
+  const selected    = labels.find((l) => l.querySelector(".session-option").checked);
 
   if (selected !== undefined) {
 
@@ -116,11 +117,13 @@ const populate = (parent, seshData, statusManager, previewManager, notifySel) =>
   sessionRows.innerHTML = "";
   nodes.forEach((node) => sessionRows.appendChild(node));
 
-  Array.from(sessionRows.querySelectorAll(".session-row")).forEach((row) => {
+  Array.from(sessionRows.querySelectorAll(".session-row")).forEach(
+    (row) => {
       row.addEventListener("click", () => {
         row.querySelector(".session-option").click();
       });
-    });
+    }
+  );
 
   refreshSelection(parent, seshData, notifySel);
 

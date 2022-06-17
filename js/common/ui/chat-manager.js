@@ -1,27 +1,32 @@
 export default class ChatManager {
 
-  #lastTS     = undefined; // Number
-  #outputElem = undefined; // Element
-  #sendInput  = undefined; // (String) => Unit
+  #lastTS             = undefined; // Number
+  #markChatRead       = undefined; // () => Unit
+  #markChatUnread     = undefined; // () => Unit
+  #outputElem         = undefined; // Element
+  #sendInput          = undefined; // (String) => Unit
+  #unreadMessageCount = undefined; // Number
 
   // (Element, Element, () => Unit, () => Unit, () => Unit, () => Unit) => ChatManager
-  constructor(outputElem, inputElem, notifyTooWordy, notifyTooFast,
-              updateChatUnread = () => {}, updateChatRead = () => {}) {
+  constructor( outputElem, inputElem, notifyTooWordy, notifyTooFast
+             , markChatUnread = () => {}, markChatRead = () => {}) {
 
-    this.#lastTS     = 0;
-    this.#outputElem = outputElem;
-    this.#sendInput  = () => {
+    this.#lastTS             = 0;
+    this.#markChatRead       = markChatRead;
+    this.#markChatUnread     = markChatUnread;
+    this.#outputElem         = outputElem;
+    this.#unreadMessageCount = 0;
+    this.#sendInput          = () => {
       console.warn("Chat manager asked to send without a callback", outputElem);
     };
 
-    this.unreadMessages = 0;
-    this.updateChatUnread = updateChatUnread;
-    this.updateChatRead = updateChatRead;
-
     inputElem.addEventListener("keydown", (e) => {
+
       if (e.code === "Enter") {
+
         const input           = inputElem.value.trim();
         const oncePer15Frames = 15 * 1000 / 60;
+
         if (input.length >= 4000) {
           notifyTooWordy();
         } else if ((Date.now() - this.#lastTS) <= oncePer15Frames) {
@@ -30,11 +35,13 @@ export default class ChatManager {
           if (input.length > 0) {
             this.#sendInput(input);
             this.addNewChat(input, "Me", true);
-            this.#lastTS = Date.now();
+            this.#lastTS    = Date.now();
             inputElem.value = "";
           }
         }
+
       }
+
     });
 
   }
@@ -57,16 +64,18 @@ export default class ChatManager {
 
     const fromCensus = from === "(Census)";
 
+    const openBox = elem.closest("#chat-box-open");
+
     if (!fromCensus) {
-      const onJoinPage = elem.closest("#chat-box-open") !== null;
+      const onJoinPage = openBox !== null;
       if (onJoinPage) {
-        const chatOpen = !elem.closest("#chat-box-open").classList.contains("invisible");
-        this.unreadMessages = chatOpen ? 0 : (this.unreadMessages + 1);
+        const chatOpen           = !openBox.classList.contains("invisible");
+        this.#unreadMessageCount = chatOpen ? 0 : (this.#unreadMessageCount + 1);
       }
     }
 
     const realFrom = isFromSelf ? "Me" : ((from !== "") ? from : "(Host)");
-    const span = document.createElement("span");
+    const span     = document.createElement("span");
     span.classList.add("chat-from");
     span.innerText = `${realFrom}> `;
 
@@ -82,31 +91,32 @@ export default class ChatManager {
     elem.scrollTo(0, elem.scrollHeight);
 
     if (this.hasUnreadMessages()) {
-      this.updateChatUnread();
+      this.#markChatUnread();
     } else {
-      this.updateChatRead();
+      this.#markChatRead();
     }
-  };
 
-  // () => Unit
-  markAllMessagesRead = () => {
-    this.unreadMessages = 0;
-    this.updateChatRead();
-  };
-
-  // () => Boolean
-  hasUnreadMessages = () => {
-    return this.unreadMessages !== 0;
-  };
-
-  // () => Number
-  getUnreadMessages = () => {
-    return this.unreadMessages;
   };
 
   // () => Unit
   clear = () => {
     this.#outputElem.innerHTML = "";
+  };
+
+  // () => Number
+  getUnreadMessages = () => {
+    return this.#unreadMessageCount;
+  };
+
+  // () => Boolean
+  hasUnreadMessages = () => {
+    return this.#unreadMessageCount !== 0;
+  };
+
+  // () => Unit
+  markAllMessagesRead = () => {
+    this.#unreadMessageCount = 0;
+    this.#markChatRead();
   };
 
   // ((String) => Unit) => Unit

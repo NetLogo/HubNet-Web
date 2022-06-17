@@ -65,7 +65,7 @@ export default class LoginControlsManager {
       this.#roleSelect.classList.remove("disabled");
     }
 
-    this.#nlwFrameDataset.sessionName = session === null ? "" : session.name;
+    this.#nlwFrameDataset. sessionName = session === null ? "" : session.name;
     this.#nlwFrameDataset.activityName = session === null ? "" : session.modelName;
 
     if (!hasActive || isNewSelection) {
@@ -118,4 +118,5 @@ export default class LoginControlsManager {
   getActivityName = () => {
     return this.#nlwFrameDataset.activityName;
   };
+
 }

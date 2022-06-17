@@ -19,7 +19,7 @@ export default class ModalManager {
 
     openStatsButton.onclick = () => {
       this.#detailsElem.classList.remove("modal-invis");
-      this.#statsElem.classList.remove("modal-invis", "no-display");
+      this.  #statsElem.classList.remove("modal-invis", "no-display");
     };
 
     closeStatsButton.onclick = () => {

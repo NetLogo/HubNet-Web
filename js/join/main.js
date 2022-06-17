@@ -23,29 +23,34 @@ const chatBottomBorder = byEID("chat-box-closed-bottom-border"); // Element
 const openChatBox      = byEID("chat-box-open");                 // Element
 const openChatHeader   = byEID("open-chat-header");              // Element
 
-const updateChatUnread = (isRelevant, chatManager) => {
+const markChatUnread = (isRelevant, chatManager) => {
+
   if (isRelevant) {
+
     closedChatBox.classList.add("unread");
     chatBottom   .classList.add("unread");
-    closedChatBox.innerHTML =
-      `Unread: ${chatManager.getUnreadMessages().toString()}`;
+
+    const messages          = chatManager.getUnreadMessages().toString();
+    closedChatBox.innerHTML = `Unread: ${messages}`;
+
   }
+
 };
 
 // () => Unit
-const updateGlobalChatUnread = () => {
+const markGlobalChatUnread = () => {
   const isGlobalChat = byEID("nlw-frame").classList.contains("hidden");
-  updateChatUnread(isGlobalChat, globalChatManager);
+  markChatUnread(isGlobalChat, globalChatManager);
 };
 
 // () => Unit
-const updateSessionChatUnread = () => {
+const markSessionChatUnread = () => {
   const isSessionChat = !byEID("nlw-frame").classList.contains("hidden");
-  updateChatUnread(isSessionChat, sessionChatManager);
+  markChatUnread(isSessionChat, sessionChatManager);
 };
 
 // () => Unit
-const updateChatRead = () => {
+const markChatRead = () => {
   closedChatBox.classList.remove("unread");
   chatBottom   .classList.remove("unread");
   closedChatBox.innerHTML = "Chat";
@@ -210,6 +215,7 @@ const statusManager  = new     AppStatusManager(byEID("status-value"));
 document.addEventListener("DOMContentLoaded", () => {
 
   const expandChatBox = () => {
+
     openChatBox.classList.remove("invisible");
     closedChatBox   .classList.add("invisible");
     chatBottom      .classList.add("invisible");
@@ -222,6 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       sessionChatManager.markAllMessagesRead();
     }
+
   };
 
   closedChatBox   .onclick = () => expandChatBox();
@@ -280,8 +287,8 @@ const sessionChatManager =
   new ChatManager( byEID("session-chat-output"), byEID("session-chat-input")
                  , () => { alert("Your chat message is too large"); }
                  , () => { alert("You are sending chat messages too fast"); }
-                 , updateSessionChatUnread
-                 , updateChatRead);
+                 , markSessionChatUnread
+                 , markChatRead);
 
 sessionChatManager.onSend((message) => { connMan.send("chat", { message }); });
 
@@ -289,8 +296,8 @@ const globalChatManager =
   new ChatManager( byEID("global-chat-output"), byEID("global-chat-input")
                  , () => { alert("Your chat message is too large"); }
                  , () => { alert("You are sending chat messages too fast"); }
-                 , updateGlobalChatUnread
-                 , updateChatRead);
+                 , markGlobalChatUnread
+                 , markChatRead);
 
 
 const connMan    = new ConnectionManager(globalChatManager);
