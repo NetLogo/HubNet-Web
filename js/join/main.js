@@ -113,7 +113,7 @@ const processURLHash = (clickAndGetByUUID) => {
 
       const initialName = username || loginControls.getUsername();
 
-      const hasUsername = initialName !== undefined;
+      const hasUsername = initialName !== undefined && initialName !== "";
 
       const finalUsername =
         hasUsername ? initialName : prompt("Please enter your login name");
