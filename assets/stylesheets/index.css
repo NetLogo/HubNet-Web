@@ -1,22 +1,55 @@
-body {
-  margin: 0;
-  padding: 0;
+.body {
   font-family: sans-serif;
+  margin:      0;
+  padding:     0;
 }
 
 .index-page-body {
   margin: 10px 30px;
 }
 
+.button-base {
+  border-radius: 15px;
+  cursor:        pointer;
+  user-select:   none;
+  white-space:   normal;
+}
+
+.button-base:hover {
+  filter: brightness(0.9);
+}
+
+.button-base:active {
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
+  filter:     brightness(0.7);
+}
+
+.join-page-button {
+  background-color: var(--light-green);
+  border:           3px solid black;
+  font-size:        32px;
+  font-weight:      bold;
+  height:           80px;
+  width:            350px;
+}
+
+.host-page-button {
+  background-color: var(--medium-blue);
+  border:           2px solid black;
+  font-size:        20px;
+  height:           60px;
+  width:            250px;
+}
+
 .hnw-description-text {
-  width: 90vw;
   background-color: var(--light-gray);
-  padding: 20px;
-  border: 3px solid black;
-  border-radius: 30px;
-  margin: 30px auto 0 auto;
-  font-size: 18px;
-  line-height: 1.5;
+  border:           3px solid black;
+  border-radius:    30px;
+  font-size:        18px;
+  line-height:      1.5;
+  margin:           30px auto 0 auto;
+  padding:          20px;
+  width:            90vw;
 }
 
 .hnw-description-text div:first-child {
@@ -28,8 +61,8 @@ body {
 }
 
 .page-links-group {
-  margin: 30px 0;
   align-items: center;
+  margin:      30px 0;
 }
 
 .page-links-group a:first-child {
@@ -37,41 +70,8 @@ body {
 }
 
 .text-borders {
-  margin: 30px 0 30px 40px;
   border: 2px solid lightgray;
-}
-
-.button-base {
-  cursor: pointer;
-  border-radius: 15px;
-  white-space: normal;
-  user-select: none;
-}
-
-.button-base:hover {
-  filter: brightness(0.9);
-}
-
-.button-base:active {
-  filter: brightness(0.7);
-  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
-}
-
-.join-page-button {
-  width: 350px;
-  height: 80px;
-  background-color: var(--light-green);
-  border: 3px solid black;
-  font-size: 32px;
-  font-weight: bold;
-}
-
-.host-page-button {
-  width: 250px;
-  height: 60px;
-  font-size: 20px;
-  background-color: var(--medium-blue);
-  border: 2px solid black;
+  margin: 30px 0 30px 40px;
 }
 
 .page-end-margin {
@@ -79,21 +79,23 @@ body {
 }
 
 @media (max-width: 1200px) and (max-height: 750px) {
+
   .hnw-description-text {
-    margin-top: 20px;
-    font-size: 14px;
+    font-size:   14px;
     line-height: 1.5;
+    margin-top:  20px;
   }
 
   .join-page-button {
-    width: 250px;
-    height: 60px;
     font-size: 28px;
+    height:    60px;
+    width:     250px;
   }
 
   .host-page-button {
-    width: 200px;
-    height: 45px;
     font-size: 18px;
+    height:    45px;
+    width:     200px;
   }
+
 }
