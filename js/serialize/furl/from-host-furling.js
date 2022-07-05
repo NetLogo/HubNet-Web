@@ -21,6 +21,7 @@ const basicMap =
   , "keep-alive":             lookupType("KeepAlive")
   , "login-successful":       lookupType("LoginSuccessful")
   , "no-username-given":      lookupType("NoUsernameGiven")
+  , "num-clients":            lookupType("NumClients")
   , "ping":                   lookupType("Ping")
   , "state-update":           lookupType("StateUpdate")
   , "ticks-started":          lookupType("TicksStarted")

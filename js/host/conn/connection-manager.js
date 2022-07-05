@@ -156,6 +156,13 @@ export default class ConnectionManager {
     return Promise.all(promises);
   };
 
+  // () => Unit
+  #broadcastNumClients = () => {
+    const channels = this.#sessionManager.getOpenChannels();
+    const message  = { num: this.#sessionManager.getNumActive() };
+    this.#rtcManager.send(...channels)("num-clients", message);
+  };
+
   // (UUID) => Unit
   #disown = (joinerID) => {
     const channel = this.#sessionManager.getAnyChannelByID(joinerID);
@@ -163,6 +170,7 @@ export default class ConnectionManager {
     this.#rtcManager  .notifyChannelDisconnect(channel);
     this.#deserializer.notifyClientDisconnect();
     this.#sessionManager.unregister(joinerID);
+    this.#broadcastNumClients();
   };
 
   // (UUID, RTCPeerConnection) => (RTCSessionDescription) => Unit
@@ -291,6 +299,7 @@ export default class ConnectionManager {
               const token = joinerID;
               this.narrowcast(token, "initial-model", { role, token, state, view });
               this.#sessionManager.setInitialized(token);
+              this.#broadcastNumClients();
             });
 
         } else {

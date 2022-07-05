@@ -39,6 +39,10 @@ export default (rootBundle) => (connBundle) => {
     byEID("latency-span").innerText = lat;
   };
 
+  const setNumClients = (num) => {
+    byEID("client-num-span").innerText = num;
+  };
+
   return { addChatLine:             rootBundle.addChatLine
          , disconnect:              connBundle.disconnect
          , enqueue:                 rootBundle.enqueue
@@ -52,6 +56,7 @@ export default (rootBundle) => (connBundle) => {
          , send:                    connBundle.send
          , setConnectionType
          , setLatency
+         , setNumClients
          , statusManager:           rootBundle.statusManager
          , terminate:               connBundle.terminate
          };

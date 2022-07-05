@@ -62,6 +62,11 @@ export default class ChannelHandler {
         break;
       }
 
+      case "num-clients": {
+        b.setNumClients(datum.num);
+        break;
+      }
+
       case "username-already-taken": {
         b.statusManager.rejectedOverDupeName();
         b.notifyUser("Username already in use.");

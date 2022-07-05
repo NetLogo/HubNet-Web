@@ -165,6 +165,13 @@ const FromHostRoot = {
       }
     }
 
+  , NumClients: { // num-clients
+      fields: {
+        id:  { type: "uint32", id: 1 }
+      , num: { type: "uint32", id: 2 }
+      }
+    }
+
   , Ping: { // ping
       fields: {
         id:       { type: "uint32", id: 1 }
