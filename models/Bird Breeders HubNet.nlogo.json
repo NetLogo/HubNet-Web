@@ -293,6 +293,7 @@
                 }
             ],
             "name": "student",
+            "namePlural": "students",
             "onConnect": "???Connect",
             "limit": -1,
             "highlightMainColor": "#008000",
@@ -714,6 +715,7 @@
                 }
             ],
             "name": "supervisor",
+            "namePlural": "supervisors",
             "onConnect": "???Connect",
             "limit": 1,
             "highlightMainColor": "#008000",

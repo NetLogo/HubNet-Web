@@ -137,6 +137,7 @@
                 }
             ],
             "name": "poll-client",
+            "namePlural": "poll-clients",
             "onConnect": "execute-create",
             "limit": -1,
             "highlightMainColor": "#008000",
@@ -701,6 +702,7 @@
                 }
             ],
             "name": "supervisor",
+            "namePlural": "supervisors",
             "onConnect": null,
             "limit": 1,
             "highlightMainColor": "#008000",

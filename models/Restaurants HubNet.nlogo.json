@@ -470,6 +470,7 @@
             ],
 
             "name": "supervisor",
+            "namePlural": "supervisors",
             "onConnect": null,
             "limit": 1,
             "highlightMainColor": "#008000",
@@ -732,6 +733,7 @@
                 }
             ],
             "name": "student",
+            "namePlural": "students",
             "onConnect": "create-new-restaurant",
             "limit": -1,
             "highlightMainColor": "#008000",
@@ -1005,6 +1007,7 @@
                 }
             ],
             "name": "student",
+            "namePlural": "students",
             "onConnect": "???Connect",
             "limit": -1,
             "highlightMainColor": "#008000",
@@ -1479,6 +1482,7 @@
                 }
             ],
             "name": "supervisor",
+            "namePlural": "supervisors",
             "onConnect": "???Connect",
             "limit": 1,
             "highlightMainColor": "#008000",

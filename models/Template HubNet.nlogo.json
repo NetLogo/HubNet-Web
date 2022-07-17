@@ -96,6 +96,7 @@
                 }
             ],
             "name": "student",
+            "namePlural": "students",
             "onConnect": "create-new-student",
             "limit": -1,
             "highlightMainColor": "#008000",
@@ -120,6 +121,7 @@
                 }
             ],
             "name": "supervisor",
+            "namePlural": "supervisors",
             "onConnect": null,
             "limit": 1,
             "highlightMainColor": "#008000",

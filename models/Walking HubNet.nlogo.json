@@ -144,6 +144,7 @@
                 }
             ],
             "name": "student",
+            "namePlural": "students",
             "onConnect": "setup-walker",
             "limit": -1,
             "highlightMainColor": "#008000",
@@ -380,6 +381,7 @@
                 }
             ],
             "name": "supervisor",
+            "namePlural": "supervisors",
             "onConnect": null,
             "limit": 1,
             "highlightMainColor": "#008000",

@@ -5,6 +5,7 @@
   [
     {
       "name": "student"
+    , "namePlural": "students"
     , "limit": -1
     , "highlightMainColor": "#008000"
     , "widgets": [
@@ -25,6 +26,7 @@
     }
     , {
       "name": "supervisor"
+    , "namePlural": "supervisors"
     , "limit": 1
     , "highlightMainColor": "#008000"
     , "widgets": [

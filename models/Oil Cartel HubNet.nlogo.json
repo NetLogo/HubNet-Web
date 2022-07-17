@@ -260,6 +260,7 @@
                 }
             ],
             "name": "seller",
+            "namePlural": "sellers",
             "onConnect": "create-new-seller",
             "limit": -1,
             "highlightMainColor": "#008000",
@@ -549,6 +550,7 @@
             ],
 
             "name": "supervisor",
+            "namePlural": "supervisors",
             "onConnect": null,
             "limit": 1,
             "highlightMainColor": "#008000",

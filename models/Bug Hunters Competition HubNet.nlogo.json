@@ -102,6 +102,7 @@
                 }
             ],
             "name": "player",
+            "namePlural": "players",
             "onConnect": "create-new-player",
             "limit": -1,
             "highlightMainColor": "#008000",
@@ -360,6 +361,7 @@
                 }
             ],
             "name": "supervisor",
+            "namePlural": "supervisors",
             "onConnect": null,
             "limit": 1,
             "highlightMainColor": "#008000",
