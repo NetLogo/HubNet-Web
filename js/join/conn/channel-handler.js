@@ -25,6 +25,11 @@ export default class ChannelHandler {
 
     switch (datum.type) {
 
+      case "assigned-agent": {
+        b.registerAssignedAgent(datum);
+        break;
+      }
+
       case "chat": {
         this.#bundle.addChatLine(datum.message, "");
         break;

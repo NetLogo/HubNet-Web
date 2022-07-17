@@ -6,6 +6,7 @@
     {
       "name": "player"
     , "limit": -1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwMonitor",  "left": 133, "right": 240, "top":  15, "bottom":  64, "display": "Cards remaining", "source": "cards-remaining", "reporterStyle": "procedure", "precision": 0, "fontSize": 10 }
       , { "type": "hnwMonitor",  "left":  35, "right": 142, "top": 124, "bottom": 173, "display": "Your matches", "source": "matches", "reporterStyle": "turtle-var", "precision": 0, "fontSize": 10 }
@@ -29,6 +30,7 @@
     , {
       "name": "supervisor"
     , "limit": 1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwView",     "left": 320, "right": 926, "top":  10, "bottom": 387, "height": 377, "width": 606 }
       , { "type": "hnwButton",   "left":  38, "right": 145, "top": 120, "bottom": 153, "source": "deal", "hnwProcName": "deal", "forever": false, "disableUntilTicksStart": true, "buttonKind": "observer" }

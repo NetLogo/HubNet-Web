@@ -6,6 +6,7 @@
     {
       "name": "client"
     , "limit": -1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwMonitor", "left":   0, "right": 263, "top":  10, "bottom":  50, "display": "Message:", "source": "message", "reporterStyle": "turtle-var", "precision": 0, "fontSize": 10 }
       , { "type": "hnwChooser", "left":   0, "right": 117, "top":  62, "bottom": 107, "display": "Die_A", "variable": "die1", "choices": ["--", "1", "2", "3", "4", "5", "6"], "default": "\"--\"" }
@@ -25,6 +26,7 @@
     , {
       "name": "supervisor"
     , "limit": 1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwButton",  "left": 239, "right": 334, "top":  15, "bottom":  48, "display": "random-roll", "source": "", "hnwProcName": "random-roll-full", "forever": false, "disableUntilTicksStart": false, "buttonKind": "turtle" }
       , { "type": "hnwButton",  "left": 335, "right": 444, "top":  15, "bottom":  48, "display": "auto-fill", "source": "", "hnwProcName": "auto-fill", "forever": true, "disableUntilTicksStart": false, "buttonKind": "turtle" }

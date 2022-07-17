@@ -2,17 +2,18 @@ import deepFreeze from "/js/static/deep-freeze.js";
 
 const RolePB = {
   fields: {
-    name:            { type: "string", id:  1 }
-  , limit:           { type: "sint32", id:  2 }
-  , canJoinMidRun:   { type: "bool"  , id:  3 }
-  , isSpectator:     { type: "bool"  , id:  4 }
-  , perspectiveVar:  { type: "string", id:  5 }
-  , onConnect:       { type: "string", id:  6 }
-  , onDisconnect:    { type: "string", id:  7 }
-  , onCursorClick:   { type: "string", id:  8 }
-  , onCursorRelease: { type: "string", id:  9 }
-  , onCursorMove:    { type: "string", id: 10 }
-  , widgets:         { type: "Widget", id: 11, rule: "repeated" }
+    name:               { type: "string", id:  1 }
+  , limit:              { type: "sint32", id:  2 }
+  , canJoinMidRun:      { type: "bool"  , id:  3 }
+  , isSpectator:        { type: "bool"  , id:  4 }
+  , perspectiveVar:     { type: "string", id:  5 }
+  , highlightMainColor: { type: "string", id:  6 }
+  , onConnect:          { type: "string", id:  7 }
+  , onDisconnect:       { type: "string", id:  8 }
+  , onCursorClick:      { type: "string", id:  9 }
+  , onCursorRelease:    { type: "string", id: 10 }
+  , onCursorMove:       { type: "string", id: 11 }
+  , widgets:            { type: "Widget", id: 12, rule: "repeated" }
   }
 , nested: {
     Widget: {

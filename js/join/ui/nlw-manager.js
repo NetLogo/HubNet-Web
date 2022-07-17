@@ -38,6 +38,11 @@ export default class JoinerNLWManager extends NLWManager {
   };
 
   // (Object[Any]) => Unit
+  registerAssignedAgent = (assignment) => {
+    this._post(Object.assign(assignment, { type: "hnw-register-assigned-agent" }));
+  };
+
+  // (Object[Any]) => Unit
   relay = (payload) => {
     this._post(payload);
   };

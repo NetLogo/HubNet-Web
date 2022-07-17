@@ -6,6 +6,7 @@
     {
       "name": "student"
     , "limit": -1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwView",    "left": 175, "right": 585, "top":  10, "bottom": 420, "height": 410, "width": 410 }
       , { "type": "hnwMonitor", "left": 600, "right": 725, "top":  10, "bottom":  60, "display": "# Hunters", "source": "num-hunters", "reporterStyle": "procedure", "precision": 0, "fontSize": 10 }
@@ -31,6 +32,7 @@
     , {
       "name": "supervisor"
     , "limit": 1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwMonitor", "left": 173, "right": 423, "top": 210, "bottom": 255, "display": "Top hunter's catches", "source": "leader-caught", "reporterStyle": "global-var", "precision": 0, "fontSize": 11 }
       , { "type": "hnwSlider",  "left":   5, "right": 170, "top":  10, "bottom":  43, "display": "carrying-capacity", "variable": "carrying-capacity", "min": 0, "max": 100, "default": 20, "units": "", "direction": "horizontal", "step": 1 }

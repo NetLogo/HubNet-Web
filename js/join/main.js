@@ -78,6 +78,7 @@ const onLogIn = (username, password, sessionName, activityName) => {
     , enqueue:                burstQueue.enqueue
     , hibernateSessionList:   sessionList.hibernate
     , notifyLoggedIn:         burstQueue.setStateLoggedIn
+    , registerAssignedAgent:  nlwManager.registerAssignedAgent
     , showNLW:                nlwManager.show
     , statusManager
     , unlockUI:               loginControls.reset

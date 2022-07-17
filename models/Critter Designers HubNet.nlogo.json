@@ -354,6 +354,7 @@
             "name": "student",
             "onConnect": "???Connect",
             "limit": -1,
+            "highlightMainColor": "#008000",
             "isSpectator": false
         },
         {
@@ -624,6 +625,7 @@
             "name": "supervisor",
             "onConnect": "???Connect",
             "limit": 1,
+            "highlightMainColor": "#008000",
             "isSpectator": true
         }
     ],

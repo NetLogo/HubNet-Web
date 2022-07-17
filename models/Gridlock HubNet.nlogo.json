@@ -6,6 +6,7 @@
     {
       "name": "student"
     , "limit": -1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwView",     "left": 292, "right": 662, "top":  10, "bottom": 380, "height": 370, "width": 370 }
       , { "type": "hnwButton",   "left": 162, "right": 286, "top":  68, "bottom": 101, "display": "Change Light", "source": "???1", "hnwProcName": "???1", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle" }
@@ -23,6 +24,7 @@
     , {
       "name": "supervisor"
     , "limit": 1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwView",     "left": 283, "right": 661, "top":  96, "bottom": 475, "height": 379, "width": 378 }
       , { "type": "hnwTextBox",  "left":   7, "right": 185, "top": 411, "bottom": 453, "display": "This chooser determines\nwhich plot is drawn.", "color": 0.0, "fontSize": 11, "transparent": false }

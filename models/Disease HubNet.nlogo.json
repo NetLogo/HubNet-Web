@@ -6,6 +6,7 @@
     {
       "name": "student"
     , "limit": -1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwMonitor", "left": 210, "right": 297, "top":  11, "bottom":  60, "display": "Sick?", "source": "sick?-str", "reporterStyle": "turtle-procedure", "precision": 0, "fontSize": 10 }
       , { "type": "hnwMonitor", "left": 210, "right": 297, "top":  80, "bottom": 129, "display": "Located at:", "source": "located-at", "reporterStyle": "turtle-var", "precision": 0, "fontSize": 10 }
@@ -33,6 +34,7 @@
     , {
       "name": "supervisor"
     , "limit": 1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwMonitor", "left": 356, "right": 802, "top":  20, "bottom":  65, "display": "Quick Start Instructions- More in Info Window", "source": "quick-start", "reporterStyle": "global-var", "precision": 0, "fontSize": 10 }
       , { "type": "hnwMonitor", "left":  68, "right": 199, "top": 563, "bottom": 608, "display": "Turtles", "source": "num-turtles", "reporterStyle": "procedure", "precision": 0, "fontSize": 10 }

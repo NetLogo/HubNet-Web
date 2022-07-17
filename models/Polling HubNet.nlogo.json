@@ -6,6 +6,7 @@
     {
       "name": "turtle"
     , "limit": -1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwButton",   "left":  76, "right": 203, "top": 127, "bottom": 160, "display": "Choose", "source": "execute-choose", "hnwProcName": "execute-choose", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle" }
       , { "type": "hnwSlider",   "left":  53, "right": 343, "top":  89, "bottom": 122, "display": "Choice", "variable": "ui-slider-value", "min": 0.0, "max": 9.0, "default": 0.0, "units": "", "direction": "horizontal", "step": 1.0 }
@@ -25,6 +26,7 @@
     , {
       "name": "supervisor"
     , "limit": 1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwView",     "left": 461, "right": 742, "top":  98, "bottom": 380, "height": 282, "width": 281 }
       , { "type": "hnwPlot",     "left": 155, "right": 455, "top": 129, "bottom": 396, "display": "Data", "xAxis": "choice", "yAxis": "count", "xmin": 0.0, "xmax": 10.0, "ymin": 0.0, "ymax": 5.0, "autoPlotOn": true, "legendOn": true, "setupCode": "", "update": "", "pens": {} }

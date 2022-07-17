@@ -6,6 +6,7 @@
     {
       "name": "student"
     , "limit": -1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwMonitor",  "left":   5, "right": 130, "top":  10, "bottom":  59, "display": "Your name", "source": "user-id", "reporterStyle": "turtle-var", "precision": 0, "fontSize": 10 }
       , { "type": "hnwMonitor",  "left":   5, "right": 130, "top": 120, "bottom": 169, "display": "You have found", "source": "student-found", "reporterStyle": "turtle-procedure", "precision": 3, "fontSize": 10 }
@@ -25,6 +26,7 @@
     , {
       "name": "supervisor"
     , "limit": 1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwView",     "left": 190, "right": 1008, "top":  95, "bottom": 514, "height": 419, "width": 818 }
       , { "type": "hnwSlider",   "left": 215, "right":  510, "top":  10, "bottom":  43, "display": "carrying-capacity-environment-left", "variable": "carrying-capacity-environment-left", "min": 0.0, "max": 100, "default": 2.0, "units": "", "direction": "horizontal", "step": 1.0 }

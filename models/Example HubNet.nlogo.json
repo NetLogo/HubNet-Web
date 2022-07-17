@@ -46,6 +46,7 @@
             "namePlural": "students",
             "onConnect": "on-join",
             "limit": -1,
+            "highlightMainColor": "#008000",
             "isSpectator": false,
             "perspectiveVar": "perspective"
         },
@@ -83,6 +84,7 @@
             "namePlural": "supervisors",
             "onConnect": null,
             "limit": 1,
+            "highlightMainColor": "#008000",
             "isSpectator": true,
             "perspectiveVar": null
         }

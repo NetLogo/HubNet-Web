@@ -6,6 +6,7 @@
     {
       "name": "player"
     , "limit": -1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwView",     "left": 328, "right": 706, "top":  10, "bottom": 388, "height": 378, "width": 378 }
       , { "type": "hnwButton",   "left":  74, "right": 155, "top": 234, "bottom": 267, "display": "0", "source": "choose-0", "hnwProcName": "choose-0", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle" }
@@ -30,6 +31,7 @@
     , {
       "name": "supervisor"
     , "limit": 1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwView",     "left": 429, "right": 962, "top":  96, "bottom": 630, "height": 534, "width": 533 }
       , { "type": "hnwSlider",   "left": 116, "right": 295, "top":  10, "bottom":  43, "display": "number-of-participants", "variable": "number-of-participants", "min": 3.0, "max": 501.0, "default": 229.0, "units": "", "direction": "horizontal", "step": 2.0 }

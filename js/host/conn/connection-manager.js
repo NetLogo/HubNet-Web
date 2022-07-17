@@ -127,6 +127,14 @@ export default class ConnectionManager {
     }
   };
 
+  // (UUID, String, Object[Any]?) => Unit
+  narrowcastFlat = (joinerID, type, message = {}) => {
+    const channel = this.#sessionManager.getOpenChannelByID(joinerID, true);
+    if (channel !== null) {
+      this.#rtcManager.send(channel)(type, message);
+    }
+  };
+
   // (Blob) => Unit
   postImageUpdate = (blob) => {
     this.#statusSocket.postImageUpdate(blob);
@@ -295,9 +303,13 @@ export default class ConnectionManager {
           reply("login-successful");
 
           this.#awaitJoinerInit(joinerID, username).
-            then(({ role, state, viewState: view }) => {
-              const token = joinerID;
-              this.narrowcast(token, "initial-model", { role, token, state, view });
+            then(({ baseMessage: { role, state, viewState: view }
+                  , agentMessage
+                  }) => {
+              const token        = joinerID;
+              const initModelMsg = { role, token, state, view };
+              this.narrowcast    (token, "initial-model" , initModelMsg);
+              this.narrowcastFlat(token, "assigned-agent", agentMessage);
               this.#sessionManager.setInitialized(token);
               this.#broadcastNumClients();
             });

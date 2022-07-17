@@ -30,7 +30,19 @@ const FromHostRoot = {
 
   nested: {
 
-    ByeBye: { // bye-bye
+    AssignedAgent: { // assigned-agent
+      fields: {
+        id:        { type: "uint32", id: 1 }
+      , agentType: { type: "uint32", id: 2 }
+      , turtleID:  { type: "uint64", id: 3 }
+      , patchX:    { type: "sint32", id: 4 }
+      , patchY:    { type: "sint32", id: 5 }
+      , linkID1:   { type: "uint64", id: 6 }
+      , linkID2:   { type: "uint64", id: 7 }
+      }
+    }
+
+  , ByeBye: { // bye-bye
       fields: {}
     }
 

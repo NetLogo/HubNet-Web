@@ -258,6 +258,7 @@
             "name": "student",
             "onConnect": "create-new-student",
             "limit": -1,
+            "highlightMainColor": "#008000",
             "isSpectator": false,
             "perspectiveVar": null
         },
@@ -553,6 +554,7 @@
             "name": "supervisor",
             "onConnect": null,
             "limit": 1,
+            "highlightMainColor": "#008000",
             "isSpectator": true,
             "perspectiveVar": null
         }

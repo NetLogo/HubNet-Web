@@ -7,6 +7,7 @@
       "name": "student"
     , "namePlural": "students"
     , "limit": -1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwView",    "left": 300, "right": 729, "top":  25, "bottom": 454, "height": 429, "width": 429 }
       , { "type": "hnwButton",  "left": 104, "right": 187, "top":  82, "bottom": 115, "display": "up",                 "source": "command-move-up", "hnwProcName": "command-move-up", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle", "actionKey": "W" }
@@ -39,6 +40,7 @@
       "name": "supervisor"
     , "namePlural": "supervisors"
     , "limit": 1
+    , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwView",     "left": 210, "right":  699, "top":  10, "bottom": 500, "height": 490, "width": 489 }
       , { "type": "hnwSlider",   "left":  10, "right":  195, "top": 177, "bottom": 210, "display": "student-vision-radius", "variable": "student-vision-radius", "min": 1, "max": 10, "default": 10.0, "units": "", "direction": "horizontal", "step": 1 }
