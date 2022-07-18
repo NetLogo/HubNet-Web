@@ -168,7 +168,7 @@
                     "left": 210,
                     "variable": "radius",
                     "step": 1,
-                    "min": "0",
+                    "min": "1",
                     "right": 382,
                     "type": "hnwSlider",
                     "top": 471
@@ -183,7 +183,7 @@
             "perspectiveVar": null
         }
     ],
-    "onIterate": "go",
+    "onIterate": null,
     "onStart": "setup",
     "version": "hnw-alpha-1",
     "type": "hubnet-web"

@@ -21,14 +21,6 @@ to setup
   [
     set step-size 1
   ]
-  reset-ticks
-end
-
-to go
-  every 0.1
-  [
-    tick
-  ]
 end
 
 ;;
@@ -141,23 +133,6 @@ NIL
 NIL
 NIL
 1
-
-BUTTON
-12
-44
-83
-77
-NIL
-go
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-0
 
 BUTTON
 135
