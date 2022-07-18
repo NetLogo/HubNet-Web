@@ -315,6 +315,26 @@ const rejiggerDrawingEvents = (target, parent) => {
     } else if (devent.type === "import-drawing") {
       const outer = { importDrawing: deepClone(devent) };
       parent.push(outer);
+    } else if (devent.type === "line") {
+
+      const line  = deepClone(devent);
+      const xform = transform(line);
+
+      line.color = line.rgb;
+      rejiggerColor(line, "color");
+      delete line.rgb;
+
+      xform("fromX", (x) => Math.round(x *  10));
+      xform("fromY", (y) => Math.round(y *  10));
+      xform(  "toX", (x) => Math.round(x *  10));
+      xform(  "toY", (y) => Math.round(y *  10));
+      xform( "size", (s) => Math.round(s * 100));
+
+      xform("penMode", (m) => (m === "up") ? 0 : (m === "down") ? 1 : 2);
+
+      const outer = { line };
+      parent.push(outer);
+
     } else {
       console.warn("Impossible type for devent!", devent);
     }
@@ -761,6 +781,25 @@ const recombobulateDrawingEvents = (target, parent) => {
     } else if (devent.importDrawing !== undefined) {
       const outer = { type: "import-drawing", ...devent.importDrawing };
       parent.push(outer);
+    } else if (devent.line !== undefined) {
+
+      const outer = { type: "line", ...devent.line };
+      const xform = transform(outer);
+
+      recombobulateColor(outer, "color");
+      outer.rgb = outer.color;
+      delete outer.color;
+
+      xform("fromX", (x) => x /  10);
+      xform("fromY", (y) => y /  10);
+      xform(  "toX", (x) => x /  10);
+      xform(  "toY", (y) => y /  10);
+      xform( "size", (s) => s / 100);
+
+      xform("penMode", (m) => (m === "up") ? 0 : (m === "down") ? 1 : 2);
+
+      parent.push(outer);
+
     } else {
       console.warn("Impossible key for devent!", devent);
     }

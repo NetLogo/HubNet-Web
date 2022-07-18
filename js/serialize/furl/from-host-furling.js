@@ -55,6 +55,7 @@ const furlingMappings =
   , "unfurled-su-drawings":          "UpdateViewDrawings"
   , "unfurled-su-drawing-clear":     "UpdateViewDrawingClear"
   , "unfurled-su-drawing-import":    "UpdateViewDrawingImport"
+  , "unfurled-su-drawing-line":      "UpdateViewDrawingLine"
   , "unfurled-su-drawing-raincheck": "UpdateViewDrawingRaincheck"
   };
 
@@ -348,6 +349,9 @@ const unfurlSoloDrawingEvents = (msg) => {
       }
       case "importDrawingRaincheck": {
         return unfurlByType("unfurled-su-drawing-raincheck", msg);
+      }
+      case "line": {
+        return unfurlByType("unfurled-su-drawing-line", msg);
       }
       default:
     }

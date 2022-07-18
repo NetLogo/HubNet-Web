@@ -119,16 +119,30 @@ const viewEntries =
 const  cDrawingFields = {};
 const  iDrawingFields = { hash: "sint64", imageBase64: "string" };
 const raincheckFields = { hash: "sint64" };
+const      lineFields =
+  {   "fromX": "sint32"
+  ,   "fromY": "sint32"
+  ,     "toX": "sint32"
+  ,     "toY": "sint32"
+  ,    "size": "uint32"
+  , "penMode": "uint32"
+  , "color-r": "uint32"
+  , "color-g": "uint32"
+  , "color-b": "uint32"
+  , "color-a": "uint32"
+  };
 
+const      linePath = ["viewUpdate", "drawingEvents", "*", "line"                  ];
 const  cDrawingPath = ["viewUpdate", "drawingEvents", "*",  "clearDrawing"         ];
 const  iDrawingPath = ["viewUpdate", "drawingEvents", "*", "importDrawing"         ];
 const raincheckPath = ["viewUpdate", "drawingEvents", "*", "importDrawingRaincheck"];
 
+const      lineEntry = ["line"                  ,       "DrawingLine"     ];
 const  cDrawingEntry = ["clearDrawing"          ,  "ClearDrawing"         ];
 const  iDrawingEntry = ["importDrawing"         , "ImportDrawing"         ];
 const raincheckEntry = ["importDrawingRaincheck", "ImportDrawingRaincheck"];
 
-const drawingEntries = [cDrawingEntry, iDrawingEntry, raincheckEntry];
+const drawingEntries = [lineEntry, cDrawingEntry, iDrawingEntry, raincheckEntry];
 
 const drawingFields = bareFieldsFrom(drawingEntries);
 
@@ -220,6 +234,7 @@ const ViewUpdateStuff = {
       ClearDrawing:           fieldsFrom( cDrawingFields)
     , ImportDrawing:          fieldsFrom( iDrawingFields)
     , ImportDrawingRaincheck: fieldsFrom(raincheckFields)
+    , DrawingLine:            fieldsFrom(     lineFields)
     }
   }
 
@@ -393,6 +408,7 @@ const StateUpdateDescriptors =
   , UpdateViewDrawings:          newFD("plain",   drawingEntry,   drawingFields,   drawingPath)
   , UpdateViewDrawingClear:      newFD("plain",  cDrawingEntry,  cDrawingFields,  cDrawingPath)
   , UpdateViewDrawingImport:     newFD("plain",  iDrawingEntry,  iDrawingFields,  iDrawingPath)
+  , UpdateViewDrawingLine:       newFD("plain",      lineEntry,      lineFields,      linePath)
   , UpdateViewDrawingRaincheck:  newFD("plain", raincheckEntry, raincheckFields, raincheckPath)
   };
 
