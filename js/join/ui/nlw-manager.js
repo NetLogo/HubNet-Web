@@ -22,7 +22,7 @@ export default class JoinerNLWManager extends NLWManager {
 
   }
 
-  // (Object[Any]) => Unit
+  // (Object[Any]) => Promise[Any]
   awaitLoadInterface = (interfaceObj) => {
     return this._await("hnw-load-interface", interfaceObj);
   };
