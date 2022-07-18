@@ -6,6 +6,7 @@ import NLWManager from "/js/common/ui/nlw-manager.js";
 export default class HostNLWManager extends NLWManager {
 
   #broadcast   = undefined; // (UUID, Boolean?) => RTCDataChannel?
+  #goButton    = undefined; // HTMLButtonElement
   #narrowcast  = undefined; // () => Array[RTCDataChannel]
   #onError     = undefined; // (String) => Unit
 
@@ -20,6 +21,7 @@ export default class HostNLWManager extends NLWManager {
     super(outerFrame);
 
     this.#broadcast   = broadcast;
+    this.#goButton    = goButton;
     this.#narrowcast  = narrowcast;
     this.#onError     = onError;
 
@@ -54,6 +56,12 @@ export default class HostNLWManager extends NLWManager {
 
     this._post({ ...props, type: "hnw-become-oracle", nlogo });
     this._post({ type: "nlw-subscribe-to-updates", uuid });
+
+    if (props.onIterate !== null) {
+      this.#goButton.classList.remove("hidden");
+    } else {
+      this.#goButton.classList.add("hidden");
+    }
 
   };
 

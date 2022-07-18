@@ -547,3 +547,10 @@
   }
 
 }
+
+/* Duplicated here so that we can override other `display` rules (e.g. when hiding
+ * a useless "Go" button).  CSS precedence is weird. --Jason B. (7/17/22)
+ */
+.hidden {
+  display: none;
+}
