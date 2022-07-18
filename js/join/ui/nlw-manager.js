@@ -2,8 +2,6 @@ import { spamFrameForPort } from "/js/common/await.js";
 
 import NLWManager from "/js/common/ui/nlw-manager.js";
 
-import fakeModel from "./fake-model.js";
-
 export default class JoinerNLWManager extends NLWManager {
 
   #onError = undefined; // (String) => Unit
@@ -67,7 +65,7 @@ export default class JoinerNLWManager extends NLWManager {
   // () => Unit
   _hide = () => {
     this.resetIDMan();
-    this._post(fakeModel);
+    this._getFrame().src = `${this._getFrame().src}`; // Refresh frame
   };
 
   // () => Unit
