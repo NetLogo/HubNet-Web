@@ -242,7 +242,7 @@ const rejiggerViewUpdates = (target, parent) => {
       parent[k0] = {};
       rejiggerWorlds(v0, parent[k0]);
     } else if (k0 === "observer") {
-      parent[k0] = deepClone(v0, {}, true);
+      parent[k0] = deepClone(v0, {});
     } else if (k0 === "drawingEvents") {
       parent[k0] = [];
       rejiggerDrawingEvents(v0, parent[k0]);
