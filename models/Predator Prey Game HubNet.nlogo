@@ -1,10 +1,13 @@
 globals
 [
+
   start-energy      ;; constant used to initialize turtles
 
   colors            ;; list that holds the colors used for students' turtles
   color-names       ;; list that holds the names of the colors used for students' turtles
   all-shapes        ;; list that holds all the possible shapes used in the game
+
+  subticks
 
   __hnw_supervisor_android-delay
   __hnw_supervisor_wander?
@@ -68,6 +71,7 @@ to setup-vars
   set color-names ["white" "orange" "red" "yellow"
                    "purple" "blue" "pink" ]
   set all-shapes [ "diamond" "heart" "pentagon" "square" "circle" "triangle" "rhombus" ]
+  set subticks 0
 end
 
 ;; return all students to initial state and randomize locations
@@ -136,11 +140,6 @@ end
 
 ;; the main procedure
 to go
-  ;; listen to the hubnet client
-  every 0.1
-  [
-    display
-  ]
 
   ;; if wander? is true then the androids wander around the landscape
   if wander?
@@ -148,7 +147,7 @@ to go
 
   ;; the delay below keep plants from growing too fast
   ;; and predator/prey from losing points too fast
-  every 3
+  if (subticks = 0)
   [
     if any? turtles
     [
@@ -163,6 +162,9 @@ to go
     ]
     tick
   ]
+
+  set subticks ((subticks + 1) mod 30)
+
 end
 
 ;; android animals should move at random

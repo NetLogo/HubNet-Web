@@ -183,7 +183,7 @@
             "namePlural": "students",
             "onConnect": "create-new-student",
             "limit": -1,
-            "highlightMainColor": "#008000",
+            "highlightMainColor": "#ffffff",
             "isSpectator": false,
             "perspectiveVar": null
         },
@@ -467,6 +467,7 @@
     ],
     "onIterate": "go",
     "onStart": "setup",
+    "targetFrameRate": 15,
     "version": "hnw-alpha-1",
     "type": "hubnet-web"
 }
