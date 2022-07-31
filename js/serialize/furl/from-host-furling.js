@@ -30,33 +30,35 @@ const basicMap =
   };
 
 const furlingMappings =
-  { "unfurled-host-answer":          "HostAnswerUnfurled"
-  , "unfurled-ice-candy":            "ICECandyUnfurled"
-  , "unfurled-su-monitors":          "UpdateMonitors"
-  , "unfurled-su-monitor1":          "UpdateMonitor1"
-  , "unfurled-su-plot-values":       "UpdatePlotValues"
-  , "unfurled-su-plot-add-point":    "UpdatePlotAddPoint"
-  , "unfurled-su-plot-reset":        "UpdatePlotReset"
-  , "unfurled-su-plot-reset-pen":    "UpdatePlotResetPen"
-  , "unfurled-su-plot-register-pen": "UpdatePlotRegisterPen"
-  , "unfurled-su-plot-resize":       "UpdatePlotResize"
-  , "unfurled-su-plot-pen-color":    "UpdatePlotUpdatePenColor"
-  , "unfurled-su-plot-pen-mode":     "UpdatePlotUpdatePenMode"
-  , "unfurled-su-turtles":           "UpdateViewTurtles"
-  , "unfurled-su-turtle1":           "UpdateViewTurtle1"
-  , "unfurled-su-patches":           "UpdateViewPatches"
-  , "unfurled-su-patch1":            "UpdateViewPatch1"
-  , "unfurled-su-links":             "UpdateViewLinks"
-  , "unfurled-su-link1":             "UpdateViewLink1"
-  , "unfurled-su-observers":         "UpdateViewObservers"
-  , "unfurled-su-observer1":         "UpdateViewObserver1"
-  , "unfurled-su-worlds":            "UpdateViewWorlds"
-  , "unfurled-su-world1":            "UpdateViewWorld1"
-  , "unfurled-su-drawings":          "UpdateViewDrawings"
-  , "unfurled-su-drawing-clear":     "UpdateViewDrawingClear"
-  , "unfurled-su-drawing-import":    "UpdateViewDrawingImport"
-  , "unfurled-su-drawing-line":      "UpdateViewDrawingLine"
-  , "unfurled-su-drawing-raincheck": "UpdateViewDrawingRaincheck"
+  { "unfurled-host-answer":             "HostAnswerUnfurled"
+  , "unfurled-ice-candy":               "ICECandyUnfurled"
+  , "unfurled-su-monitors":             "UpdateMonitors"
+  , "unfurled-su-monitor1":             "UpdateMonitor1"
+  , "unfurled-su-plot-values":          "UpdatePlotValues"
+  , "unfurled-su-plot-add-point":       "UpdatePlotAddPoint"
+  , "unfurled-su-plot-reset":           "UpdatePlotReset"
+  , "unfurled-su-plot-reset-pen":       "UpdatePlotResetPen"
+  , "unfurled-su-plot-register-pen":    "UpdatePlotRegisterPen"
+  , "unfurled-su-plot-resize":          "UpdatePlotResize"
+  , "unfurled-su-plot-pen-color":       "UpdatePlotUpdatePenColor"
+  , "unfurled-su-plot-pen-mode":        "UpdatePlotUpdatePenMode"
+  , "unfurled-su-turtles":              "UpdateViewTurtles"
+  , "unfurled-su-turtle1":              "UpdateViewTurtle1"
+  , "unfurled-su-patches":              "UpdateViewPatches"
+  , "unfurled-su-patch1":               "UpdateViewPatch1"
+  , "unfurled-su-links":                "UpdateViewLinks"
+  , "unfurled-su-link1":                "UpdateViewLink1"
+  , "unfurled-su-observers":            "UpdateViewObservers"
+  , "unfurled-su-observer1":            "UpdateViewObserver1"
+  , "unfurled-su-worlds":               "UpdateViewWorlds"
+  , "unfurled-su-world1":               "UpdateViewWorld1"
+  , "unfurled-su-drawings":             "UpdateViewDrawings"
+  , "unfurled-su-drawing-clear":        "UpdateViewDrawingClear"
+  , "unfurled-su-drawing-import":       "UpdateViewDrawingImport"
+  , "unfurled-su-drawing-line":         "UpdateViewDrawingLine"
+  , "unfurled-su-drawing-link-stamp":   "UpdateViewDrawingLinkStamp"
+  , "unfurled-su-drawing-turtle-stamp": "UpdateViewDrawingTurtleStamp"
+  , "unfurled-su-drawing-raincheck":    "UpdateViewDrawingRaincheck"
   };
 
 // Object[ProtoBufType]
@@ -352,6 +354,12 @@ const unfurlSoloDrawingEvents = (msg) => {
       }
       case "line": {
         return unfurlByType("unfurled-su-drawing-line", msg);
+      }
+      case "linkStamp": {
+        return unfurlByType("unfurled-su-drawing-link-stamp", msg);
+      }
+      case "turtleStamp": {
+        return unfurlByType("unfurled-su-drawing-turtle-stamp", msg);
       }
       default:
     }

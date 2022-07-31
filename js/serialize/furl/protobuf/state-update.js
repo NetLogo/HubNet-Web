@@ -116,33 +116,77 @@ const drawingEntry = ["drawingEvents", "DrawingEvent",    true ];
 const viewEntries =
   [turtleEntry, patchEntry, linkEntry, worldEntry, obsEntry, drawingEntry];
 
-const  cDrawingFields = {};
-const  iDrawingFields = { hash: "sint64", imageBase64: "string" };
-const raincheckFields = { hash: "sint64" };
-const      lineFields =
-  {   "fromX": "sint32"
-  ,   "fromY": "sint32"
-  ,     "toX": "sint32"
-  ,     "toY": "sint32"
-  ,    "size": "uint32"
-  , "penMode": "uint32"
+const linkStampFields =
+  { "color":     "uint32"
+  , "directed?": "bool"
+  , "heading":   "uint32"
+  , "hidden?":   "bool"
+  , "midpointX": "sint32"
+  , "midpointY": "sint32"
+  , "shapeName": "string"
+  , "size":      "uint32"
+  , "stampMode": "bool"
+  , "thickness": "uint32"
+  , "x1":        "sint32"
+  , "x2":        "sint32"
+  , "y1":        "sint32"
+  , "y2":        "sint32"
+  // Begin jiggery optimizations
   , "color-r": "uint32"
   , "color-g": "uint32"
   , "color-b": "uint32"
   , "color-a": "uint32"
   };
 
-const      linePath = ["viewUpdate", "drawingEvents", "*", "line"                  ];
-const  cDrawingPath = ["viewUpdate", "drawingEvents", "*",  "clearDrawing"         ];
-const  iDrawingPath = ["viewUpdate", "drawingEvents", "*", "importDrawing"         ];
-const raincheckPath = ["viewUpdate", "drawingEvents", "*", "importDrawingRaincheck"];
+const turtleStampFields =
+  { "color":     "uint32"
+  , "heading":   "uint32"
+  , "size":      "uint32"
+  , "shapeName": "string"
+  , "stampMode": "bool"
+  , "x":         "sint32"
+  , "y":         "sint32"
+  // Begin jiggery optimizations
+  , "color-r": "uint32"
+  , "color-g": "uint32"
+  , "color-b": "uint32"
+  , "color-a": "uint32"
+  };
 
-const      lineEntry = ["line"                  ,       "DrawingLine"     ];
-const  cDrawingEntry = ["clearDrawing"          ,  "ClearDrawing"         ];
-const  iDrawingEntry = ["importDrawing"         , "ImportDrawing"         ];
-const raincheckEntry = ["importDrawingRaincheck", "ImportDrawingRaincheck"];
+const lineFields =
+  {   "fromX": "sint32"
+  ,   "fromY": "sint32"
+  ,     "toX": "sint32"
+  ,     "toY": "sint32"
+  ,    "size": "uint32"
+  , "penMode": "uint32"
+  // Begin jiggery optimizations
+  , "color-r": "uint32"
+  , "color-g": "uint32"
+  , "color-b": "uint32"
+  , "color-a": "uint32"
+  };
 
-const drawingEntries = [lineEntry, cDrawingEntry, iDrawingEntry, raincheckEntry];
+const  cDrawingFields = {};
+const  iDrawingFields = { hash: "sint64", imageBase64: "string" };
+const raincheckFields = { hash: "sint64" };
+
+const        linePath = ["viewUpdate", "drawingEvents", "*", "line"                  ];
+const   linkStampPath = ["viewUpdate", "drawingEvents", "*", "linkStamp"             ];
+const turtleStampPath = ["viewUpdate", "drawingEvents", "*", "turtleStamp"           ];
+const    cDrawingPath = ["viewUpdate", "drawingEvents", "*",  "clearDrawing"         ];
+const    iDrawingPath = ["viewUpdate", "drawingEvents", "*", "importDrawing"         ];
+const   raincheckPath = ["viewUpdate", "drawingEvents", "*", "importDrawingRaincheck"];
+
+const   linkStampEntry = ["linkStamp"             ,       "LinkStamp"       ];
+const turtleStampEntry = ["turtleStamp"           ,       "TurtleStamp"     ];
+const        lineEntry = ["line"                  ,       "DrawingLine"     ];
+const    cDrawingEntry = ["clearDrawing"          ,  "ClearDrawing"         ];
+const    iDrawingEntry = ["importDrawing"         , "ImportDrawing"         ];
+const   raincheckEntry = ["importDrawingRaincheck", "ImportDrawingRaincheck"];
+
+const drawingEntries = [ linkStampEntry, turtleStampEntry, lineEntry
+                       , cDrawingEntry, iDrawingEntry, raincheckEntry];
 
 const drawingFields = bareFieldsFrom(drawingEntries);
 
@@ -231,10 +275,12 @@ const ViewUpdateStuff = {
     }
   , fields: fromEntriesInner(drawingEntries)
   , nested: {
-      ClearDrawing:           fieldsFrom( cDrawingFields)
-    , ImportDrawing:          fieldsFrom( iDrawingFields)
-    , ImportDrawingRaincheck: fieldsFrom(raincheckFields)
-    , DrawingLine:            fieldsFrom(     lineFields)
+       ClearDrawing:          fieldsFrom(   cDrawingFields)
+    , ImportDrawing:          fieldsFrom(   iDrawingFields)
+    , ImportDrawingRaincheck: fieldsFrom(  raincheckFields)
+    , DrawingLine:            fieldsFrom(       lineFields)
+    ,   LinkStamp:            fieldsFrom(  linkStampFields)
+    , TurtleStamp:            fieldsFrom(turtleStampFields)
     }
   }
 
@@ -385,31 +431,33 @@ const newFD = (type, entry, fields, path) => {
 };
 
 const StateUpdateDescriptors =
-  { UpdateMonitors:              newFD( "map" ,   monitorEntry,              [],   monitorPath)
-  , UpdateMonitor1:              newFD( "map1",   monitorEntry,              [],   monitorPath)
-  , UpdatePlotValues:            newFD( "map" ,   plotUpsEntry,   plotUpsFields,   plotUpsPath)
-  , UpdatePlotAddPoint:          newFD("plot1",  addPointEntry,  addPointFields,  addPointPath)
-  , UpdatePlotReset:             newFD("plot1", resetPlotEntry,      plotFields, resetPlotPath)
-  , UpdatePlotResetPen:          newFD("plot1",  resetPenEntry,  resetPenFields,  resetPenPath)
-  , UpdatePlotRegisterPen:       newFD("plot1",    regPenEntry,       penFields,    regPenPath)
-  , UpdatePlotResize:            newFD("plot1",    resizeEntry,    resizeFields,    resizePath)
-  , UpdatePlotUpdatePenColor:    newFD("plot1",  penColorEntry,  penColorFields,  penColorPath)
-  , UpdatePlotUpdatePenMode:     newFD("plot1",   penModeEntry,   penModeFields,   penModePath)
-  , UpdateViewTurtles:           newFD( "map" ,    turtleEntry,    turtleFields,    turtlePath)
-  , UpdateViewTurtle1:           newFD( "map1",    turtleEntry,    turtleFields,    turtlePath)
-  , UpdateViewPatches:           newFD( "map" ,     patchEntry,     patchFields,     patchPath)
-  , UpdateViewPatch1:            newFD( "map1",     patchEntry,     patchFields,     patchPath)
-  , UpdateViewLinks:             newFD( "map" ,      linkEntry,      linkFields,      linkPath)
-  , UpdateViewLink1:             newFD( "map1",      linkEntry,      linkFields,      linkPath)
-  , UpdateViewObservers:         newFD( "map" ,       obsEntry,       obsFields,       obsPath)
-  , UpdateViewObserver1:         newFD( "map1",       obsEntry,       obsFields,       obsPath)
-  , UpdateViewWorlds:            newFD( "map" ,     worldEntry,     worldFields,     worldPath)
-  , UpdateViewWorld1:            newFD( "map1",     worldEntry,     worldFields,     worldPath)
-  , UpdateViewDrawings:          newFD("plain",   drawingEntry,   drawingFields,   drawingPath)
-  , UpdateViewDrawingClear:      newFD("plain",  cDrawingEntry,  cDrawingFields,  cDrawingPath)
-  , UpdateViewDrawingImport:     newFD("plain",  iDrawingEntry,  iDrawingFields,  iDrawingPath)
-  , UpdateViewDrawingLine:       newFD("plain",      lineEntry,      lineFields,      linePath)
-  , UpdateViewDrawingRaincheck:  newFD("plain", raincheckEntry, raincheckFields, raincheckPath)
+  { UpdateMonitors:               newFD( "map" ,     monitorEntry,                [],     monitorPath)
+  , UpdateMonitor1:               newFD( "map1",     monitorEntry,                [],     monitorPath)
+  , UpdatePlotValues:             newFD( "map" ,     plotUpsEntry,     plotUpsFields,     plotUpsPath)
+  , UpdatePlotAddPoint:           newFD("plot1",    addPointEntry,    addPointFields,    addPointPath)
+  , UpdatePlotReset:              newFD("plot1",   resetPlotEntry,        plotFields,   resetPlotPath)
+  , UpdatePlotResetPen:           newFD("plot1",    resetPenEntry,    resetPenFields,    resetPenPath)
+  , UpdatePlotRegisterPen:        newFD("plot1",      regPenEntry,         penFields,      regPenPath)
+  , UpdatePlotResize:             newFD("plot1",      resizeEntry,      resizeFields,      resizePath)
+  , UpdatePlotUpdatePenColor:     newFD("plot1",    penColorEntry,    penColorFields,    penColorPath)
+  , UpdatePlotUpdatePenMode:      newFD("plot1",     penModeEntry,     penModeFields,     penModePath)
+  , UpdateViewTurtles:            newFD( "map" ,      turtleEntry,      turtleFields,      turtlePath)
+  , UpdateViewTurtle1:            newFD( "map1",      turtleEntry,      turtleFields,      turtlePath)
+  , UpdateViewPatches:            newFD( "map" ,       patchEntry,       patchFields,       patchPath)
+  , UpdateViewPatch1:             newFD( "map1",       patchEntry,       patchFields,       patchPath)
+  , UpdateViewLinks:              newFD( "map" ,        linkEntry,        linkFields,        linkPath)
+  , UpdateViewLink1:              newFD( "map1",        linkEntry,        linkFields,        linkPath)
+  , UpdateViewObservers:          newFD( "map" ,         obsEntry,         obsFields,         obsPath)
+  , UpdateViewObserver1:          newFD( "map1",         obsEntry,         obsFields,         obsPath)
+  , UpdateViewWorlds:             newFD( "map" ,       worldEntry,       worldFields,       worldPath)
+  , UpdateViewWorld1:             newFD( "map1",       worldEntry,       worldFields,       worldPath)
+  , UpdateViewDrawings:           newFD("plain",     drawingEntry,     drawingFields,     drawingPath)
+  , UpdateViewDrawingClear:       newFD("plain",    cDrawingEntry,    cDrawingFields,    cDrawingPath)
+  , UpdateViewDrawingImport:      newFD("plain",    iDrawingEntry,    iDrawingFields,    iDrawingPath)
+  , UpdateViewDrawingLine:        newFD("plain",        lineEntry,        lineFields,        linePath)
+  , UpdateViewDrawingLinkStamp:   newFD("plain",   linkStampEntry,   linkStampFields,   linkStampPath)
+  , UpdateViewDrawingTurtleStamp: newFD("plain", turtleStampEntry, turtleStampFields, turtleStampPath)
+  , UpdateViewDrawingRaincheck:   newFD("plain",   raincheckEntry,   raincheckFields,   raincheckPath)
   };
 
 const StateUpdateUnfurls = fromDescriptors(StateUpdateDescriptors);

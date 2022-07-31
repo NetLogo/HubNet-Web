@@ -335,6 +335,48 @@ const rejiggerDrawingEvents = (target, parent) => {
       const outer = { line };
       parent.push(outer);
 
+    } else if (devent.type === "stamp-image") {
+
+      if (devent.agentType === "turtle") {
+
+        const turtleStamp = deepClone(devent.stamp, {}, false, {});
+        const xform       = transform(turtleStamp);
+
+        xform("heading"  , (h) => Math.round(   h      ));
+        xform("size"     , (s) => Math.  max(0, s * 100));
+        xform("x"        , (x) => Math.round(   x *  10));
+        xform("y"        , (y) => Math.round(   y *  10));
+        xform("stampMode", (m) => m !== "erase"         );
+
+        rejiggerColor(turtleStamp, "color");
+
+        const outer = { turtleStamp };
+        parent.push(outer);
+
+      } else if (devent.agentType === "link") {
+
+        const linkStamp = deepClone(devent.stamp, {}, false, {});
+        const xform     = transform(linkStamp);
+
+        xform("heading"  , (h) => Math.round(   h      ));
+        xform("midpointX", (x) => Math.round(   x *  10));
+        xform("midpointY", (y) => Math.round(   y *  10));
+        xform("size"     , (s) => Math.  max(0, s * 100));
+        xform("thickness", (t) => Math.  max(0, t * 100));
+        xform("x1"       , (x) => Math.round(   x *  10));
+        xform("x2"       , (x) => Math.round(   x *  10));
+        xform("y1"       , (y) => Math.round(   y *  10));
+        xform("y2"       , (y) => Math.round(   y *  10));
+        xform("stampMode", (m) => m !== "erase"         );
+
+        rejiggerColor(linkStamp, "color");
+
+        const outer = { linkStamp };
+        parent.push(outer);
+
+      } else {
+        console.warn("Impossible type for devent.agentType!", devent);
+      }
     } else {
       console.warn("Impossible type for devent!", devent);
     }
@@ -797,6 +839,47 @@ const recombobulateDrawingEvents = (target, parent) => {
       xform( "size", (s) => s / 100);
 
       xform("penMode", (m) => (m === "up") ? 0 : (m === "down") ? 1 : 2);
+
+      parent.push(outer);
+
+    } else if (devent.turtleStamp !== undefined) {
+
+      const outer = { type:      "stamp-image"
+                    , agentType: "turtle"
+                    , stamp:     { ...devent.turtleStamp }
+                    };
+
+      const xform = transform(outer.stamp);
+
+      xform("size"     , (s) => s / 100);
+      xform("x"        , (x) => x /  10);
+      xform("y"        , (y) => y /  10);
+      xform("stampMode", (m) => m ? "normal" : "erase");
+
+      recombobulateColor(outer.stamp, "color");
+
+      parent.push(outer);
+
+    } else if (devent.linkStamp !== undefined) {
+
+      const outer = { type:      "stamp-image"
+                    , agentType: "link"
+                    , stamp:     { ...devent.linkStamp }
+                    };
+
+      const xform = transform(outer.stamp);
+
+      xform("midpointX", (x) => x /  10);
+      xform("midpointY", (x) => x /  10);
+      xform("size"     , (s) => s / 100);
+      xform("thickness", (s) => s / 100);
+      xform("x1"       , (x) => x /  10);
+      xform("x2"       , (x) => x /  10);
+      xform("y1"       , (y) => y /  10);
+      xform("y2"       , (y) => y /  10);
+      xform("stampMode", (m) => m ? "normal" : "erase");
+
+      recombobulateColor(outer.stamp, "color");
 
       parent.push(outer);
 
