@@ -75,7 +75,7 @@ const RolePB = {
       , BoxedValue: {
           fields: {
             multiline: { type: "bool"          , id: 1 }
-          , type:      { type: "BoxedValueType", id: 2 }
+          , boxType:   { type: "BoxedValueType", id: 2 }
           , numValue:  { type: "double"        , id: 3 }
           , strValue:  { type: "string"        , id: 4 }
           }

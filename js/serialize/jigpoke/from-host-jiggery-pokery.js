@@ -416,8 +416,27 @@ const rejiggerInitialModel = (obj) => {
               transform(outer.chooser)("choices", (xs) => JSON.stringify(xs));
               out[k0][k1].push(outer);
             } else if (widget.type === "hnwInputBox") {
+
+              transform(widget)("boxedValue", (bv) => {
+
+                bv.boxType = bv.type;
+                delete bv.type;
+
+                if (bv.boxType.startsWith("String")) {
+                  bv.strValue = bv.value;
+                } else {
+                  bv.numValue = bv.value;
+                }
+
+                delete bv.value;
+
+                return bv;
+
+              });
+
               const outer = { inputBox: deepClone(widget, { type: 1 }) };
               out[k0][k1].push(outer);
+
             } else if (widget.type === "hnwMonitor") {
               const outer = { monitor: deepClone(widget, { type: 1 }) };
               out[k0][k1].push(outer);
@@ -928,8 +947,24 @@ const recombobulateInitialModel = (obj) => {
               out[k0][k1].push(newChooser);
 
             } else if (widget.inputBox !== undefined) {
+
               const inner = widget.inputBox;
+
+              transform(inner)("boxedValue", (bv) => {
+
+                bv.type = bv.boxType;
+                delete bv.boxType;
+
+                bv.value = bv.strValue || bv.numValue;
+                delete bv.numValue;
+                delete bv.strValue;
+
+                return bv;
+
+              });
+
               out[k0][k1].push({ type: "hnwInputBox", ...inner });
+
             } else if (widget.monitor !== undefined) {
               const inner = widget.monitor;
               out[k0][k1].push({ type: "hnwMonitor", ...inner });
