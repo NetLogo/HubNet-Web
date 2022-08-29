@@ -89,11 +89,11 @@ to buy-car
 end
 
 to-report investment-rounded
-  report rounded (my-money * fraction)
+  report rounded investment
 end
 
 to-report my-money-rounded
-  report rounded (my-money - investment)
+  report rounded my-money
 end
 
 to-report return-investment-rounded
