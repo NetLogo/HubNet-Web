@@ -7,7 +7,6 @@
             "onCursorRelease": null,
             "onDisconnect": "remove-self",
             "widgets": [
-                { "type": "hnwView",    "left": 4000, "right": 4001, "top":   0, "bottom":   1, "height": 1, "width": 1 },
                 {
                     "bottom": 110,
                     "display": "demand",
