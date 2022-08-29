@@ -111,14 +111,14 @@ const RolePB = {
 
       , Chooser: {
           fields: {
-            left:          { type: "uint32"   , id:  1 }
-          , right:         { type: "uint32"   , id:  2 }
-          , top:           { type: "uint32"   , id:  3 }
-          , bottom:        { type: "uint32"   , id:  4 }
-          , display:       { type: "string"   , id:  5 }
-          , variable:      { type: "string"   , id:  6 }
-          , currentChoice: { type: "uint32"   , id:  7 }
-          , choices:       { type: "bytes"    , id:  8 }
+            left:          { type: "uint32", id:  1 }
+          , right:         { type: "uint32", id:  2 }
+          , top:           { type: "uint32", id:  3 }
+          , bottom:        { type: "uint32", id:  4 }
+          , display:       { type: "string", id:  5 }
+          , variable:      { type: "string", id:  6 }
+          , currentChoice: { type: "uint32", id:  7 }
+          , choices:       { type: "string", id:  8 }
           }
         }
 

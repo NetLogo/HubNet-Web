@@ -413,6 +413,7 @@ const rejiggerInitialModel = (obj) => {
               out[k0][k1].push(outer);
             } else if (widget.type === "hnwChooser") {
               const outer = { chooser: deepClone(widget, { type: 1 }) };
+              transform(outer.chooser)("choices", (xs) => JSON.stringify(xs));
               out[k0][k1].push(outer);
             } else if (widget.type === "hnwInputBox") {
               const outer = { inputBox: deepClone(widget, { type: 1 }) };
@@ -919,8 +920,13 @@ const recombobulateInitialModel = (obj) => {
               const inner = widget.button;
               out[k0][k1].push({ type: "hnwButton", ...inner });
             } else if (widget.chooser !== undefined) {
-              const inner = widget.chooser;
-              out[k0][k1].push({ type: "hnwChooser", ...inner });
+
+              const inner      = widget.chooser;
+              const newChooser = { type: "hnwChooser", ...inner };
+              transform(newChooser)("choices", (str) => JSON.parse(str));
+
+              out[k0][k1].push(newChooser);
+
             } else if (widget.inputBox !== undefined) {
               const inner = widget.inputBox;
               out[k0][k1].push({ type: "hnwInputBox", ...inner });
