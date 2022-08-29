@@ -7,7 +7,6 @@
             "onCursorRelease": null,
             "onDisconnect": "remove-student",
             "widgets": [
-                { "type": "hnwView",    "left": 2000, "right": 2001, "top":   0, "bottom":   1, "height": 1, "width": 1 },
                 {
                     "forever": false,
                     "bottom": 151,
@@ -65,7 +64,7 @@
                     "left": 245,
                     "variable": "my-equation",
                     "boxedValue": {
-                        "value": "\"0\"",
+                        "value": "0",
                         "multiline": true,
                         "type": "String (reporter)"
                     },
