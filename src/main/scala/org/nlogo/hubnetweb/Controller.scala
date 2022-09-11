@@ -12,6 +12,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ ContentType, ContentTypes, HttpCharsets, MediaType }
 import akka.http.scaladsl.model.MediaType.Compressible
 import akka.http.scaladsl.model.StatusCodes.NotFound
+import akka.http.scaladsl.model.headers.{ `Access-Control-Allow-Origin` => ACAO }
 import akka.http.scaladsl.model.ws.{ BinaryMessage, Message, TextMessage }
 import akka.http.scaladsl.server.directives.ContentTypeResolver
 import akka.http.scaladsl.server.Directives.{ complete, reject }
@@ -113,7 +114,8 @@ object Controller {
       path("depend" / "js" / "pako.esm.mjs") { getFromFile("node_modules/pako/dist/pako.esm.mjs") } ~
       path("favicon.ico") { getFromFile("assets/images/favicon.ico") } ~
       pathPrefix("js")               { getFromDirectory("js")         } ~
-      pathPrefix("assets")           { getFromDirectory("assets")     }
+      pathPrefix("assets")           { getFromDirectory("assets")     } ~
+      pathPrefix("models")           { respondWithHeaders(ACAO.*) { getFromDirectory("assets/models") } }
 
     }
 
