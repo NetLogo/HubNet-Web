@@ -61,6 +61,7 @@
     , "onCursorMove": null
     }
   ]
+, "targetFrameRate": 15
 , "type": "hubnet-web"
 , "version": "hnw-alpha-1"
 }
