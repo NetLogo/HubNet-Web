@@ -498,6 +498,7 @@
     ],
     "onIterate": "go",
     "onStart": "setup",
+    "targetFrameRate": 15,
     "version": "hnw-alpha-1",
     "type": "hubnet-web"
 }
