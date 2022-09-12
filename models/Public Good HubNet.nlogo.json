@@ -219,6 +219,7 @@
     ],
     "onIterate": "wrap-go",
     "onStart": "wrap-setup",
+    "targetFrameRate": 2,
     "version": "hnw-alpha-1",
     "type": "hubnet-web"
 }

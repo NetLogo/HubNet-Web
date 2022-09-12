@@ -49,25 +49,23 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;
 
 to go
-
-  every 0.5 [
-    ask students
-    [
-      ifelse (labels-on?)
-      [
-        set label ( word  user-id ", $" my-money )
-      ]
-      [
-        set label ( word  my-money )
-      ]
-    ]
-    tick
- ]
+  ask students [ render-label ]
+  tick
 end
 
 to start-over
   set turn 1
   ask students [ reset-student-money ]
+end
+
+to render-label
+  ifelse (__hnw_supervisor_labels-on?)
+  [
+    set label ( word  user-id ", $" my-money )
+  ]
+  [
+    set label ( word  my-money )
+  ]
 end
 
 to reset-student-money
@@ -128,14 +126,7 @@ to give-money
   ask students
   [
     set my-money (standardize-money (my-money + ( bank / count students )))
-
-    ifelse (labels-on?)
-    [
-      set label ( word  user-id ", " my-money )
-    ]
-    [
-      set label ( word  my-money )
-    ]
+    render-label
     set punishing 0
   ]
   set bank 0
@@ -186,6 +177,7 @@ to-report create-new-student [username]
       [ setxy random-xcor random-ycor ]
     reset-student-money
     set out who
+    render-label
   ]
   display
   report out
@@ -276,7 +268,7 @@ SWITCH
 438
 628
 471
-labels-on?
+__hnw_supervisor_labels-on?
 labels-on?
 0
 1
