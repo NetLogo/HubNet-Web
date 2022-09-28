@@ -8,10 +8,10 @@
             "onDisconnect": "remove-walker",
             "widgets": [
                 {
-                    "height": 450,
+                    "height": 522,
                     "bottom": 545,
                     "left": 233,
-                    "width": 522,
+                    "width": 450,
                     "right": 683,
                     "type": "hnwView",
                     "top": 23
@@ -159,10 +159,10 @@
             "onDisconnect": null,
             "widgets": [
                 {
-                    "height": 508,
+                    "height": 589,
                     "bottom": 608,
                     "left": 226,
-                    "width": 589,
+                    "width": 508,
                     "right": 734,
                     "type": "hnwView",
                     "top": 19
@@ -391,6 +391,7 @@
     ],
     "onIterate": "go",
     "onStart": "setup",
+    "targetFrameRate": 30,
     "version": "hnw-alpha-1",
     "type": "hubnet-web"
 }
