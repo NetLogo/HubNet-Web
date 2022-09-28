@@ -93,6 +93,10 @@ export default class LoginControlsManager {
 
     if (!isNewSelection) {
       this.#roleSelect.selectedIndex = prevRoleIndex;
+      if (this.#roleSelect.selectedIndex < 0) {
+        const i = Array.from(this.#roleSelect.options).findIndex((e) => !e.disabled);
+        this.#roleSelect.selectedIndex = i;
+      }
     }
 
   };
