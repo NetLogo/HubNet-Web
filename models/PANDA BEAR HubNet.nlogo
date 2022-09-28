@@ -194,7 +194,7 @@ to-report create-new-student [username]
   create-students 1 [
     setup-student-vars username
     if any? links [
-      edgify
+      true-edgify
       update-plots
     ]
     set out who
@@ -226,7 +226,7 @@ to remove-student
   ifelse any? links and count students > 2
   [
     ask links [ die ]
-    ask one-of students [ edgify ]
+    ask one-of students [ true-edgify ]
   ]
   [
     ;; if we don't have at least 3 students
