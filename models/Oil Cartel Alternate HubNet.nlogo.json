@@ -35,7 +35,7 @@
                     "display": "Bank Account",
                     "left": 7,
                     "precision": 0,
-                    "reporterStyle": "procedure",
+                    "reporterStyle": "turtle-procedure",
                     "fontSize": 10,
                     "source": "bank-account-trimmed",
                     "right": 107,
@@ -107,7 +107,7 @@
                     "display": "Current Profit",
                     "left": 172,
                     "precision": 0,
-                    "reporterStyle": "procedure",
+                    "reporterStyle": "turtle-procedure",
                     "fontSize": 10,
                     "source": "latest-profit-trimmed",
                     "right": 273,
@@ -131,7 +131,7 @@
                     "display": "Penalties Paid",
                     "left": 7,
                     "precision": 0,
-                    "reporterStyle": "procedure",
+                    "reporterStyle": "turtle-procedure",
                     "fontSize": 10,
                     "source": "penalties-paid-trimmed",
                     "right": 109,
@@ -143,7 +143,7 @@
                     "display": "Income From Penalties",
                     "left": 112,
                     "precision": 0,
-                    "reporterStyle": "procedure",
+                    "reporterStyle": "turtle-procedure",
                     "fontSize": 10,
                     "source": "income-from-penalties-trimmed",
                     "right": 274,
@@ -331,19 +331,6 @@
                     "type": "hnwTextBox",
                     "top": 204,
                     "transparent": false
-                },
-                {
-                    "forever": true,
-                    "bottom": 63,
-                    "display": "initial-login",
-                    "left": 9,
-                    "buttonKind": "observer",
-                    "source": "initial-login",
-                    "hnwProcName": "initial-login",
-                    "right": 106,
-                    "type": "hnwButton",
-                    "top": 30,
-                    "disableUntilTicksStarts": true
                 },
                 {
                     "max": "1000",
@@ -569,17 +556,6 @@
                     "type": "hnwSwitch",
                     "top": 106,
                     "on": true
-                },
-                {
-                    "bottom": 28,
-                    "display": "Activity:",
-                    "color": 0,
-                    "left": 8,
-                    "fontSize": 11,
-                    "right": 98,
-                    "type": "hnwTextBox",
-                    "top": 10,
-                    "transparent": false
                 },
                 {
                     "bottom": 401,
