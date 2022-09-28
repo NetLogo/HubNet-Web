@@ -1,4 +1,4 @@
-import ConnectionManager from "./conn/connection-manager.js";
+import ConnMan from "./conn/connection-manager.js";
 
 import BandwidthManager     from "./ui/bandwidth-manager.js";
 import LaunchControlManager from "./ui/launch-control-manager.js";
@@ -97,18 +97,19 @@ const globalChatManager =
                  , () => { alert("You are sending chat messages too fast"); });
 
 const connMan =
-  new ConnectionManager( sessionChatManager, globalChatManager
-                       , (jid, un)   =>   nlwManager.awaitJoinerInit(jid, un)
-                       , (jid, ping) => { nlwManager.registerPingStats(jid, ping); }
-                       , (pl)        => { nlwManager.relay(pl);                    }
-                       , (jid)       => { nlwManager.disown(jid);                  }
-                       , (cs)        => { bandwidthManager.updateTURNs(cs);        }
-                       , launchControlManager.passwordMatches, getCapacity()
-                       , notifyUser);
+  new ConnMan( sessionChatManager, globalChatManager
+             , (jid, un, ri) =>   nlwManager.awaitJoinerInit(jid, un, ri)
+             , (jid, ping)   => { nlwManager.registerPingStats(jid, ping); }
+             , (pl)          => { nlwManager.relay(pl);                    }
+             , (jid)         => { nlwManager.disown(jid);                  }
+             , (cs)          => { bandwidthManager.updateTURNs(cs);        }
+             , launchControlManager.passwordMatches, getCapacity()
+             , notifyUser);
 
 const nlwManager =
   new NLWManager( byEID("nlw-frame"), byEID("hnw-setup-button")
                 , byEID("hnw-go-button"), connMan.broadcast, connMan.narrowcast
+                , connMan.notifyPersistentPops, connMan.notifyRoles
                 , onNLWManError);
 
 document.addEventListener("DOMContentLoaded", () => {

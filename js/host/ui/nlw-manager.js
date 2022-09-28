@@ -5,35 +5,42 @@ import NLWManager from "/js/common/ui/nlw-manager.js";
 
 export default class HostNLWManager extends NLWManager {
 
-  #broadcast   = undefined; // (UUID, Boolean?) => RTCDataChannel?
-  #goButton    = undefined; // HTMLButtonElement
-  #narrowcast  = undefined; // () => Array[RTCDataChannel]
-  #onError     = undefined; // (String) => Unit
+  #broadcast           = undefined; // (UUID, Boolean?) => RTCDataChannel?
+  #goButton            = undefined; // HTMLButtonElement
+  #narrowcast          = undefined; // () => Array[RTCDataChannel]
+  #onError             = undefined; // (String) => Unit
+  #onPersistentClients = undefined; // (Array[Number]) => Unit
+  #onRoleInfo          = undefined; // (Array[Object[Any]]) => Unit
 
   #comCenPort   = undefined; // MessagePort
   #codePanePort = undefined; // MessagePort
   #infoPanePort = undefined; // MessagePort
 
   // ( Element, Button, Button, (String, Object[Any]?) => Unit
-  // , () => Array[RTCDataChannel], (String) => Unit) => HostNLWManager
-  constructor(outerFrame, setupButton, goButton, broadcast, narrowcast, onError) {
+  // , () => Array[RTCDataChannel], (Array[Number]) => Unit
+  // , (Array[Object[Any]]) => Unit, (String) => Unit) => HostNLWManager
+  constructor( outerFrame, setupButton, goButton, broadcast
+             , narrowcast, onPersistentClients
+             , onRoleInfo, onError) {
 
     super(outerFrame);
 
-    this.#broadcast   = broadcast;
-    this.#goButton    = goButton;
-    this.#narrowcast  = narrowcast;
-    this.#onError     = onError;
+    this.#broadcast           = broadcast;
+    this.#goButton            = goButton;
+    this.#narrowcast          = narrowcast;
+    this.#onError             = onError;
+    this.#onPersistentClients = onPersistentClients;
+    this.#onRoleInfo          = onRoleInfo;
 
     setUpSetup(setupButton, this.relay);
     setUpGo   (   goButton, this.relay);
 
   }
 
-  // (UUID, String) => Promise[Object[Any]]
-  awaitJoinerInit = (token, username) => {
+  // (UUID, String, Number) => Promise[Object[Any]]
+  awaitJoinerInit = (token, username, roleIndex) => {
     const type = "hnw-request-initial-state";
-    const msg  = { token, roleName: "student", username };
+    const msg  = { token, username, roleIndex };
     return this._await(type, msg);
   };
 
@@ -112,6 +119,16 @@ export default class HostNLWManager extends NLWManager {
   _onBabyMonitorMessage = (data) => {
 
     switch (data.type) {
+
+      case "hnw-role-config": {
+        this.#onRoleInfo(data.roles);
+        break;
+      }
+
+      case "hnw-persistent-clients": {
+        this.#onPersistentClients(data.pops);
+        break;
+      }
 
       case "nlw-recompile-success": {
         const msg = { type: "hnw-recompile-success", code: data.code };

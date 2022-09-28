@@ -1,5 +1,5 @@
 // type Session = { modelName :: String, name :: String, oracleID :: UUID
-//                , roleInfo  :: (String, Number, Number) }
+//                , roleInfo  :: Array[(String, Number, Number)] }
 
 export default class SessionData {
 

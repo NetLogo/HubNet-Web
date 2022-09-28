@@ -22,10 +22,11 @@ export default class LoginControlsManager {
 
       const username     = this. getUsername();
       const password     = this.#getPassword();
+      const roleIndex    = this.#getRoleIndex();
       const sessionName  = this.getSessionName();
       const activityName = this.getActivityName();
 
-      onLogIn(username, password, sessionName, activityName);
+      onLogIn(username, password, roleIndex, sessionName, activityName);
 
     });
 
@@ -72,6 +73,8 @@ export default class LoginControlsManager {
       this.setPassword("");
     }
 
+    const prevRoleIndex = this.#roleSelect.selectedIndex;
+
     this.#roleSelect.innerHTML = "";
 
     if (hasActive) {
@@ -86,6 +89,10 @@ export default class LoginControlsManager {
           this.#roleSelect.appendChild(node);
         }
       );
+    }
+
+    if (!isNewSelection) {
+      this.#roleSelect.selectedIndex = prevRoleIndex;
     }
 
   };
@@ -109,6 +116,11 @@ export default class LoginControlsManager {
   // () => String
   #getPassword = () => {
     return this.#passwordInput.value;
+  };
+
+  // () => Number
+  #getRoleIndex = () => {
+    return this.#roleSelect.selectedIndex;
   };
 
   // () => String

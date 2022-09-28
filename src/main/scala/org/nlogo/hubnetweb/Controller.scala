@@ -30,8 +30,8 @@ import session.{ SessionInfo, SessionManagerActor }
 import session.SessionManagerActor.{ CreateSession, DelistSession, GetPreview
                                    , GetSessions, PullFromHost, PullFromJoiner
                                    , PullJoinerIDs, PulseHost, PushFromHost
-                                   , PushFromJoiner, PushNewJoiner, SeshMessageAsk
-                                   , UpdateNumPeers, UpdatePreview
+                                   , PushFromJoiner, PushNewJoiner, RegisterRoles
+                                   , SeshMessageAsk, UpdateNumPeers, UpdatePreview
                                    }
 
 import ChatManagerActor.{ Census, ChatMessageAsk, LogChat, LogTick, PullBuffer
@@ -195,7 +195,8 @@ object Controller {
   }
 
   private def sessionToJsonable(session: SessionInfo): SessionInfoUpdate = {
-    val roleInfo = session.roleInfo.values.map(ri => (ri.name, ri.numInRole, ri.limit.getOrElse(0))).toVector
+    val trunc    = (name: String) => if (name.length > 20) s"${name.take(20)}..." else name
+    val roleInfo = session.roleInfo.values.map(ri => (trunc(ri.name), ri.numInRole, ri.limit.getOrElse(0))).toVector
     SessionInfoUpdate(session.name, session.model.name, roleInfo, session.uuid.toString, session.password.nonEmpty)
   }
 
@@ -343,16 +344,37 @@ object Controller {
             json =>
               val parsed = JsonParser(json.getStrictText).asInstanceOf[JsObject]
               parsed.fields("type") match {
+                case JsString("role-config") =>
+
+                  val JsArray(configs) = parsed.fields("roles")
+
+                  val pairs =
+                    configs.map {
+                      (x) =>
+                        val obj             = x.asInstanceOf[JsObject]
+                        val JsString( name) = obj.fields("name")
+                        val JsNumber(limit) = obj.fields("limit")
+                        (name, limit.toInt)
+                    }
+
+                  seshManager ! RegisterRoles(hostID, pairs)
+
                 case JsString("members-update") =>
-                  val JsNumber(num) = parsed.fields("numPeers")
-                  seshManager ! UpdateNumPeers(hostID, num.toInt)
+                  val JsArray(xs) = parsed.fields("memberInfo")
+                  val nums        = xs.map(_.asInstanceOf[JsNumber])
+                  val plainNums   = nums.map { case JsNumber(num) => num.toInt }
+                  seshManager ! UpdateNumPeers(hostID, plainNums)
+
                 case JsString("image-update") =>
                   val JsString(str) = parsed.fields("base64")
                   seshManager ! UpdatePreview(hostID, str)
+
                 case JsString("keep-alive") =>
                   seshManager ! PulseHost(hostID)
+
                 case x =>
                   println(s"I don't know what this is: $x")
+
               }
           }
           Nil

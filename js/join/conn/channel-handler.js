@@ -59,6 +59,14 @@ export default class ChannelHandler {
         break;
       }
 
+      case "invalid-role-index": {
+        b.statusManager.rejectedOverRole();
+        b.notifyUser("Please select a valid role for this activity.");
+        b.handleInvalidRole();
+        b.resetConn();
+        break;
+      }
+
       case "no-username-given": {
         b.statusManager.rejectedOverBlankName();
         b.notifyUser("You must provide a username.");
@@ -69,6 +77,14 @@ export default class ChannelHandler {
 
       case "num-clients": {
         b.setNumClients(datum.num);
+        break;
+      }
+
+      case "role-is-full": {
+        b.statusManager.rejectedOverRole();
+        b.notifyUser("Your desired role is full.  Please select a role with open slots.");
+        b.handleInvalidRole();
+        b.resetConn();
         break;
       }
 

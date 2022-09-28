@@ -3,7 +3,7 @@ package org.nlogo.hubnetweb.session
 import java.util.UUID
 
 import scala.collection.Map
-import scala.collection.mutable.{ Map => MMap }
+import scala.collection.mutable.{ LinkedHashMap => LHM, Map => MMap }
 import scala.concurrent.duration.FiniteDuration
 import scala.io.Source
 
@@ -61,8 +61,9 @@ object SessionManagerActor {
   final case class PulseHost     (hostID: UUID)                                  extends SeshMessage
   final case class PushFromHost  (hostID: UUID, joinerID: UUID, message: String) extends SeshMessage
   final case class PushFromJoiner(hostID: UUID, joinerID: UUID, message: String) extends SeshMessage
-  final case class UpdateNumPeers(hostID: UUID, numPeers: Int)                   extends SeshMessage
-  final case class UpdatePreview (hostID: UUID, base64: String)                  extends SeshMessage
+  final case class RegisterRoles (hostID: UUID, pairs:    Seq[(String, Int)])    extends SeshMessage
+  final case class UpdateNumPeers(hostID: UUID, numPeers: Seq[Int])              extends SeshMessage
+  final case class UpdatePreview (hostID: UUID, base64:   String)                extends SeshMessage
 
   def apply(): Behavior[SeshMessage] =
     Behaviors.receive {
@@ -115,6 +116,10 @@ object SessionManagerActor {
             replyTo ! SessionManager.pushNewJoiner(hostID)
             Behaviors.same
 
+          case RegisterRoles(hostID, configs) =>
+            SessionManager.registerRoles(hostID, configs)
+            Behaviors.same
+
           case UpdateNumPeers(hostID, numPeers) =>
             SessionManager.updateNumPeers(hostID, numPeers)
             Behaviors.same
@@ -141,11 +146,10 @@ private object SessionManager {
                    ): Either[String, String] = {
 
     val time        = System.currentTimeMillis()
-    val anyRoleInfo = RoleInfo("any", 0, None)
     val image       = GrayB64
 
     sessionMap += uuid -> SessionInfo( uuid, name, password
-                                     , Map("any" -> anyRoleInfo)
+                                     , LHM()
                                      , new ConnectionInfo(Vector(), Map(), Map())
                                      , new Model(modelName, modelSource, json)
                                      , image, time
@@ -196,10 +200,32 @@ private object SessionManager {
       session => sessionMap(hostID) = session.copy(lastCheckInTimestamp = System.currentTimeMillis())
     }
 
-  def updateNumPeers(hostID: UUID, numPeers: Int): Unit = {
+  def registerRoles(hostID: UUID, configs: Seq[(String, Int)]): Unit = {
+
+    pulseHost(hostID)
+
+    val infos =
+      configs.map({
+        case (name, limit) => {
+          val l = if (limit == -1) None else Some(limit)
+          RoleInfo(name, 0, l)
+        }
+      })
+
+    sessionMap.get(hostID).foreach {
+      (sm) =>
+        infos.foreach((ri) => sm.roleInfo += ri.name -> ri)
+    }
+
+  }
+
+  def updateNumPeers(hostID: UUID, numPeers: Seq[Int]): Unit = {
     pulseHost(hostID)
     sessionMap.get(hostID).foreach {
-      _.roleInfo("any").numInRole = numPeers
+      (sm) =>
+        sm.roleInfo.zip(numPeers).foreach {
+          case ((_, ri), num) => ri.numInRole = num
+        }
     }
   }
 
@@ -321,7 +347,7 @@ case class ConnectionInfo( joinerIDs: Vector[UUID]
 case class RoleInfo(name: String, var numInRole: Int, limit: Option[Int])
 
 case class SessionInfo( uuid: UUID, name: String, password: Option[String]
-                      , roleInfo: Map[String, RoleInfo], connInfo: ConnectionInfo
+                      , roleInfo: LHM[String, RoleInfo], connInfo: ConnectionInfo
                       , model: Model, previewBase64: String
                       , lastCheckInTimestamp: Long
                       )

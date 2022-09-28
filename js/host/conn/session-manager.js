@@ -6,6 +6,7 @@ import IDManager from "/js/common/id-manager.js";
 //                 , channel    :: RTCDataChannel
 //                 }
 // , hasInitialized :: Boolean
+// , roleIndex      :: Number
 // , username       :: String
 // , pingData       :: { [pingID] :: Number }
 // , recentPings    :: Array[Number]
@@ -14,6 +15,7 @@ import IDManager from "/js/common/id-manager.js";
 export default class SessionManager {
 
   #maxCapacity      = undefined; // Number
+  #numRoles         = undefined; // Number
   #onConnStatChange = undefined; // (Array[Promise[RTCStatReport]]) => Unit
   #pingIDManager    = undefined; // IDManager
   #sessions         = undefined; // Object[Session]
@@ -21,6 +23,7 @@ export default class SessionManager {
   // (Number, (Array[Promise[RTCStatReport]]) => Unit) => SessionManager
   constructor(maxCapacity, onConnStatChange) {
     this.#maxCapacity      = maxCapacity;
+    this.#numRoles         = 0;
     this.#onConnStatChange = onConnStatChange;
     this.#pingIDManager    = new IDManager();
     this.#sessions         = {};
@@ -71,6 +74,20 @@ export default class SessionManager {
     return Object.values(this.#sessions).filter(nameIsDefined).length;
   };
 
+  // () => Array[Number]
+  getRolePopulations = () => {
+
+    const nameIsDefined = (s) => s.username !== undefined;
+    const actives       = Object.values(this.#sessions).filter(nameIsDefined);
+    const roleIndices   = actives.map((s) => s.roleIndex);
+
+    const pops = Array(this.#numRoles).fill(0);
+    roleIndices.forEach((idx) => { pops[idx]++; });
+
+    return pops;
+
+  };
+
   // () => Array[SignalingSocket]
   getSignalers = () => {
     const seshes    = Object.values(this.#sessions);
@@ -98,11 +115,12 @@ export default class SessionManager {
     return this.getNumActive() >= this.#maxCapacity;
   };
 
-  // (UUID, String) => Unit
-  logIn = (joinerID, username) => {
+  // (UUID, String, Number) => Unit
+  logIn = (joinerID, username, roleIndex) => {
     const session = this.#sessions[joinerID];
     session.networking.signaling.terminate();
-    session.username = username;
+    session.roleIndex = roleIndex;
+    session.username  = username;
     this.#updateFullness();
   };
 
@@ -134,6 +152,11 @@ export default class SessionManager {
     nw.connection = connection;
     nw.channel    = channel;
     this.#onConnStatChange(this.#getConnStats());
+  };
+
+  // (Number) => Unit
+  setNumRoles = (numRoles) => {
+    this.#numRoles = numRoles;
   };
 
   // () => Array[(RTCDataChannel, Number, Number)]

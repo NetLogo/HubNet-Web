@@ -88,6 +88,11 @@ export default class AppStatusManager {
   };
 
   // () => Unit
+  rejectedOverRole = () => {
+    this.#setStatus("Login rejected!  Choose a role that has openings.");
+  };
+
+  // () => Unit
   waitingForNLWBoot = () => {
     this.#setStatus("Model and world acquired!  Waiting for NetLogo Web to be ready...");
   };

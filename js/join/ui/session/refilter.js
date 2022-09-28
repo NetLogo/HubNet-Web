@@ -47,12 +47,13 @@ const refreshSelection = (parent, seshData, notifyNewSelection) => {
 
 // (Element, SessionData, AppStatusManager, PreviewManager, SelNotifier) => (Object[Session]) => Node
 const genSessionNode = (parent, seshData, statusManager, previewManager, notifySel) =>
-                       ({ modelName, name, oracleID, roleInfo: [[ , numClients]] }) => {
+                       ({ modelName, name, oracleID, roleInfo }) => {
 
   const container = descByID(parent,    "session-row-container");
   const template  = descByID(container, "session-row-template" );
   const node      = template.content.cloneNode(true);
 
+  const numClients = roleInfo.reduce((acc, [ , num]) => acc + num, 0);
   const infoStr    = (numClients === 1) ? `${numClients} person` :
                                           `${numClients} people`;
 

@@ -59,9 +59,10 @@ const FromJoinerRoot = {
 
   , Login: { // login
       fields: {
-        id:       { type: "uint32", id: 1 }
-      , username: { type: "string", id: 2 }
-      , password: { type: "string", id: 3 }
+        id:        { type: "uint32", id: 1 }
+      , username:  { type: "string", id: 2 }
+      , password:  { type: "string", id: 3 }
+      , roleIndex: { type: "uint32", id: 4 }
       }
     }
 

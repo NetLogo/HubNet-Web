@@ -56,8 +56,8 @@ const markChatRead = () => {
   closedChatBox.innerHTML = "Chat";
 };
 
-// (String, String, String, String) => Unit
-const onLogIn = (username, password, sessionName, activityName) => {
+// (String, String, Number, String, String) => Unit
+const onLogIn = (username, password, roleIndex, sessionName, activityName) => {
 
   statusManager.connecting();
   sessionChatManager.markAllMessagesRead();
@@ -95,7 +95,7 @@ const onLogIn = (username, password, sessionName, activityName) => {
 
   fetch(`/rtc/join/${hostID}`).
     then((response) => response.text()).
-    then(connMan.logIn( hostID, username, password, genCHBundle
+    then(connMan.logIn( hostID, username, password, roleIndex, genCHBundle
                       , statusManager.loggingIn, statusManager.iceConnectionLost
                       , onDoorbell, alert, notifyFull, cleanupSession));
 

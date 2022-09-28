@@ -48,6 +48,7 @@ export default (rootBundle) => (connBundle) => {
          , enqueue:                 rootBundle.enqueue
          , getConnectionStats:      connBundle.getConnectionStats
          , handleIncorrectPassword: rootBundle.unlockUI
+         , handleInvalidRole:       rootBundle.unlockUI
          , handleLogin
          , handleMissingUsername:   rootBundle.unlockUI
          , handleUsernameIsTaken:   rootBundle.unlockUI

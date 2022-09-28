@@ -14,7 +14,7 @@ import DeserializerPoolParty from "/js/serialize/deserializer-pool-party.js";
 
 export default class ConnectionManager {
 
-  #awaitJoinerInit  = undefined; // (UUID, String) => Promise[Object[Any]]
+  #awaitJoinerInit  = undefined; // (UUID, String, Number) => Promise[Object[Any]]
   #broadSocket      = undefined; // BroadSocket
   #chatManager      = undefined; // ChatManager
   #chatSocket       = undefined; // ChatSocket
@@ -22,17 +22,21 @@ export default class ConnectionManager {
   #notifyUser       = undefined; // (String) => Unit
   #onDisconnect     = undefined; // (UUID) => Unit
   #passwordMatches  = undefined; // (String) => Boolean
+  #persistentPops   = undefined; // Array[Number]
   #registerPingTime = undefined; // (UUID, Number) => Unit
   #relay            = undefined; // (Object[Any]) => Unit
+  #roleLimits       = undefined; // Array[Number]
   #rtcManager       = undefined; // RTCManager
   #sessionManager   = undefined; // SessionManager
   #statusSocket     = undefined; // StatusSocket
 
-  // ( ChatManager, ChatManager, (UUID, String) => Promise[Object[Any]], (UUID, Number) => Unit
-  // , (Object[Any]) => Unit, (UUID) => Unit, (Array[Promise[RTCStatReport]]) => Unit, (String) => Boolean, Number
+  // ( ChatManager, ChatManager, (UUID, String, Number) => Promise[Object[Any]]
+  // , (UUID, Number) => Unit, (Object[Any]) => Unit, (UUID) => Unit
+  // , (Array[Promise[RTCStatReport]]) => Unit, (String) => Boolean, Number
   // , (String) => Unit) => ConnectionManager
-  constructor( sessionChatManager, globalChatManager, awaitJoinerInit, registerPing
-             , relay, onDisconnect, onConnStatChange, passwordMatches, maxCapacity
+  constructor( sessionChatManager, globalChatManager, awaitJoinerInit
+             , registerPing, relay, onDisconnect
+             , onConnStatChange, passwordMatches, maxCapacity
              , notifyUser) {
 
     this.#awaitJoinerInit  = awaitJoinerInit;
@@ -85,8 +89,8 @@ export default class ConnectionManager {
     this.#statusSocket.connect(hostID);
 
     setInterval(() => {
-      const numPeers = this.#sessionManager.getNumActive();
-      this.#statusSocket.updateNumPeers(numPeers);
+      const rolePops = this.#sessionManager.getRolePopulations();
+      this.#statusSocket.updateRolePopulations(rolePops);
     }, 1000);
 
     setInterval(() => {
@@ -133,6 +137,19 @@ export default class ConnectionManager {
     if (channel !== null) {
       this.#rtcManager.send(channel)(type, message);
     }
+  };
+
+  // (Array[Number]) => Unit
+  notifyPersistentPops = (pops) => {
+    this.#persistentPops = pops;
+    this.#statusSocket.postPersistentPops(pops);
+  };
+
+  // (Array[Object[Any]]) => Unit
+  notifyRoles = (roles) => {
+    this.#roleLimits = roles.map((r) => r.limit);
+    this.#sessionManager.setNumRoles(roles.length);
+    this.#statusSocket.postRoles(roles);
   };
 
   // (Blob) => Unit
@@ -289,8 +306,10 @@ export default class ConnectionManager {
 
   };
 
-  // (UUID, RTCDataChannel) => (Object[{ username :: String, password :: String }]) => Unit
-  #handleLogin = (joinerID, channel) => ({ username, password }) => {
+  // (UUID, RTCDataChannel) =>
+  // (Object[{ username :: String, password :: String, roleIndex :: Number }]) =>
+  // Unit
+  #handleLogin = (joinerID, channel) => ({ username, password, roleIndex }) => {
 
     const reply = (msgType) => { this.#rtcManager.send(channel)(msgType); };
 
@@ -298,22 +317,36 @@ export default class ConnectionManager {
 
       if (this.#sessionManager.usernameIsUnique(joinerID, username)) {
         if (this.#passwordMatches(password)) {
+          if (roleIndex < this.#roleLimits.length) {
 
-          this.#sessionManager.logIn(joinerID, username);
-          reply("login-successful");
+            const limit        = this.#roleLimits[roleIndex];
+            const pops         = this.#sessionManager.getRolePopulations();
+            const numConnected = pops[roleIndex];
+            const occupancy    = this.#persistentPops[roleIndex] + numConnected;
 
-          this.#awaitJoinerInit(joinerID, username).
-            then(({ baseMessage: { role, state, viewState: view }
-                  , agentMessage
-                  }) => {
-              const token        = joinerID;
-              const initModelMsg = { role, token, state, view };
-              this.narrowcast    (token, "initial-model" , initModelMsg);
-              this.narrowcastFlat(token, "assigned-agent", agentMessage);
-              this.#sessionManager.setInitialized(token);
-              this.#broadcastNumClients();
-            });
+            if (limit === -1 || limit > occupancy) {
 
+              this.#sessionManager.logIn(joinerID, username, roleIndex);
+              reply("login-successful");
+
+              this.#awaitJoinerInit(joinerID, username, roleIndex).
+                then(({ baseMessage: { role, state, viewState: view }
+                      , agentMessage
+                      }) => {
+                  const token        = joinerID;
+                  const initModelMsg = { role, token, state, view };
+                  this.narrowcast    (token, "initial-model" , initModelMsg);
+                  this.narrowcastFlat(token, "assigned-agent", agentMessage);
+                  this.#sessionManager.setInitialized(token);
+                  this.#broadcastNumClients();
+                });
+
+            } else {
+              reply("role-is-full");
+            }
+          } else {
+            reply("invalid-role-index");
+          }
         } else {
           reply("incorrect-password");
         }

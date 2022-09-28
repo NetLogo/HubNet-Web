@@ -23,14 +23,24 @@ export default class StatusSocket {
     this.#worker.postMessage({ type: "connect", url });
   };
 
+  // (Array[Number]) => Unit
+  postPersistentPops = (pops) => {
+    this.#worker.postMessage({ type: "persistent-pops", pops });
+  };
+
+  // (Array[Object[Any]]) => Unit
+  postRoles = (roles) => {
+    this.#worker.postMessage({ type: "role-config", roles });
+  };
+
   // (Blob) => Unit
   postImageUpdate = (blob) => {
     this.#worker.postMessage({ type: "image-update", blob });
   };
 
-  // (Number) => Unit
-  updateNumPeers = (numPeers) => {
-    this.#worker.postMessage({ type: "members-update", numPeers });
+  // (Array[Number]) => Unit
+  updateRolePopulations = (rolePopulations) => {
+    this.#worker.postMessage({ type: "role-populations", rolePopulations });
   };
 
 }

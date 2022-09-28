@@ -161,6 +161,12 @@ const FromHostRoot = {
       }
     }
 
+  , InvalidRoleIndex: { // invalid-role-index
+      fields: {
+        id: { type: "uint32", id: 1 }
+      }
+    }
+
   , KeepAlive: { // keep-alive
       fields: {}
     }
@@ -188,6 +194,12 @@ const FromHostRoot = {
       fields: {
         id:       { type: "uint32", id: 1 }
       , lastPing: { type: "uint32", id: 2 }
+      }
+    }
+
+  , RoleIsFull: { // role-is-full
+      fields: {
+        id: { type: "uint32", id: 1 }
       }
     }
 
