@@ -108,7 +108,7 @@ const drawingPath = ["viewUpdate", "drawingEvents"];
 
 const  turtleEntry = ["turtles"      ,       "Turtle", "uint32"];
 const   patchEntry = ["patches"      ,        "Patch", "uint32"];
-const    linkEntry = ["link"         ,         "Link", "uint32"];
+const    linkEntry = ["links"        ,         "Link", "uint32"];
 const   worldEntry = ["world"        ,        "World", "uint32"];
 const     obsEntry = ["observer"     ,     "Observer", "uint32"];
 const drawingEntry = ["drawingEvents", "DrawingEvent",    true ];
