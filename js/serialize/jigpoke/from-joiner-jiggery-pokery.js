@@ -45,11 +45,10 @@ const rejiggerRelay = (obj) => {
           } else if (v1.type === "chooser") {
             const replacement = deepClone(v1, { type: 1 });
             out[k0][k1].hnwChooserPayload = replacement;
-          // BAD: input
-          } else if (v1.type === "input78") {
+          } else if (v1.type === "inputBox" && typeof(v1.value) === "number") {
             const replacement = deepClone(v1, { type: 1 });
             out[k0][k1].hnwInputNumberPayload = replacement;
-          } else if (v1.type === "input") {
+          } else if (v1.type === "inputBox") {
             const replacement = deepClone(v1, { type: 1 });
             out[k0][k1].hnwInputStringPayload = replacement;
           } else if (v1.type === "view") {
@@ -132,9 +131,9 @@ const recombobulateRelay = (obj) => {
             } else if (k2 === "hnwChooserPayload") {
               out[k0][k1] = { type: "chooser", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwInputNumberPayload") {
-              out[k0][k1] = { type: "input78", ...deepClone(v1[k2]) };
+              out[k0][k1] = { type: "inputBox", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwInputStringPayload") {
-              out[k0][k1] = { type: "input", ...deepClone(v1[k2]) };
+              out[k0][k1] = { type: "inputBox", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwMouseUpPayload") {
               const xcor    = v1[k2].xcor / 10;
               const ycor    = v1[k2].ycor / 10;
