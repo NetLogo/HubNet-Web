@@ -23,8 +23,9 @@ const getID = (elem) => elem.dataset.uuid;
 // (Element, SessionData, SelNotifier) => Unit
 const refreshSelection = (parent, seshData, notifyNewSelection) => {
 
-  const container = descByID(parent, "session-row-container");
+  const container   = descByID(   parent, "session-row-container");
   const sessionRows = descByID(container, "session-rows");
+
   Array.from(sessionRows.querySelectorAll(".session-row")).forEach(
     (row) => {
       const label = row.querySelector(".row-label");
@@ -52,9 +53,12 @@ const genSessionNode = (parent, seshData, statusManager, previewManager, notifyS
   const template  = descByID(container, "session-row-template" );
   const node      = template.content.cloneNode(true);
 
+  const infoStr    = (numClients === 1) ? `${numClients} person` :
+                                          `${numClients} people`;
+
   node.querySelector(".session-name").textContent       = name;
   node.querySelector(".session-model-name").textContent = modelName;
-  node.querySelector(".session-info").textContent       = (numClients === 1) ? `${numClients} person` : `${numClients} people`;
+  node.querySelector(".session-info").textContent       = infoStr;
   node.querySelector(".session-row").dataset.uuid       = oracleID;
 
   node.querySelector(".session-option").addEventListener("change", (event) => {

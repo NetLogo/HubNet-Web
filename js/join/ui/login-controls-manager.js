@@ -73,13 +73,15 @@ export default class LoginControlsManager {
     }
 
     this.#roleSelect.innerHTML = "";
+
     if (hasActive) {
       session.roleInfo.forEach(
         ([roleName, current, max]) => {
           const node        = createOption();
           const isUnlimited = max === 0;
           node.disabled     = !isUnlimited && current >= max;
-          node.innerText    = isUnlimited ? `${roleName} | ${current}` : `${roleName} | ${current}/${max}`;
+          node.innerText    = isUnlimited ? `${roleName} (${current})` :
+                                            `${roleName} (${current}/${max})`;
           node.value        = roleName;
           this.#roleSelect.appendChild(node);
         }
