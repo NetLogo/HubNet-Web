@@ -39,7 +39,7 @@
       , { "type": "hnwView",    "left": 170, "right": 612, "top":  60, "bottom": 503, "height": 420, "width": 420 }
       ]
     , "canJoinMidRun": true
-    , "isSpectator": true,
+    , "isSpectator": true
     , "perspectiveVar": null
     , "onConnect": null
     , "onDisconnect": null
