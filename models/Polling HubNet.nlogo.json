@@ -10,7 +10,7 @@
     , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwButton",   "left":  76, "right": 203, "top": 127, "bottom": 160, "display": "Choose", "source": "execute-choose", "hnwProcName": "execute-choose", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle" }
-      , { "type": "hnwSlider",   "left":  53, "right": 343, "top":  89, "bottom": 122, "display": "Choice", "variable": "ui-slider-value", "min": 0.0, "max": 9.0, "default": 0.0, "units": "", "direction": "horizontal", "step": 1.0 }
+      , { "type": "hnwSlider",   "left":  53, "right": 343, "top":  89, "bottom": 122, "display": "Choice", "variable": "slider-value", "min": 0.0, "max": 9.0, "default": 0.0, "units": "", "direction": "horizontal", "step": 1.0 }
       , { "type": "hnwMonitor",  "left":   4, "right": 389, "top":  35, "bottom":  84, "display": "Current Question", "source": "current-question-value", "reporterStyle": "procedure", "precision": 3, "fontSize": 10 }
       , { "type": "hnwMonitor",  "left": 209, "right": 318, "top": 127, "bottom": 176, "display": "Current Choice", "source": "current-choice-value", "reporterStyle": "turtle-procedure", "precision": 3, "fontSize": 10 }
       , { "type": "hnwView",     "left":   1, "right":   2, "top": 500, "bottom": 501, "height": 1, "width": 1 }

@@ -18,7 +18,6 @@ globals
 turtles-own
 [
   user-id
-  ui-slider-value
   slider-value  ;; the value of the client's choice slider
   my-choices    ;; list of my choices for each question
 ]
@@ -36,8 +35,6 @@ end
 ;; used by turtles in this activity.  The placement of the shape names in the last
 ;; corresponds to the numbers sent by calculators.  Also initializes the data lists.
 to setup
-  clear-all
-  clear-output
   setup-vars
   setup-quick-start
 end
@@ -51,9 +48,6 @@ end
 
 to clear-clients
   clear-plot
-  clear-patches
-  clear-turtles
-  clear-output
 end
 
 to clear-all-data-and-questions
@@ -176,10 +170,6 @@ to execute-choose
     set my-choices replace-item current-question my-choices slider-value
   ]
   do-plot
-end
-
-to change-choice
-  set slider-value ui-slider-value
 end
 
 
