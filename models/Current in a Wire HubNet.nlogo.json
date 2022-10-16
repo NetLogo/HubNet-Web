@@ -6,6 +6,7 @@
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": "???DC",
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "height": 513,
@@ -80,6 +81,7 @@
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": "???DC",
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "height": 863,

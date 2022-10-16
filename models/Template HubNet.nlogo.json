@@ -6,6 +6,7 @@
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": "remove-student",
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "height": 430,
@@ -109,6 +110,7 @@
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": null,
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "height": 428,

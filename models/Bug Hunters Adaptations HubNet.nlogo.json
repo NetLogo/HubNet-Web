@@ -20,6 +20,7 @@
     , "perspectiveVar": null
     , "onConnect": "initialize-student"
     , "onDisconnect": "remove-student"
+    , "afterDisconnect": null
     , "onCursorClick": "check-found-bugs-student"
     , "onCursorRelease": null
     , "onCursorMove": null
@@ -56,6 +57,7 @@
     , "perspectiveVar": null
     , "onConnect": null
     , "onDisconnect": null
+    , "afterDisconnect": null
     , "onCursorClick": "check-found-bugs-host"
     , "onCursorRelease": null
     , "onCursorMove": null

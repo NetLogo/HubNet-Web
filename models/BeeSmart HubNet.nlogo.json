@@ -31,6 +31,7 @@
     , "isSpectator": false
     , "onConnect": "create-new-student"
     , "onDisconnect": "remove-student"
+    , "afterDisconnect": null
     , "onCursorClick": "command-click"
     , "onCursorRelease": null
     , "onCursorMove": null
@@ -105,6 +106,7 @@
     , "isSpectator": true
     , "onConnect": null
     , "onDisconnect": null
+    , "afterDisconnect": null
     , "onCursorClick": null
     , "onCursorRelease": null
     , "onCursorMove": null

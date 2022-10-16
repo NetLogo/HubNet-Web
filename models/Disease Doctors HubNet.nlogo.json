@@ -26,6 +26,7 @@
     , "perspectiveVar": null
     , "onConnect": "create-new-student"
     , "onDisconnect": "remove-student"
+    , "afterDisconnect": null
     , "onCursorClick": null
     , "onCursorRelease": null
     , "onCursorMove": null
@@ -63,6 +64,7 @@
     , "perspectiveVar": null
     , "onConnect": null
     , "onDisconnect": null
+    , "afterDisconnect": null
     , "onCursorClick": null
     , "onCursorRelease": null
     , "onCursorMove": null

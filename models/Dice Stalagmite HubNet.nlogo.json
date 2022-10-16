@@ -20,6 +20,7 @@
     , "perspectiveVar": null
     , "onConnect": "create-client"
     , "onDisconnect": "kill-client"
+    , "afterDisconnect": null
     , "onCursorClick": null
     , "onCursorRelease": null
     , "onCursorMove": null
@@ -43,6 +44,7 @@
     , "perspectiveVar": null
     , "onConnect": null
     , "onDisconnect": null
+    , "afterDisconnect": null
     , "onCursorClick": null
     , "onCursorRelease": null
     , "onCursorMove": null

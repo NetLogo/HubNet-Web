@@ -6,6 +6,7 @@
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": "execute-disconnect",
+            "afterDisconnect": null,
             "widgets": [
                 { "type": "hnwView", "left": 800, "right": 801, "top": 0, "bottom": 1, "height": 1, "width": 1 },
                 {
@@ -150,6 +151,7 @@
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": null,
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "height": 281,

@@ -6,6 +6,7 @@
             "onCursorClick": "orient-my-turtle",
             "onCursorRelease": null,
             "onDisconnect": "remove-player",
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "height": 500,
@@ -115,6 +116,7 @@
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": null,
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "height": 508,

@@ -6,6 +6,7 @@
             "onCursorClick": "check-caught-fish",
             "onCursorRelease": null,
             "onDisconnect": "remove-player",
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "bottom": 59,
@@ -151,6 +152,7 @@
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": null,
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "height": 548,

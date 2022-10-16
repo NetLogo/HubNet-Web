@@ -19,6 +19,7 @@
     , "isSpectator": false
     , "onConnect": "give-intersection-coords"
     , "onDisconnect": null
+    , "afterDisconnect": null
     , "onCursorClick": null
     , "onCursorMove": null
     }
@@ -57,6 +58,7 @@
     , "isSpectator": true
     , "onConnect": null
     , "onDisconnect": null
+    , "afterDisconnect": null
     , "onCursorClick": null
     , "onCursorMove": null
     }

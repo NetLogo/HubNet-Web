@@ -6,7 +6,7 @@
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": null,
-
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "height": 386,
@@ -483,7 +483,7 @@
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": "remove-restaurant",
-
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "height": 378,
@@ -758,6 +758,7 @@
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": "???DC",
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "height": 378,
@@ -1020,6 +1021,7 @@
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": "???DC",
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "height": 386,

@@ -6,6 +6,7 @@
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": "remove-walker",
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "height": 522,
@@ -157,6 +158,7 @@
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": null,
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "height": 589,

@@ -1,12 +1,12 @@
 {
     "roles": [
         {
-            "afterDisconnect": "cleanup-student",
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": "remove-student",
+            "afterDisconnect": "cleanup-student",
             "widgets": [
                 {
                     "height": 550,
@@ -189,12 +189,12 @@
             "perspectiveVar": null
         },
         {
-            "afterDisconnect": null,
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": null,
+            "afterDisconnect": null,
             "widgets": [
                 {
                     "height": 558,
