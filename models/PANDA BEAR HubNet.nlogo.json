@@ -1,6 +1,7 @@
 {
     "roles": [
         {
+            "afterDisconnect": "cleanup-student",
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
@@ -188,6 +189,7 @@
             "perspectiveVar": null
         },
         {
+            "afterDisconnect": null,
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,

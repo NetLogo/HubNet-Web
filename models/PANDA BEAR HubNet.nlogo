@@ -213,13 +213,11 @@ to setup-student-vars [username] ;; turtle procedure
   set label-color white
 end
 
-;; Kill the turtle, set its shape, color, and position
-;; and tell the node what its turtle looks like and where it is
 to remove-student
-
   set used-shape-colors remove my-code used-shape-colors
-  die
+end
 
+to cleanup-student
   ;; when a student leaves if there is already a polygon
   ;; automatically make a new one if there are
   ;; enough students
