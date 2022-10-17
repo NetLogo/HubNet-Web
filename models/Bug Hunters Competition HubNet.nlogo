@@ -119,7 +119,7 @@ to setup
   display-labels
 
   reset-ticks
-  set time-remaining (length-competition - ticks)
+  set time-remaining (__hnw_supervisor_length-competition - ticks)
   send-all-info
 end
 
@@ -138,15 +138,15 @@ end
 
 
 to go
-  if ticks < length-competition  [
+  if ticks < __hnw_supervisor_length-competition  [
     set competition-status "Running"
     update-statistics
     send-all-info
     ask patches [ grow-grass ]
     ask bugs [
-      if automated-bugs-lose-energy? [ set energy energy - 1 ] ;; deduct energy for bugs only if bugs-lose-energy? switch is on
-      if automated-bugs-reproduce? [ reproduce-bugs ]
-      if automated-bugs-wander? [right random 30 left random 30]
+      if __hnw_supervisor_automated-bugs-lose-energy? [ set energy energy - 1 ] ;; deduct energy for bugs only if bugs-lose-energy? switch is on
+      if __hnw_supervisor_automated-bugs-reproduce? [ reproduce-bugs ]
+      if __hnw_supervisor_automated-bugs-wander? [right random 30 left random 30]
       fd bugs-stride
       bugs-eat-grass
       bug-death
@@ -154,9 +154,9 @@ to go
     display-labels
     check-reset-perspective
     tick
-    set time-remaining (length-competition - ticks)
+    set time-remaining (__hnw_supervisor_length-competition - ticks)
   ]
-  if ticks = length-competition  [
+  if ticks = __hnw_supervisor_length-competition  [
     display
     set competition-status "Over"
     if time-remaining <= 0 [set time-remaining 0]
@@ -168,7 +168,7 @@ end
 
 to add-starting-grass
   ask patches [
-      ifelse random 100 < amount-grassland    ;;  the maximum number of fertile patches is set by a slider
+      ifelse random 100 < __hnw_supervisor_amount-grassland    ;;  the maximum number of fertile patches is set by a slider
     [
       set fertile? true
       set grass-energy max-grass-energy
@@ -183,7 +183,7 @@ end
 
 
 to add-bugs
-  create-bugs initial-#-automated-bugs  ;; create the bugs, then initialize their variables
+  create-bugs __hnw_supervisor_initial-#-automated-bugs  ;; create the bugs, then initialize their variables
   [
     set color bugs-color
     set size bugs-size
@@ -203,7 +203,7 @@ to bugs-eat-grass  ;; bugs procedure
     set energy (energy + bugs-energy-from-food)  ;; bugs gain energy by eating
   ]
   ;; if grass-energy is negative, make it positive
-  if grass-energy <=  bugs-energy-from-food  [set countdown sprout-delay-time ]
+  if grass-energy <=  bugs-energy-from-food  [set countdown __hnw_supervisor_sprout-delay-time ]
 end
 
 
@@ -241,7 +241,7 @@ to grow-grass  ;; patch procedure
     if grass-energy > max-grass-energy [set grass-energy max-grass-energy]
   ]
   if not fertile? [set grass-energy 0]
-  if grass-energy < 0 [set grass-energy 0 set countdown sprout-delay-time]
+  if grass-energy < 0 [set grass-energy 0 set countdown __hnw_supervisor_sprout-delay-time]
   color-grass
 end
 
@@ -270,7 +270,9 @@ to-report create-new-player [username]
     set hidden? true
     assign-bug-to-player
     set out who
+    set perspective (list "follow" self __hnw_supervisor_player-vision)
   ]
+  display-labels
   report out
 end
 
@@ -288,22 +290,17 @@ to assign-bug-to-player
   ]
 end
 
-
-to remove-player
-  ask bugs with [owned-by = user-id and controlled-by-player?] [die]
-end
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Handle client interactions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 to check-reset-perspective
-   if player-vision != old-player-vision [
+   if __hnw_supervisor_player-vision != old-player-vision [
      ask players [
-       set perspective (list "follow" self player-vision)
+       set perspective (list "follow" self __hnw_supervisor_player-vision)
      ]
-     set old-player-vision player-vision
+     set old-player-vision __hnw_supervisor_player-vision
    ]
 end
 
@@ -318,13 +315,13 @@ to display-labels
 
   ask bugs [
     set label-color black
-    if show-labels-as = "none" [set label ""]
-    if show-labels-as = "player energy"  [ set label (word round energy) ]
-    if show-labels-as = "energy ranges"  [ set label (word energy-range round energy) ]
-    if show-labels-as = "player name" [
+    if __hnw_supervisor_show-labels-as = "none" [set label ""]
+    if __hnw_supervisor_show-labels-as = "player energy"  [ set label (word round energy) ]
+    if __hnw_supervisor_show-labels-as = "energy ranges"  [ set label (word energy-range round energy) ]
+    if __hnw_supervisor_show-labels-as = "player name" [
       ifelse controlled-by-player? [set label owned-by] [set label ""]
     ]
-    if show-labels-as = "player energy:name" [
+    if __hnw_supervisor_show-labels-as = "player energy:name" [
       ifelse controlled-by-player? [set label (word round energy ":" owned-by)] [set label ""]
     ]
   ]
@@ -463,7 +460,7 @@ bugs
 0.0
 10.0
 true
-true
+false
 "" ""
 PENS
 "bugs" 1.0 0 -16777216 true "" "plotxy ticks count bugs"
@@ -559,7 +556,7 @@ bugs
 0.0
 40.0
 true
-true
+false
 "let num-bars 20\n let y-axis-max-histogram  (5 + ((floor (count bugs with [floor (energy / 20) = (item 0 modes [floor (energy / 20)] of bugs)] / 5)) * 5))\n set-current-plot \"Energy Levels of Bugs\"\n plot-pen-reset       \n  ;; autoscale x axis by 500s\n set-plot-x-range (500 * floor (min-energy-of-any-bug / 500)) (500 + 500 *  (floor (max-energy-of-any-bug / 500)))\n  if y-axis-max-histogram < 10 [set y-axis-max-histogram 10]\n  ;; autoscale y axis by 5s, when above 10\n  set-plot-y-range 0 y-axis-max-histogram   \n  set-histogram-num-bars num-bars\n  set  x-min-histogram plot-x-min\n  set  x-max-histogram plot-x-max\n  set   x-interval-histogram (x-max-histogram - x-min-histogram) / num-bars\n  \n  histogram [ energy ] of bugs" "let num-bars 20\n let y-axis-max-histogram  (5 + ((floor (count bugs with [floor (energy / 20) = (item 0 modes [floor (energy / 20)] of bugs)] / 5)) * 5))\n set-current-plot \"Energy Levels of Bugs\"\n plot-pen-reset       \n  ;; autoscale x axis by 500s\n set-plot-x-range (500 * floor (min-energy-of-any-bug / 500)) (500 + 500 *  (floor (max-energy-of-any-bug / 500)))\n  if y-axis-max-histogram < 10 [set y-axis-max-histogram 10]\n  ;; autoscale y axis by 5s, when above 10\n  set-plot-y-range 0 y-axis-max-histogram   \n  set-histogram-num-bars num-bars\n  set  x-min-histogram plot-x-min\n  set  x-max-histogram plot-x-max\n  set   x-interval-histogram (x-max-histogram - x-min-histogram) / num-bars\n  \n  histogram [ energy ] of bugs"
 PENS
 "bugs" 20.0 1 -16777216 true "" ""
@@ -992,7 +989,7 @@ bugs
 0.0
 10.0
 true
-true
+false
 "" ""
 PENS
 "bugs" 1.0 0 -16777216 true "" ""
