@@ -120,6 +120,12 @@ export default class HostNLWManager extends NLWManager {
 
     switch (data.type) {
 
+      case "hnw-stop-iterating": {
+        console.log("Ceasing iteration...");
+        this.#goButton.click();
+        break;
+      }
+
       case "hnw-role-config": {
         this.#onRoleInfo(data.roles);
         break;
