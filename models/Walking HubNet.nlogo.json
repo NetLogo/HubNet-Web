@@ -144,8 +144,8 @@
                     "top": 383
                 }
             ],
-            "name": "student",
-            "namePlural": "students",
+            "name": "walker",
+            "namePlural": "walkers",
             "onConnect": "setup-walker",
             "limit": -1,
             "highlightMainColor": "#008000",
@@ -174,7 +174,7 @@
                     "bottom": 555,
                     "display": "simulation-speed",
                     "direction": "horizontal",
-                    "default": 5,
+                    "default": 10,
                     "left": 22,
                     "variable": "simulation-speed",
                     "step": 0.1,

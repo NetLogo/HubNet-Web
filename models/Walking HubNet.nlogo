@@ -24,9 +24,9 @@ globals
 ]
 
 breed [ footprints footprint ]
-breed [ students student ]
+breed [ walkers    walker ]
 
-students-own
+walkers-own
 [
 
   user-id           ;; the unique name users enter on their clients
@@ -35,7 +35,6 @@ students-own
   interval          ;; the current interval a turtle is moving through
   velocity          ;; current velocity of an walker
 
-  interval-0
   interval-1
   interval-2
   interval-3
@@ -49,6 +48,8 @@ students-own
   base-shape        ;; either person-forward- or person-backward- so when we are animating
                     ;; we just tack on the frame number to form the name of the appropriate shape
   shape-counter     ;; keep track of where in the animation we are so it looks smooth
+
+  walking-tick
 ]
 
 footprints-own
@@ -67,8 +68,7 @@ patches-own
 
 to startup
   setup-vars
-  setup-patches
-  set-default-shape students "person-forward-1"
+  set-default-shape walkers    "person-forward-1"
   set-default-shape footprints "footprint"
   setup
 end
@@ -78,7 +78,7 @@ to setup
   clear-drawing
   setup-patches
 
-  ask students
+  ask walkers
   [
     pen-up
     set-position xcor-initial
@@ -91,7 +91,7 @@ to reset-clock
   reset-ticks
   clear-drawing
   setup-patches
-  ask students
+  ask walkers
   [ set-position xcor
     pen-up ]
   ask footprints [ die ]
@@ -101,7 +101,7 @@ end
 to set-random-positions
   reset-ticks
   setup-patches
-  ask students [ set-position random-pxcor ]
+  ask walkers [ set-position random-pxcor ]
   ask footprints [ die ]
   my-setup-plots
 end
@@ -109,7 +109,7 @@ end
 to set-uniform-positions
   reset-ticks
   setup-patches
-  ask students [ set-position __hnw_supervisor_walker-position ]
+  ask walkers [ set-position __hnw_supervisor_walker-position ]
   ask footprints [ die ]
   my-setup-plots
 end
@@ -121,6 +121,7 @@ to set-position [x]
   set my-xcor xcor
   show-turtle
   show-or-hide-id-labels
+  set walking-tick 0
 end
 
 ;; set up the patches to have the floor numbers down the left side of the
@@ -143,13 +144,11 @@ end
 ;; set variables to initial values
 to setup-vars
 
-  reset-ticks
-
   set num-intervals 9
   set up-trail-color green
   set down-trail-color red
 
-  set __hnw_supervisor_simulation-speed 5
+  set __hnw_supervisor_simulation-speed 10
   set __hnw_supervisor_show-user-id? true
   set __hnw_supervisor_walker-position 0
   set __hnw_supervisor_footprints? false
@@ -167,20 +166,33 @@ end
 
 ;; move the walkers one interval
 to go
-  if ticks >= num-intervals
-  [ stop ]
+
   ;; we want to move to a new interval after delay seconds
   ;; where delay is a function of simulation speed
   every delay
   [
-    if ticks < num-intervals
+
+    ;; keep labels in sync with the switches
+    ask walkers [ show-or-hide-id-labels ]
+
+    if ticks <= (num-intervals + 1)
     [
-        ask students
+
+      let movers walkers with [velocity != 0 and interval <= num-intervals]
+      ifelse any? movers
+      [
+        ;; move the walkers by their velocity for this interval
+        ask movers [ move-walkers ]
+      ] [
+
+        if ticks >= num-intervals [ stop ]
+
+        ask walkers
         [
-          show-or-hide-id-labels  ;; keep labels in sync with the switches
-          assign-values           ;; set the walkers' velocity to the appropriate value
-          move-walkers            ;; move the walkers by their velocity for this interval
+          assign-values
+          set interval interval + 1
         ]
+
         do-plotting
         ;; depending on the visualizations used
         ;; we may have to do some fading at the end of each move.
@@ -198,7 +210,10 @@ to go
             [ die ]
           ]
         ]
-      tick
+
+        tick
+
+      ]
     ]
   ]
 end
@@ -218,14 +233,17 @@ end
 
 ;; set the student selected walker velocity for the current interval
 to assign-values  ;; turtle procedure
-  set velocity (select-velocity interval)
+  ifelse ticks >= num-intervals
+  [ set velocity 0 ]
+  [ set velocity (select-velocity interval) ]
 end
 
 to-report select-velocity [index]
-  report item index (list interval-0 interval-1 interval-2 interval-3 interval-4 interval-5 interval-6 interval-7 interval-8 interval-9)
+  report item index (list interval-1 interval-2 interval-3 interval-4 interval-5 interval-6 interval-7 interval-8 interval-9)
 end
 
 to move-walkers  ;; turtle procedure
+
   let delta-pos 0
   let speed abs velocity
 
@@ -234,7 +252,6 @@ to move-walkers  ;; turtle procedure
   ;; each step is divided into smaller steps
   ;; so we get the appearance of motion, and differing
   ;; velocities
-  let inner-tick 0
 
   ;; depending on whether the person is moving
   ;; forward or back change the shape to reflect the movement
@@ -252,7 +269,7 @@ to move-walkers  ;; turtle procedure
   set delta-pos delta-pos / 4
   set speed speed * 4
 
-  while [ inner-tick < speed ]
+  ifelse walking-tick < speed
   [
     ;; divide the amount of time till the next interval into equal amounts
     ;; so as to be able to make the motion of an walker smooth
@@ -274,7 +291,7 @@ to move-walkers  ;; turtle procedure
       [ show-turtle
         set xcor my-xcor ]
       [ hide-turtle ]
-      set inner-tick inner-tick + 1
+      set walking-tick walking-tick + 1
       if __hnw_supervisor_animation?
       [
         ;; increment the shape to the next shape in the
@@ -284,26 +301,30 @@ to move-walkers  ;; turtle procedure
       ]
       display
     ]
+  ] [
+
+    set walking-tick 0
+    set velocity     0
+
+    if __hnw_supervisor_footprints?
+    [
+      ;; make a shape where we landed.
+      ;; we can't use stamp shape because we want them to fade.
+      hatch-footprints 1
+      [
+        set base-color color
+        set label ""
+        set color color - 0.4
+        ;; make sure the footprint faces in the
+        ;; direction the walker is headed
+        ifelse [velocity] of myself >= 0
+        [ set heading 90 ]
+        [ set heading 270 ]
+       ]
+     ]
+
   ]
 
-  if __hnw_supervisor_footprints?
-  [
-    ;; make a shape where we landed.
-    ;; we can't use stamp shape because we want them to fade.
-    hatch-footprints 1
-    [
-      set base-color color
-      set label ""
-      set color color - 0.4
-      ;; make sure the footprint faces in the
-      ;; direction the walker is headed
-      ifelse [velocity] of myself >= 0
-      [ set heading 90 ]
-      [ set heading 270 ]
-     ]
-   ]
-
-  set interval interval + 1
 end
 
 ;; have any trails fade back to the base color of the patch
@@ -319,18 +340,17 @@ end
 
 to-report setup-walker [username]
   let out -1
-  let p one-of patches with [ pxcor = 0 and pycor > (min-pycor + 1) and not any? students-on patches with [ pycor = [pycor] of myself ] ]
+  let p one-of patches with [ pxcor = 0 and pycor > (min-pycor + 1) and not any? walkers-on patches with [ pycor = [pycor] of myself ] ]
   ifelse p = nobody
   [
     user-message "A user tried to join but there is no more space for another user."
   ]
   [
-    create-students 1
+    create-walkers 1
     [
 
       set user-id username
 
-      set interval-0 0
       set interval-1 0
       set interval-2 0
       set interval-3 0
@@ -352,6 +372,7 @@ to-report setup-walker [username]
       set shape-counter 1
       set base-shape "person-forward-"
       set out who
+      set walking-tick 0
     ]
     my-setup-plots
   ]
@@ -372,13 +393,13 @@ end
 to do-plotting
   ;; walker-to-plot is a string
   ;; assume we are plotting everyone
-  let guys-to-plot students
+  let guys-to-plot walkers
 
   ;; if we're not get the agentset that includes the agents
   ;; we're plotting, right now it can only be one but the code
   ;; is simpler this way.
   if walker-to-plot != "everybody"
-  [ set guys-to-plot students with [ user-id = walker-to-plot ] ]
+  [ set guys-to-plot walkers with [ user-id = walker-to-plot ] ]
 
   ask guys-to-plot
   [
@@ -406,14 +427,14 @@ end
 to pick-walker-to-plot
   set walker-to-plot "everybody" ;user-one-of
                      ;"Please select the walker to plot"
-                     ;(fput "everybody" sort [user-id] of students )
+                     ;(fput "everybody" sort [user-id] of walkers )
 end
 
 ;; setup the position and velocity plot
 to my-setup-plots
   clear-all-plots
 
-  ask students
+  ask walkers
   [
     set-current-plot "Position vs. Intervals"
     setup-pens false
@@ -497,7 +518,7 @@ simulation-speed
 simulation-speed
 0
 10
-5.0
+10.0
 0.1
 1
 NIL
