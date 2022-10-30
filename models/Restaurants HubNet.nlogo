@@ -81,7 +81,7 @@ end
 ;; set parameters for the system
 to setup
   clear-patches
-  clear-turtles
+  TODO, can this model clear turtles? clear-turtles
   clear-output
   setup-quick-start
   reset

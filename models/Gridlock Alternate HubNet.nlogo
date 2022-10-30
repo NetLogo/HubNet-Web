@@ -77,7 +77,7 @@ end
 ;; "setup false" is done by the re-run button.
 to setup
   clear-output
-  clear-turtles
+  TODO, can this model clear turtles? clear-turtles
   clear-all-plots
 
   let full-setup? ((grid-x-inc != (world-width / grid-size-x))

@@ -73,7 +73,7 @@ to startup
 end
 
 to setup
-  clear-all
+  TODO, CANNOT DELETE TURTLES clear-all
   setup-shapes
   setup-vars
   reset-ticks
