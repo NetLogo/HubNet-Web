@@ -30,7 +30,14 @@ const FromHostRoot = {
 
   nested: {
 
-    AssignedAgent: { // assigned-agent
+    AppendOutput: { // append-output
+      fields: {
+        id:     { type: "uint32", id: 1 }
+      , output: { type: "string", id: 2 }
+      }
+    }
+
+  , AssignedAgent: { // assigned-agent
       fields: {
         id:        { type: "uint32", id: 1 }
       , agentType: { type: "uint32", id: 2 }
@@ -203,10 +210,10 @@ const FromHostRoot = {
       }
     }
 
-  , TicksStarted: {
+  , SetOutput: { // set-output
       fields: {
-        id:              { type: "uint32", id: 1 }
-      , hnwTicksStarted: { type: "bool"  , id: 2 }
+        id:     { type: "uint32", id: 1 }
+      , output: { type: "string", id: 2 }
       }
     }
 
@@ -216,6 +223,13 @@ const FromHostRoot = {
       }
     , nested: {
         SUPB: SUPB.StateUpdate
+      }
+    }
+
+  , TicksStarted: {
+      fields: {
+        id:              { type: "uint32", id: 1 }
+      , hnwTicksStarted: { type: "bool"  , id: 2 }
       }
     }
 

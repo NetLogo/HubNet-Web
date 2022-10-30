@@ -20,6 +20,11 @@ export default class JoinerNLWManager extends NLWManager {
 
   }
 
+  // (String) => Unit
+  appendOutput = (output) => {
+    this._post({ type: "nlw-append-output", output });
+  };
+
   // (Object[Any]) => Promise[Any]
   awaitLoadInterface = (interfaceObj) => {
     return this._await("hnw-load-interface", interfaceObj);
@@ -43,6 +48,11 @@ export default class JoinerNLWManager extends NLWManager {
   // (Object[Any]) => Unit
   relay = (payload) => {
     this._post(payload);
+  };
+
+  // (String) => Unit
+  setOutput = (output) => {
+    this._post({ type: "nlw-set-output", output });
   };
 
   // (Object[Any]) => Unit

@@ -9,8 +9,18 @@ export default (bundle) => {
 
     switch (datum.type) {
 
+      case "append-output": {
+        bundle.appendOutput(datum.output);
+        break;
+      }
+
       case "initial-model": {
         handleInitialModel(bundle)(datum);
+        break;
+      }
+
+      case "set-output": {
+        bundle.setOutput(datum.output);
         break;
       }
 

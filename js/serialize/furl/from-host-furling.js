@@ -9,7 +9,8 @@ const lookupType = (x) =>
 
 // Object[ProtoBufType]
 const basicMap =
-  { "assigned-agent":         lookupType("AssignedAgent")
+  { "append-output":          lookupType("AppendOutput")
+  , "assigned-agent":         lookupType("AssignedAgent")
   , "bye-bye":                lookupType("ByeBye")
   , "chat":                   lookupType("Chat")
   , "chat-relay":             lookupType("ChatRelay")
@@ -26,6 +27,7 @@ const basicMap =
   , "num-clients":            lookupType("NumClients")
   , "ping":                   lookupType("Ping")
   , "role-is-full":           lookupType("RoleIsFull")
+  , "set-output":             lookupType("SetOutput")
   , "state-update":           lookupType("StateUpdate")
   , "ticks-started":          lookupType("TicksStarted")
   , "username-already-taken": lookupType("UsernameTaken")

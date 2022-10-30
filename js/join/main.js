@@ -142,9 +142,11 @@ const genBurstQueue = () => {
   };
 
   const burstBundle =
-    { awaitLoadInterface: nlwManager.awaitLoadInterface
+    { appendOutput:       nlwManager.appendOutput
+    , awaitLoadInterface: nlwManager.awaitLoadInterface
     , getUsername:        loginControls.getUsername
     , relayToNLW:         nlwManager.relay
+    , setOutput:          nlwManager.setOutput
     , statusManager
     , updateNLW:          nlwManager.postUpdate
     };
