@@ -1,6 +1,6 @@
-;extensions [bitmap]
 globals
 [
+
   predator-leader               ;; a string expressing the player who has found the most bug (or a tie if appropriate)
   predator-leader-found         ;; the number of bug the leader has found
   mate-leader                   ;; a string expressing the player who has found the most bug (or a tie if appropriate)
@@ -18,8 +18,21 @@ globals
   image5                        ;; default image
   number-of-predators           ;; keeps track of the number of predators (clients that are assigned this role) in the competition
   number-of-mates               ;; keeps track of the number of mates     (clients that are assigned this role) in the competition
-  host-role                     ;; keeps track of the role the host is assigned (mate or predator)
-  host-player
+
+  last-flash-tick
+
+  __hnw_supervisor_adult-bug-size
+  __hnw_supervisor_carrying-capacity-environment-left
+  __hnw_supervisor_carrying-capacity-environment-right
+  __hnw_supervisor_left-environment
+  __hnw_supervisor_environment-right
+  __hnw_supervisor_initial-colors-bugs-left
+  __hnw_supervisor_initial-colors-bugs-right
+  __hnw_supervisor_max-color-mutation
+  __hnw_supervisor_offspring-distance
+  __hnw_supervisor_players-roles
+  __hnw_supervisor_show-genes?
+
 ]
 
 ;; each client controls one player turtle
@@ -69,12 +82,28 @@ end
 ;; this kills off all the turtles (including the players)
 ;; so we don't necessarily want to do this each time we setup
 to setup-clear
+
   clear-environment
   reset-ticks
+
   set-default-shape bugs "moth"
   set adult-age 25
-  add-host
+  set last-flash-tick -1
+
+  set __hnw_supervisor_adult-bug-size                      1.5
+  set __hnw_supervisor_carrying-capacity-environment-left  2
+  set __hnw_supervisor_carrying-capacity-environment-right 0
+  set __hnw_supervisor_left-environment                    "none"
+  set __hnw_supervisor_environment-right                   "none"
+  set __hnw_supervisor_initial-colors-bugs-left            "random variation"
+  set __hnw_supervisor_initial-colors-bugs-right           "random variation"
+  set __hnw_supervisor_max-color-mutation                  20
+  set __hnw_supervisor_players-roles                       "all predators"
+  set __hnw_supervisor_show-genes?                         false
+  set __hnw_supervisor_offspring-distance                  40
+
   setup
+
 end
 
 ;; setup the model for another round of bug catching
@@ -87,16 +116,14 @@ to setup
   ask found-spots [ die ]
   set total-found 0
   set leader ""
-  set host-role ""
   set leader-found 0
   setup-regions
   set-default-image-filenames
   change-environment
-  make-initial-bugs carrying-capacity-environment-left  1
-  make-initial-bugs carrying-capacity-environment-right 2
+  make-initial-bugs __hnw_supervisor_carrying-capacity-environment-left  1
+  make-initial-bugs __hnw_supervisor_carrying-capacity-environment-right 2
   ;; make sure to return players to initial conditions
-  ask players with [ self != host-player ] [ initialize-player ]
-  ask host-player [ initialize-host ]
+  ask players [ initialize-player ]
 end
 
 to setup-regions
@@ -121,12 +148,12 @@ to setup-regions
   ]
 end
 
-to make-initial-bugs [carrying-capacity which-side]
+to make-initial-bugs [__hnw_supervisor_carrying-capacity which-side]
   let initial-colors-of-bugs ""
-  if which-side = 1 [ set initial-colors-of-bugs initial-colors-bugs-left ]
-  if which-side = 2 [ set initial-colors-of-bugs initial-colors-bugs-right ]
-  create-bugs carrying-capacity [
-    set size adult-bug-size
+  if which-side = 1 [ set initial-colors-of-bugs __hnw_supervisor_initial-colors-bugs-left ]
+  if which-side = 2 [ set initial-colors-of-bugs __hnw_supervisor_initial-colors-bugs-right ]
+  create-bugs __hnw_supervisor_carrying-capacity [
+    set size __hnw_supervisor_adult-bug-size
     set shape "moth"
     set birthday (-1 * adult-age)
     ;; assign gene frequencies from 0 to 255, where 0 represents 0% expression of the gene
@@ -168,23 +195,40 @@ to go
   grow-bugs
   reproduce-bugs
   cull-extra-bugs
+  handle-flash
   visualize-found-spots
   tick
+end
+
+to handle-flash
+  let num-flashes 3
+  let color-duration 3
+  ifelse last-flash-tick >= 0 and last-flash-tick > (ticks - (num-flashes * color-duration * 2)) [
+    let diff (last-flash-tick - ticks)
+    ifelse ((floor (diff / color-duration)) mod 2) = 0 [
+      ask bugs [ set color black ]
+    ] [
+      ask bugs [ set color white ]
+    ]
+  ] [
+    set last-flash-tick -1
+    ask bugs [ set-phenotype-color ]
+  ]
 end
 
 to grow-bugs
   ask bugs [
     ;; show genotypes if appropriate, hide otherwise
     assign-genotype-labels
-    ;; if the bug is smaller than adult-bug-size then it's not full
+    ;; if the bug is smaller than __hnw_supervisor_adult-bug-size then it's not full
     ;; grown and it should get a little bigger
     ;; so that bugs don't just appear full grown in the view
     ;; but instead slowly come into existence. as it's easier
     ;; to see the new bugs when they simply appear
     let age ticks - birthday
     ifelse age < adult-age
-      [ set size adult-bug-size * (age / adult-age) ]
-      [ set size adult-bug-size ]
+      [ set size __hnw_supervisor_adult-bug-size * (age / adult-age) ]
+      [ set size __hnw_supervisor_adult-bug-size ]
   ]
  ;; grow the newly hatched offspring until they reach their ADULT-AGE, at which point they should be the full bug-SIZE
 end
@@ -194,14 +238,14 @@ to reproduce-bugs
   ;; if all the bugs are removed by predators at once
   ;; make a new batch of random bugs
   if count bugs with [ region = 1 ] = 0
-    [ make-initial-bugs carrying-capacity-environment-left 1 ]
+    [ make-initial-bugs __hnw_supervisor_carrying-capacity-environment-left 1 ]
   if count bugs with [ region = 2 ] = 0
-    [ make-initial-bugs carrying-capacity-environment-right 2 ]
+    [ make-initial-bugs __hnw_supervisor_carrying-capacity-environment-right 2 ]
   ;; otherwise reproduce random other bugs  until
   ;; you've reached the carrying capacity
-  if count bugs with [ region = 1 ] < carrying-capacity-environment-left
+  if count bugs with [ region = 1 ] < __hnw_supervisor_carrying-capacity-environment-left
     [ ask one-of bugs with [ region = 1 ] [ make-one-offspring ] ]
-  if count bugs with [region = 2 ] < carrying-capacity-environment-right
+  if count bugs with [region = 2 ] < __hnw_supervisor_carrying-capacity-environment-right
     [ ask one-of bugs with [ region = 2 ] [ make-one-offspring ] ]
 end
 
@@ -209,14 +253,14 @@ to cull-extra-bugs
   ;; if all the bugs are removed by predators at once
   ;; make a new batch of random bugs
   if count bugs with [ region = 1 ] = 0
-    [ make-initial-bugs carrying-capacity-environment-left 1 ]
+    [ make-initial-bugs __hnw_supervisor_carrying-capacity-environment-left 1 ]
   if count bugs with [ region = 2 ] = 0
-    [ make-initial-bugs carrying-capacity-environment-right 2 ]
+    [ make-initial-bugs __hnw_supervisor_carrying-capacity-environment-right 2 ]
   ;; otherwise reproduce random other bugs  until
   ;; you've reached the carrying capacity
-  if count bugs with [ region = 1 ] > carrying-capacity-environment-left
+  if count bugs with [ region = 1 ] > __hnw_supervisor_carrying-capacity-environment-left
     [ ask one-of bugs with [ region = 1 ] [ die ] ]
-  if count bugs with [ region = 2 ] > carrying-capacity-environment-right
+  if count bugs with [ region = 2 ] > __hnw_supervisor_carrying-capacity-environment-right
     [ ask one-of bugs with [ region = 2 ] [ die] ]
 end
 
@@ -256,11 +300,11 @@ end
 
 to make-one-offspring ;; turtle procedure
   ;; three possible random mutations can occur, one in each frequency of gene expression
-  ;; the max-mutation-step determines the maximum amount the gene frequency can drift up
+  ;; the max-color-mutation determines the maximum amount the gene frequency can drift up
   ;; or down in this offspring
-  let red-mutation   random (max-color-mutation + 1) - random (max-color-mutation + 1)
-  let green-mutation random (max-color-mutation + 1) - random (max-color-mutation + 1)
-  let blue-mutation  random (max-color-mutation + 1) - random (max-color-mutation + 1)
+  let red-mutation   random (__hnw_supervisor_max-color-mutation + 1) - random (__hnw_supervisor_max-color-mutation + 1)
+  let green-mutation random (__hnw_supervisor_max-color-mutation + 1) - random (__hnw_supervisor_max-color-mutation + 1)
+  let blue-mutation  random (__hnw_supervisor_max-color-mutation + 1) - random (__hnw_supervisor_max-color-mutation + 1)
   hatch 1 [
      set size 0.2
      set birthday ticks
@@ -277,7 +321,7 @@ end
 to lay-offspring ;; bug procedure
   let this-region region
   let this-bug self
-  let birth-sites-in-radius patches with [ distance this-bug <= offspring-distance ]
+  let birth-sites-in-radius patches with [ distance this-bug <= __hnw_supervisor_offspring-distance ]
   let birth-sites-in-region birth-sites-in-radius with [ region = this-region ]
   if any? birth-sites-in-region and not any? edges-on birth-sites-in-region
     [ move-to one-of birth-sites-in-region ]
@@ -286,25 +330,15 @@ end
 
 to clear-environment
   clear-drawing
-  ask bugs [ set xcor xcor + 0.000001 ] ;; a way to force a display update
 end
 
 ;; a visualization technique to find bugs if you are convinced they are not there anymore
 to flash-bugs
-  repeat 3 [
-    ask bugs [ set color black ]
-    display
-    wait 0.1
-    ask bugs [ set color white ]
-    display
-    wait 0.1
-  ]
-  ask bugs [ set-phenotype-color ]
-  display
+  set last-flash-tick ticks
 end
 
 to assign-genotype-labels  ;; turtle procedure
-  ifelse show-genes? [ set label color ] [ set label "" ]
+  ifelse __hnw_supervisor_show-genes? [ set label color ] [ set label "" ]
 end
 
 ;; convert the genetic representation of gene frequency
@@ -313,18 +347,6 @@ end
 ;; make a list of the red green and blue genes.
 to set-phenotype-color  ;; turtle procedure
   set color rgb red-gene green-gene blue-gene
-end
-
-to add-host
-  create-players 1 [
-    set host-player self
-    initialize-host
-  ]
-end
-
-to initialize-host
-  initialize-player
-  set host-role role
 end
 
 to-report initialize-student [username]
@@ -356,9 +378,9 @@ to initialize-player ;; player procedure
   hide-turtle
   set number-of-mates count players with [ role = "mate" ]
   set number-of-predators count players with [ role = "predator" ]
-  if players-roles = "all mates"     [ set role "mate" ]
-  if players-roles = "all predators" [ set role "predator" ]
-  if players-roles = "mix of mates & predators" [
+  if __hnw_supervisor_players-roles = "all mates"     [ set role "mate" ]
+  if __hnw_supervisor_players-roles = "all predators" [ set role "predator" ]
+  if __hnw_supervisor_players-roles = "mix of mates & predators" [
     ifelse number-of-mates >= number-of-predators
       [ set role "predator" ]
       [ set role "mate" ]
@@ -366,10 +388,6 @@ to initialize-player ;; player procedure
   set attempts 0
   set found 0
   set-percent
-end
-
-to check-found-bugs-host [x y]
-  ask host-player [ check-found-bugs x y ]
 end
 
 to check-found-bugs-student [x y]
@@ -438,49 +456,62 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 to set-default-image-filenames
+  ; TODO
   set image3 "seashore.jpg"
   set image4 "glacier.jpg"
   set image5 "poppyfield.jpg"
 end
 
 to upload-image1
+  ; TODO
   ;set image1 user-file
 end
 
 to upload-image2
+  ; TODO
   ;set image2 user-file
 end
 
 ;; loads a single or combined image as environment
 to change-environment
   clear-drawing
-  if (left-environment = "image1" or environment-right = "image1") and (image1 = 0) [
+  if (__hnw_supervisor_left-environment = "image1" or __hnw_supervisor_environment-right = "image1") and (image1 = 0) [
     user-message "Please upload image 1."
     stop
   ]
-  if (left-environment = "image2" or environment-right = "image2") and (image2 = 0) [
+  if (__hnw_supervisor_left-environment = "image2" or __hnw_supervisor_environment-right = "image2") and (image2 = 0) [
     user-message "Please upload image 2."
     stop
   ]
-  if not (left-environment  = "none") [
-    set-environment (match-image-input left-environment) 1
+  if not (__hnw_supervisor_left-environment  = "none") [
+    set-environment (match-image-input __hnw_supervisor_left-environment) 1
   ]
-  if not (environment-right = "none") [
-    set-environment (match-image-input environment-right) 2
+  if not (__hnw_supervisor_environment-right = "none") [
+    set-environment (match-image-input __hnw_supervisor_environment-right) 2
   ]
+
   ask bugs [ set hidden? true ]
+
   let image-file-name "stitched-image.png"
+
+  ; TODO
   ;bitmap:export bitmap:from-view image-file-name
   ;import-drawing image-file-name
   ;carefully [ file-delete image-file-name ] []
+
   ask bugs [ set hidden? false ]
+
 end
 
 to set-environment [image-name region-name]
+
   let xcor-image 0 ;;if region is 1 this will stay as 0, if 2 it will be 400
   if region-name = 2 [ set xcor-image 400 ]
+
+  ; TODO
   ;let image-name-scaled bitmap:scaled (bitmap:import image-name) 410 410
   ;bitmap:copy-to-drawing image-name-scaled xcor-image 0
+
 end
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -504,14 +535,6 @@ to-report limit-gene [ gene ]
   if gene < 0   [ report 0   ]
   if gene > 255 [ report 255 ]
   report gene
-end
-
-to-report host-found
-  report [found] of host-player
-end
-
-to-report num-attempts
-  report [attempts] of host-player
 end
 
 ; Copyright 2006 Uri Wilensky.
@@ -799,39 +822,6 @@ show-genes?
 1
 -1000
 
-MONITOR
-15
-305
-175
-350
-role of the host
-host-role
-17
-1
-11
-
-MONITOR
-15
-350
-95
-395
-host found
-host-found
-17
-1
-11
-
-MONITOR
-95
-350
-175
-395
-# attempts
-num-attempts
-17
-1
-11
-
 @#$#@#$#@
 ## WHAT IS IT?
 
@@ -853,7 +843,7 @@ Each HubNet participant or player assumes the role of a predator or a mate. When
 
 If the player is in the role of a predator, then each bug they catch is one that they ate. If the player is in the role of a mate, then each bug they catch is one that they mate with.
 
-Each participant can monitor his or her relative success compared to other participants by watching the monitors in the client that show the number of bugs found (YOU HAVE FOUND) or if they are the host (HOST FOUND). .
+Each participant can monitor his or her relative success compared to other participants by watching the monitors in the client that show the number of bugs found (YOU HAVE FOUND).
 
 Over time a population of bugs will either become harder or easier to detect in the environment (the environment is an image file that is loaded into the model), depending on whether mates or predators are exerting a selective pressure on the population.
 
@@ -877,13 +867,13 @@ To run the simulation the GO button. To start the simulation over with the same 
 
 Make sure you select Mirror 2D view on clients in the HubNet Control Center after you press SETUP.
 
-PREDATOR-ROLES specifies the type of role each player is assigned (the players include all the clients as well as the host).
+PREDATOR-ROLES specifies the type of role each player is assigned.
 
 - when this value is set to "all mates" each player will eat bugs when they click on them.
 
 - when this value is set to "all predators" each player will mate with bugs when they click on them
 
-- when this value is set to "a mix of predator & mates", a player may end up being assigned the role of either a mate or predator, and then they keep that role until SETUP is pressed again. The assigned role for that player will appear in the ROLE OF HOST monitor for the host or in the YOUR ROLE monitor for the clients.
+- when this value is set to "a mix of predator & mates", a player may end up being assigned the role of either a mate or predator, and then they keep that role until SETUP is pressed again. The assigned role for that player will appear in the YOUR ROLE monitor.
 
 UPLOAD IMAGE 1 is a button that is used to load an image file into memory, for use as a potential background. UPLOAD IMAGE 2 does the same, but for a 2nd image. Both buttons allow you to select an image file from anywhere on your computer hard drive to use as a background image. Once the image is loaded, then changing the LEFT-ENVIRONMENT or RIGHT ENVIRONMENT chooser to "image1" or "image2" will use that loaded image as the new background when SETUP or CHANGE ENVIRONMENTS is pressed.
 
@@ -904,10 +894,6 @@ ADULT-BUG-SIZE is a slider that can be changed at any time during GO or before S
 MAX-COLOR-MUTATION is a slider that determines how much the pigment genes can drift from their current values in each new generation. For example, a MAX-COLOR-MUTATION of 1 means that the gene frequency for any of the three pigments could go up 1, down 1, or any value in between (including 0, which would be no change) in the offspring.
 
 OFFSPRING-DISTANCE is a slider that determines how far away (in patches) an offspring could show up from a parent. For example, a distance of 5 means the offspring could be between 0 and 5 patches away from the parent.
-
-HOST FOUND is a monitor showing the number of bugs found by the host
-
-HOST ATTEMPTS is a monitor showing the number of attempted clicks of the mouse button by the host, as they hunted in the environment.
 
 CLEAR BOTH BACKGROUNDS is a button that removes the images from both background, and makes the background all black.
 
@@ -935,7 +921,7 @@ What if the body shape of the bugs was heritable and mutated?
 
 ## NETLOGO FEATURES
 
-The bitmap extension is used to support `bitmap:export bitmap:from-view` to build a new image file from the file selected for import, for later use by the IMPORT-DRAWING primitive.
+TODO   The bitmap extension is used to support `bitmap:export bitmap:from-view` to build a new image file from the file selected for import, for later use by the IMPORT-DRAWING primitive.
 
 IMPORT-DRAWING is the primitive that loads the image into the drawing, which in this case is merely a backdrop.
 

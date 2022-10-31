@@ -7,7 +7,7 @@
       "name": "student"
     , "namePlural": "students"
     , "limit": -1
-    , "highlightMainColor": "#008000"
+    , "highlightMainColor": "#00000000"
     , "widgets": [
         { "type": "hnwMonitor",  "left":   5, "right": 130, "top":  10, "bottom":  59, "display": "Your name", "source": "user-id", "reporterStyle": "turtle-var", "precision": 0, "fontSize": 10 }
       , { "type": "hnwMonitor",  "left":   5, "right": 130, "top": 120, "bottom": 169, "display": "You have found", "source": "student-found", "reporterStyle": "turtle-procedure", "precision": 3, "fontSize": 10 }
@@ -48,9 +48,6 @@
       , { "type": "hnwChooser",  "left": 685, "right":  845, "top":  45, "bottom":  90, "display": "initial-colors-bugs-right", "variable": "initial-colors-bugs-right", "choices": ["random variation", "all gray", "all black or white"], "currentChoice": 0 }
       , { "type": "hnwSlider",   "left":  15, "right":  175, "top": 260, "bottom": 293, "display": "offspring-distance", "variable": "offspring-distance", "min": 2.0, "max": 40, "default": 40.0, "units": "", "direction": "horizontal", "step": 2.0 }
       , { "type": "hnwSwitch",   "left":  15, "right":  175, "top": 480, "bottom": 513, "display": "show-genes?", "variable": "show-genes?", "on": false }
-      , { "type": "hnwMonitor",  "left":  15, "right":  175, "top": 305, "bottom": 350, "display": "role of the host", "source": "host-role", "reporterStyle": "global-var", "precision": 17, "fontSize": 11 }
-      , { "type": "hnwMonitor",  "left":  15, "right":   95, "top": 350, "bottom": 395, "display": "host found", "source": "host-found", "reporterStyle": "procedure", "precision": 17, "fontSize": 11 }
-      , { "type": "hnwMonitor",  "left":  95, "right":  175, "top": 350, "bottom": 395, "display": "# attempts", "source": "num-attempts", "reporterStyle": "procedure", "precision": 17, "fontSize": 11 }
       ]
     , "canJoinMidRun": true
     , "isSpectator": true
@@ -58,7 +55,7 @@
     , "onConnect": null
     , "onDisconnect": null
     , "afterDisconnect": null
-    , "onCursorClick": "check-found-bugs-host"
+    , "onCursorClick": null
     , "onCursorRelease": null
     , "onCursorMove": null
     }
