@@ -141,11 +141,9 @@ end
 ;; Also loads the data lists, if so desired.
 ;; Only called by SETUP-PROMPT, which is called by the setup button, and STARTUP.
 to setup
-  clear-all
-  clear-output
+  clear-clients
   setup-vars
   load-questions-prompt
-;  load-sample-questions ;this is here to make life easier on Walter
 end
 
 to walkthrough
@@ -233,7 +231,6 @@ end
 to clear-clients
   clear-plot
   clear-patches
-  clear-turtles
   clear-output
 end
 
@@ -736,7 +733,7 @@ to edit-question
       ]
 end
 
-to-report choose-type
+to choose-type [f]
   dialog:user-one-of (word "What type of question?\n"
     "POLLER \n"
     "web TEXT \n"
@@ -745,27 +742,36 @@ to-report choose-type
     ["POLLER" "TEXT" "LIKERT" "NUMBER"]
     [
       option ->
-        if option = "POLLER" [report "Poller"]
-        if option = "TEXT" [report "Web Text"]
-        if option = "LIKERT" [report "Likert"]
-        if option = "NUMBER" [report "Web Number"]
+        let chosen-type ""
+        if option = "POLLER" [set chosen-type "Poller"]
+        if option = "TEXT" [set chosen-type "Web Text"]
+        if option = "LIKERT" [set chosen-type "Likert"]
+        if option = "NUMBER" [set chosen-type "Web Number"]
+        (run f chosen-type)
     ]
 end
 
 to replace-question
-  set question-list replace-item current-question question-list build-question choose-type
-  clear-current-data
-  ask turtles [set-my-current-question my-current-question]
+  choose-type [
+    type' ->
+      set question-list (replace-item current-question question-list build-question type')
+      clear-current-data
+      ask turtles [set-my-current-question my-current-question]
+  ]
+
 end
 
 to insert-question
-  set question-list (sentence (lput (build-question choose-type) (items 0 current-question question-list)) (items current-question length question-list question-list))
-  ask turtles
-  [  set my-choices sentence (sentence items 0 current-question my-choices false) items current-question length my-choices my-choices
-     if my-current-question >= current-question and steps-locked? = false [set my-current-question my-current-question + 1]
+  choose-type [
+    type' ->
+      set question-list (sentence (lput (build-question type') (items 0 current-question question-list)) (items current-question length question-list question-list))
+      ask turtles
+      [  set my-choices sentence (sentence items 0 current-question my-choices false) items current-question length my-choices my-choices
+         if my-current-question >= current-question and steps-locked? = false [set my-current-question my-current-question + 1]
+      ]
+      clear-current-data
+      ask turtles [set-my-current-question my-current-question]
   ]
-  clear-current-data
-  ask turtles [set-my-current-question my-current-question]
 end
 
 to delete-question
@@ -819,7 +825,7 @@ end
 
 to do-one-item-histogram
   clear-plot
-  if length filter is-number? [item current-question my-choices] of turtles > 0
+  if length filter is-number? [item current-question my-choices] of (turtles with [length my-choices > 0]) > 0
   [ if max [item current-question my-choices] of turtles > 10
     [ set-plot-x-range plot-x-min (ceiling max [item current-question my-choices] of turtles + 1) ]
     if min [item current-question my-choices] of turtles < 0
@@ -982,6 +988,8 @@ to save-questions-page [destination]
    (run append question-list)
    (run append " POLLER QUESTION LIST END -->")
 
+   send-to:file destination buffer
+
  end
 
 
@@ -1031,33 +1039,16 @@ end
 
 ;load the data file locally, and extract the question information from it
 to load-local [file-text]
-  ; TODO
-  ;ifelse file-exists? from-where?
-  ;[  file-open from-where?
-  ;   let z-data ""
-  ;   output-show word "load-local ---- " z-data
-  ;   while [not file-at-end?]
-  ;   [ set z-data word z-data file-read-characters 100
-  ;        output-show word "load-local ---- " z-data
-
-  ;   ]
-  ;   file-close
-  ;   clear-all-data-and-questions
-  ;   output-show read-setup z-data
-  ;   set web-questions which-questions-are-web? question-list
-  ;   set-current-question 0
-  ;   ask turtles
-  ;   [ clear-my-data
-  ;     set-my-current-question 0
-  ;   ]
-  ;]
+  output-show word "load-local ---- " file-text
+  clear-all-data-and-questions
+  output-show read-setup file-text
+  set web-questions which-questions-are-web? question-list
+  set-current-question 0
+  ask turtles
+  [ clear-my-data
+    set-my-current-question 0
+  ]
 end
-
-;to-report is-url? [str]
-;   ifelse ("" = __check-syntax ("show read-url \"" + str + "\""))
-;     [ report true ]
-;     [ report false ]
-;end
 
 ;does all of the setting of variables and stuff.
 ;ALSO, reports true is successful, false if not
@@ -1105,47 +1096,15 @@ to-report which-questions-are-web? [z-list]
   report a-list
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 to-report safer-read-from-string [str]
-   ; TODO: Wat?
-   ;ifelse ("" = __check-syntax (word "output-show read-from-string \"\" + " str))
-   ;  [ report (read-from-string str) ]
-   ;  [ report str ]
-   report str
+  let out ""
+  carefully
+  [ set out (read-from-string str)
+  ]
+  [ set out str
+  ]
+  report out
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;
@@ -1218,58 +1177,40 @@ to auto-save-now
    [ send-to:file (word auto-save-file (substring remove ":" date-and-time 0 6) "NOW.csv") export-the:world ]
 end
 
+to save-responses
 
+  let filename (word user-id (substring remove ":" date-and-time 0 6) ".html")
 
+  let contents ""
 
+  let file-print' [s -> set contents (word contents s "\n")]
 
+  (run file-print' "<HTML>")
+  (run file-print' "<head>")
+  (run file-print' (word "<title>Poller Responses " user-id " " (substring remove ":" date-and-time 0 6) "</title>"))
+  (run file-print' "</head>")
+  (run file-print' "<body>")
+  (run file-print' "<table border=\"2\" align=\"center\" >")
+  let counter-q 0
+  repeat length question-list
+  [
+    (run file-print' "<tr>")
+    (run file-print' "<td width=\"200\">")
+    (run file-print' (word "<b>" item 0 item counter-q question-list "</b>"))
+    (run file-print' "</td>")
+    (run file-print' "<td>")
+    (run file-print' item counter-q my-choices)
+    (run file-print' "</td>")
+    (run file-print' "</tr>")
+    set counter-q counter-q + 1
+  ]
+  (run file-print' "</table>")
+  (run file-print' "</body>")
+  (run file-print' "</html>")
 
+  send-to:file filename contents
 
-
-
-
-
-;TODO
-;to save-responses [to-where?]
-;  let my-file (word to-where? "/" user-id (substring remove ":" date-and-time 0 6) ".html")
-;
-;  if file-exists? my-file
-;  [ file-delete my-file
-;  ]
-;
-;  file-open my-file
-;  file-print "<HTML>"
-;  file-print "<head>"
-;  file-print (word "<title>Poller Responses " user-id " " (substring remove ":" date-and-time 0 6) "</title>")
-;  file-print "</head>"
-;  file-print "<body>"
-;  file-print "<table border=\"2\" align=\"center\" >"
-;  let counter-q 0
-;  repeat length question-list
-;  [
-;    file-print "<tr>"
-;    file-print "<td width=\"200\">"
-;    file-print (word "<b>" item 0 item counter-q question-list "</b>")
-;    file-print "</td>"
-;    file-print "<td>"
-;    file-print item counter-q my-choices
-;    file-print "</td>"
-;    file-print "</tr>"
-;    set counter-q counter-q + 1
-;  ]
-;  file-print "</table>"
-;  file-print "</body>"
-;  file-print "</html>"
-;  file-close
-;end
-
-
-
-
-
-
-
-
-
+end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;
@@ -1420,6 +1361,24 @@ end
 
 to-report the-type
   report item 1 item current-question question-list + ifelse-value (item 1 item current-question question-list = "Likert") [word "  " item 2 item current-question question-list] [""]
+end
+
+to add-question-poller
+  add-question "Poller"
+end
+
+to change-sort-up
+  set sort-up user-input "Sort up / down word -"
+  set turtle-display "Word-Sort"
+end
+
+to change-sort-right
+  set sort-right user-input "Sort right / left word -"
+  set turtle-display "Word-Sort"
+end
+
+to save-individual-responses
+  ask turtles [ save-responses ]
 end
 
 ; Copyright 2002 Uri Wilensky and Walter Stroup.
@@ -2059,7 +2018,7 @@ BUTTON
 1353
 233
 Save INDIVIDUAL responses
-;TODO let where user-directory\nask turtles [ save-responses where ]
+save-individual-responses
 NIL
 1
 T
