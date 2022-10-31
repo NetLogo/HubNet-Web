@@ -49,8 +49,9 @@ turtles-own [
   user-code              ;; students create custom strategies, which are stored here
   code-changed?          ;; is true when the user changes given strategies
 
+  strategy-choice
+
   error-msg
-  gui-strategy
   gui-user-code
 
 ]
@@ -73,10 +74,30 @@ to startup
 end
 
 to setup
-  TODO, CANNOT DELETE TURTLES clear-all
+  clear-some
   setup-shapes
   setup-vars
   reset-ticks
+end
+
+to clear-some
+
+  let temp1 __hnw_supervisor_allow-strategy-change?
+  let temp2 __hnw_supervisor_C-C
+  let temp3 __hnw_supervisor_C-D
+  let temp4 __hnw_supervisor_D-C
+  let temp5 __hnw_supervisor_D-D
+
+  clear-globals
+
+  set __hnw_supervisor_allow-strategy-change? temp1
+  set __hnw_supervisor_C-C                    temp2
+  set __hnw_supervisor_C-D                    temp3
+  set __hnw_supervisor_D-C                    temp4
+  set __hnw_supervisor_D-D                    temp5
+
+  ask androids [die]
+
 end
 
 to setup-shapes
@@ -169,7 +190,7 @@ to play-n-times
 
     ask students [
 
-      if (__hnw_supervisor_allow-strategy-change? and gui-user-code != user-code) [
+      if (__hnw_supervisor_allow-strategy-change? and gui-user-code != user-code and gui-user-code != "null") [
          set error-msg ""
          ;; code is taken, and tested for accuracy, so students can make more changes before playing another round
          if ( test-strategy gui-user-code )
@@ -179,17 +200,17 @@ to play-n-times
          ]
       ]
 
-      if (gui-strategy != selected-strategy) [
+      if (strategy-choice != selected-strategy) [
         ifelse (__hnw_supervisor_allow-strategy-change?) ;; if this is permitted under the current game-mode
         [
           set error-msg ""
-          set selected-strategy gui-strategy
+          set selected-strategy strategy-choice
           set-code
           set code-changed? false
         ]
         [
           set error-msg "You cannot change your strategy while playing"
-          set gui-strategy selected-strategy
+          set strategy-choice selected-strategy
         ]
       ]
 
@@ -207,14 +228,22 @@ to play-n-times
         ;; students may have changed strategy during the round, and this change can only be made afterwards
         if not code-changed? [
           let strategy-index position selected-strategy strategy-list
-          set strategy-totals (replace-item strategy-index strategy-totals ((item strategy-index strategy-totals) + score))
-          set strategy-totals-count (replace-item strategy-index strategy-totals-count ((item strategy-index strategy-totals-count) + 1))
+          ifelse (strategy-index != false) [
+            set strategy-totals (replace-item strategy-index strategy-totals ((item strategy-index strategy-totals) + score))
+            set strategy-totals-count (replace-item strategy-index strategy-totals-count ((item strategy-index strategy-totals-count) + 1))
+          ] [
+            show (word "Skipping on bad student index for " selected-strategy)
+          ]
         ]
       ]
       [
         let strategy-index position selected-strategy strategy-list
-        set strategy-totals (replace-item strategy-index strategy-totals ((item strategy-index strategy-totals) + score))
-        set strategy-totals-count (replace-item strategy-index strategy-totals-count ((item strategy-index strategy-totals-count) + 1))
+        ifelse (strategy-index != false) [
+          set strategy-totals (replace-item strategy-index strategy-totals ((item strategy-index strategy-totals) + score))
+          set strategy-totals-count (replace-item strategy-index strategy-totals-count ((item strategy-index strategy-totals-count) + 1))
+        ] [
+          show (word "Skipping on bad android index for " selected-strategy)
+        ]
       ]
       setup-turtle-vars
       set shape base-shape
@@ -299,7 +328,12 @@ to-report test-strategy [ snippet ]
   report success?
 end
 
-to set-code  ;; outputs the code to the input box, for students to see and modify
+to set-code
+  set-code'
+  set gui-user-code user-code
+end
+
+to set-code'  ;; outputs the code to the input box, for students to see and modify
   if selected-strategy = "random"
     [ set user-code (word
         "ifelse-value random 2 = 0\n"
@@ -496,6 +530,7 @@ to-report create-new-student [username]
     set total 0
     setup-turtle-vars
     set selected-strategy "random"
+    set strategy-choice   "random"
     set code-changed? false
     set error-msg ""
     set-code
