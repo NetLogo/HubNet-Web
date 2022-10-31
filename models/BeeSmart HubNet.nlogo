@@ -1,11 +1,18 @@
-;extensions [ csv ]         ; export clients history
+extensions [ csv send-to ]         ; export clients history
 
 breed [ sites site ]
 breed [ robots robot ]
 breed [ students student ]
 
 globals [
+
   history                 ; a list of history of all students' dances, including [Ticks, Quality, Recruited]
+
+  __hnw_supervisor_filename
+  __hnw_supervisor_number-of-robots
+  __hnw_supervisor_number-of-sites
+  __hnw_supervisor_student-vision-radius
+
 ]
 
 sites-own [
@@ -61,8 +68,15 @@ robots-own [              ; variables below are the same as students'. See stude
 ;;;;;;;;;;;;;SETUP;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 to startup
+
   set-default-shape students "bee"
   set-default-shape robots "beebot"
+
+  set __hnw_supervisor_filename              "history.csv"
+  set __hnw_supervisor_number-of-robots      100
+  set __hnw_supervisor_number-of-sites       9
+  set __hnw_supervisor_student-vision-radius 10
+
 end
 
 to setup
@@ -84,7 +98,7 @@ to setup
 end
 
 to make-robots
-  create-robots number-of-robots [
+  create-robots __hnw_supervisor_number-of-robots [
     set color gray
     set supported-site nobody
     set state "chilling"
@@ -107,7 +121,7 @@ to-report dance-floor? ; patch and turtle reporter
 end
 
 to reset-students
-  set perspective (list "follow" self student-vision-radius)    ; apply field of vision constrains
+  set perspective (list "follow" self __hnw_supervisor_student-vision-radius)    ; apply field of vision constrains
   setxy random-float 5 random-float 5
   set state "exploring"
   set supported-site nobody
@@ -119,7 +133,7 @@ to reset-students
 end
 
 to setup-sites
-  create-sites number-of-sites [
+  create-sites __hnw_supervisor_number-of-sites [
     set color gray
     set shape "box"
     set size 2
@@ -326,7 +340,7 @@ to-report create-new-student [username]
   let out -1
   create-students 1 [
     set user-id username
-    set perspective (list "follow" self student-vision-radius)
+    set perspective (list "follow" self __hnw_supervisor_student-vision-radius)
     set state "exploring"
     set color gray
     set out who
@@ -488,7 +502,8 @@ end
 ;;;;;;;;;;;;;;SAVE FILE;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 to save-history
-  ;csv:to-file filename history
+  let csv-str (csv:to-string history)
+  send-to:file __hnw_supervisor_filename csv-str
 end
 
 
