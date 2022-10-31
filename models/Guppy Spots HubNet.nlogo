@@ -68,14 +68,13 @@ fish-parts-own [
 ;; Setup Procedures
 ;;;;;;;;;;;;;;;;;;;
 to startup
+  init-hnw-globals
   init-globals
   setup-environment
   make-initial-fish
 end
 
-;; set constants once at the very beginning.
-to init-globals
-
+to init-hnw-globals
   set __hnw_supervisor_carrying-capacity 14
   set __hnw_supervisor_fish-speed-scale 7.8
   set __hnw_supervisor_background-color 97
@@ -85,6 +84,10 @@ to init-globals
   set __hnw_supervisor_show-age? false
   set __hnw_supervisor_background "aquarium.jpg"
   set __hnw_supervisor_player-roles "all mates"
+end
+
+;; set constants once at the very beginning.
+to init-globals
 
   set wander-angle 40
   set chance-mutate-color 20
@@ -122,9 +125,7 @@ to setup-environment
       set shape "rocks"
     ]
   ]
-  let base-url "/assets/modelslib/HubNet%20Activities/Unverified"
-  let url (word base-url "/" __hnw_supervisor_background)
-  fetch:url-async url import-a:drawing
+  import-background
 end
 
 ;; each fish consists of several turtles, one for the body
@@ -505,6 +506,16 @@ end
 
 to-report count-predators
   report count players with [role = "predator"]
+end
+
+to clear-background
+  clear-drawing
+end
+
+to import-background
+  let base-url "https://hubnetweb.org/models/Guppy Spots"
+  let url (word base-url "/" __hnw_supervisor_background)
+  fetch:url-async url import-a:drawing
 end
 
 ; Copyright 2006 Uri Wilensky.
