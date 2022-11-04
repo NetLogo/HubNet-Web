@@ -1,3 +1,5 @@
+import { parse } from "/depend/js/marked.esm.js";
+
 export default class LaunchControlManager {
 
   #awaitLaunchHTTP = undefined; // (Object[Any]) => Promise[Response]
@@ -6,13 +8,14 @@ export default class LaunchControlManager {
   #password        = undefined; // String
 
   // (Element, (Object[Any]) => Promise[Response], (String) => Unit, (Object[Any]) => Unit) => LaunchControlManager
-  constructor(elem, awaitLaunchHTTP, notifyUser, finishLaunch) {
+  constructor(elem, awaitLaunchHTTP, notifyUser, finishLaunch, getLibrary) {
 
     this.#awaitLaunchHTTP = awaitLaunchHTTP;
     this.#elem            = elem;
     this.#notifyUser      = notifyUser;
 
-    this.#elem.querySelector("form").onsubmit = this.#onSubmit(finishLaunch);
+    elem.querySelector(          "form").onsubmit = this.#onSubmit(finishLaunch);
+    elem.querySelector(".library-model").onchange = this.#onChange(  getLibrary);
 
   }
 
@@ -39,6 +42,12 @@ export default class LaunchControlManager {
     return this.#password === null || this.#password === password;
   };
 
+  // (Object[Any]) => Unit
+  refreshInfo = (libraryConfig) => {
+    const elem = this.#elem.querySelector(".library-model");
+    this.#refresh(libraryConfig, elem);
+  };
+
   // ((Object[Any]) => Unit) => () => Unit
   #onSubmit = (finishLaunch) => () => {
 
@@ -54,6 +63,28 @@ export default class LaunchControlManager {
     this.launch(config).then(finishLaunch);
 
     return true;
+
+  };
+
+  // (() => Object[Any]) => (Event) => Unit
+  #onChange = (getLibraryConfig) => (e) => {
+    this.#refresh(getLibraryConfig(), e.target);
+  };
+
+  #refresh = (libConfig, selectElem) => {
+
+    const getDOM    = (s) => this.#elem.querySelector(s);
+    const toSummary = (s) => s.split("\n", 1)[0];
+
+    const modelName   = selectElem.selectedOptions[0].value.slice(4);
+    const description = libConfig[modelName];
+
+    if (description !== undefined) {
+      getDOM(".modal-activity-title").innerText = modelName;
+      getDOM("#activity-text-full"  ).innerHTML = parse(          description );
+      getDOM("#activity-text-short" ).innerHTML = parse(toSummary(description));
+      getDOM("#preview-image"       ).src       = `/previews/${modelName} HubNet.png`;
+    }
 
   };
 

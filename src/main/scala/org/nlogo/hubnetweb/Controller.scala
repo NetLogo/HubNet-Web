@@ -103,6 +103,7 @@ object Controller {
       path("launch-session")   { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
       path("join")             { getFromFile("html/join.html")  } ~
       path("available-models") { get { complete(availableModels) } } ~
+      path("library-config")   { get { complete(libraryConfig) } } ~
       path("chat")                             { handleWebSocketMessages(chat) } ~
       path("rtc" / "join" / Segment)           { (hostID)           => get { startJoin(toID(hostID)) } } ~
       path("rtc" / Segment / Segment / "host") { (hostID, joinerID) => handleWebSocketMessages(rtcHost(toID(hostID), toID(joinerID))) } ~
@@ -112,10 +113,12 @@ object Controller {
       path("hnw" / "my-status" / Segment) { (hostID) => handleWebSocketMessages(sessionStatus(toID(hostID))) } ~
       path("preview" / Segment)      { uuid => get { handlePreview(toID(uuid)) } } ~
       path("depend" / "js" / "pako.esm.mjs") { getFromFile("node_modules/pako/dist/pako.esm.mjs") } ~
+      path("depend" / "js" / "marked.esm.js") { getFromFile("node_modules/marked/lib/marked.esm.js") } ~
       path("favicon.ico") { getFromFile("assets/images/favicon.ico") } ~
       pathPrefix("js")               { getFromDirectory("js")         } ~
       pathPrefix("assets")           { getFromDirectory("assets")     } ~
-      pathPrefix("models")           { respondWithHeaders(ACAO.*) { getFromDirectory("assets/models") } }
+      pathPrefix("models")           { respondWithHeaders(ACAO.*) { getFromDirectory("assets/models") } } ~
+      pathPrefix("previews")         { getFromDirectory("assets/previews")     }
 
     }
 
@@ -482,16 +485,13 @@ object Controller {
           nlogo
       }.toRight(s"Unknown model name: $modelName")
 
-  private def makeModelMappings(): Map[String, Path] = {
-    import scala.collection.JavaConverters.asScalaIteratorConverter
-    val path  = Paths.get("./models/")
-    val paths = Files.walk(path).filter(_.getFileName.toString.endsWith(".nlogo")).iterator.asScala.toVector
-    paths.map(x => (x.getFileName.toString.stripSuffix(" HubNet.nlogo"), x)).toMap
-  }
-
   private lazy val availableModels = {
     val modelNames = namesToPaths.keys.map(JsString.apply).toVector
     JsArray(modelNames: _*)
+  }
+
+  private lazy val libraryConfig = {
+    JsObject(ModelsLibrary.getDescriptions().mapValues(JsString.apply))
   }
 
   private def toID(id: String): UUID = UUID.fromString(id)

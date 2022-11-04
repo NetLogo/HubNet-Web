@@ -82,9 +82,21 @@ const getCapacity = () => {
   return Math.max(0, Math.min(999, parseInt(byEID("max-num-clients-slider").value)));
 };
 
+let libraryConfig = null;
+
+// () => Object[Any]
+const getLibraryConfig = () => libraryConfig || {};
+
 const launchControlManager =
   new LaunchControlManager( byEID("form-frame"), awaitLaunchHTTP, notifyUser
-                          , finishLaunch);
+                          , finishLaunch, getLibraryConfig);
+
+fetch("/library-config").
+  then((res)  => res.json()).
+  then((json) => {
+    libraryConfig = json;
+    launchControlManager.refreshInfo(libraryConfig);
+  });
 
 const sessionChatManager =
   new ChatManager( byEID("session-chat-output"), byEID("session-chat-input")

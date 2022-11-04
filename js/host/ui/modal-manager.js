@@ -58,8 +58,3 @@ export default class ModalManager {
   };
 
 }
-
-// (Elem) => Unit
-const hide = (elem) => {
-  elem.classList.add("modal-invis", "no-display");
-};
