@@ -6,25 +6,21 @@ export default class ModalManager {
   #checkIsOnHostA = undefined; // () => Boolean
   #descElem       = undefined; // Elem
   #detailsElem    = undefined; // Elem
-  #statsElem      = undefined; // Elem
 
-  // (() => Boolean, Elem, Elem, Elem, Button, Button, Button, Button) => ModalManager
-  constructor( checkIsOnHostA, descElem, detailsElem, statsElem
-             , openStatsButton, closeStatsButton, openDescButton, closeDescButton) {
+  // (() => Boolean, Elem, Elem, Button, Button, Button, Button) => ModalManager
+  constructor( checkIsOnHostA, descElem, detailsElem, openStatsButton
+             , closeStatsButton, openDescButton, closeDescButton) {
 
     this.#checkIsOnHostA = checkIsOnHostA;
     this.#descElem       = descElem;
     this.#detailsElem    = detailsElem;
-    this.#statsElem      = statsElem;
 
     openStatsButton.onclick = () => {
       this.#detailsElem.classList.remove("modal-invis");
-      this.  #statsElem.classList.remove("modal-invis", "no-display");
     };
 
     closeStatsButton.onclick = () => {
       this.#detailsElem.classList.add("modal-invis");
-      hide(this.#statsElem);
     };
 
     openDescButton.onclick = () => {
@@ -45,7 +41,6 @@ export default class ModalManager {
       }
     } else {
       if (event.target === this.#detailsElem) {
-        hide(this.#statsElem);
         this.#detailsElem.classList.add("modal-invis");
       }
     }
@@ -57,7 +52,6 @@ export default class ModalManager {
       if (this.#checkIsOnHostA()) {
         this.#descElem.classList.add("modal-invis");
       } else {
-        hide(this.#statsElem);
         this.#detailsElem.classList.add("modal-invis");
       }
     }

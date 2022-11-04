@@ -32,15 +32,13 @@
           <div class="top-section">
             <div id="description-modal-container"
                  class="modal-container modal-invis">
-              <div id="description-modal" class="modal flex-column">
+              <div id="description-modal" class="modal">
                 <div id="close-description-modal-button" class="close-modal-button">
                 </div>
-                <div class="modal-body">
-                  <p class="modal-activity-title">Disease</p>
-                  <p id="activity-text-full" class="activity-text-full">
-                    This is placeholder text for a full activity description.
-                  </p>
-                </div>
+                <div class="modal-activity-title">Disease</div>
+                <p id="activity-text-full" class="activity-text-full">
+                  This is placeholder text for a full activity description.
+                </p>
               </div>
             </div>
 
@@ -154,42 +152,40 @@
         <div id="more-details-modal" class="modal flex-column">
           <div id="close-more-details-modal-button" class="close-modal-button"></div>
 
-          <div id="stats-modal-body" class="modal-body modal-invis no-display">
-            <p id="stats-modal-title" class="stats-modal-title">
-              Session Stats: <span id="stats-session-name"></span>
-            </p>
-            <div id="session-dashboard" class="session-dashboard">
-              <ul>
-                <li>
-                  <span class="stats-modal-bold-text">Session ID: </span>
-                  <span id="id-display"></span>
-                </li>
-                <li>
-                  <span class="stats-modal-bold-text">Upload: </span>
-                  <span id="bandwidth-span">0 B</span>/s
-                </li>
-                <li>
-                  <span class="stats-modal-bold-text">New Send: </span>
-                  <span id="new-send-span">0 B</span>/s
-                </li>
-                <li>
-                  <span class="stats-modal-bold-text">Number of Clients: </span>
-                  <span id="num-clients-span">0</span>
-                </li>
-                <li>
-                  <span class="stats-modal-bold-text">Number of TURNs: </span>
-                  <span id="num-turn-span">0</span>
-                </li>
-                <li>
-                  <span class="stats-modal-bold-text">Number Congested: </span>
-                  <span id="num-congested-span">0</span>
-                </li>
-                <li>
-                  <span class="stats-modal-bold-text">Status: </span>
-                  <span id="activity-status-span">...</span>
-                </li>
-              </ul>
-            </div>
+          <div id="stats-modal-title" class="stats-modal-title">
+            Session Stats: <span id="stats-session-name"></span>
+          </div>
+          <div id="session-dashboard" class="session-dashboard">
+            <ul>
+              <li>
+                <span class="stats-modal-bold-text">Session ID: </span>
+                <span id="id-display"></span>
+              </li>
+              <li>
+                <span class="stats-modal-bold-text">Upload: </span>
+                <span id="bandwidth-span">0 B</span>/s
+              </li>
+              <li>
+                <span class="stats-modal-bold-text">New Send: </span>
+                <span id="new-send-span">0 B</span>/s
+              </li>
+              <li>
+                <span class="stats-modal-bold-text">Number of Clients: </span>
+                <span id="num-clients-span">0</span>
+              </li>
+              <li>
+                <span class="stats-modal-bold-text">Number of TURNs: </span>
+                <span id="num-turn-span">0</span>
+              </li>
+              <li>
+                <span class="stats-modal-bold-text">Number Congested: </span>
+                <span id="num-congested-span">0</span>
+              </li>
+              <li>
+                <span class="stats-modal-bold-text">Status: </span>
+                <span id="activity-status-span">...</span>
+              </li>
+            </ul>
           </div>
 
         </div>

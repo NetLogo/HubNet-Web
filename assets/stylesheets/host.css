@@ -22,8 +22,8 @@
 }
 
 .activity-text-full {
-  line-height:   1.5;
-  padding-right: 25px;
+  font-size:   22px;
+  line-height: 1.5em;
 }
 
 .host-header {
@@ -81,11 +81,6 @@
   pointer-events:   none;
   position:         relative;
   width:            50px;
-}
-
-.activity-text-short {
-  max-height: 200px;
-  text-align: center;
 }
 
 .read-more-button {

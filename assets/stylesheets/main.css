@@ -337,10 +337,10 @@
   background-color: white;
   border:           5px solid;
   border-radius:    20px;
-  height:           60%;
   justify-content:  space-between;
   margin-left:      auto;
   margin-right:     auto;
+  padding:          25px;
   position:         relative;
   top:              50%;
   transform:        translateY(-50%);
@@ -352,13 +352,13 @@
   background-color: var(--red);
   border-radius:    50%;
   cursor:           pointer;
-  display:          flex;
+  display:          relative;
+  top:              7px;
+  right:            7px;
   height:           30px;
-  justify-content:  center;
-  min-width:        25px;
+  text-align:       center;
+  line-height:      30px;
   position:         absolute;
-  right:            1vw;
-  top:              1vh;
   width:            30px;
 }
 
@@ -378,16 +378,8 @@
 }
 
 .modal-activity-title {
-  font-size:     48px;
-  font-weight:   bold;
-  margin-bottom: 0;
-  margin-top:    0;
-}
-
-.modal-body {
-  height:     100%;
-  margin:     25px 25px 0px 25px;
-  overflow-y: auto;
+  font-size:   40px;
+  font-weight: bold;
 }
 
 .chat-box-closed-container {

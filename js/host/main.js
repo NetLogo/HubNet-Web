@@ -151,7 +151,6 @@ document.addEventListener("DOMContentLoaded", () => {
     new ModalManager( () => byEID("nlw-frame").classList.contains("hidden")
                     , byEID("description-modal-container")
                     , byEID("more-details-modal-container")
-                    , byEID("stats-modal-body")
                     , byEID("more-details-button")
                     , byEID("close-more-details-modal-button")
                     , byEID("read-more-button")
