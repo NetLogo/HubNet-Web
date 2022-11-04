@@ -1,6 +1,6 @@
 package org.nlogo.hubnetweb
 
-import java.nio.file.{ Files, Path, Paths }
+import java.nio.file.Paths
 import java.util.UUID
 
 import scala.concurrent.{ Await, ExecutionContext, Future }
@@ -72,7 +72,7 @@ object Controller {
       ()
   }
 
-  private val namesToPaths = makeModelMappings()
+  private val namesToPaths = ModelsLibrary.getFileMappings()
 
   def main(args: Array[String]) {
 
