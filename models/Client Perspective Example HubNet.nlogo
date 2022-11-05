@@ -193,7 +193,7 @@ SLIDER
 radius
 radius
 0
-max-pxcor ;; TODO: This was throwing a JS error, as the JS was `return max-pxcor`, and somehow not compiled; I replaced it in the JSON with the literal value
+max-pxcor
 2.0
 1
 1
