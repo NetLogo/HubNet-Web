@@ -1,11 +1,17 @@
 globals [
+
   generators             ;; patches where the dice (both singles & pairs) appear
   single-outcomes        ;; list of all the single dice rolls
   pair-outcomes          ;; list of all the sums from rolling pairs of dice
   top-row                ;; agentset of just the top row of patches
   rolls                  ;; the total number of rolls performed either by clients or random rolls
 
+  ready-to-bump?
+  ready-to-roll?
+  roll-queue
+
   __hnw_supervisor_colored-dice?
+
 ]
 
 breed [paired-dice paired-die]   ;; dice that are paired (go to the right)
@@ -59,6 +65,9 @@ to setup
   set single-outcomes []
   set pair-outcomes []
   set rolls 0
+  set ready-to-bump? true
+  set ready-to-roll? true
+  set roll-queue []
 
  ;; assign outcomes to columns
   ask patches with [pxcor > 0] [
@@ -91,16 +100,37 @@ end
 ;;
 
 to go
-  bump-down stacked-dice with [pxcor < 0]
-  bump-down stacked-dice with [pxcor > 0]
 
-  while [any? single-dice or any? paired-dice] [
+  if ready-to-bump? [
+    bump-down stacked-dice with [pxcor < 0]
+    bump-down stacked-dice with [pxcor > 0]
+    set ready-to-bump? false
+  ]
+
+  ifelse any? single-dice or any? paired-dice [
     move-paired-dice
     move-single-dice
     display    ;; force the view to update, so we see the dice move smoothly
+  ] [
+    ifelse ready-to-roll? [
+      if not empty? roll-queue [
+
+        let queued     (    first roll-queue)
+        set roll-queue (but-first roll-queue)
+
+        let d1 (item 0 queued)
+        let d2 (item 1 queued)
+        let c  (item 2 queued)
+
+        generate-roll d1 d2 c
+
+      ]
+    ] [
+      set ready-to-bump? true
+      set ready-to-roll? true
+    ]
   ]
 
-  display ;; force the view to update, so we see the dice move smoothly
 end
 
 to move-paired-dice
@@ -180,6 +210,10 @@ to bump-down [candidates]
   ]
 end
 
+to queue-roll [ die-1 die-2 the-color ]
+  set roll-queue (lput (list die-1 die-2 the-color) roll-queue)
+end
+
 ;;creates a new pair of dice (both singles and pairs) [given the die values]
 to generate-roll [ die-1 die-2 the-color]
   let die-values (list die-1 die-2)
@@ -225,7 +259,10 @@ end
 
 
 to random-roll-full
-  if not any? generators with [ any? single-dice-here ] [ random-roll ]
+  if ready-to-roll? [
+    set ready-to-roll? false
+    if not any? generators with [ any? single-dice-here ] [ random-roll ]
+  ]
 end
 
 to random-roll
@@ -236,18 +273,20 @@ end
 
 ;; keep doing a random-roll continuously
 to auto-fill
-  random-roll
-  repeat 3 [ go ]
+  ifelse ready-to-roll? [
+    random-roll-full
+  ] [
+    go
+  ]
 end
 
 ;; runs the simulation num times
 to simulate [ num ]
   repeat num
   [
-    random-roll
-    repeat 2 [ go ]
+    random-roll-full
+    while [not ready-to-roll?] [ go ]
   ]
- repeat 70 [ go ]
 end
 
 ;;
@@ -266,8 +305,9 @@ to-report create-client
   [
     hide-turtle
     set user-color item (count clients mod length base-colors) base-colors
-    set die1 "--"
-    set die2 "--"
+    set die1    "--"
+    set die2    "--"
+    set message ""
     set out who
   ]
   report out
@@ -282,8 +322,11 @@ to client-submit
   ]
   [
 
+    let d1 (position die1 ["invalid" "1" "2" "3" "4" "5" "6"])
+    let d2 (position die2 ["invalid" "1" "2" "3" "4" "5" "6"])
+
     ;; generate the pair and the singles
-    generate-roll die1 die2 ifelse-value __hnw_supervisor_colored-dice? [ user-color ][ white ]
+    queue-roll d1 d2 ifelse-value __hnw_supervisor_colored-dice? [ user-color ][ white ]
     ;; send confirmation message to user
     set message (word "Thank you. Your input was " die1 "-" die2 ".")
 
@@ -293,14 +336,6 @@ to client-submit
     update-plots
   ]
 end
-
-to exe-cmd [ msg ] ;; client procedure
-  ;if hubnet-message-tag = "Die_A"
-  ;[ set die1 message stop ]
-  ;if hubnet-message-tag = "Die_B"
-  ;[ set die2 message stop ]
-end
-
 
 ; Copyright 2004 Uri Wilensky.
 ; See Info tab for full copyright and license.

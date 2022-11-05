@@ -10,10 +10,9 @@
     , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwMonitor", "left":   0, "right": 263, "top":  10, "bottom":  50, "display": "Message:", "source": "message", "reporterStyle": "turtle-var", "precision": 0, "fontSize": 10 }
-      , { "type": "hnwChooser", "left":   0, "right": 117, "top":  62, "bottom": 107, "display": "Die_A", "variable": "die1", "choices": ["--", "1", "2", "3", "4", "5", "6"], "default": "\"--\"" }
-      , { "type": "hnwChooser", "left": 145, "right": 263, "top":  62, "bottom": 107, "display": "Die_B", "variable": "die2", "choices": ["--", "1", "2", "3", "4", "5", "6"], "default": "\"--\"" }
+      , { "type": "hnwChooser", "left":   0, "right": 117, "top":  62, "bottom": 107, "display": "Die_A", "variable": "die1", "choices": ["--", "1", "2", "3", "4", "5", "6"], "currentChoice": 0 }
+      , { "type": "hnwChooser", "left": 145, "right": 263, "top":  62, "bottom": 107, "display": "Die_B", "variable": "die2", "choices": ["--", "1", "2", "3", "4", "5", "6"], "currentChoice": 0 }
       , { "type": "hnwButton",  "left":  95, "right": 164, "top": 113, "bottom": 146, "display": "Submit", "hnwProcName": "client-submit", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle" }
-      , { "type": "hnwView",    "left": 400, "right": 401, "top":   0, "bottom":   1, "height": 1, "width": 1 }
       ]
     , "canJoinMidRun": false
     , "isSpectator": false
@@ -37,7 +36,7 @@
       , { "type": "hnwSwitch",  "left": 624, "right": 752, "top":  16, "bottom":  49, "display": "colored-dice?", "variable": "colored-dice?", "on": false }
       , { "type": "hnwPlot",    "left":   5, "right": 165, "top":  60, "bottom": 565, "display": "Single Dice", "xAxis": "Dice Value", "yAxis": "Count", "xmin": 1, "xmax": 7, "ymin": 0, "ymax": 51, "autoPlotOn": true, "legendOn": false, "setupCode": "", "updateCode": "", "pens": {} }
       , { "type": "hnwPlot",    "left": 620, "right": 806, "top":  60, "bottom": 565, "display": "Pair Sums", "xAxis": "Dice Total", "yAxis": "Count", "xmin": 2, "xmax": 13, "ymin": 0, "ymax": 51, "autoPlotOn": true, "legendOn": false, "setupCode": "", "updateCode": "", "pens": {} }
-      , { "type": "hnwView",    "left": 170, "right": 612, "top":  60, "bottom": 503, "height": 420, "width": 420 }
+      , { "type": "hnwView",    "left": 170, "right": 612, "top":  60, "bottom": 503, "height": 443, "width": 442 }
       ]
     , "canJoinMidRun": true
     , "isSpectator": true
