@@ -157,7 +157,18 @@ to setup-sites
       set quality the-quality          ; assign a quality from the quality list
     ]
   ])
+  place-sites-without-stack-overflow
+end
+
+to place-sites-without-stack-overflow
+
   place-sites
+
+  ; if the smallest distance between two sites are less than 10, re-place sites
+  while [any? sites with [ min [ distance myself ] of other sites < 10 ]] [
+    place-sites
+  ]
+
 end
 
 to place-sites
@@ -170,10 +181,6 @@ to place-sites
       set ycor min-pycor + 1 + random (world-width - 2)
       set xcor one-of (list (min-pxcor + 1) (max-pxcor - 1))
     ]
-  ]
-  ; if the smallest distance between two sites are less than 10, re-place sites
-  if any? sites with [ min [ distance myself ] of other sites < 10 ] [
-    place-sites
   ]
 end
 
