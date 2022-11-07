@@ -15,12 +15,12 @@ const unfurledFrom = (obj) => {
 
 const buttonFields      = { message: "string" };
 const chooserFields     = { varName: "string", value: "uint32" };
-const inputNumberFields = { varName: "string", value: "double" };
+const inputNumberFields = { varName: "string", value: "sint64" };
 const inputStringFields = { varName: "string", value: "string" };
 const mouseUpFields     = { xcor:    "sint32", ycor:  "sint32" };
 const mouseDownFields   = { xcor:    "sint32", ycor:  "sint32" };
 const mouseMoveFields   = { xcor:    "sint32", ycor:  "sint32" };
-const sliderFields      = { varName: "string", value: "double" };
+const sliderFields      = { varName: "string", value: "sint64" };
 const switchFields      = { varName: "string", value: "bool"   };
 
 const JoinerRelayPayloadPB = {

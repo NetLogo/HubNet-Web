@@ -36,8 +36,18 @@ const basicMap =
 const furlingMappings =
   { "unfurled-host-answer":             "HostAnswerUnfurled"
   , "unfurled-ice-candy":               "ICECandyUnfurled"
-  , "unfurled-su-monitors":             "UpdateMonitors"
+  , "unfurled-su-chooser+":             "UpdateChooserN"
+  , "unfurled-su-chooser1":             "UpdateChooser1"
+  , "unfurled-su-input-num+":           "UpdateInputNumN"
+  , "unfurled-su-input-num1":           "UpdateInputNum1"
+  , "unfurled-su-input-str+":           "UpdateInputStrN"
+  , "unfurled-su-input-str1":           "UpdateInputStr1"
+  , "unfurled-su-monitor+":             "UpdateMonitorN"
   , "unfurled-su-monitor1":             "UpdateMonitor1"
+  , "unfurled-su-slider+":              "UpdateSliderN"
+  , "unfurled-su-slider1":              "UpdateSlider1"
+  , "unfurled-su-switch+":              "UpdateSwitchN"
+  , "unfurled-su-switch1":              "UpdateSwitch1"
   , "unfurled-su-plot-values":          "UpdatePlotValues"
   , "unfurled-su-plot-add-point":       "UpdatePlotAddPoint"
   , "unfurled-su-plot-reset":           "UpdatePlotReset"
@@ -227,13 +237,13 @@ const unfurlByType = (newType, msg) => {
 
 };
 
-// (Object[Any]) => Object[Any]
-const unfurlSoloMonitorUpdates = (msg) => {
-  const keys = Object.keys(msg.update.monitorUpdates);
+// (Object[Any], String, String) => Object[Any]
+const unfurlSoloWidgetUpdates = (msg, keyLabel, unfurlLabel) => {
+  const keys = Object.keys(msg.update[`${keyLabel}Updates`]);
   if (keys.length === 1) {
-    return unfurlByType("unfurled-su-monitor1", msg);
+    return unfurlByType(`unfurled-su-${unfurlLabel}1`, msg);
   } else if (keys.length > 1) {
-    return unfurlByType("unfurled-su-monitors", msg);
+    return unfurlByType(`unfurled-su-${unfurlLabel}+`, msg);
   } else {
     return msg;
   }
@@ -409,40 +419,35 @@ const unfurlSoloViewUpdate = (msg) => {
 };
 
 // (Object[Any]) => Object[Any]
-const unfurlSoloWidgetUpdates = (msg) => {
-
-  const wupdates = msg.update.widgetUpdates;
-
-  const keys = Object.keys(wupdates);
-
-  if (keys.length === 1) {
-    return unfurlByType("unfurled-su-widget1", msg);
-  } else if (keys.length > 1) {
-    return unfurlByType("unfurled-su-widgets", msg);
-  } else {
-    return msg;
-  }
-
-};
-
-// (Object[Any]) => Object[Any]
 const unfurlSU = (msg) => {
   const update = msg.update;
   const keys   = Object.keys(update);
   if (keys.length === 1) {
     const key = keys[0];
     switch (key) {
+      case "chooserUpdates": {
+        return unfurlSoloWidgetUpdates(msg, "chooser", "chooser");
+      }
+      case "inputNumUpdates": {
+        return unfurlSoloWidgetUpdates(msg, "inputNum", "input-num");
+      }
+      case "inputStrUpdates": {
+        return unfurlSoloWidgetUpdates(msg, "inputStr", "input-str");
+      }
       case "monitorUpdates": {
-        return unfurlSoloMonitorUpdates(msg);
+        return unfurlSoloWidgetUpdates(msg, "monitor", "monitor");
       }
       case "plotUpdates": {
         return unfurlSoloPlotUpdates(msg);
       }
+      case "sliderUpdates": {
+        return unfurlSoloWidgetUpdates(msg, "slider", "slider");
+      }
+      case "switchUpdates": {
+        return unfurlSoloWidgetUpdates(msg, "switch", "slider");
+      }
       case "viewUpdate": {
         return unfurlSoloViewUpdate(msg);
-      }
-      case "widgetUpdates": {
-        return unfurlSoloWidgetUpdates(msg);
       }
       default:
     }

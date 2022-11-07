@@ -44,9 +44,11 @@ const rejiggerRelay = (obj) => {
             out[k0][k1].hnwButtonPayload = replacement;
           } else if (v1.type === "chooser") {
             const replacement = deepClone(v1, { type: 1 });
+            replacement.value = replacement.value + 1;
             out[k0][k1].hnwChooserPayload = replacement;
           } else if (v1.type === "inputBox" && typeof(v1.value) === "number") {
             const replacement = deepClone(v1, { type: 1 });
+            replacement.value = Math.round(replacement.value * 1e4);
             out[k0][k1].hnwInputNumberPayload = replacement;
           } else if (v1.type === "inputBox") {
             const replacement = deepClone(v1, { type: 1 });
@@ -63,6 +65,7 @@ const rejiggerRelay = (obj) => {
             out[k0][k1][k2] = replacement;
           } else if (v1.type === "slider") {
             const replacement = deepClone(v1, { type: 1 });
+            replacement.value = Math.round(replacement.value * 1e4);
             out[k0][k1].hnwSliderPayload = replacement;
           } else if (v1.type === "switch") {
             const replacement = deepClone(v1, { type: 1 });
@@ -129,9 +132,13 @@ const recombobulateRelay = (obj) => {
             if (k2 === "hnwButtonPayload") {
               out[k0][k1] = { type: "button", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwChooserPayload") {
-              out[k0][k1] = { type: "chooser", ...deepClone(v1[k2]) };
+              const temp = { type: "chooser", ...deepClone(v1[k2]) };
+              temp.value = temp.value - 1;
+              out[k0][k1] = temp;
             } else if (k2 === "hnwInputNumberPayload") {
-              out[k0][k1] = { type: "inputBox", ...deepClone(v1[k2]) };
+              const temp  = { type: "inputBox", ...deepClone(v1[k2]) };
+              temp.value  = temp.value / 1e4;
+              out[k0][k1] = temp;
             } else if (k2 === "hnwInputStringPayload") {
               out[k0][k1] = { type: "inputBox", ...deepClone(v1[k2]) };
             } else if (k2 === "hnwMouseUpPayload") {
@@ -150,7 +157,9 @@ const recombobulateRelay = (obj) => {
               const message = { subtype: "mouse-move", xcor, ycor };
               out[k0][k1]   = { type: "view", message };
             } else if (k2 === "hnwSliderPayload") {
-              out[k0][k1] = { type: "slider", ...deepClone(v1[k2]) };
+              const temp  = { type: "slider", ...deepClone(v1[k2]) };
+              temp.value  = temp.value / 1e4;
+              out[k0][k1] = temp;
             } else if (k2 === "hnwSwitchPayload") {
               out[k0][k1] = { type: "switch", ...deepClone(v1[k2]) };
             } else {

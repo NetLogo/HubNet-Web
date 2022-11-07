@@ -253,6 +253,22 @@ const rejiggerViewUpdates = (target, parent) => {
 };
 
 // (Object[Any], Object[Any]) => Unit
+const rejiggerChooserUpdates = (target, parent) => {
+  for (const k0 in target) {
+    const v0 = target[k0];
+    parent[k0] = v0 + 1;
+  }
+};
+
+// (Object[Any], Object[Any]) => Unit
+const rejiggerInputNumUpdates = (target, parent) => {
+  for (const k0 in target) {
+    const v0 = target[k0];
+    parent[k0] = Math.round(v0 * 1e4);
+  }
+};
+
+// (Object[Any], Object[Any]) => Unit
 const rejiggerPlotUpdates = (target, parent) => {
 
   for (const k0 in target) {
@@ -299,6 +315,14 @@ const rejiggerPlotUpdates = (target, parent) => {
 
   }
 
+};
+
+// (Object[Any], Object[Any]) => Unit
+const rejiggerSliderUpdates = (target, parent) => {
+  for (const k0 in target) {
+    const v0 = target[k0];
+    parent[k0] = Math.round(v0 * 1e4);
+  }
 };
 
 // (Object[Any], Object[Any]) => Unit
@@ -504,9 +528,18 @@ const rejiggerStateUpdateInner = (target, parent) => {
     if (k0 === "viewUpdate") {
       parent[k0] = {};
       rejiggerViewUpdates(v0, parent[k0]);
+    } else if (k0 === "chooserUpdates") {
+      parent[k0] = {};
+      rejiggerChooserUpdates(v0, parent[k0]);
+    } else if (k0 === "inputNumUpdates") {
+      parent[k0] = {};
+      rejiggerInputNumUpdates(v0, parent[k0]);
     } else if (k0 === "plotUpdates") {
       parent[k0] = {};
       rejiggerPlotUpdates(v0, parent[k0]);
+    } else if (k0 === "sliderUpdates") {
+      parent[k0] = {};
+      rejiggerSliderUpdates(v0, parent[k0]);
     } else {
       parent[k0] = deepClone(v0);
     }
@@ -774,6 +807,22 @@ const recombobulateBurst = (obj) => {
 };
 
 // (Object[Any], Object[Any]) => Unit
+const recombobulateChooserUpdates = (target, parent) => {
+  for (const k0 in target) {
+    const v0 = target[k0];
+    parent[k0] = v0 - 1;
+  }
+};
+
+// (Object[Any], Object[Any]) => Unit
+const recombobulateInputNumUpdates = (target, parent) => {
+  for (const k0 in target) {
+    const v0 = target[k0];
+    parent[k0] = v0 / 1e4;
+  }
+};
+
+// (Object[Any], Object[Any]) => Unit
 const recombobulatePlotUpdates = (target, parent) => {
 
   for (const k0 in target) {
@@ -827,6 +876,14 @@ const recombobulatePlotUpdates = (target, parent) => {
 
   }
 
+};
+
+// (Object[Any], Object[Any]) => Unit
+const recombobulateSliderUpdates = (target, parent) => {
+  for (const k0 in target) {
+    const v0 = target[k0];
+    parent[k0] = v0 / 1e4;
+  }
 };
 
 // (Object[Any], Object[Any]) => Unit
@@ -1040,9 +1097,18 @@ const recombobulateStateUpdateInner = (target, parent) => {
     if (k0 === "viewUpdate") {
       parent[k0] = {};
       recombobulateViewUpdates(v0, parent[k0]);
+    } else if (k0 === "chooserUpdates") {
+      parent[k0] = {};
+      recombobulateChooserUpdates(v0, parent[k0]);
+    } else if (k0 === "inputNumUpdates") {
+      parent[k0] = {};
+      recombobulateInputNumUpdates(v0, parent[k0]);
     } else if (k0 === "plotUpdates") {
       parent[k0] = {};
       recombobulatePlotUpdates(v0, parent[k0]);
+    } else if (k0 === "sliderUpdates") {
+      parent[k0] = {};
+      recombobulateSliderUpdates(v0, parent[k0]);
     } else if (k0 === "drawingEvents") {
       parent[k0] = {};
       recombobulateDrawingEvents(v0, parent[k0]);

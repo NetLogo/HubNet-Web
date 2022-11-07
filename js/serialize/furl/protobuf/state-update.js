@@ -398,30 +398,31 @@ const PlotUpdateStuff = {
 
 };
 
-const widgetFields =
-  { varName: "string"
-  , value:   "uint32"
-  };
+const  chooserPath = [ "chooserUpdates"];
+const inputNumPath = ["inputNumUpdates"];
+const inputStrPath = ["inputStrUpdates"];
+const  monitorPath = [ "monitorUpdates"];
+const   sliderPath = [  "sliderUpdates"];
+const   switchPath = [  "switchUpdates"];
 
-const WidgetUpdateStuff = {
-  WidgetUpdate: fieldsFrom(widgetFields)
-};
+const  chooserEntry = [ "chooserUpdates",      "uint32", "string"];
+const inputNumEntry = ["inputNumUpdates",      "sint64", "string"];
+const inputStrEntry = ["inputStrUpdates",      "string", "string"];
+const  monitorEntry = [ "monitorUpdates",      "string", "string"];
+const  plotUpsEntry = [    "plotUpdates", "PlotUpdates", "string"];
+const   sliderEntry = [  "sliderUpdates",      "sint64", "string"];
+const   switchEntry = [  "switchUpdates",        "bool", "string"];
+const     viewEntry = [    "viewUpdate" ,  "ViewUpdate"          ];
 
-const monitorPath = ["monitorUpdates"];
-
-const monitorEntry = ["monitorUpdates",        "string", "string"];
-const plotUpsEntry = [   "plotUpdates",   "PlotUpdates", "string"];
-const viewEntry    = [   "viewUpdate" ,   "ViewUpdate"           ];
-const widgetEntry  = [ "widgetUpdates", "WidgetUpdate" ,     true];
-
-const stateUpdateEntries = [monitorEntry, plotUpsEntry, viewEntry, widgetEntry];
+const stateUpdateEntries =
+  [ chooserEntry, inputNumEntry, inputStrEntry, sliderEntry, switchEntry
+  , monitorEntry, plotUpsEntry, viewEntry];
 
 const StateUpdate = fromEntries(stateUpdateEntries);
 
 StateUpdate.nested =
   { ...PlotUpdateStuff
   , ...ViewUpdateStuff
-  , ...WidgetUpdateStuff
   };
 
 const rt = "state-update";
@@ -431,8 +432,18 @@ const newFD = (type, entry, fields, path) => {
 };
 
 const StateUpdateDescriptors =
-  { UpdateMonitors:               newFD( "map" ,     monitorEntry,                [],     monitorPath)
+  { UpdateChooserN:               newFD( "map" ,     chooserEntry,                [],     chooserPath)
+  , UpdateChooser1:               newFD( "map1",     chooserEntry,                [],     chooserPath)
+  , UpdateInputNumN:              newFD( "map" ,    inputNumEntry,                [],    inputNumPath)
+  , UpdateInputNum1:              newFD( "map1",    inputNumEntry,                [],    inputNumPath)
+  , UpdateInputStrN:              newFD( "map" ,    inputStrEntry,                [],    inputStrPath)
+  , UpdateInputStr1:              newFD( "map1",    inputStrEntry,                [],    inputStrPath)
+  , UpdateMonitorN:               newFD( "map" ,     monitorEntry,                [],     monitorPath)
   , UpdateMonitor1:               newFD( "map1",     monitorEntry,                [],     monitorPath)
+  , UpdateSliderN:                newFD( "map" ,      sliderEntry,                [],      sliderPath)
+  , UpdateSlider1:                newFD( "map1",      sliderEntry,                [],      sliderPath)
+  , UpdateSwitchN:                newFD( "map" ,      switchEntry,                [],      switchPath)
+  , UpdateSwitch1:                newFD( "map1",      switchEntry,                [],      switchPath)
   , UpdatePlotValues:             newFD( "map" ,     plotUpsEntry,     plotUpsFields,     plotUpsPath)
   , UpdatePlotAddPoint:           newFD("plot1",    addPointEntry,    addPointFields,    addPointPath)
   , UpdatePlotReset:              newFD("plot1",   resetPlotEntry,        plotFields,   resetPlotPath)
