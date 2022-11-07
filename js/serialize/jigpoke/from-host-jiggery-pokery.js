@@ -59,7 +59,7 @@ const rejiggerBurst = (obj) => {
 
 };
 
-// (Object[Any], Object[Any]) => Object[Any]
+// (Object[Any], Object[Any]) => Unit
 const rejiggerLinks = (links, parent) => {
   Object.entries(links).forEach(
     ([who, link]) => {
@@ -84,7 +84,7 @@ const rejiggerLinks = (links, parent) => {
   );
 };
 
-// (Object[Any], Object[Any]) => Object[Any]
+// (Object[Any], Object[Any]) => Unit
 const rejiggerPatches = (patches, parent) => {
   Object.entries(patches).forEach(
     ([who, patch]) => {
@@ -104,7 +104,7 @@ const rejiggerPatches = (patches, parent) => {
   );
 };
 
-// (Object[Any], Object[Any]) => Object[Any]
+// (Object[Any], Object[Any]) => Unit
 const rejiggerTurtles = (turtles, parent) => {
   Object.entries(turtles).forEach(
     ([who, turtle]) => {
@@ -205,7 +205,7 @@ const rejiggerTurtleShapes = (turtleShapes) => {
 
 };
 
-// (Object[Any], Object[Any]) => Object[Any]
+// (Object[Any], Object[Any]) => Unit
 const rejiggerWorlds = (worlds, parent) => {
   Object.entries(worlds).forEach(
     ([who, world]) => {
@@ -225,7 +225,7 @@ const rejiggerWorlds = (worlds, parent) => {
   );
 };
 
-// (Object[Any], Object[Any]) => Object[Any]
+// (Object[Any], Object[Any]) => Unit
 const rejiggerViewUpdates = (target, parent) => {
   for (const k0 in target) {
     const v0 = target[k0];
@@ -252,7 +252,7 @@ const rejiggerViewUpdates = (target, parent) => {
   }
 };
 
-// (Object[Any], Object[Any]) => Object[Any]
+// (Object[Any], Object[Any]) => Unit
 const rejiggerPlotUpdates = (target, parent) => {
 
   for (const k0 in target) {
@@ -301,7 +301,7 @@ const rejiggerPlotUpdates = (target, parent) => {
 
 };
 
-// (Object[Any], Object[Any]) => Object[Any]
+// (Object[Any], Object[Any]) => Unit
 const rejiggerDrawingEvents = (target, parent) => {
   for (const k0 in target) {
     const devent = target[k0];
@@ -497,7 +497,7 @@ const rejiggerInitialModel = (obj) => {
 
 };
 
-// (Object[Any]) => Object[Any]
+// (Object[Any], Object[Any]) => Unit
 const rejiggerStateUpdateInner = (target, parent) => {
   for (const k0 in target) {
     const v0 = target[k0];
