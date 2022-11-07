@@ -12,9 +12,9 @@
                     "bottom": 409,
                     "left": 13,
                     "display": "strategy",
-                    "variable": "gui-user-code",
+                    "variable": "strategy",
                     "boxedValue": {
-                        "value": "null",
+                        "value": "ifelse-value random 2 = 0 [DEFECT] [COOPERATE]",
                         "multiline": true,
                         "type": "String"
                     },

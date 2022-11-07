@@ -52,7 +52,7 @@ turtles-own [
   strategy-choice
 
   error-msg
-  gui-user-code
+  strategy
 
 ]
 
@@ -190,12 +190,12 @@ to play-n-times
 
     ask students [
 
-      if (__hnw_supervisor_allow-strategy-change? and gui-user-code != user-code and gui-user-code != "null") [
+      if (__hnw_supervisor_allow-strategy-change? and strategy != user-code and strategy != "null") [
          set error-msg ""
          ;; code is taken, and tested for accuracy, so students can make more changes before playing another round
-         if ( test-strategy gui-user-code )
+         if ( test-strategy strategy )
          [
-           set user-code gui-user-code
+           set user-code strategy
            set code-changed? true
          ]
       ]
@@ -330,7 +330,7 @@ end
 
 to set-code
   set-code'
-  set gui-user-code user-code
+  set strategy user-code
 end
 
 to set-code'  ;; outputs the code to the input box, for students to see and modify
@@ -464,8 +464,8 @@ to plot-strategies  ;;plots the average scores for each of the given strategies
   set-current-plot "Strategies"
 
   let i 0
-  foreach (but-last strategy-list) [ strategy ->
-    set-current-plot-pen strategy
+  foreach (but-last strategy-list) [ s ->
+    set-current-plot-pen s
     if ((item i strategy-totals-count) != 0)
     [
       plot-pen-reset

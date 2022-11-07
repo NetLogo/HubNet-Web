@@ -322,11 +322,8 @@ to client-submit
   ]
   [
 
-    let d1 (position die1 ["invalid" "1" "2" "3" "4" "5" "6"])
-    let d2 (position die2 ["invalid" "1" "2" "3" "4" "5" "6"])
-
     ;; generate the pair and the singles
-    queue-roll d1 d2 ifelse-value __hnw_supervisor_colored-dice? [ user-color ][ white ]
+    queue-roll die1 die2 ifelse-value __hnw_supervisor_colored-dice? [ user-color ][ white ]
     ;; send confirmation message to user
     set message (word "Thank you. Your input was " die1 "-" die2 ".")
 

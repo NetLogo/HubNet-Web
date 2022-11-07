@@ -10,8 +10,8 @@
     , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwMonitor", "left":   0, "right": 263, "top":  10, "bottom":  50, "display": "Message:", "source": "message", "reporterStyle": "turtle-var", "precision": 0, "fontSize": 10 }
-      , { "type": "hnwChooser", "left":   0, "right": 117, "top":  62, "bottom": 107, "display": "Die_A", "variable": "die1", "choices": ["--", "1", "2", "3", "4", "5", "6"], "currentChoice": 0 }
-      , { "type": "hnwChooser", "left": 145, "right": 263, "top":  62, "bottom": 107, "display": "Die_B", "variable": "die2", "choices": ["--", "1", "2", "3", "4", "5", "6"], "currentChoice": 0 }
+      , { "type": "hnwChooser", "left":   0, "right": 117, "top":  62, "bottom": 107, "display": "Die_A", "variable": "die1", "choices": ["--", 1, 2, 3, 4, 5, 6], "currentChoice": 0 }
+      , { "type": "hnwChooser", "left": 145, "right": 263, "top":  62, "bottom": 107, "display": "Die_B", "variable": "die2", "choices": ["--", 1, 2, 3, 4, 5, 6], "currentChoice": 0 }
       , { "type": "hnwButton",  "left":  95, "right": 164, "top": 113, "bottom": 146, "display": "Submit", "hnwProcName": "client-submit", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle" }
       ]
     , "canJoinMidRun": false
