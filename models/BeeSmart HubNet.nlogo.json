@@ -18,7 +18,7 @@
       , { "type": "hnwButton",  "left": 205, "right": 284, "top": 185, "bottom": 218, "display": "revisit",            "source": "command-revisit", "hnwProcName": "command-revisit", "forever": false, "disableUntilTicksStart": true, "buttonKind": "turtle", "actionKey": "R" }
       , { "type": "hnwMonitor", "left":  11, "right": 142, "top": 339, "bottom": 388, "display": "dances-made",        "source": "dances-made", "reporterStyle": "turtle-var", "precision": 3, "fontSize": 10 }
       , { "type": "hnwMonitor", "left":  11, "right": 142, "top": 291, "bottom": 340, "display": "dance-length",       "source": "dance-length", "reporterStyle": "turtle-var", "precision": 3, "fontSize": 10 }
-      , { "type": "hnwMonitor", "left":  11, "right": 142, "top": 243, "bottom": 292, "display": "target-quality",     "source": "target-quality", "reporterStyle": "turtle-procedure", "precision": 3, "fontSize": 10 }
+      , { "type": "hnwMonitor", "left":  11, "right": 142, "top": 243, "bottom": 292, "display": "target-quality",     "source": "target-quality", "reporterStyle": "turtle-var", "precision": 3, "fontSize": 10 }
       , { "type": "hnwMonitor", "left":   8, "right": 283, "top":  26, "bottom":  75, "display": "Message",            "source": "message-content", "reporterStyle": "turtle-var", "precision": 3, "fontSize": 10 }
       , { "type": "hnwMonitor", "left": 156, "right": 285, "top": 243, "bottom": 292, "display": "interest-in-target", "source": "interest-in-target", "reporterStyle": "turtle-var", "precision": 3, "fontSize": 10 }
       , { "type": "hnwMonitor", "left":  11, "right": 285, "top": 387, "bottom": 436, "display": "summary",            "source": "summary", "reporterStyle": "turtle-var", "precision": 3, "fontSize": 10 }
