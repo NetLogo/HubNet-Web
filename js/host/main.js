@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const self = event.target;
 
     const origin     = window.location.origin;
-    const hash       = byEID("id-display").innerText;
+    const hash       = byEID("id-display").textContent;
     const inviteLink = `${origin}/join#${hash}`;
 
     navigator.clipboard.writeText(inviteLink).then(
