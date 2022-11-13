@@ -20,8 +20,6 @@ export default class RxQueue {
   // (MessageHandler, Boolean) => RxQueue
   constructor(messageHandler, isHost) {
     this.#decodeInput    = deserialize(isHost);
-    this.#isStarted      = false;
-    this.#lastMsgID      = dummyID;
     this.#messageHandler = messageHandler;
     this.reset();
   }
@@ -55,6 +53,8 @@ export default class RxQueue {
   // () => Unit
   reset = () => {
     this.#messageHandler.reset();
+    this.#isStarted        = false;
+    this.#lastMsgID        = dummyID;
     this.#multipartHeaders = {};
     this.#multiparts       = {};
     this.#predIDToMsg      = {};
