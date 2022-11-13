@@ -33,6 +33,16 @@ export default class LoginControlsManager {
   }
 
   // () => String
+  getActivityName = () => {
+    return this.#nlwFrameDataset.activityName;
+  };
+
+  // () => String
+  getSessionName = () => {
+    return this.#nlwFrameDataset.sessionName;
+  };
+
+  // () => String
   getUsername = () => {
     return this.#usernameInput.value;
   };
@@ -125,16 +135,6 @@ export default class LoginControlsManager {
   // () => Number
   #getRoleIndex = () => {
     return this.#roleSelect.selectedIndex;
-  };
-
-  // () => String
-  getSessionName = () => {
-    return this.#nlwFrameDataset.sessionName;
-  };
-
-  // () => String
-  getActivityName = () => {
-    return this.#nlwFrameDataset.activityName;
   };
 
 }
