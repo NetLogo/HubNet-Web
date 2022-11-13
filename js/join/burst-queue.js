@@ -39,6 +39,7 @@ export default class BurstQueue {
   // () => Unit
   halt = () => {
     this.#loopIsTerminated = true;
+    this.#messageQueue     = [];
     this.setStateUninitialized();
   };
 
