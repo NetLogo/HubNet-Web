@@ -62,7 +62,6 @@ export default class HostNLWManager extends NLWManager {
     this.#infoPanePort = setUpInfoPane(nlogo, infoFrame, this._galaURL);
 
     this._post({ ...props, type: "hnw-become-oracle", nlogo });
-    this._post({ type: "nlw-subscribe-to-updates", uuid });
 
     if (props.onIterate !== null) {
       this.#goButton.classList.remove("hidden");
