@@ -5,7 +5,7 @@ import NLWManager from "/js/common/ui/nlw-manager.js";
 
 export default class HostNLWManager extends NLWManager {
 
-  #broadcast           = undefined; // (UUID, Boolean?) => RTCDataChannel?
+  #broadcast           = undefined; // (String, Object[Any]?) => Unit
   #goButton            = undefined; // HTMLButtonElement
   #narrowcast          = undefined; // () => Array[RTCDataChannel]
   #onError             = undefined; // (String) => Unit
