@@ -1,6 +1,7 @@
 export default class LoginControlsManager {
 
   #button          = undefined; // HTMLButtonElement
+  #hasSubmitted    = undefined; // Boolean
   #lastUUID        = null;      // UUID
   #nlwFrameDataset = undefined; // HTMLElementDataset
   #passwordInput   = undefined; // HTMLInputElement
@@ -11,6 +12,7 @@ export default class LoginControlsManager {
   constructor(joinForm, nlwFrameDataset, onLogIn) {
 
     this.#button        = joinForm.querySelector("#join-button");
+    this.#hasSubmitted  = false;
     this.#usernameInput = joinForm.querySelector("#username"   );
     this.#passwordInput = joinForm.querySelector("#password"   );
     this.#roleSelect    = joinForm.querySelector("#role-select");
@@ -18,15 +20,20 @@ export default class LoginControlsManager {
 
     joinForm.addEventListener("submit", () => {
 
-      this.#button.disabled = true;
+      if (!this.#hasSubmitted) {
 
-      const username     = this. getUsername();
-      const password     = this.#getPassword();
-      const roleIndex    = this.#getRoleIndex();
-      const sessionName  = this.getSessionName();
-      const activityName = this.getActivityName();
+        this.#button.disabled = true;
+        this.#hasSubmitted = true;
 
-      onLogIn(username, password, roleIndex, sessionName, activityName);
+        const username     = this. getUsername();
+        const password     = this.#getPassword();
+        const roleIndex    = this.#getRoleIndex();
+        const sessionName  = this.getSessionName();
+        const activityName = this.getActivityName();
+
+        onLogIn(username, password, roleIndex, sessionName, activityName);
+
+      }
 
     });
 
@@ -113,6 +120,7 @@ export default class LoginControlsManager {
 
   // () => Unit
   reset = () => {
+    this.#hasSubmitted    = false;
     this.#button.disabled = false;
     this.#button.classList.remove("disabled");
   };
