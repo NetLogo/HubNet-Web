@@ -52,7 +52,7 @@ export default (rootBundle) => (connBundle) => {
          , handleLogin
          , handleMissingUsername:   rootBundle.unlockUI
          , handleUsernameIsTaken:   rootBundle.unlockUI
-         , notifyUser:              (s) => { alert(s); }
+         , notifyUser:              (s) => { setTimeout(() => { alert(s); }, 0); }
          , registerAssignedAgent:   rootBundle.registerAssignedAgent
          , resetConn:               connBundle.resetConn
          , send:                    connBundle.send
