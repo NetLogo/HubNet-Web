@@ -181,17 +181,25 @@ export default class SessionManager {
   // (UUID, Number) => Number
   pong = (joinerID, id) => {
 
-    const sesh       = this.#sessions[joinerID];
-    const pingBucket = sesh.pingData[id];
-    const pingTime   = performance.now() - pingBucket;
-    delete pingBucket[id];
+    const sesh = this.#sessions[joinerID];
 
-    sesh.recentPings.push(pingTime);
-    if (sesh.recentPings.length > 5) {
-      sesh.recentPings.shift();
+    if (sesh !== undefined) {
+
+      const pingBucket = sesh.pingData[id];
+      const pingTime   = performance.now() - pingBucket;
+      delete pingBucket[id];
+
+      sesh.recentPings.push(pingTime);
+      if (sesh.recentPings.length > 5) {
+        sesh.recentPings.shift();
+      }
+
+      return pingTime;
+
+    } else {
+      console.warn("Received ping from disconnected client", joinerID, id);
+      return -1;
     }
-
-    return pingTime;
 
   };
 

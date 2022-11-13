@@ -284,7 +284,9 @@ export default class ConnectionManager {
 
       case "pong": {
         const pingTime = this.#sessionManager.pong(joinerID, datum.id);
-        this.#registerPingTime(joinerID, pingTime);
+        if (pingTime >= 0) {
+          this.#registerPingTime(joinerID, pingTime);
+        }
         break;
       }
 
