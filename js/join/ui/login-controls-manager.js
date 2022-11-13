@@ -22,7 +22,6 @@ export default class LoginControlsManager {
 
       if (!this.#hasSubmitted) {
 
-        this.#button.disabled = true;
         this.#hasSubmitted = true;
 
         const username     = this. getUsername();
@@ -32,6 +31,8 @@ export default class LoginControlsManager {
         const activityName = this.getActivityName();
 
         onLogIn(username, password, roleIndex, sessionName, activityName);
+
+        this.#button.disabled = true;
 
       }
 
