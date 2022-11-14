@@ -6,158 +6,162 @@
   </head>
   <body class="body">
 
-    <div class="page-header flex-row">
-      <a href="/" class="hnw-header-link-wrapper">
-        <div class="hnw-header" id="hnw-header">HubNet Web</div>
-      </a>
+    <div class="content-wrapper">
 
-      <div class="page-links-dropdown">
-        <div class="navigate-label">
-          <div>Navigate</div>
-          <div class="triangle-down"></div>
-        </div>
-        <div class="page-links-tabs">
-          <a href="/join" class="page-links">Join</a>
-          <a href="/host" class="page-links">Host</a>
+      <div class="page-header flex-row">
+        <a href="/" class="hnw-header-link-wrapper">
+          <div class="hnw-header" id="hnw-header">HubNet Web</div>
+        </a>
+
+        <div class="page-links-dropdown">
+          <div class="navigate-label">
+            <div>Navigate</div>
+            <div class="triangle-down"></div>
+          </div>
+          <div class="page-links-tabs">
+            <a href="/join" class="page-links">Join</a>
+            <a href="/host" class="page-links">Host</a>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div id="session-browser-frame" class="joinA-page-body" class="flex-column">
+      <div id="session-browser-frame" class="joinA-page-body" class="flex-column">
 
-      <div class="top-section">
-        <div class="join-session-header">
-          Join a Session
-        </div>
+        <div class="top-section">
+          <div class="join-session-header">
+            Join a Session
+          </div>
 
-        <div class="session-status">
-          <span class="status-value-container">Status: </span><span id="status-value">Floating through the ether</span>
-        </div>
+          <div class="session-status">
+            <span class="status-value-container">Status: </span><span id="status-value">Floating through the ether</span>
+          </div>
 
-        <div class="flex-row standard-column-gap">
-          <div class="left-column">
+          <div class="flex-row standard-column-gap">
+            <div class="left-column">
 
-            <input
-              class="session-filter-box"
-              id="session-filter-box"
-              type="search"
-              placeholder="Search..."
-            >
+              <input
+                class="session-filter-box"
+                id="session-filter-box"
+                type="search"
+                placeholder="Search..."
+              >
 
-            <div id="session-list-container">
-              <div id="session-row-wrapper" class="session-row-wrapper">
-                <table id="session-row-container" class="session-row-container">
-                  <template id="session-row-template">
-                    <tr class="session-row">
-                      <td class="row-label session-element">
-                        <input id="session-option" class="session-option" name="sessionOption" type="radio">
-                      </td>
-                      <td class="session-name session-element table-cell-padding-standard"></td>
-                      <td class="session-model-name session-element table-cell-padding-standard"></td>
-                      <td class="session-info session-element table-cell-padding-standard"></td>
-                    </tr>
-                  </template>
-                  <thead class="session-header" id="session-header">
-                    <tr>
-                      <th class="session-element session-name-header">Session Name</th>
-                      <th class="session-element activity-name-header">Activity</th>
-                      <th class="session-element participant-name-header"># Participants</th>
-                    </tr>
-                  </thead>
-                  <tbody class="session-rows" id="session-rows"></tbody>
-                </table>
+              <div id="session-list-container">
+                <div id="session-row-wrapper" class="session-row-wrapper">
+                  <table id="session-row-container" class="session-row-container">
+                    <template id="session-row-template">
+                      <tr class="session-row">
+                        <td class="row-label session-element">
+                          <input id="session-option" class="session-option" name="sessionOption" type="radio">
+                        </td>
+                        <td class="session-name session-element table-cell-padding-standard"></td>
+                        <td class="session-model-name session-element table-cell-padding-standard"></td>
+                        <td class="session-info session-element table-cell-padding-standard"></td>
+                      </tr>
+                    </template>
+                    <thead class="session-header" id="session-header">
+                      <tr>
+                        <th class="session-element session-name-header">Session Name</th>
+                        <th class="session-element activity-name-header">Activity</th>
+                        <th class="session-element participant-name-header"># Participants</th>
+                      </tr>
+                    </thead>
+                    <tbody class="session-rows" id="session-rows"></tbody>
+                  </table>
+                </div>
               </div>
+
+            </div>
+
+            <div class="right-column">
+              <img id="session-preview-image" class="session-preview-image"
+                   draggable=false />
             </div>
 
           </div>
 
-          <div class="right-column">
-            <img id="session-preview-image" class="session-preview-image"
-                 draggable=false />
-          </div>
-
         </div>
 
-      </div>
+        <hr class="horizontal-divider">
 
-      <hr class="horizontal-divider">
+        <div class="bottom-section">
+          <div class="user-inputs-container" class="flex-column">
+            <form id="join-form" action="javascript:void(0);" method="POST">
 
-      <div class="bottom-section">
-        <div class="user-inputs-container" class="flex-column">
-          <form id="join-form" action="javascript:void(0);" method="POST">
-
-            <div class="user-inputs-top-row flex-row">
-              <div>
-                <label class="form-label">Username
-                  <input class="username block-display" id="username" name="username" type="text" required>
-                </label>
+              <div class="user-inputs-top-row flex-row">
+                <div>
+                  <label class="form-label">Username
+                    <input class="username block-display" id="username" name="username" type="text" required>
+                  </label>
+                </div>
+                <div>
+                  <label class="form-label">Password
+                    <input id="password" name="password" type="password" disabled
+                           class="password disabled block-display">
+                  </label>
+                </div>
+                <div>
+                  <label class="form-label">Role
+                    <select id="role-select" disabled required
+                            class="role-select disabled block-display">
+                      <option selected="selected" disabled="disabled"
+                              value="">
+                        Choose a role
+                      </option>
+                    </select>
+                  </label>
+                </div>
               </div>
-              <div>
-                <label class="form-label">Password
-                  <input id="password" name="password" type="password" disabled
-                         class="password disabled block-display">
-                </label>
+
+              <div class="user-inputs-bottom-row flex-row">
+                <input id="join-button" class="join-button disabled block-display"
+                       type="submit" value="Join" disabled>
               </div>
-              <div>
-                <label class="form-label">Role
-                  <select id="role-select" disabled required
-                          class="role-select disabled block-display">
-                    <option selected="selected" disabled="disabled"
-                            value="">
-                      Choose a role
-                    </option>
-                  </select>
-                </label>
-              </div>
-            </div>
 
-            <div class="user-inputs-bottom-row flex-row">
-              <input id="join-button" class="join-button disabled block-display"
-                     type="submit" value="Join" disabled>
-            </div>
-
-          </form>
-        </div>
-
-      </div>
-
-    </div>
-
-    <div id="nlw-frame" class="frame joinB-page-body hidden">
-
-      <div id="modal-container" class="modal-container modal-invis">
-
-        <div id="session-details-modal" class="modal flex-column">
-
-          <div id="close-modal-button" class="close-modal-button"></div>
-
-          <div class="modal-session-name" id="modal-session-name"></div>
-          <div class="session-button">
-            <div class="session-detail">
-              <span class="bold">Number of Clients: </span>
-              <span id="client-num-span">(N/A)</span>
-            </div>
-            <div class="session-detail">
-              <span class="bold">Connection Type: </span>
-              <span id="connection-type-span">(N/A)</span>
-            </div>
-            <div class="session-detail">
-              <span class="bold">Latency: </span>
-              <span id="latency-span">(N/A)</span>ms
-            </div>
+            </form>
           </div>
 
         </div>
 
       </div>
 
-      <div id="join-b-page">
-        <div class="session-buttons flex-row">
-          <input class="view-details-button" id="view-details-button" type="button" value="View Session Details">
-          <div id="activity-name" class="activity-name"></div>
-          <input class="disconnect-button" id="disconnect-button" type="button" value="Disconnect">
+      <div id="nlw-frame" class="frame joinB-page-body hidden">
+
+        <div id="modal-container" class="modal-container modal-invis">
+
+          <div id="session-details-modal" class="modal flex-column">
+
+            <div id="close-modal-button" class="close-modal-button"></div>
+
+            <div class="modal-session-name" id="modal-session-name"></div>
+            <div class="session-button">
+              <div class="session-detail">
+                <span class="bold">Number of Clients: </span>
+                <span id="client-num-span">(N/A)</span>
+              </div>
+              <div class="session-detail">
+                <span class="bold">Connection Type: </span>
+                <span id="connection-type-span">(N/A)</span>
+              </div>
+              <div class="session-detail">
+                <span class="bold">Latency: </span>
+                <span id="latency-span">(N/A)</span>ms
+              </div>
+            </div>
+
+          </div>
+
         </div>
-        <iframe class="nlw-iframe"></iframe>
+
+        <div id="join-b-page">
+          <div class="session-buttons flex-row">
+            <input class="view-details-button" id="view-details-button" type="button" value="View Session Details">
+            <div id="activity-name" class="activity-name"></div>
+            <input class="disconnect-button" id="disconnect-button" type="button" value="Disconnect">
+          </div>
+          <iframe class="nlw-iframe"></iframe>
+        </div>
+
       </div>
 
     </div>

@@ -3,8 +3,17 @@
   padding: 0;
 }
 
+.content-wrapper {
+  display:        flex;
+  flex-direction: column;
+  height:         100%;
+}
+
 .joinA-page-body {
-  font-family: sans-serif;
+  display:        flex;
+  flex-direction: column;
+  flex-grow:      1;
+  font-family:    sans-serif;
 }
 
 .joinB-page-body {
@@ -13,16 +22,14 @@
 }
 
 .top-section {
-  height:         70%;
+  flex-grow:      1;
   padding-bottom: 25px;
   padding-left:   50px;
 }
 
 .bottom-section {
   background-color: var(--light-gray);
-  height:           30%;
-  padding-left:     50px;
-  padding-top:      25px;
+  padding:          25px 0 10px 50px;
 }
 
 .conn-worst {
@@ -50,6 +57,7 @@
 }
 
 .session-status {
+  height:        2em;
   margin-bottom: 15px;
   max-width:     50vw;
 }

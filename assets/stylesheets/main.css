@@ -49,7 +49,7 @@
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .invis {
