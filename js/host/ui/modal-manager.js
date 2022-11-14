@@ -24,6 +24,7 @@ export default class ModalManager {
     };
 
     openDescButton.onclick = () => {
+      this.#descElem.querySelector(".activity-text-container").scrollTop = 0;
       this.#descElem.classList.remove("modal-invis");
     };
 
