@@ -195,7 +195,7 @@
   width:            20vw;
 }
 
-.password.disabled {
+.password:disabled {
   background-color: var(--medium-gray);
   opacity:          0.7;
 }
@@ -211,8 +211,8 @@
   width:            20vw;
 }
 
-.role-select.disabled {
- background-color: var(--medium-gray);
+.role-select:disabled {
+  background-color: var(--medium-gray);
 }
 
 .join-button {
@@ -228,7 +228,7 @@
   width:            20vw;
 }
 
-.join-button.disabled {
+.join-button:disabled {
   background-color: var(--green-gray);
   cursor:           initial;
 }
