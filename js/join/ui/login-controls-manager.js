@@ -69,7 +69,6 @@ export default class LoginControlsManager {
     this.#lastUUID       = session?.oracleID;
 
     this.#passwordInput.disabled = !hasActive || !session.hasPassword;
-    this.#button       .disabled = !hasActive;
     this.#roleSelect   .disabled = !hasActive;
 
     this.#nlwFrameDataset. sessionName = session === null ? "" : session.name;
@@ -104,6 +103,8 @@ export default class LoginControlsManager {
         this.#roleSelect.selectedIndex = i;
       }
     }
+
+    this.#button.disabled = !(hasActive && this.#roleSelect.selectedIndex >= 0);
 
   };
 
