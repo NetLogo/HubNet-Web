@@ -80,6 +80,15 @@ end
 
 ;; initialize global variables
 to setup-vars
+
+  set __hnw_supervisor_infection-chance      100
+  set __hnw_supervisor_android-delay         0
+  set __hnw_supervisor_number                5
+  set __hnw_supervisor_initial-number-sick   1
+  set __hnw_supervisor_show-sick?            true
+  set __hnw_supervisor_show-sick-on-clients? true
+  set __hnw_supervisor_wander?               true
+
   set shape-names ["box" "star" "wheel" "target" "cat" "dog"
                    "butterfly" "leaf" "car" "airplane"
                    "monster" "key" "cow skull" "ghost"
