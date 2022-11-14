@@ -11,11 +11,11 @@ export default class LoginControlsManager {
   // (Element, HTMLElementDataset, (String, String) => Unit) => LoginControlsManager
   constructor(joinForm, nlwFrameDataset, onLogIn) {
 
-    this.#button        = joinForm.querySelector("#join-button");
-    this.#hasSubmitted  = false;
-    this.#usernameInput = joinForm.querySelector("#username"   );
-    this.#passwordInput = joinForm.querySelector("#password"   );
-    this.#roleSelect    = joinForm.querySelector("#role-select");
+    this.#button          = joinForm.querySelector("#join-button");
+    this.#hasSubmitted    = false;
+    this.#usernameInput   = joinForm.querySelector("#username"   );
+    this.#passwordInput   = joinForm.querySelector("#password"   );
+    this.#roleSelect      = joinForm.querySelector("#role-select");
     this.#nlwFrameDataset = nlwFrameDataset;
 
     joinForm.addEventListener("submit", () => {
