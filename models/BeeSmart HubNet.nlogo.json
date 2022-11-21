@@ -113,6 +113,7 @@
     , "perspectiveVar": null
     }
   ]
+, "targetFrameRate": 18
 , "type": "hubnet-web"
 , "version": "hnw-alpha-1"
 }
