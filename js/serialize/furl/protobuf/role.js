@@ -13,7 +13,8 @@ const RolePB = {
   , onCursorClick:      { type: "string", id:  9 }
   , onCursorRelease:    { type: "string", id: 10 }
   , onCursorMove:       { type: "string", id: 11 }
-  , widgets:            { type: "Widget", id: 12, rule: "repeated" }
+  , viewOverrideVar:    { type: "string", id: 12 }
+  , widgets:            { type: "Widget", id: 13, rule: "repeated" }
   }
 , nested: {
     Widget: {

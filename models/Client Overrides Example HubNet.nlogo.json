@@ -24,7 +24,8 @@
             "limit": -1,
             "highlightMainColor": "#008000",
             "isSpectator": false,
-            "perspectiveVar": null
+            "perspectiveVar": null,
+            "viewOverrideVar": null
         },
         {
             "canJoinMidRun": true,
@@ -85,7 +86,8 @@
             "limit": 1,
             "highlightMainColor": "#008000",
             "isSpectator": true,
-            "perspectiveVar": null
+            "perspectiveVar": null,
+            "viewOverrideVar": null
         }
     ],
     "onIterate": "go",

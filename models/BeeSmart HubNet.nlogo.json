@@ -36,6 +36,7 @@
     , "onCursorRelease": null
     , "onCursorMove": null
     , "perspectiveVar": "perspective"
+    , "viewOverrideVar": null
     }
     , {
       "name": "supervisor"
@@ -111,6 +112,7 @@
     , "onCursorRelease": null
     , "onCursorMove": null
     , "perspectiveVar": null
+    , "viewOverrideVar": null
     }
   ]
 , "targetFrameRate": 18

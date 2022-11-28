@@ -24,6 +24,7 @@
     , "canJoinMidRun": false
     , "isSpectator": false
     , "perspectiveVar": null
+    , "viewOverrideVar": null
     , "onConnect": "create-new-student"
     , "onDisconnect": "remove-student"
     , "afterDisconnect": null
@@ -62,6 +63,7 @@
     , "canJoinMidRun": true
     , "isSpectator": true
     , "perspectiveVar": null
+    , "viewOverrideVar": null
     , "onConnect": null
     , "onDisconnect": null
     , "afterDisconnect": null

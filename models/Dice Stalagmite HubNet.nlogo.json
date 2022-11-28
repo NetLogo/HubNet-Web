@@ -17,6 +17,7 @@
     , "canJoinMidRun": false
     , "isSpectator": false
     , "perspectiveVar": null
+    , "viewOverrideVar": null
     , "onConnect": "create-client"
     , "onDisconnect": "kill-client"
     , "afterDisconnect": null
@@ -41,6 +42,7 @@
     , "canJoinMidRun": true
     , "isSpectator": true
     , "perspectiveVar": null
+    , "viewOverrideVar": null
     , "onConnect": null
     , "onDisconnect": null
     , "afterDisconnect": null
