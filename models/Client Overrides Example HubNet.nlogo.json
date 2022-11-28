@@ -3,9 +3,9 @@
         {
             "canJoinMidRun": true,
             "onCursorMove": null,
-            "onCursorClick": null,
+            "onCursorClick": "set-true-colors",
             "onCursorRelease": null,
-            "onDisconnect": "???DC",
+            "onDisconnect": null,
             "afterDisconnect": null,
             "widgets": [
                 {
@@ -20,19 +20,19 @@
             ],
             "name": "student",
             "namePlural": "students",
-            "onConnect": "???Connect",
+            "onConnect": "create-new-student",
             "limit": -1,
             "highlightMainColor": "#008000",
             "isSpectator": false,
             "perspectiveVar": null,
-            "viewOverrideVar": null
+            "viewOverrideVar": "overrides"
         },
         {
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
             "onCursorRelease": null,
-            "onDisconnect": "???DC",
+            "onDisconnect": null,
             "afterDisconnect": null,
             "widgets": [
                 {
@@ -43,30 +43,6 @@
                     "right": 659,
                     "type": "hnwView",
                     "top": 10
-                },
-                {
-                    "forever": false,
-                    "bottom": 84,
-                    "left": 42,
-                    "buttonKind": "observer",
-                    "source": "setup",
-                    "hnwProcName": "setup",
-                    "right": 113,
-                    "type": "hnwButton",
-                    "top": 51,
-                    "disableUntilTicksStarts": true
-                },
-                {
-                    "forever": true,
-                    "bottom": 84,
-                    "left": 115,
-                    "buttonKind": "observer",
-                    "source": "go",
-                    "hnwProcName": "go",
-                    "right": 186,
-                    "type": "hnwButton",
-                    "top": 51,
-                    "disableUntilTicksStarts": false
                 },
                 {
                     "bottom": 137,
@@ -82,7 +58,7 @@
             ],
             "name": "supervisor",
             "namePlural": "supervisors",
-            "onConnect": "???Connect",
+            "onConnect": null,
             "limit": 1,
             "highlightMainColor": "#008000",
             "isSpectator": true,
@@ -90,6 +66,7 @@
             "viewOverrideVar": null
         }
     ],
+    "targetFrameRate": 10,
     "onIterate": "go",
     "onStart": "setup",
     "version": "hnw-alpha-1",

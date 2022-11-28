@@ -1,12 +1,8 @@
 breed [students student]
 
-students-own [ user-id ]
+students-own [ overrides ]
 
 patches-own [ true-color ]
-
-to startup
-  hubnet-reset
-end
 
 to setup
   clear-patches
@@ -23,66 +19,49 @@ to setup
 end
 
 to go
-  listen-clients
-  every 0.1
-  [
-    tick
-  ]
+  tick
 end
 
 ;;
 ;; Here's where the action is
 ;;
 
-to execute-command [command]
-  if command = "View"
-  [
-    ;; extract the coordinates from the message
-    let p patch (item 0 hubnet-message) (item 1 hubnet-message)
-    ;; get the patch clicked on and the surrounding patches in a single patch set
-    let my-patch-set (patch-set p [neighbors] of p)
+to set-true-colors [clicked-xcor clicked-ycor]
 
-    ;; clear any existing overrides on the client including any patches
-    ;; revealed by the last click
-    hubnet-clear-overrides hubnet-message-source
-    ;; send an override to the client each patch in MY-PATCH-SET will evaluate
-    ;; the reporter in the block [TRUE-COLOR].  So the color of the patch on the client
-    ;; will appear as TRUE-COLOR rather than the color on the server.
-    hubnet-send-override hubnet-message-source my-patch-set "pcolor" [true-color]
-  ]
+  ;; extract the coordinates from the message
+  let target patch clicked-xcor clicked-ycor
+
+  ;; get the patch clicked on and the surrounding patches in a single patch set
+  let my-patch-set (patch-set target [neighbors] of target)
+
+  ;; clear any existing overrides on the client including any patches
+  ;; revealed by the last click
+  append-override "reset-all"
+
+  ;; send an override to the client each patch in MY-PATCH-SET will evaluate
+  ;; the reporter in the block [TRUE-COLOR].  So the color of the patch on the client
+  ;; will appear as TRUE-COLOR rather than the color on the server.
+  append-override (list my-patch-set "pcolor" [p -> [true-color] of p])
+
+end
+
+to append-override [x]
+  set overrides (lput x overrides)
 end
 
 ;;
 ;; Standard HubNet Procedures
 ;;
 
-to listen-clients
-  while [hubnet-message-waiting?]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message? ;; when clients enter we get a special message
-    [ create-new-student ]
-    [
-      ifelse hubnet-exit-message? ;; when clients exit we get a special message
-      [ remove-student ]
-      [ ask students with [user-id = hubnet-message-source]
-        [ execute-command hubnet-message-tag ]
-      ]
-    ]
-  ]
-end
-
-to create-new-student
+to-report create-new-student
+  let out -1
   create-students 1
   [
-    set user-id hubnet-message-source
+    set out who
+    set overrides []
     hide-turtle
   ]
-end
-
-to remove-student
-  ask students with [user-id = hubnet-message-source]
-  [ die ]
+  report out
 end
 
 
