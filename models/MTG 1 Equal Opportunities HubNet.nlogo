@@ -12,9 +12,6 @@ patches-own [
 ]
 
 students-own [
-  user-id   ; students choose a user name when they log in whenever you receive a
-            ; message from the student associated with this turtle hubnet-message-source
-            ; will contain the user-id
   sugar          ; the amount of sugar this turtle has
   metabolism     ; the amount of sugar that each turtles loses each tick
   vision         ; the distance that this turtle can see in the horizontal and vertical directions
@@ -24,13 +21,12 @@ students-own [
   my-timer   ; a countdown timer to disable movements when in a certain state, such as at school
   has-moved? ; a marker for constraining students' clicks to one click per tick. Rapid multiple clicks from one
              ; student can slow the model by keep only processing the incoming HubNet messages
+  message
+  perspective
+  overrides
 ]
 
 ;;;;;;;;; Setup Procedures ;;;;;;;;
-
-to startup
-  hubnet-reset          ; automatically initialize hubnet architecture upon starting the model
-end
 
 to setup
   ; clear patches and plots, instead of clear all, to preserve students' connections to the server
@@ -44,12 +40,9 @@ to setup
     patch-recolor
   ]
 
-  ; detect any user actions (if any student has joined, left, or clicked buttons)
-  listen-clients
-
   ask students [
     refresh-student
-    hubnet-send user-id "message" "Welcome to SugarScape!"
+    set message "Welcome to SugarScape!"
   ]
 
   if sum [sugar] of students > 0 [ update-lorenz-and-gini ] ; avoids division by 0 problem
@@ -69,7 +62,7 @@ end
 ;;;;;;; Go Procedures ;;;;;;;
 
 to go
-  listen-clients
+
   ; stop the model when no student is in. Prevents division by zero and plotting errors
   if not any? students [ stop ]
 
@@ -86,7 +79,7 @@ to go
       run next-task
     ][
       if sugar <= 0 [
-        hubnet-send user-id "message" "You ran out of sugar. You will freeze for a while as a penalty and will then continue with 25 sugar."
+        set message "You ran out of sugar. You will freeze for a while as a penalty and will then continue with 25 sugar."
         set my-timer 30
         set next-task [ -> resume ]
         set state "broke"
@@ -101,32 +94,20 @@ end
 
 ;;;;;; HubNet Procedures ;;;;;;;
 
-to listen-clients
-  while [ hubnet-message-waiting? ] [   ; if there are any HubNet messages
-    hubnet-fetch-message                ; retrieve a message
-    ifelse hubnet-enter-message? [      ; if a new student joins
-      create-new-student                ; create a new student
-    ][
-      ifelse hubnet-exit-message? [     ; if a student exits
-        remove-student                  ; remove the student
-      ][
-        ask students with [user-id = hubnet-message-source] [     ; otherwise
-          execute-command hubnet-message-tag                      ; execute the input that the student made
-        ]
-      ]
-    ]
-  ]
-end
-
 ; Procedure to create a new student
-to create-new-student
+to-report create-new-student [username]
+  let out -1
   create-students 1 [
-    set user-id hubnet-message-source     ; assign a user-id to the student who just entered
     set color gray                        ; set student color and label gray so it blends into the gray background
-    set label user-id
+    set label username
     set label-color gray
+    set message     ""
+    set overrides   []
+    set perspective []
     refresh-student
+    set out who
   ]
+  report out
 end
 
 ; procedure to set a student back to the initial conditions
@@ -150,25 +131,38 @@ to refresh-student ; student procedure
   send-info-to-clients
 end
 
-; Procedure to remove a student
-to remove-student
-  ask students with [ user-id = hubnet-message-source ][ die ]
+to handle-up
+  execute-move 0
 end
 
-; procedure to handle student action requests
-to execute-command [ command ] ; student procedure
-  if command = "up"      [ execute-move 0 ]
-  if command = "down"    [ execute-move 180 ]
-  if command = "right"   [ execute-move 90 ]
-  if command = "left"    [ execute-move 270 ]
-  if command = "harvest" [ harvest-pressed ]
+to handle-down
+  execute-move 180
+end
+
+to handle-left
+  execute-move 270
+end
+
+to handle-right
+  execute-move 90
+end
+
+; procedure to handle a harvest request
+to handle-harvest
+  ifelse state = "harvesting" [
+    set message "already harvesting"
+  ][
+    if state != "broke" [
+      set state "harvesting"
+      set next-task [ -> harvest ]
+    ]
+  ]
 end
 
 to send-info-to-clients ; student procedure
   ; set the client view to follow the agent so it's always at the
   ; center of the view (showing 7 patches in each direction around the agent)
-  hubnet-send-follow user-id self 7
-  hubnet-send user-id "sugar" sugar
+  set perspective (list "follow" self 7)
 end
 
 ;;;;;;;;; HubNet Commands ;;;;;;
@@ -182,16 +176,27 @@ end
 
 ; procedure to calculate the "vision" of each student for their client
 to visualize-view-points ; student procedure
-  hubnet-clear-overrides user-id
-  hubnet-send-override user-id self "label" [ "" ]        ; initializes view overrides
+
+  append-override "reset-all"
+  append-override (list self "label" [-> ""])        ; initializes view overrides
+
   calculate-view-points vision
+
   ; recolor students' labels in "vision" as black, instead of gray
-  hubnet-send-override user-id turtles-on vision-points "label-color" [ black ]
+  append-override (list (turtles-on vision-points) "label-color" [-> black])
+
   ; reveal the true color of the patches in "vision", instead of gray
-  hubnet-send-override user-id vision-points "pcolor" [ true-color ]
+  append-override (list vision-points "pcolor" [-> true-color])
+
   ; recolor students in "vision" as red, instead of gray
-  hubnet-send-override user-id turtles-on vision-points "color" [ red ]
+  append-override (list (turtles-on vision-points) "color" [-> red])
+
   set vision-points nobody
+
+end
+
+to append-override [x]
+  set overrides (lput x overrides)
 end
 
 ; to chill means to do nothing
@@ -201,14 +206,14 @@ end
 ; resume after being broke
 to resume  ; student procedure
   ifelse my-timer > 0 [
-    hubnet-clear-overrides user-id         ; creates the visual effect of a big red X flashing
-    hubnet-send-override user-id self "color" [ red ]
+    append-override "reset-all"         ; creates the visual effect of a big red X flashing
+    append-override (list self "color" [-> red])
     set shape "x"
     set size 2
     set my-timer my-timer - 1              ; reduce the timer by 1 each tick until it reaches 0
   ][                                       ; when time runs out, refresh the student and let it go back to play
     refresh-student
-    hubnet-send user-id "message" "Now you continue with 25 sugar."
+    set message "Now you continue with 25 sugar."
   ]
 end
 
@@ -221,42 +226,30 @@ to execute-move [ new-heading ] ; student procedure
       if can-move? 1 [
         if not any? turtles-on patch-ahead 1 [
           fd 1
-          hubnet-send user-id "message" "moving..."
+          set message "moving..."
           visualize-view-points
           ; sugar cannot go below 0
           ifelse sugar - metabolism < 0 [ set sugar 0 ][ set sugar sugar - metabolism ]
           send-info-to-clients
-          hubnet-send user-id "message" ""
+          set message ""
           stop
         ]
       ]
     ][
-      hubnet-send user-id "message" word "can't move because you are " state
-    ]
-  ]
-end
-
-; procedure to handle a harvest request
-to harvest-pressed ; student procedure
-  ifelse state = "harvesting" [
-    hubnet-send user-id "message" "already harvesting"
-  ][
-    if state != "broke" [
-      set state "harvesting"
-      set next-task [ -> harvest ]
+      set message (word "can't move because you are " state)
     ]
   ]
 end
 
 ; procedure to handle harvesting
 to harvest ; student procedure
-  hubnet-send user-id "message" "harvesting..."
+  set message "harvesting..."
   let net-income sugar - metabolism + psugar
   ifelse net-income < 0 [ set sugar 0 ][ set sugar net-income ]  ; sugar should never go below 0
   set psugar 0
   set next-task [ -> chill ]
   set state "chilling"
-  hubnet-send user-id "message" ""
+  set message ""
 end
 
 to patch-recolor ; patch procedure
@@ -290,6 +283,17 @@ to-report random-in-range [low high]
   report low + random (high - low + 1)
 end
 
+to-report sugar-mean
+  report mean [sugar] of students
+end
+
+to show-world
+  ask patches [ set pcolor true-color ]
+end
+
+to hide-world
+  ask patches [ set pcolor gray ]
+end
 
 ; Copyright 2018 Uri Wilensky.
 ; See Info tab for full copyright and license.
