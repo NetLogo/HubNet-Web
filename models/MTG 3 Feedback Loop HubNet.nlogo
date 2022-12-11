@@ -1,6 +1,8 @@
 globals [
   gini-index-reserve  ; a place to store part of gini index calculation
   lorenz-points       ; a list that stores some points to plot the Lorenz Curve
+
+  __hnw_supervisor_tuition
 ]
 
 breed [ students student ]
@@ -12,9 +14,6 @@ patches-own [
 ]
 
 students-own [
- user-id    ; students choose a user name when they log in whenever you receive a
-            ; message from the student associated with this turtle hubnet-message-source
-            ; will contain the user-id
   sugar           ; the amount of sugar this turtle has
   metabolism      ; the amount of sugar that each turtles loses each tick
   vision          ; the distance that this turtle can see in the horizontal and vertical directions
@@ -28,12 +27,17 @@ students-own [
   education-level      ; starts with 0 and increases by 1 after going to school each time.
   earning-coefficient  ; starts by 1 and increases by 1.3 times after going to school each
                        ; time (based on real world data of earning and education level)
+
+  message
+  perspective
+  overrides
+
 ]
 
 ;;;;;;;;; Setup Procedures ;;;;;;;;
 
 to startup
-  hubnet-reset          ; automatically initialize hubnet architecture upon starting the model
+  set __hnw_supervisor_tuition 0
 end
 
 to setup
@@ -48,9 +52,6 @@ to setup
       patch-recolor
     ]
 
-  ; detect any user actions (if any student has joined, left, or clicked buttons)
-  listen-clients
-
   ask students [
     refresh-student
 
@@ -58,9 +59,7 @@ to setup
     set earning-coefficient 1
     set education-level 0
 
-    hubnet-send user-id "edu-level" education-level
-    hubnet-send user-id "earning-coeff" earning-coefficient
-    hubnet-send user-id "message" "Welcome to SugarScape!"
+    set message "Welcome to SugarScape!"
   ]
 
   ; avoids division by 0 problem
@@ -69,29 +68,24 @@ to setup
 end
 
 to setup-patches
-  carefully [
-    ; for this line to work properly, ensure the txt file is under the same directory of this model
-    file-open "sugar-map.txt"
-    ; read in the sugar amount of each patch from file.
-    foreach sort patches [ the-patch ->
-      ask the-patch [
-        set max-psugar file-read
-        set psugar max-psugar
-        ; Hide the world from students so they don't see the global distribution of sugar
-        set pcolor gray
-      ]
+
+  let smap sugar-map
+  let i    0
+
+  foreach sort patches [ the-patch ->
+    ask the-patch [
+      set max-psugar (item i smap)
+      set psugar max-psugar
+      set pcolor gray
     ]
-    file-close
-  ][
-    print error-message
-    print "Please copy sugar-map.txt to the working directory."
+    set i (i + 1)
   ]
+
 end
 
 ;;;;;;; Go Procedures ;;;;;;;
 
 to go
-  listen-clients
   if not any? students [ stop ]
 
   ask patches [
@@ -107,7 +101,7 @@ to go
       run next-task
     ][
       if sugar <= 0 [
-        hubnet-send user-id "message" "You ran out of sugar. You will freeze for a while as a penalty and will then continue with 5 sugar."
+        set message "You ran out of sugar. You will freeze for a while as a penalty and will then continue with 5 sugar."
         set my-timer 30
         set next-task [ -> resume ]
         set state "broke"
@@ -123,36 +117,27 @@ end
 
 ;;;;;; HubNet Procedures ;;;;;;;
 
-to listen-clients
-  while [ hubnet-message-waiting? ] [   ; if there are any HubNet messages
-    hubnet-fetch-message                ; retrieve a message
-    ifelse hubnet-enter-message? [      ; if a new student joins
-      create-new-student                ; create a new student
-    ][
-      ifelse hubnet-exit-message? [     ; if a student exits
-        remove-student                  ; remove the student
-      ][
-        ask students with [user-id = hubnet-message-source][      ; otherwise
-          execute-command hubnet-message-tag                      ; execute the input that the student made
-        ]
-      ]
-    ]
-  ]
-end
 ; procedure to create a new student
-to create-new-student
+to-report create-new-student [username]
+  let out -1
   create-students 1 [
-    set user-id hubnet-message-source     ; assign a user-id to the student who just entered
-    set color gray                        ; set student color and label gray so it blends into the gray background
-    set label user-id
+    set color gray                   ; set student color and label gray so it blends into the gray background
+    set label username
     set label-color gray
 
     set sugar random-in-range 5 25
     set earning-coefficient 1
     set education-level 0
 
+    set message     ""
+    set overrides   []
+    set perspective []
+
     refresh-student
+
+    set out who
   ]
+  report out
 end
 
 ; procedure to set a student back to the initial conditions
@@ -176,54 +161,66 @@ to refresh-student ; turtle procedure
   send-info-to-clients
 end
 
-; procedure to remove a student
-to remove-student
-  ask students with [ user-id = hubnet-message-source ] [ die ]
+to handle-up
+  execute-move 0
 end
 
-; procedure to handle student action requests
-to execute-command [ command ]
-  if command = "up"           [ execute-move 0 ]
-  if command = "down"         [ execute-move 180 ]
-  if command = "right"        [ execute-move 90 ]
-  if command = "left"         [ execute-move 270 ]
-  if command = "harvest"      [ harvest-pressed ]
-  if command = "go-to-school" [ go-to-school-pressed ]
+to handle-down
+  execute-move 180
+end
+
+to handle-left
+  execute-move 270
+end
+
+to handle-right
+  execute-move 90
+end
+
+; procedure to handle a harvest request
+to handle-harvest
+  ifelse state = "harvesting" [
+    set message "already harvesting"
+  ][
+    if state != "broke" [
+      set state "harvesting"
+      set next-task [ -> harvest ]
+    ]
+  ]
 end
 
 to send-info-to-clients ; student procedure
   ; set the client view to follow the agent so it's always at the
   ; center of the view (showing 7 patches in each direction around the agent).
-  hubnet-send-follow user-id self 7
-  hubnet-send user-id "sugar" sugar
+  set perspective (list "follow" self 7)
 end
 
 ; procedure to handle a student's request to "go to school"
-to go-to-school-pressed ; student procedure
-  ifelse sugar > tuition [
+to handle-go-to-school ; student procedure
+  ifelse sugar > __hnw_supervisor_tuition [
     ifelse education-level < 5 [  ; a maximum of 5 times schooling is allowed
       ifelse state = "schooling" [
-        hubnet-send user-id "message" "you are already at school"
+        set message "you are already at school"
       ][
         ifelse state = "chilling" [
           set state "schooling"
           set my-timer 50
           ; each student pays a one-time tuition upon entering school
-          set sugar sugar - tuition
+          set sugar sugar - __hnw_supervisor_tuition
           ; student's avatar changes into a book, symbolizing s/he is at school
           set shape "book"
           set size 2
           set next-task [ -> school ]
-          hubnet-send user-id "message" "at school..."
+          set message "at school..."
         ][
-          hubnet-send user-id "message" word "can't go to school because you are" state
+          set message (word "can't go to school because you are" state)
         ]
       ]
     ][
-      hubnet-send user-id "message" "You already have the highest level of education"
+      set message "You already have the highest level of education"
     ]
   ][
-    hubnet-send user-id "message" word "you need " word tuition " sugar for tuition"
+    set message (word "you need " word __hnw_supervisor_tuition " sugar for tuition")
   ]
 end
 
@@ -241,18 +238,16 @@ to school ; student procedure
         ; each time a student goes to school, his/her vision expands by 1 in all 4 directions (if it
         ; does not have the maximum vision of 6 yet)
         set vision vision + 1
-        hubnet-send user-id "message" "You graduated with expanded vision and 130% earning power"
+        set message "You graduated with expanded vision and 130% earning power"
       ][
-        hubnet-send user-id "message" "You graduated with 130% earning power"
+        set message "You graduated with 130% earning power"
       ]
       set next-task [ -> chill ]
       set state "chilling"
       set shape "default"
       set size 1
-      hubnet-send user-id "earning-coeff" earning-coefficient
-      hubnet-send user-id "edu-level" education-level
     ][
-      hubnet-send user-id "message" "You already have the highest level of education"
+      set message "You already have the highest level of education"
     ]
   ]
 end
@@ -268,13 +263,18 @@ end
 
 ; procedure to calculate the "vision" of each student for their client
 to visualize-view-points ; student procedure
-  hubnet-clear-overrides user-id
-  hubnet-send-override user-id self "label" [ "" ]  ; initializes view overrides
+
+  append-override "reset-all"
+  append-override (list self "label" [-> ""])  ; initializes view overrides
+
   calculate-view-points vision
-  hubnet-send-override user-id vision-points "pcolor" [ true-color ]
-  hubnet-send-override user-id turtles-on vision-points "color" [red]
-  hubnet-send-override user-id turtles-on vision-points "label-color" [black]
+
+  append-override (list vision-points "pcolor" [-> true-color ])
+  append-override (list (turtles-on vision-points) "color" [-> red])
+  append-override (list (turtles-on vision-points) "label-color" [-> black])
+
   set vision-points nobody
+
 end
 
 ; to chill means to do nothing
@@ -285,9 +285,9 @@ end
 to resume ; student procedure
   ifelse my-timer > 0 [
     ; creates the visual effect of a big red X flashing
-    hubnet-clear-overrides user-id
-    hubnet-send-override user-id self "label" [ "" ]
-    hubnet-send-override user-id self "color" [red]
+    append-override "reset-all"
+    append-override (list self "label" [->  ""])
+    append-override (list self "color" [-> red])
     set shape "x"
     set size 2
     visualize-view-points
@@ -301,7 +301,7 @@ to resume ; student procedure
     set state "chilling"
     send-info-to-clients
     set sugar 5
-    hubnet-send user-id "message" "Now you continue with 5 sugar."
+    set message "Now you continue with 5 sugar."
   ]
 end
 
@@ -314,42 +314,30 @@ to execute-move [new-heading] ; student procedure
       if can-move? 1 [
         if not any? turtles-on patch-ahead 1 [
           fd 1
-          hubnet-send user-id "message" "moving..."
+          set message "moving..."
           visualize-view-points
           ; sugar cannot go below 0
           ifelse sugar - metabolism < 0 [set sugar 0][set sugar sugar - metabolism]
           send-info-to-clients
-          hubnet-send user-id "message" ""
+          set message ""
           stop
         ]
       ]
     ][
-      hubnet-send user-id "message" word "can't move because you are " state
-    ]
-  ]
-end
-
-; procedure to handle a harvest request
-to harvest-pressed ; student procedure
-  ifelse state = "harvesting" [
-    hubnet-send user-id "message" "already harvesting"
-  ][
-    if state != "broke" [
-      set state "harvesting"
-      set next-task [ -> harvest ]
+      set message word "can't move because you are " state
     ]
   ]
 end
 
 ; procedure to handle harvesting
 to harvest ; student procedure
-  hubnet-send user-id "message" "harvesting..."
+  set message "harvesting..."
   let net-income precision (sugar - metabolism + psugar * earning-coefficient) 1
   ifelse net-income < 0 [ set sugar 0 ][ set sugar net-income ]  ; sugar should never go below 0
   set psugar 0
   set next-task [ -> chill ]
   set state "chilling"
-  hubnet-send user-id "message" ""
+  set message ""
 end
 
 to patch-recolor ; patch procedure
@@ -378,11 +366,84 @@ to update-lorenz-and-gini
   ]
 end
 
+to append-override [x]
+  set overrides (lput x overrides)
+end
+
 ; helper procedure to get a random number in a range
 to-report random-in-range [low high]
   report low + random (high - low + 1)
 end
 
+to-report sugar-mean
+  report mean [sugar] of students
+end
+
+to show-world
+  ask patches [ set pcolor true-color ]
+end
+
+to hide-world
+  ask patches [ set pcolor gray ]
+end
+
+to-report sugar-map
+
+  let lines (list [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 2 2 2 2 2 2 2 2]
+                  [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 2 2 2 2 2 2]
+                  [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 2 2 2]
+                  [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 2 2]
+                  [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 2]
+                  [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 3 4 4 4 4 3 3 3 3 3 3 3 2 2]
+                  [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 2 2 2 2 2 3 3 3 3 3 3 4 4 4 4 4 4 4 4 3 3 3 3 3 3 2]
+                  [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 2 2 2 2 2 2 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 2]
+                  [0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 2 2 2 2 2 3 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 3]
+                  [0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3]
+                  [0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3]
+                  [0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3]
+                  [0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3]
+                  [0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 3]
+                  [0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 3 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 2]
+                  [0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 4 4 4 4 4 4 4 4 3 3 3 3 3 3 2]
+                  [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 4 4 4 4 3 3 3 3 3 3 3 2 2]
+                  [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 2]
+                  [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 2 2]
+                  [1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 2 2 2]
+                  [1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 2 2 2 2 2 2]
+                  [1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 2 2 2 2 2 2 2 2]
+                  [1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1]
+                  [1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1]
+                  [1 1 2 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1]
+                  [1 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1]
+                  [1 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1]
+                  [2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1]
+                  [2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1 1]
+                  [2 2 2 2 2 2 3 3 3 3 3 3 3 4 4 4 4 3 3 3 3 3 3 3 3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+                  [2 2 2 2 2 3 3 3 3 3 3 4 4 4 4 4 4 4 4 3 3 3 3 3 3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 1 0 0 0]
+                  [2 2 2 2 2 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 3 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0]
+                  [2 2 2 2 3 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 3 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0]
+                  [2 2 2 2 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0]
+                  [2 2 2 2 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0]
+                  [2 2 2 2 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0]
+                  [2 2 2 2 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 2 2 2 2 2 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0]
+                  [2 2 2 2 3 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 3 2 2 2 2 2 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0]
+                  [2 2 2 2 2 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 2 2 2 2 2 2 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0]
+                  [2 2 2 2 2 3 3 3 3 3 3 4 4 4 4 4 4 4 4 3 3 3 3 3 3 2 2 2 2 2 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0]
+                  [2 2 2 2 2 2 3 3 3 3 3 3 3 4 4 4 4 3 3 3 3 3 3 3 2 2 2 2 2 2 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0]
+                  [2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 2 2 2 2 2 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0]
+                  [2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 2 2 2 2 2 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0]
+                  [1 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0]
+                  [1 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0]
+                  [1 1 2 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0]
+                  [1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+                  [1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+                  [1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+                  [1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            )
+
+  report (reduce sentence lines)
+
+end
 
 ; Copyright 2018 Uri Wilensky.
 ; See Info tab for full copyright and license.
