@@ -3,13 +3,28 @@ globals
    guess-averages ;; a list of the average guess for each round
    guesses        ;; a list of the guesses for the current round
    max-$$         ;; constant used for the $$-Game
+
+   __hnw_supervisor_%-green
+   __hnw_supervisor_random-%-green?
+   __hnw_supervisor_abnormality
+   __hnw_supervisor_student-sampling?
+   __hnw_supervisor_sample-size
+   __hnw_supervisor_student-sample-size?
+   __hnw_supervisor_organize?
+   __hnw_supervisor_keep-samples?
+   __hnw_supervisor_sampling-allowance
+   __hnw_supervisor_margin-of-error
+   __hnw_supervisor_ranks-per-bin
+
+  __hnw_supervisor_mouse-down?
+
 ]
 
 patches-own [ true-color ] ;; value of the color of each patch is either green or blue but sometimes
                            ;; the displayed color is gray keep track of the real color here
 
 ;; client turtles keep state information about the clients
-breed [ students student ]
+breed [ clients client ]
 clients-own
 [
   my-sample-size          ;; current value of the my-sample-size slider on the client
@@ -20,6 +35,8 @@ clients-own
   my-go-with-group?       ;; indication whether user should be scored with his/her own guess or the group guess
   my-$$                   ;; the current score of the user
   submitted?
+
+  overrides
 ]
 
 ;;
@@ -27,9 +44,23 @@ clients-own
 ;;
 
 to startup
-  setup
-end
 
+  set __hnw_supervisor_%-green              50
+  set __hnw_supervisor_random-%-green?      false
+  set __hnw_supervisor_abnormality          0
+  set __hnw_supervisor_student-sampling?    false
+  set __hnw_supervisor_sample-size          3
+  set __hnw_supervisor_student-sample-size? false
+  set __hnw_supervisor_organize?            false
+  set __hnw_supervisor_keep-samples?        false
+  set __hnw_supervisor_sampling-allowance   200
+  set __hnw_supervisor_margin-of-error      1
+  set __hnw_supervisor_ranks-per-bin        2
+  set __hnw_supervisor_mouse-down?          false
+
+  setup
+
+end
 
 to setup
   ;; don't clear the turtles since they contain
@@ -44,13 +75,13 @@ to setup
 
   ;; if random-%-green is on choose a random value
   ;; otherwise, use the %-GREEN
-  let actual-%-green %-green
+  let actual-%-green __hnw_supervisor_%-green
 
-  if random-%-green?
+  if __hnw_supervisor_random-%-green?
   [ set actual-%-green random 101
     ;; when we're using a random-%-green
     ;; hide the slider bar so it's not misleading
-    set %-green -10 ]
+    set __hnw_supervisor_%-green -10 ]
 
   ask patches
   [
@@ -79,7 +110,7 @@ end
 to apply-abnormality-distribution
   ask n-of (4 + random 4) patches   ;; choose a slightly variable number of clusters
   [
-    repeat (20 * abnormality)   ;; the larger the abnormality do more clustering
+    repeat (20 * __hnw_supervisor_abnormality)   ;; the larger the abnormality do more clustering
     [
       let p2 one-of patches in-radius 8 with [true-color = blue - 2.5]   ;; find a blue patch near me
       let p1 one-of patches in-radius 16 with [true-color = green] ;; find a green patch maybe not quite as near me
@@ -98,25 +129,13 @@ end
 ;;
 
 to go
-  ;; let the teacher sample at any time
-TODO: Mouse
-  if mouse-down?
-  [
-    ;; if we're not keeping samples cover up the old one first
-    if not keep-samples?
-    [ ask patches [ set pcolor white - 2 ] ]
-    ;; uncover a new sample at the mouse click
-    ask sample-patches mouse-xcor mouse-ycor sample-size
-    [ set pcolor true-color ]
-  ]
-
-  every 0.1 [ display ]
+  display
 end
 
 ;; control the patch colors
 
 to show-population
-  ifelse organize?
+  ifelse __hnw_supervisor_organize?
   [ organize-population ]
   [ ask patches [ set pcolor true-color ] ]
 end
@@ -127,7 +146,7 @@ end
 
 to organize-population
   let green-fraction count patches with [true-color = green - 1] / count patches
-  set %-green green-fraction * 100
+  set __hnw_supervisor_%-green green-fraction * 100
   ;; this will always work out to a whole number as there are 100 columns and
   ;; only whole number percents are allowed.
   let xcor-of-divider min-pxcor + ( world-width * green-fraction )
@@ -151,26 +170,20 @@ end
 
 ;; for the $$ game, give everyone more $$
 to replenish-$$
-  ask clients
-  [ set my-$$ max-$$ ]
-  TODO
-  hubnet-broadcast "$$" max-$$
+  ask clients [ set my-$$ max-$$ ]
 end
 
 ;; update the score on clients for the $$ game
 to update-$$ [guess-mean]
-  let group-error abs( %-green - guess-mean)
+  let group-error abs( __hnw_supervisor_%-green - guess-mean)
   ask clients
   [
     ;; if a client chose "go with group" use that as the error
     ;; otherwise calculate his/her own error
-    let err ifelse-value my-go-with-group? [group-error][abs( %-green - my-guess )]
+    let err ifelse-value my-go-with-group? [group-error][abs( __hnw_supervisor_%-green - my-guess )]
     ;; subtract from the score if outside the margin of error
-    if err > margin-of-error
-    [ set my-$$ my-$$ - ( err - margin-of-error) ]
-    ;; update the client monitor
-    TODO
-    hubnet-send user-id "$$" my-$$
+    if err > __hnw_supervisor_margin-of-error
+    [ set my-$$ my-$$ - ( err - __hnw_supervisor_margin-of-error) ]
   ]
 end
 
@@ -199,7 +212,7 @@ to plot-guesses
 
   set-current-plot-pen "guesses"
   ;; sometimes we want to dump multiple ranks in a single bin
-  set-histogram-num-bars 100 / ranks-per-bin
+  set-histogram-num-bars 100 / __hnw_supervisor_ranks-per-bin
   ;; do it!
   histogram guesses
 
@@ -241,91 +254,98 @@ end
 ;; HubNet Procedures
 ;;
 
-TODO: On join
-to create-client
+to-report create-client
+  let out -1
   create-clients 1
   [
     ;; client turtles do not appear in the view
     ;; they are only used to save state from the clients
     hide-turtle
-    set user-id hubnet-message-source
+    set overrides []
     setup-client
+    set out who
   ]
+  report out
 end
 
 ;; set client variables to initial values
 ;; and update their monitors
 to setup-client
-  set my-sample-size sample-size
-  set my-sampling-allowance sampling-allowance
+  set my-sample-size __hnw_supervisor_sample-size
+  set my-sampling-allowance __hnw_supervisor_sampling-allowance
   set my-guess 50
   set my-sampled-patches no-patches
   set my-go-with-group? false
   set my-$$ max-$$
   set submitted? false
-  hubnet-send user-id "Sampling Allowance" my-sampling-allowance
-  hubnet-send user-id "$$" my-$$
-  hubnet-send user-id "%-green" my-guess
-  hubnet-send user-id "submitted?" submitted?
-  hubnet-clear-overrides user-id
+  append-override "reset-all"
 end
 
-TODO: On quit
-to remove-client
- ask clients with [user-id = hubnet-message-source]
-   [ die ]
+to append-override [x]
+  set overrides (lput x overrides)
 end
 
-TODO: ???
-to execute-command [cmd] ;; client procedure
-  if cmd = "View" and student-sampling?
+to handle-supervisor-mouse-click
+  set __hnw_supervisor_mouse-down? true
+end
+
+to handle-supervisor-mouse-release
+  set __hnw_supervisor_mouse-down? false
+end
+
+to handle-supervisor-mouse-move [x y]
+  ;; let the teacher sample at any time
+  if __hnw_supervisor_mouse-down?
   [
-    let x item 0 hubnet-message
-    let y item 1 hubnet-message
+    ;; if we're not keeping samples cover up the old one first
+    if not __hnw_supervisor_keep-samples?
+    [ ask patches [ set pcolor white - 2 ] ]
+    ;; uncover a new sample at the mouse click
+    ask sample-patches x y __hnw_supervisor_sample-size
+    [ set pcolor true-color ]
+  ]
+end
+
+to handle-student-click [x y]
+  if __hnw_supervisor_student-sampling?
+  [
     ;; get the sample for the mouse click the sample size is determined either
     ;; by my-sample-size on the client or the sample-size on the server
-    let sample sample-patches x y ifelse-value student-sample-size? [my-sample-size][sample-size]
+    let sample sample-patches x y ifelse-value __hnw_supervisor_student-sample-size? [my-sample-size][__hnw_supervisor_sample-size]
     ;; if I have enough sampling allowance left show me the patches
     if my-sampling-allowance > count sample
     [
       ;; if we're not keeping samples clear the
       ;; overrides first
-      if not keep-samples?
+      if not __hnw_supervisor_keep-samples?
       [
-        hubnet-clear-overrides user-id
+        append-override "reset-all"
         set my-sampled-patches no-patches
       ]
       ;; send the override
-      hubnet-send-override user-id sample "pcolor" [true-color]
+      append-override (list sample "pcolor" [-> true-color])
       ;; keep track of the patches I am viewing
       set my-sampled-patches (patch-set my-sampled-patches sample)
       ;; update the sample allowance
       set my-sampling-allowance my-sampling-allowance - count sample
-      ;; update the corresponding monitor
-      hubnet-send user-id "Sampling Allowance" my-sampling-allowance
     ]
-    stop
   ]
-  ;; update the state related to interface changes on the client
-  if cmd = "my-sample-size"
-  [ set my-sample-size hubnet-message stop ]
-  if cmd = "%-green"
-  [ set my-guess hubnet-message stop ]
-  if cmd = "go with group"
-  [ set my-go-with-group? true stop ]
-  if cmd = "submit-answer"
-  [ set submitted? true
-    hubnet-send user-id "submitted?" submitted?
-    stop ]
+
+end
+
+to submit-answer
+  set submitted? true
+end
+
+to go-with-group
+  set my-go-with-group? true
 end
 
 ;; give the clients their allowance
 to replenish-sampling-allowance
   ask clients
   [
-    set my-sampling-allowance sampling-allowance
-    TODO
-    hubnet-send user-id "Sampling Allowance" my-sampling-allowance
+    set my-sampling-allowance __hnw_supervisor_sampling-allowance
   ]
 end
 
@@ -339,6 +359,33 @@ to-report sample-patches [x y width]
            (floor (n / width) - radius)]] of patch x y
 end
 
+to-report mean-$$
+  report mean [my-$$] of clients
+end
+
+to-report num-students
+  report count clients
+end
+
+to-report num-guesses
+  report length guesses
+end
+
+to-report num-rounds
+  report length guess-averages
+end
+
+to-report mean-all-rounds
+  report mean guess-averages
+end
+
+to-report mean-this-round
+  report mean guesses
+end
+
+to-report std-dev
+  report standard-deviation guesses
+end
 
 ; Copyright 2003 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -931,7 +978,7 @@ What other quantitative aspects of sampling might a teacher or student need so a
 
 Since one of the most common configurations of this model is a 50-50 split between green and blue, the world has an even number of columns and rows so that there are exactly 50% of the patches that are green rather than a close approximation. Since an even grid is required the origin was moved to the lower left corner instead of being slightly off-center near the middle of the world.
 
-This activity uses HUBNET-SEND-OVERRIDE to reveal the samples in the client views.
+This activity uses APPEND-OVERRIDE to reveal the samples in the client views.
 
 ## RELATED MODELS
 
