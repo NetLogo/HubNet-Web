@@ -19,9 +19,21 @@ globals
   quick-start  ; the current quickstart instruction displayed in the quickstart monitor
   qs-item  ; the index of the current quickstart instruction
   qs-items  ; the list of quickstart instructions
+
+  __hnw_supervisor_auto?
+  __hnw_supervisor_crash?
+  __hnw_supervisor_grid-size-x
+  __hnw_supervisor_grid-size-y
+  __hnw_supervisor_number
+  __hnw_supervisor_plots-to-display
+  __hnw_supervisor_power?
+  __hnw_supervisor_simulation-speed
+  __hnw_supervisor_speed-limit
+  __hnw_supervisor_ticks-per-cycle
+
 ]
 
-turtles-own
+cars-own
 [
   speed  ; the speed of the turtle
   up-car?  ; this will be true if the turtle moves downwards and false if it moves to the right
@@ -35,14 +47,17 @@ patches-own
   green-light-up?  ; this is true if the green light is above the intersection.  otherwise, it is false.  this is only true for patches that are intersections.
   my-row  ; this holds the row of the intersection counting from the upper left corner of the view.  it is -1 for patches that are not intersections.
   my-column  ; this holds the column of the intersection counting from the upper left corner of the view.  it is -1 for patches that are not intersections.
-  user-id  ; this holds the user-id that corresponds to the intersection.  it is -1 for patches that are not intersections.
-  my-phase  ; this holds the phase for the intersection.  it is -1 for patches that are not intersections.
+  my-player  ; this holds the player for the intersection.  it is nobody for patches that are not intersections.
 ]
 
 breed [players player]
+breed [cars car]
 
 players-own [
+  location
   my-intersection
+  my-phase
+  username
 ]
 
 ;;;;;;;;;;;;;;;;;;;
@@ -50,8 +65,21 @@ players-own [
 ;;;;;;;;;;;;;;;;;;;
 
 to startup
+
+  set __hnw_supervisor_auto?                        false
+  set __hnw_supervisor_crash?                       false
+  set __hnw_supervisor_grid-size-x                      5
+  set __hnw_supervisor_grid-size-y                      5
+  set __hnw_supervisor_number                         200
+  set __hnw_supervisor_plots-to-display "All three plots"
+  set __hnw_supervisor_power?                        true
+  set __hnw_supervisor_simulation-speed               7.5
+  set __hnw_supervisor_speed-limit                      1
+  set __hnw_supervisor_ticks-per-cycle                 20
+
   setup
   setup-quick-start
+
 end
 
 ; Initialize the display by giving the global and patch variables initial values.
@@ -61,34 +89,34 @@ end
 ; about the users; users still retain the same light that they had before.
 ; "setup false" is done by the re-run button.
 to setup
+
   clear-output
-  TODO, can this model clear turtles? clear-turtles
+  ask cars [ die ]
   clear-all-plots
 
-  let full-setup? ((grid-x-inc != (world-width / grid-size-x))
-      or (grid-y-inc != (world-height / grid-size-y)))
+  let full-setup? ((grid-x-inc != (world-width / __hnw_supervisor_grid-size-x))
+      or (grid-y-inc != (world-height / __hnw_supervisor_grid-size-y)))
 
   setup-globals
 
   ifelse full-setup?
   [
-    let users  map [ p -> [user-id] of p] sort patches with [is-string? user-id]
-    let phases map [ p -> [my-phase] of p] sort patches with [is-string? user-id]
+
+    let users map [ p -> [my-player] of p] sort patches with [my-player != nobody and my-player != 0]
+
     clear-patches
     setup-patches
     setup-intersections
+
     ; reassign the clients to intersections
-    (foreach users phases [ [the-user the-phase] ->
-      get-free-intersection the-user
-      ask intersections with [ user-id = the-user ]
-        [ set my-phase the-phase ]
-    ])
+    foreach users get-free-intersection
+
   ]
   [ setup-intersections ]
 
-  set-default-shape turtles "car"
+  set-default-shape cars "car"
 
-  if (number > count roads)
+  if (__hnw_supervisor_number > count roads)
   [
     user-message (word  "There are too many cars for the amount of road.  "
     "or GRID-SIZE-Y sliders, or decrease the number of cars by lowering "
@@ -97,7 +125,7 @@ to setup
   ]
 
   ; Now create the turtles and have each created turtle call the functions setup-cars and set-car-color
-  create-turtles number
+  create-cars __hnw_supervisor_number
   [
     setup-cars
     set-car-color
@@ -105,7 +133,7 @@ to setup
   ]
 
   ; give the turtles an initial speed
-  ask turtles
+  ask cars
   [ set-car-speed ]
 
   reset-ticks
@@ -115,8 +143,8 @@ end
 to setup-globals
   set phase 0
   set num-cars-stopped 0
-  set grid-x-inc world-width / grid-size-x
-  set grid-y-inc world-height / grid-size-y
+  set grid-x-inc world-width / __hnw_supervisor_grid-size-x
+  set grid-y-inc world-height / __hnw_supervisor_grid-size-y
 
   ; don't make acceleration 0.1 since we could get a rounding error and end up on a patch boundary
   set acceleration 0.099
@@ -133,9 +161,7 @@ to setup-patches
     set green-light-up? true
     set my-row -1
     set my-column -1
-    set user-id -1
-    set my-phase -1
-
+    set my-player nobody
     set pcolor brown + 3
   ]
 
@@ -157,7 +183,6 @@ to setup-intersections
   [
     set intersection? true
     set green-light-up? true
-    set my-phase 0
     set my-row floor ((pycor + max-pycor) / grid-y-inc )
     set my-column floor ((pxcor + max-pxcor) / grid-x-inc )
     set-signal-colors
@@ -214,7 +239,7 @@ to go
     ; set the turtles speed for this time thru the procedure, move them forward their speed,
     ; record data for plotting, and set the color of the turtles
     ; to an appropriate color based on their speed
-    ask turtles
+    ask cars
     [
       set-car-speed
       fd speed
@@ -222,7 +247,7 @@ to go
       set-car-color
     ]
     ; crash the cars if crash? is true
-    if crash?
+    if __hnw_supervisor_crash?
     [ crash-cars ]
 
     ; update the clock and the phase
@@ -232,15 +257,16 @@ end
 
 ; reports the amount of seconds by which to slow the model down
 to-report delay
-  ifelse simulation-speed <= 0
+  ifelse __hnw_supervisor_simulation-speed <= 0
   [ report ln (10 / 0.001) ]
-  [ report ln (10 / simulation-speed) ]
+  [ report ln (10 / __hnw_supervisor_simulation-speed) ]
 end
 
 ; have the traffic lights change color if phase equals each intersections' my-phase
 to set-signals
   ask intersections with
-  [ phase = floor ((my-phase * ticks-per-cycle) / 100) and ( auto? or user-id = -1 ) ]
+  [ phase = floor ((intersection-phase * __hnw_supervisor_ticks-per-cycle) / 100) and
+    ( __hnw_supervisor_auto? or my-player = nobody ) ]
   [
     set green-light-up? (not green-light-up?)
     set-signal-colors
@@ -250,7 +276,7 @@ end
 ; This procedure checks the variable green-light-up? at each intersection and sets the
 ; traffic lights to have the green light up or the green light to the left.
 to set-signal-colors  ; intersection (patch) procedure
-  ifelse power?
+  ifelse __hnw_supervisor_power?
   [
     ifelse green-light-up?
     [
@@ -270,7 +296,7 @@ end
 
 ; set any intersection's color that had an accident back to white and make accident? false
 to clear-accidents
-  if crash?
+  if __hnw_supervisor_crash?
   [
     ask patches with [accident?]
     [
@@ -295,20 +321,20 @@ end
 ; set the speed variable of the turtle to an appropriate value (not exceeding the
 ; speed limit) based on whether there are turtles on the patch in front of the turtle
 to set-speed [delta-x delta-y]  ; turtle procedure
-  let turtles-ahead turtles-on patch-at delta-x delta-y
+  let cars-ahead cars-on patch-at delta-x delta-y
 
   ; if there are turtles in front of the turtle, slow down
   ; otherwise, speed up
-  ifelse any? turtles-ahead
+  ifelse any? cars-ahead
   [
-    let up-cars?-ahead [up-car?] of turtles-ahead
+    let up-cars?-ahead [up-car?] of cars-ahead
     ifelse member? up-car? up-cars?-ahead and member? (not up-car?) up-cars?-ahead
     [
-      if not crash?
+      if not __hnw_supervisor_crash?
       [ set speed 0 ]
     ]
     [
-      set speed [speed] of one-of turtles-ahead
+      set speed [speed] of one-of cars-ahead
       slow-down
     ]
   ]
@@ -324,14 +350,14 @@ end
 
 ; increase the speed of the turtle
 to speed-up  ; turtle procedure
-  ifelse speed > speed-limit
-  [ set speed speed-limit ]
+  ifelse speed > __hnw_supervisor_speed-limit
+  [ set speed __hnw_supervisor_speed-limit ]
   [ set speed speed + acceleration ]
 end
 
 ; set the color of the turtle to a different color based on how fast the turtle is moving
 to set-car-color  ; turtle procedure
-  ifelse speed < (speed-limit / 2)
+  ifelse speed < (__hnw_supervisor_speed-limit / 2)
   [ set color blue ]
   [ set color cyan - 2 ]
 end
@@ -349,7 +375,7 @@ end
 
 ; crash any turtles at the same intersection going in different directions
 to crash-cars
-  ask intersections with [any? turtles-here with [up-car?] and any? turtles-here with [not up-car?]]
+  ask intersections with [any? cars-here with [up-car?] and any? cars-here with [not up-car?]]
   [
     set accident? true
     set pcolor orange
@@ -361,12 +387,12 @@ to clock-tick
   tick
   ; The phase cycles from 0 to ticks-per-cycle, then starts over.
   set phase phase + 1
-  if phase mod ticks-per-cycle = 0
+  if phase mod __hnw_supervisor_ticks-per-cycle = 0
   [ set phase 0 ]
 end
 
 to-report hide-or-show-pen [ name-of-plot ]
-  ifelse plots-to-display = "All three plots" or plots-to-display = name-of-plot
+  ifelse __hnw_supervisor_plots-to-display = "All three plots" or __hnw_supervisor_plots-to-display = name-of-plot
   [ report True ]
   [ report False ]
 end
@@ -388,11 +414,8 @@ to setup-quick-start
     "For example, if you plan on running Gridlock in..."
       "the MANUAL mode, be sure to have AUTO? set to OFF."
     "Press the SETUP button."
-    "Press the LOGIN button."
     "Everyone: Open up a HubNet Client on your machine and..."
       "type your user name, select this activity and press ENTER."
-    "Teacher: Once everyone is logged in and has a light..."
-      "stop the LOGIN button by pressing it again."
     "Everyone: Whichever mode AUTO? is set for in NetLogo,..."
       "you will control your intersection in a different way."
     "If you have chosen MANUAL,..."
@@ -451,64 +474,74 @@ end
 ; when a new client logs in, if there are free intersections,
 ; assign one of them to that client
 ; if this current-id already has an intersection, give the client that intersection.
-TODO: On join
-to give-intersection-coords
-  let current-id hubnet-message-source
-  ifelse not any? intersections with [user-id = current-id]
-  [
-      ; the case where they tried logging in previously but there was no room for them
-      ; or they haven't logged in before
-      get-free-intersection current-id
+to-report handle-join [name]
+
+  let out -1
+
+  create-players 1 [
+
+    set hidden?         true
+    set location        ""
+    set my-intersection nobody
+    set my-phase        0
+    set username        name
+
+    get-free-intersection self
+
+    set out who
+
   ]
-  [
-    ; otherwise, we already have an intersection for the current-id.
-    ; all we need to do is send where the light is located at
-    ask intersections with [user-id = current-id]
-    [ hubnet-send current-id "Located At:" (word "(" my-column "," my-row ")") ]
-  ]
+
+  report out
+
 end
 
 ; when a client disconnects, free up its intersection
-TODO: On quit
 to abandon-intersection
-  ask intersections with [user-id = hubnet-message-source]
+  ask my-intersection
   [
-    set user-id -1
-    set my-phase 0
+    set my-player     nobody
     ask patch-at -1 1 [ set plabel ""]
   ]
 end
 
 ; if there are any free intersections, pick one of them at random and give it to the current-id.
 ; if there are not any free intersections, toss an error and put error values into the list
-to get-free-intersection [current-id]
-TODO
-  ifelse any? intersections with [user-id = -1]
+to get-free-intersection [user]
+
+  ifelse any? intersections with [my-player = nobody]
   [
     ; pick a random intersection that hasn't been taken yet
-    ask one-of intersections with [user-id = -1]
+    ask one-of intersections with [my-player = nobody]
     [
-      set user-id current-id
+
+      ask user [ set my-intersection myself ]
+      set my-player user
       ask patch-at -1 1
       [
         set plabel-color black
-        set plabel current-id
+        set plabel [username] of user
       ]
-      hubnet-send current-id "Located At:" (word "(" my-column "," my-row ")")
+
+      let my-c my-column
+      let my-r my-row
+
+      ask user [ set location (word "(" my-c "," my-r ")") ]
+
     ]
   ]
   [
-    hubnet-send current-id "Located At:" "Not enough lights"
-    user-message word "Not enough lights for student with id: " current-id
+    ask user [ set location "Not enough lights" ]
+    user-message "Not enough lights for all players"
   ]
+
 end
 
-; switch the traffic lights at the intersection for the client with user-id
-TODO: "Change Light"
-to manual [current-id]
-  if not auto?
+; switch the traffic lights at the intersection for the client
+to manual
+  if not __hnw_supervisor_auto?
   [
-    ask intersections with [user-id = current-id]
+    ask intersections with [my-player = myself]
     [
       set green-light-up? (not green-light-up?)
       set-signal-colors
@@ -516,16 +549,9 @@ to manual [current-id]
   ]
 end
 
-; change the value of the phase for the intersection at (xc,yc) to
-; the value passed by the client
-TODO: "Phase"
-to auto [current-id]
-  ask intersections with [user-id = current-id]
-  [
-    set my-phase hubnet-message
-  ]
+to-report intersection-phase
+  report ifelse-value (my-player != nobody) [ [my-phase] of my-player ] [ 0 ]
 end
-
 
 ; Copyright 1999 Uri Wilensky and Walter Stroup.
 ; See Info tab for full copyright and license.
@@ -567,23 +593,6 @@ This chooser determines\nwhich plot is drawn.
 0.0
 0
 
-BUTTON
-94
-237
-176
-270
-login
-listen-clients TODO
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 PLOT
 565
 500
@@ -600,7 +609,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -1893860 true "" "if-else hide-or-show-pen \"Average Wait Time of Cars\" [ set-plot-pen-color red ] [ set-plot-pen-color white ]\nplot mean [wait-time] of turtles"
+"default" 1.0 0 -1893860 true "" "if-else hide-or-show-pen \"Average Wait Time of Cars\" [ set-plot-pen-color red ] [ set-plot-pen-color white ]\nplot mean [wait-time] of cars"
 
 PLOT
 283
@@ -616,9 +625,9 @@ Average Speed
 1.0
 true
 false
-"set-plot-y-range 0 speed-limit" ""
+"set-plot-y-range 0 __hnw_supervisor_speed-limit" ""
 PENS
-"default" 1.0 0 -1893860 true "" "if-else hide-or-show-pen \"Average Speed of Cars\" [ set-plot-pen-color red ] [ set-plot-pen-color white ]\nplot mean [speed] of turtles"
+"default" 1.0 0 -1893860 true "" "if-else hide-or-show-pen \"Average Speed of Cars\" [ set-plot-pen-color red ] [ set-plot-pen-color white ]\nplot mean [speed] of cars"
 
 BUTTON
 288
@@ -774,7 +783,7 @@ Stopped Cars
 100.0
 true
 false
-"set-plot-y-range 0 number" ""
+"set-plot-y-range 0 __hnw_supervisor_number" ""
 PENS
 "default" 1.0 0 -1893860 true "" "ifelse hide-or-show-pen \"Stopped Cars\" [ set-plot-pen-color red ] [ set-plot-pen-color white ]\nplot num-cars-stopped"
 
@@ -898,9 +907,9 @@ NIL
 @#$#@#$#@
 ## WHAT IS IT?
 
-Students control traffic lights in a real-time traffic simulation.  The teacher controls overall variables, such as the speed limit and the number of cars.  This allows students to explore traffic dynamics, which can lead into many areas of study, from calculus to social studies.
+Players control traffic lights in a real-time traffic simulation.  The teacher controls overall variables, such as the speed limit and the number of cars.  This allows players to explore traffic dynamics, which can lead into many areas of study, from calculus to social studies.
 
-Challenge the students to develop strategies to improve traffic and discuss the different ways to measure the quality of traffic.
+Challenge the players to develop strategies to improve traffic and discuss the different ways to measure the quality of traffic.
 
 The coordinates for the traffic lights are based on the first quadrant of the Cartesian plane.  Therefore, the traffic light with the coordinates (0,0) is in the lowest row and the left-most column.  The traffic light above it has coordinates (0,1) and the traffic light to the right of it has (1,0).
 
@@ -918,10 +927,8 @@ Change the traffic grid (using the sliders GRID-SIZE-X and GRID-SIZE-Y) to make 
 Change any other of the settings that you would like to change.  For example, if you plan on running Gridlock in the MANUAL mode, be sure to have AUTO? set to OFF.
 
 Press the SETUP button.
-Press the LOGIN button.
 
-Everyone: Open up a HubNet Client on your machine and input the IP Address of this computer, type your user name in the user name box and press ENTER.
-Teacher: Once everyone is logged in and has a light, stop the LOGIN button by pressing it again.
+Everyone: Connect to the activity.
 
 Everyone: Whichever mode AUTO? is set for in NetLogo, you will control your intersection in a different way:
 If you have chosen MANUAL, you can change the state of your light by pressing the CHANGE LIGHT button.
@@ -944,7 +951,6 @@ Teacher: To start the simulation over with a new group, stop the model by pressi
 
 SETUP - generates a new traffic grid based on the current GRID-SIZE-X and GRID-SIZE-Y and NUM-CARS number of cars.  This also clears all the plots.  If the size of the grid has changed the clients will be assigned to new intersections.
 GO - runs the simulation indefinitely
-LOGIN - allows users to log into the activity without running the model or collecting data
 REFRESH PLOTS - redraws the plots based on the current value of PLOTS-TO-DISPLAY.  Useful for looking at different plots when GO is off.
 
 ### Sliders
@@ -969,7 +975,7 @@ PLOTS-TO-DISPLAY - determines which plot is drawn in NetLogo:
 
 CRASH? - toggles car crashing
 POWER? - toggles the presence of traffic lights
-AUTO? - toggles between automatic mode, where the students' lights change on a cycle, and manual in which students directly control the lights with their clients. Lights which aren't associated with clients always change on a cycle.
+AUTO? - toggles between automatic mode, where the players' lights change on a cycle, and manual in which players directly control the lights with their clients. Lights which aren't associated with clients always change on a cycle.
 
 ### Plots
 
@@ -979,7 +985,7 @@ AVERAGE WAIT TIME OF CARS - displays the average time cars are stopped over time
 
 ### Client Information
 
-After logging in, the client interface will appear for the students.  The controls for manual and automatic mode are both included, but which one works is based on the setting of the AUTO? switch in NetLogo.  In MANUAL mode, click the CHANGE LIGHT button to switch the state of the light you control.  In AUTO mode, move the PHASE slider to change the phase for your light.  The phase determines what percent of the way through the cycle to switch on.
+After logging in, the client interface will appear for the players.  The controls for manual and automatic mode are both included, but which one works is based on the setting of the AUTO? switch in NetLogo.  In MANUAL mode, click the CHANGE LIGHT button to switch the state of the light you control.  In AUTO mode, move the PHASE slider to change the phase for your light.  The phase determines what percent of the way through the cycle to switch on.
 
 ## THINGS TO NOTICE
 
@@ -1019,7 +1025,7 @@ Currently, the maximum speed limit (found in the SPEED-LIMIT slider) for the car
 
 - "Traffic Grid Goal": a version of "Traffic Grid" where the cars have goals, namely to drive to and from work.
 
-- "Gridlock Alternate HubNet": a version of "Gridlock HubNet" where students can enter NetLogo code to plot custom metrics.
+- "Gridlock Alternate HubNet": a version of "Gridlock HubNet" where players can enter NetLogo code to plot custom metrics.
 
 ## HOW TO CITE
 
@@ -1334,7 +1340,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.3.0
 @#$#@#$#@
 need-to-manually-make-preview-for-this-model
 @#$#@#$#@
