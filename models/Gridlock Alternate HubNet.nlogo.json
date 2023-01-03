@@ -1,17 +1,17 @@
 {
     "roles": [
         {
-            "canJoinMidRun": true,
+            "canJoinMidRun": false,
             "onCursorMove": null,
             "onCursorClick": null,
-            "onDisconnect": "???DC",
+            "onDisconnect": "abandon-intersection",
             "afterDisconnect": null,
             "widgets": [
                 {
-                    "height": 370,
+                    "height": 365,
                     "bottom": 380,
                     "left": 492,
-                    "width": 370,
+                    "width": 365,
                     "right": 862,
                     "type": "hnwView",
                     "top": 10
@@ -22,9 +22,9 @@
                     "display": "Change Light",
                     "disableUntilTicksStart": true,
                     "left": 192,
-                    "buttonKind": "???3",
-                    "source": "???1",
-                    "hnwProcName": "???2",
+                    "buttonKind": "turtle",
+                    "source": "manual",
+                    "hnwProcName": "manual",
                     "right": 316,
                     "type": "hnwButton",
                     "top": 68
@@ -36,7 +36,7 @@
                     "direction": "horizontal",
                     "default": 0,
                     "left": 192,
-                    "variable": "Phase",
+                    "variable": "my-phase",
                     "step": 1,
                     "min": "0.0",
                     "right": 316,
@@ -59,9 +59,9 @@
                     "display": "Located At:",
                     "left": 203,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "location",
                     "right": 316,
                     "type": "hnwMonitor",
                     "top": 10
@@ -71,9 +71,9 @@
                     "display": "metric-error-message",
                     "left": 7,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "metric-error",
                     "right": 488,
                     "type": "hnwMonitor",
                     "top": 377
@@ -83,7 +83,7 @@
                     "left": 7,
                     "variable": "metric-code",
                     "boxedValue": {
-                        "value": "null",
+                        "value": "",
                         "multiline": true,
                         "type": "String (reporter)"
                     },
@@ -96,17 +96,17 @@
                     "display": "Current Metric Value",
                     "left": 318,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "metric-value",
                     "right": 487,
                     "type": "hnwMonitor",
                     "top": 85
                 }
             ],
-            "name": "student",
-            "namePlural": "students",
-            "onConnect": "???Connect",
+            "name": "player",
+            "namePlural": "players",
+            "onConnect": "handle-join",
             "limit": -1,
             "highlightMainColor": "#008000",
             "isSpectator": false
@@ -114,15 +114,15 @@
         {
             "canJoinMidRun": true,
             "onCursorMove": null,
-            "onCursorClick": null,
-            "onDisconnect": "???DC",
+            "onCursorClick": "select-player-for-client-plot",
+            "onDisconnect": null,
             "afterDisconnect": null,
             "widgets": [
                 {
-                    "height": 378,
+                    "height": 373,
                     "bottom": 475,
                     "left": 566,
-                    "width": 379,
+                    "width": 374,
                     "right": 944,
                     "type": "hnwView",
                     "top": 96
@@ -151,19 +151,6 @@
                     "right": 166,
                     "type": "hnwSlider",
                     "top": 464
-                },
-                {
-                    "forever": true,
-                    "bottom": 242,
-                    "display": "login",
-                    "left": 101,
-                    "buttonKind": "observer",
-                    "source": "listen-clients",
-                    "hnwProcName": "listen-clients",
-                    "right": 186,
-                    "type": "hnwButton",
-                    "top": 209,
-                    "disableUntilTicksStarts": true
                 },
                 {
                     "bottom": 689,
@@ -269,9 +256,9 @@
                     "display": "Quick Start Instructions- More in Info Window",
                     "left": 571,
                     "precision": 0,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "quick-start",
                     "right": 941,
                     "type": "hnwMonitor",
                     "top": 10
@@ -380,18 +367,6 @@
                     "update": ""
                 },
                 {
-                    "forever": true,
-                    "bottom": 242,
-                    "left": 187,
-                    "buttonKind": "observer",
-                    "source": "go",
-                    "hnwProcName": "go",
-                    "right": 272,
-                    "type": "hnwButton",
-                    "top": 209,
-                    "disableUntilTicksStarts": true
-                },
-                {
                     "max": "10",
                     "bottom": 151,
                     "display": "simulation-speed",
@@ -420,25 +395,13 @@
                     "top": 118
                 },
                 {
-                    "forever": false,
-                    "bottom": 242,
-                    "left": 13,
-                    "buttonKind": "observer",
-                    "source": "setup",
-                    "hnwProcName": "setup",
-                    "right": 99,
-                    "type": "hnwButton",
-                    "top": 209,
-                    "disableUntilTicksStarts": true
-                },
-                {
                     "bottom": 199,
                     "display": "Current Phase",
                     "left": 176,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "phase",
                     "right": 281,
                     "type": "hnwMonitor",
                     "top": 154
@@ -505,9 +468,9 @@
                     "display": "Client Plot's Current Intersection's User Id",
                     "left": 2,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "procedure",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "user-id-of-intersection-for-current-metric",
                     "right": 242,
                     "type": "hnwMonitor",
                     "top": 302
@@ -517,30 +480,17 @@
                     "display": "Current Client Metric",
                     "left": 2,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 11,
-                    "source": "???1",
+                    "source": "current-client-metric",
                     "right": 562,
                     "type": "hnwMonitor",
                     "top": 249
-                },
-                {
-                    "forever": true,
-                    "bottom": 386,
-                    "display": "Select Intersection To Plot Metric in Client Plot",
-                    "left": 2,
-                    "buttonKind": "observer",
-                    "source": "select-intersection-for-client-plot",
-                    "hnwProcName": "select-intersection-for-client-plot",
-                    "right": 282,
-                    "type": "hnwButton",
-                    "top": 353,
-                    "disableUntilTicksStarts": true
                 }
             ],
             "name": "supervisor",
             "namePlural": "supervisors",
-            "onConnect": "???Connect",
+            "onConnect": null,
             "limit": 1,
             "highlightMainColor": "#008000",
             "isSpectator": true
