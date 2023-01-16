@@ -38,6 +38,10 @@ globals [
   number-matings                            ;; keeps track of number of matings
   number-selections                         ;; keeps track of number of releases + number of eggs hatched at cages
   new-selection-event-occurred?             ;; turns true when number-selections increments by 1.  This is used for updating the genotype and phenotype graphs
+
+  __hnw_supervisor_max-#-of-DNA-tests
+  __hnw_supervisor_#-of-required-goal-birds
+
 ]
 
 
@@ -54,14 +58,16 @@ breed [second-traits second-trait]         ;; shape that is the wings in birds
 breed [third-traits  third-trait]          ;; shape that determines breast in birds
 breed [fourth-traits  fourth-trait]          ;; shape that determines tail in birds
 breed [players player]                     ;; one player is assigned to each participant
+breed [clients client]
 
 
 
 patches-own [site-id patch-owned-by closed? reserved?]
-players-own [user-id player-number moving-a-bird? origin-patch assigned?]
+players-own [player-number moving-a-bird? origin-patch assigned? username]
+clients-own [my-player]
 
 birds-own [
-  owned-by                                                                ;; birds are owned-by a particular user-id.
+  owned-by                                                                ;; birds are owned-by a particular client
   first-genes second-genes third-genes fourth-genes fifth-genes sex-gene   ;; genetic information is stored in these five variables
   transporting? breeding? selected? just-bred? sequenced? released?       ;; the state of the bird is stored in these seven variables
   destination-patch                                                       ;; this variable is used for keeping track of where the bird is moving toward
@@ -69,14 +75,14 @@ birds-own [
 ]
 
 eggs-own  [
-  owned-by                                                                ;; eggs are owned-by a particular user-id.
+  owned-by                                                                ;; eggs are owned-by a particular client
   first-genes second-genes third-genes fourth-genes fifth-genes sex-gene   ;; genetic information is stored in these five variables
   transporting? breeding? selected? just-bred? sequenced? released?       ;; the state of the egg is stored in these seven variables
   destination-patch                                                       ;; this variable is used for keeping track of where the egg is moving toward
   release-counter                                                         ;; counts down to keep track of how to visualize the "fading" out of a released egg
 ]
 
-;; owned-by corresponds a particular user-id
+;; owned-by corresponds a particular client
 dna-sequencers-own    [owned-by]
 selection-tags-own    [owned-by]
 destination-flags-own [owned-by]
@@ -94,9 +100,13 @@ fourth-traits-own     [owned-by fourth-genes fifth-genes sex-gene ]
 
 
 to startup
+
+  set __hnw_supervisor_max-#-of-DNA-tests       16
+  set __hnw_supervisor_#-of-required-goal-birds 12
+
   setup
-  hubnet-reset
   make-players
+
 end
 
 
@@ -117,7 +127,7 @@ to setup
   set number-hatchings 0
   set number-offspring 0
   set sequencings-performed 0
-  set sequencings-left (max-#-of-DNA-tests - sequencings-performed)
+  set sequencings-left (__hnw_supervisor_max-#-of-DNA-tests - sequencings-performed)
   set new-selection-event-occurred? false
   set #-birds-with-1-target-trait 0
   set #-birds-with-2-target-traits 0
@@ -186,10 +196,10 @@ end
 to make-players
   let player-number-counter 1
   create-players 4 [
+    set username ""
     set hidden? true  ;; players are invisible agents
     set player-number player-number-counter
     set player-number-counter player-number-counter + 1
-    set user-id ""        ;; this player is currently unassigned to a participant
     set assigned? false
   ]
 end
@@ -214,12 +224,11 @@ end
 to reset-player-numbers
   set player-1 ""  set player-2 ""  set player-3 ""   set player-4 ""
   ask players [
-    if player-number = 1 [set player-1 user-id]
-    if player-number = 2 [set player-2 user-id]
-    if player-number = 3 [set player-3 user-id]
-    if player-number = 4 [set player-4 user-id]
+    if player-number = 1 [set player-1 username]
+    if player-number = 2 [set player-2 username]
+    if player-number = 3 [set player-3 username]
+    if player-number = 4 [set player-4 username]
   ]
-
 end
 
 
@@ -320,13 +329,9 @@ to go
   open-eggs
   check-for-DNA-test
   update-mating-ready-visualization
-;;  every 0.1 [
-    ask (turtle-set birds eggs) with [released?] [release-this-bird-or-egg]
-    visualize-bird-and-egg-movement
-    ask selection-tags [rt 5]
-    listen-clients
-    if any? players with [assigned?] [send-common-info]
-;;  ]
+  ask (turtle-set birds eggs) with [released?] [release-this-bird-or-egg]
+  visualize-bird-and-egg-movement
+  ask selection-tags [rt 5]
   calculate-all-alleles
   check-for-meeting-goals
 
@@ -362,7 +367,7 @@ end
 
 
 to check-for-DNA-test
-    set sequencings-left (max-#-of-DNA-tests - sequencings-performed)
+    set sequencings-left (__hnw_supervisor_max-#-of-DNA-tests - sequencings-performed)
     if sequencings-left <= 0 [set sequencings-left 0]
     ask birds with [not sequenced? and is-a-sequencer-site?] [sequence-this-bird]
 end
@@ -416,38 +421,10 @@ to sequence-this-bird
       set label-color [255 0 0]
     ]
     set sequencings-performed sequencings-performed + 1
-    set sequencings-left (max-#-of-DNA-tests - sequencings-performed)
+    set sequencings-left (__hnw_supervisor_max-#-of-DNA-tests - sequencings-performed)
   ]
 end
 
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Handle client interactions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-
-
-to listen-clients
-  while [ hubnet-message-waiting? ]   [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ assign-new-player ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-player ]
-      [ ask players with [user-id = hubnet-message-source] [  execute-command hubnet-message-tag hubnet-message ]]
-    ]
-  ]
-end
-
-
-to execute-command [command msg]
-  if command = "View" [check-click-on-bird-or-egg msg]
-  if command = "Mouse Up" [ check-release-mouse-button msg]
-end
 
 
 
@@ -455,36 +432,30 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; player enter / exit procedures  ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-to assign-new-player
-  if not any? players with [user-id = hubnet-message-source and assigned?]  [  ;; no players with this id and is assigned
-    ask turtle-set one-of players with [not assigned?] [ set user-id hubnet-message-source set assigned? true]
+to-report assign-new-player [id]
+  let out -1
+  create-clients 1 [
+    let x 0
+    ask turtle-set one-of players with [not assigned?] [
+      set username  id
+      set assigned? true
+      set x self
+    ]
+    set hidden?   true
+    set my-player x
+    set out       who
+  ]
+  reset-player-numbers
+  report out
+end
+
+to remove-client
+  ask my-player [
+    set assigned? false
+    set username ""
   ]
   reset-player-numbers
 end
-
-
-to remove-player
-  ask players with [user-id = hubnet-message-source] [ set assigned? false set user-id ""]
-  reset-player-numbers
-end
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;  send info to client procedures ;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-to send-common-info
-  hubnet-broadcast "Player 1:" player-1
-  hubnet-broadcast "Player 2:" player-2
-  hubnet-broadcast "Player 3:" player-3
-  hubnet-broadcast "Player 4:" player-4
-  hubnet-broadcast "# eggs laid" number-offspring
-  hubnet-broadcast "# of birds/eggs released" number-releases
-  hubnet-broadcast "# matings" number-matings
-  hubnet-broadcast "# of DNA tests remaining" sequencings-left
-end
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;  check for meeting goals procedures ;;;;;;;;;;;;;;;;;;;;
@@ -500,7 +471,7 @@ to check-for-meeting-goals
     set new-selection-event-occurred? true
   ]
   set number-of-goal-birds count birds with [is-goal-bird-and-in-cage?]
-  if (number-of-goal-birds >= #-of-required-goal-birds)  [ announce-winner]
+  if (number-of-goal-birds >= __hnw_supervisor_#-of-required-goal-birds)  [ announce-winner]
 end
 
 
@@ -704,69 +675,80 @@ end
 ;; until the bird gets to the patch.  Reserved patches then can not be destinations.
 
 
-to check-click-on-bird-or-egg [msg]
-  let snap-xcor round item 0 msg
-  let snap-ycor round item 1 msg
-  let this-player-number player-number
-  let this-bird-or-egg nobody
+to check-click-on-bird-or-egg [x y]
 
-  ;; birds-available is agent set of players birds at mouse location
-  let birds-or-eggs-selectable-at-clicked-patch (turtle-set birds eggs) with [pxcor = snap-xcor and pycor = snap-ycor and is-selectable-by-me? this-player-number]
-  if any? birds-or-eggs-selectable-at-clicked-patch    [
-    ;; when a bird is clicked on (mouse down, that is the players bird, the bird becomes a "selected bird"
-    ;; and a visual selection "selection-tag" is assigned to it. All other tags need to be wiped out
-    ;; ask all birds/eggs owned to deselect
-    deselect-all-my-birds-and-eggs this-player-number
-    ask one-of birds-or-eggs-selectable-at-clicked-patch [
-      set-as-only-selected
-      set destination-patch nobody
-      set this-bird-or-egg self
-      hatch 1 [
-        set breed selection-tags set owned-by this-player-number
-        set color (lput 150 extract-rgb (player-tag-and-destination-flag-color this-player-number ) )
-        set heading 0
-        set size 1.0
-        set label ""
-        create-link-from this-bird-or-egg [set hidden? true tie]
-      ]
-    ]
-  ]
-end
+  ask my-player [
 
+    let snap-xcor round x
+    let snap-ycor round y
+    let this-player-number player-number
+    let this-bird-or-egg nobody
 
-to check-release-mouse-button [msg]
-  let snap-xcor round item 0 msg
-  let snap-ycor round item 1 msg
-  let is-destination-patch-illegal? true
-  let this-player-number player-number
-  let this-user-id user-id
-  let currently-selected-birds-or-eggs (turtle-set birds eggs) with [selected? and is-bird-or-egg-owned-by-this-player? this-player-number]
-
-  if any? currently-selected-birds-or-eggs [
-    let this-selected-bird-or-egg one-of currently-selected-birds-or-eggs
-    let this-selected-is-an-egg? is-egg? this-selected-bird-or-egg
-    let tag-for-this-destination-flag one-of selection-tags with [owned-by = this-player-number]
-    let possible-destination-patch patch-at snap-xcor snap-ycor
-
-    ask possible-destination-patch [set is-destination-patch-illegal? is-other-players-cage-or-occupied-site? this-player-number this-user-id ]
-
-    ifelse is-destination-patch-illegal? [
-    ;; deselect all bird and start over in detecting selection
-       deselect-all-my-birds-and-eggs this-player-number
-    ]
-    ;; the destination patch is not illegal, so assign destination patch to the bird
-    [
-      ask currently-selected-birds-or-eggs [set destination-patch  possible-destination-patch set-as-only-transporting]
-      ask possible-destination-patch [
-        set reserved? true
-        sprout 1 [
-          set breed destination-flags
-          set owned-by this-user-id
+    ;; birds-available is agent set of players birds at mouse location
+    let birds-or-eggs-selectable-at-clicked-patch (turtle-set birds eggs) with [pxcor = snap-xcor and pycor = snap-ycor and is-selectable-by-me? this-player-number]
+    if any? birds-or-eggs-selectable-at-clicked-patch    [
+      ;; when a bird is clicked on (mouse down, that is the players bird, the bird becomes a "selected bird"
+      ;; and a visual selection "selection-tag" is assigned to it. All other tags need to be wiped out
+      ;; ask all birds/eggs owned to deselect
+      deselect-all-my-birds-and-eggs this-player-number
+      ask one-of birds-or-eggs-selectable-at-clicked-patch [
+        set-as-only-selected
+        set destination-patch nobody
+        set this-bird-or-egg self
+        hatch 1 [
+          set breed selection-tags set owned-by this-player-number
           set color (lput 150 extract-rgb (player-tag-and-destination-flag-color this-player-number ) )
+          set heading 0
           set size 1.0
+          set label ""
+          create-link-from this-bird-or-egg [set hidden? true tie]
         ]
       ]
     ]
+
+  ]
+
+end
+
+
+to check-release-mouse-button [x y]
+
+  ask my-player [
+
+    let snap-xcor round x
+    let snap-ycor round y
+    let is-destination-patch-illegal? true
+    let this-player-number player-number
+    let this-username username
+    let currently-selected-birds-or-eggs (turtle-set birds eggs) with [selected? and is-bird-or-egg-owned-by-this-player? this-player-number]
+
+    if any? currently-selected-birds-or-eggs [
+      let this-selected-bird-or-egg one-of currently-selected-birds-or-eggs
+      let this-selected-is-an-egg? is-egg? this-selected-bird-or-egg
+      let tag-for-this-destination-flag one-of selection-tags with [owned-by = this-player-number]
+      let possible-destination-patch patch-at snap-xcor snap-ycor
+
+      ask possible-destination-patch [set is-destination-patch-illegal? is-other-players-cage-or-occupied-site? this-player-number this-username ]
+
+      ifelse is-destination-patch-illegal? [
+      ;; deselect all bird and start over in detecting selection
+         deselect-all-my-birds-and-eggs this-player-number
+      ]
+      ;; the destination patch is not illegal, so assign destination patch to the bird
+      [
+        ask currently-selected-birds-or-eggs [set destination-patch  possible-destination-patch set-as-only-transporting]
+        ask possible-destination-patch [
+          set reserved? true
+          sprout 1 [
+            set breed destination-flags
+            set owned-by this-username
+            set color (lput 150 extract-rgb (player-tag-and-destination-flag-color this-player-number ) )
+            set size 1.0
+          ]
+        ]
+      ]
+    ]
+
   ]
 
 end
@@ -1029,7 +1011,7 @@ to-report is-goal-bird-and-in-cage?
 end
 
 
-to-report is-other-players-cage-or-occupied-site? [this-player-number this-user-id ]
+to-report is-other-players-cage-or-occupied-site? [this-player-number this-username ]
   let validity? false
   if ((patch-owned-by >= 1 and patch-owned-by <= 4) and patch-owned-by != this-player-number) [
     ;;You can not move a bird/egg to another players cage or dna sequencer
@@ -1061,7 +1043,7 @@ end
 to-report this-players-short-name [this-owned-by]
   let name-of-player ""
   if any? players with [player-number = this-owned-by] [
-     ask one-of players with [player-number = this-owned-by] [set name-of-player user-id ]]
+     ask one-of players with [player-number = this-owned-by] [set name-of-player username ]]
   if length name-of-player > 6 [set name-of-player substring name-of-player 1 7 ]
   report name-of-player
 end
@@ -1461,21 +1443,6 @@ current-instruction-label
 17
 1
 11
-
-SLIDER
-15
-45
-180
-78
-#-of-players
-#-of-players
-1
-4
-4.0
-1
-1
-NIL
-HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
