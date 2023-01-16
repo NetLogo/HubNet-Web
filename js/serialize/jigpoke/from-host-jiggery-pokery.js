@@ -648,6 +648,10 @@ const recombobulateSprite = (sprite) => {
 
   const clone = deepClone(sprite);
 
+  if (clone.elements === undefined) {
+    clone.elements = [];
+  }
+
   transform(clone)("elements", (es) => {
     return es.map(
       (e) => {
