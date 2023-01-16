@@ -15,6 +15,13 @@ globals
   events                          ;; a string holding a description of all the automatic environment changes that occurred in grass growth and max-grass
   total-species-created           ;; the total number of species created
   max-species-age                 ;; the maximum age of all species created
+
+  __hnw_supervisor_#-placements-per-client
+  __hnw_supervisor_environment-changes?
+  __hnw_supervisor_grass-growth
+  __hnw_supervisor_max-grass
+  __hnw_supervisor_minimum-random-species
+
 ]
 
 
@@ -42,6 +49,16 @@ clients-own
   birthing-level                 ;; the energy level each individual must reach before reproducing as well as
                                  ;; how much energy is split between the parent and the offspring when this occurs
   carnivore?                     ;; if true, this client's species can eat other critters
+
+  follow-a-critter?
+
+  was-following?
+  was-graying-out?
+  was-showing-energy?
+
+  perspective
+  overrides
+
 ]
 
 critters-own
@@ -87,16 +104,15 @@ patches-own [
 
 
 to startup
-  clear-all
-  hubnet-reset
+  reset-ticks
   setup-vars
 end
 
 to reset-client-stats
-      set placements-made 0
-      set population-size 0
-      set current-longevity 0
-      set max-longevity 0
+  set placements-made 0
+  set population-size 0
+  set current-longevity 0
+  set max-longevity 0
 end
 
 to setup
@@ -111,7 +127,7 @@ to setup
   ask species-logs [die]
   reset-ticks
   setup-patches
-  repeat minimum-random-species
+  repeat __hnw_supervisor_minimum-random-species
   [
     add-random-critter
   ]
@@ -131,7 +147,7 @@ end
 
 to setup-patches
   ask patches [
-    set sugar random (max-grass / 5)
+    set sugar random (__hnw_supervisor_max-grass / 5)
     recolor-patch
   ]
 end
@@ -198,6 +214,7 @@ end
 
 ;; initialize global variables
 to setup-vars
+
   set shape-names [ "box" "star" "wheel" "target" "cat" "dog"
                    "butterfly" "leaf" "car" "airplane"
                    "monster" "key" "cow skull" "ghost"
@@ -205,6 +222,13 @@ to setup-vars
   set colors      (list (white - 1) brown red (orange + 1) (violet + 1) (magenta) (sky + 1) yellow cyan 137)
   set color-names ["white" "brown" "red" "orange" "purple" "magenta" "blue" "yellow" "cyan" "pink"]
   set max-possible-codes (length colors * length shape-names)
+
+  set __hnw_supervisor_environment-changes?    true
+  set __hnw_supervisor_grass-growth            31
+  set __hnw_supervisor_max-grass               42
+  set __hnw_supervisor_minimum-random-species  0
+  set __hnw_supervisor_#-placements-per-client 10
+
 end
 
 
@@ -213,142 +237,141 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
 to go
-  every 0.01
+  calc-leader-stats
+  ; possibly add a random critter of a new species at every 20th tick
+  if (ticks mod 20 = 0) and (random 50 < 1 or species-count < __hnw_supervisor_minimum-random-species)
   [
-    calc-leader-stats
-    ; possibly add a random critter of a new species at every 20th tick
-    if (ticks mod 20 = 0) and (random 50 < 1 or species-count < minimum-random-species)
+    add-random-critter
+  ]
+  ;; move turtles
+  ask clients [update-client-stats]
+  ask critters
+  [
+    set age age + dt
+    if (movement-counter <= 0)
     [
-      add-random-critter
-    ]
-    ;; move turtles
-    ask clients [update-client-stats]
-    ask critters
-    [
-      set age age + dt
-      if (movement-counter <= 0)
-      [
-        set action-index (action-index + 1) mod (length behavior-dna)
-        set current-action item action-index behavior-dna
-        if (current-action = "f") [ set current-action "F" ]
-        if (current-action = "r") [ set current-action "R" ]
-        if (current-action = "l") [ set current-action "L" ]
-        if (current-action = "*" or not member? current-action "FRL")
-        [ set current-action one-of ["F" "R" "L"] ]
-        ifelse (current-action = "F")
-        [
-          ifelse (speed = 0)
-          [ set movement-counter 1000000 ]
-          [ set movement-counter round (1.0 / (speed * dt)) ]
-          set movement-delta 1.0 / movement-counter
-          ; make sure we're facing one of the four cardinal directions, before moving forward
-          set heading (round (heading / 90)) * 90
-        ][
-        if (current-action = "R" or current-action = "L")
-        [
-          ifelse (speed = 0)
-          [ set movement-counter 1000000 ]
-          [ set movement-counter round (90 / (90 * speed * dt)) ]
-
-          set movement-delta 90 / movement-counter
-        ]]
-
-      ]
-      set movement-counter movement-counter - 1
+      set action-index (action-index + 1) mod (length behavior-dna)
+      set current-action item action-index behavior-dna
+      if (current-action = "f") [ set current-action "F" ]
+      if (current-action = "r") [ set current-action "R" ]
+      if (current-action = "l") [ set current-action "L" ]
+      if (current-action = "*" or not member? current-action "FRL")
+      [ set current-action one-of ["F" "R" "L"] ]
       ifelse (current-action = "F")
       [
-        ;; move and expend energy
-        ifelse (can-move? movement-delta)
-        [
-          forward movement-delta
-        ]
-        [
-          set movement-counter 0 ; critter tried to go forward but can't, so instead of beating its head
-                                 ; against the wall for a long time, it skips to its next action
-        ]
-        ifelse (carnivore?)
-        [
-          set energy energy - (speed / 5 + 0.05) * dt  ; speed is less energy-expensive for carnivores.
-        ]
-        [
-          set energy energy - (speed + 0.05) * dt  ; lose energy based on speed, and -0.05 base metabolism
-        ]
+        ifelse (speed = 0)
+        [ set movement-counter 1000000 ]
+        [ set movement-counter round (1.0 / (speed * dt)) ]
+        set movement-delta 1.0 / movement-counter
+        ; make sure we're facing one of the four cardinal directions, before moving forward
+        set heading (round (heading / 90)) * 90
       ][
-        ifelse (current-action = "R")
-          [ right movement-delta ]
-          [ left movement-delta ]
-        ; turning costs much less energy than movement,
-        set energy energy - (speed / 5) * dt
-        ; we only take away base metabolism for carnivores, b/c we don't want them to sit forever!
-        if (carnivore?)
-        [ set energy energy - 0.02 * dt ]
-      ]
+      if (current-action = "R" or current-action = "L")
+      [
+        ifelse (speed = 0)
+        [ set movement-counter 1000000 ]
+        [ set movement-counter round (90 / (90 * speed * dt)) ]
 
-      ;; eat
+        set movement-delta 90 / movement-counter
+      ]]
+
+    ]
+    set movement-counter movement-counter - 1
+    ifelse (current-action = "F")
+    [
+      ;; move and expend energy
+      ifelse (can-move? movement-delta)
+      [
+        forward movement-delta
+      ]
+      [
+        set movement-counter 0 ; critter tried to go forward but can't, so instead of beating its head
+                               ; against the wall for a long time, it skips to its next action
+      ]
       ifelse (carnivore?)
       [
-        ;; don't eat anything of same color
-        let prey critters-here with [ color != [color] of myself ]
-        if any? prey
-        [
-          let victim one-of prey
-          set energy energy + [ energy ] of victim
-          ask victim [ die ]
-        ]
+        set energy energy - (speed / 5 + 0.05) * dt  ; speed is less energy-expensive for carnivores.
       ]
-      [ ; herbivore
-        set energy energy + sugar
-        ask patch-here [
-          set sugar 0
-          recolor-patch
-        ]
-      ]
-      if (energy > birthing-level)
       [
-        hatch 1 [
-          set heading random 360
-          if (can-move? 0.3)
-            [ fd 0.3  ]
-          set heading one-of [0 90 180 270 ]
-          set age 0
-          ; extra 0.25 penalty helps balance against critter-bomb low-birth-threshold tactics
-          set energy (([energy] of myself) / 2) * (1.0 - birth-cost) - 0.25
-          set movement-counter 0
-          set action-index -1
-        ]
-        set energy energy / 2
+        set energy energy - (speed + 0.05) * dt  ; lose energy based on speed, and -0.05 base metabolism
       ]
-      if (energy < 0 or age > max-critter-lifespan)
+    ][
+      ifelse (current-action = "R")
+        [ right movement-delta ]
+        [ left movement-delta ]
+      ; turning costs much less energy than movement,
+      set energy energy - (speed / 5) * dt
+      ; we only take away base metabolism for carnivores, b/c we don't want them to sit forever!
+      if (carnivore?)
+      [ set energy energy - 0.02 * dt ]
+    ]
+
+    ;; eat
+    ifelse (carnivore?)
+    [
+      ;; don't eat anything of same color
+      let prey critters-here with [ color != [color] of myself ]
+      if any? prey
       [
-        add-sugar (2 + energy / 2) ; give back some nutrients to the world, as the organism decomposes
-        if (carnivore?)
-          [ add-sugar 3 ] ; more from a carnivore corpse
+        let victim one-of prey
+        set energy energy + [ energy ] of victim
+        ask victim [ die ]
+      ]
+    ]
+    [ ; herbivore
+      set energy energy + sugar
+      ask patch-here [
+        set sugar 0
         recolor-patch
-        die
       ]
     ]
-
-    ask n-of ((grass-growth / 100)  * dt * count patches ) patches  [
-      add-sugar 0.1
-      recolor-patch
+    if (energy > birthing-level)
+    [
+      hatch 1 [
+        set heading random 360
+        if (can-move? 0.3)
+          [ fd 0.3  ]
+        set heading one-of [0 90 180 270 ]
+        set age 0
+        ; extra 0.25 penalty helps balance against critter-bomb low-birth-threshold tactics
+        set energy (([energy] of myself) / 2) * (1.0 - birth-cost) - 0.25
+        set movement-counter 0
+        set action-index -1
+      ]
+      set energy energy / 2
     ]
-
-     update-species-logs ;; keep historical record of all species
-
-    ; we do hubnet commands right before a tick, because the override lists get set here,
-    ; and the display gets updated after a tick.
-    listen-clients
-
-    if (ticks mod 100 = 0) and random 10 = 0 and  environment-changes? [change-environmental-conditions]
-
-    tick
+    if (energy < 0 or age > max-critter-lifespan)
+    [
+      add-sugar (2 + energy / 2) ; give back some nutrients to the world, as the organism decomposes
+      if (carnivore?)
+        [ add-sugar 3 ] ; more from a carnivore corpse
+      recolor-patch
+      die
+    ]
   ]
+
+  ask n-of ((__hnw_supervisor_grass-growth / 100)  * dt * count patches ) patches  [
+    add-sugar 0.1
+    recolor-patch
+  ]
+
+  update-species-logs ;; keep historical record of all species
+
+  ; the override lists get set here and the display gets updated after a tick
+  ask clients [ refresh-overrides ]
+
+  if (ticks mod 100 = 0) and random 10 = 0 and __hnw_supervisor_environment-changes? [
+    change-environmental-conditions
+  ]
+
+  tick
+
 end
 
 
 to add-sugar [ n ]
-  ifelse sugar + n > max-grass
-  [ set sugar max-grass ]
+  ifelse sugar + n > __hnw_supervisor_max-grass
+  [ set sugar __hnw_supervisor_max-grass ]
   [ set sugar sugar + n ]
 end
 
@@ -361,20 +384,20 @@ end
 to change-environmental-conditions
      let growth-rate-change random 100 - random 100 ;sets growth-rate-change to a number between -99 and 99
      let max-grass-change random 80 - random 80 ;sets max-grass-change to a number between -79 and 79
-     let old-max-grass max-grass
-     let old-grass-growth grass-growth
+     let old-max-grass __hnw_supervisor_max-grass
+     let old-grass-growth __hnw_supervisor_grass-growth
 
-     set grass-growth grass-growth + growth-rate-change
-     if grass-growth < 10 [set grass-growth 10]
-     if grass-growth > 100 [set grass-growth 100]
+     set __hnw_supervisor_grass-growth __hnw_supervisor_grass-growth + growth-rate-change
+     if __hnw_supervisor_grass-growth < 10 [set __hnw_supervisor_grass-growth 10]
+     if __hnw_supervisor_grass-growth > 100 [set __hnw_supervisor_grass-growth 100]
 
-     set max-grass max-grass + max-grass-change
-     if max-grass > 100 [set max-grass 100]
-     if max-grass < 10 [set max-grass 10]
+     set __hnw_supervisor_max-grass __hnw_supervisor_max-grass + max-grass-change
+     if __hnw_supervisor_max-grass > 100 [set __hnw_supervisor_max-grass 100]
+     if __hnw_supervisor_max-grass < 10 [set __hnw_supervisor_max-grass 10]
      let this-event (word "time: " ticks )
-     set events lput  ( word  this-event " ggr: " grass-growth " mgpp: " max-grass) events
+     set events lput  ( word  this-event " ggr: " __hnw_supervisor_grass-growth " mgpp: " __hnw_supervisor_max-grass) events
      set #-environment-changes #-environment-changes + 1
-      output-print (word "Environmental change (time:" ticks ", grass-growth:" grass-growth ", max-grass:" max-grass )
+      output-print (word "Environmental change (time:" ticks ", grass-growth:" __hnw_supervisor_grass-growth ", max-grass:" __hnw_supervisor_max-grass )
 
 end
 
@@ -397,41 +420,22 @@ end
 ;; HubNet Procedures ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
-;; determines which client sent a command, and what the command was
-to listen-clients
-  while [ hubnet-message-waiting? ]
-  [
-    hubnet-fetch-message
-    ifelse hubnet-enter-message?
-    [ create-new-client ]
-    [
-      ifelse hubnet-exit-message?
-      [ remove-client ]
-      [
-        ask clients with [ user-id = hubnet-message-source ]
-          [ execute-command hubnet-message-tag ]
-      ]
-    ]
-  ]
-
-  ask clients  [ send-info-to-client ]
-  if any? clients [broadcast-info-to-clients]
-end
-
-
-to create-new-client
+to-report create-new-client [username]
+  let out -1
   create-clients 1
   [
-    setup-client-vars
-    send-info-to-client
+    setup-client-vars username
+    refresh-overrides
+    set out who
   ]
+  report out
 end
 
 
 ;; sets the turtle variables to appropriate initial values
-to setup-client-vars  ;; turtle procedure
+to setup-client-vars [username] ;; turtle procedure
   hide-turtle
-  set user-id hubnet-message-source
+  set user-id username
   change-shape-and-color
   setxy random-xcor random-ycor
   set heading one-of [0 90 180 270]
@@ -441,79 +445,42 @@ to setup-client-vars  ;; turtle procedure
   set carnivore? false
   set gray-out-others? false
   set show-energy? false
+  set follow-a-critter?      false
   set placing-spam-countdown 0
+  set was-following?         false
+  set was-graying-out?       false
+  set was-showing-energy?    false
+  set perspective            []
+  set overrides              []
   reset-client-stats
 end
 
 
-to execute-command [command]
-  if command = "speed"
-  [ set speed hubnet-message           stop  ]
-  if command = "behavior-dna"
-  [ set behavior-dna hubnet-message    stop  ]
-  if command = "birthing-level"
-  [ set birthing-level hubnet-message  stop  ]
-  if command = "carnivore?"
-  [ set carnivore? hubnet-message      stop  ]
-  if command = "gray-out-others?"
+to place-new-species
+
+  if (placing-spam-countdown = 0) and (placements-made < __hnw_supervisor_#-placements-per-client)
   [
-    set gray-out-others? hubnet-message
-    if (gray-out-others? = false)
-    [ hubnet-clear-override user-id critters "color" ]
-    stop
-  ]
-  if command = "show-energy?"
-  [
-    set show-energy? hubnet-message
-    if (show-energy? = false)
-    [ hubnet-clear-override user-id critters "label" ]
-    stop
-  ]
-  if command = "Place New Species"
-  [
-    if (placing-spam-countdown = 0) and (placements-made < #-placements-per-client)
-    [
-      ; we make them wait a while before hitting PLACE again.
-      set placing-spam-countdown player-spam-countdown
-      set placements-made placements-made + 1
-      ask my-critters [ die ]
-      hatch-critters 1 [
-        ; inherits variables: speed, behavior-dna, birthing-level, carnivore?, and color
-        ; automatically from the client, via the hatch-critters statement
-        set shape [shape] of myself ; shape not inherited via "hatch-critters"
-        set creator-id user-id-to-creator-id ([user-id] of myself)
-        set energy 30
-        initialize-critter
-        show-turtle ; otherwise critter inherits invisibility from the client
-        make-a-species-log
-      ]
+    ; we make them wait a while before hitting PLACE again.
+    set placing-spam-countdown player-spam-countdown
+    set placements-made placements-made + 1
+    ask my-critters [ die ]
+    hatch-critters 1 [
+      ; inherits variables: speed, behavior-dna, birthing-level, carnivore?, and color
+      ; automatically from the client, via the hatch-critters statement
+      set shape [shape] of myself ; shape not inherited via "hatch-critters"
+      set creator-id user-id-to-creator-id ([user-id] of myself)
+      set energy 30
+      initialize-critter
+      show-turtle ; otherwise critter inherits invisibility from the client
+      make-a-species-log
     ]
-    stop
   ]
-  if command = "Change Shape"
-  [
-    change-shape-and-color
-    stop
-  ]
-  if command = "follow-a-critter?"
-  [
-    ifelse (hubnet-message)
-    [
-      if any? my-critters
-        [ hubnet-send-follow user-id (one-of my-critters) 10 ]
-    ]
-    [ hubnet-reset-perspective user-id ]
-    stop
-  ]
+
 end
 
 to remove-client
-  ask clients with [user-id = hubnet-message-source]
-  [
-    ask my-critters [
-      set creator-id (word creator-id "*")
-    ]
-    die
+  ask my-critters [
+    set creator-id (word creator-id "*")
   ]
 end
 
@@ -534,32 +501,50 @@ to update-client-stats
 end
 
 
-
-;; sends the appropriate monitor information back to the client
-to send-info-to-client
-  if (placing-spam-countdown > 0) [ set placing-spam-countdown placing-spam-countdown - 1 ]
-  hubnet-send user-id "Countdown until you can place again:" placing-spam-countdown
-  hubnet-send user-id "# of species left you can introduce" (#-placements-per-client - placements-made)
-  hubnet-send user-id "Your Current Species Size" population-size
-  hubnet-send user-id "Your Current Species Longevity"  current-longevity
-  hubnet-send user-id "Your Max. Species Longevity"  max-longevity
-
-  if (gray-out-others?)  [ hubnet-send-override user-id critters with [ creator-id != (user-id-to-creator-id [user-id] of myself)] "color" [gray - 2] ]
-  if (show-energy?)      [ hubnet-send-override user-id my-critters "label" [ (word round energy "     ") ]  ]
+to append-override [x]
+  set overrides (lput x overrides)
 end
 
 
-to broadcast-info-to-clients
-  if any? clients [
-    hubnet-broadcast "# Alive Species" species-count
-    hubnet-broadcast "# Extinct Species" count species-logs with [extinct?]
+to refresh-overrides
 
-    hubnet-broadcast "Species Longevity Leader" longevity-leader-info
-    hubnet-broadcast "Longevity Record" longevity-leader-age-and-status
-    hubnet-broadcast "time" ticks
+  if (placing-spam-countdown > 0) [
+    set placing-spam-countdown placing-spam-countdown - 1
   ]
-end
 
+  ifelse (gray-out-others?) [
+    let xs (critters with [ creator-id != (user-id-to-creator-id [user-id] of myself)])
+    append-override (list xs "color" [-> gray - 2])
+  ] [
+    if was-graying-out? [
+      append-override (list "reset" critters "color")
+    ]
+  ]
+
+  ifelse (show-energy?) [
+    append-override (list my-critters "label" [-> (word round energy "     ")])
+  ] [
+    if was-showing-energy? [
+      append-override (list "reset" critters "label")
+    ]
+  ]
+
+  if follow-a-critter? != was-following? [
+    set was-following? false
+    ifelse follow-a-critter? [
+      if any? my-critters [
+        set perspective (list "follow" (one-of my-critters) 10)
+        set was-following? true
+      ]
+    ] [
+      set perspective []
+    ]
+  ]
+
+  set was-graying-out?    gray-out-others?
+  set was-showing-energy? show-energy?
+
+end
 
 to calc-leader-stats
   if any? species-logs [
@@ -580,13 +565,19 @@ end
 
 to change-shape-and-color
   set-shape-and-color-by-code unused-shape-color-code
-  hubnet-send user-id "Your critter shape:" (word (color-string color) " " shape)
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Reporters   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+to-report my-shape-display
+  report (word (color-string color) " " shape)
+end
+
+to-report placements-remaining
+  report __hnw_supervisor_#-placements-per-client - placements-made
+end
 
 to-report longevity-of-this-species
   let p-user-id user-id
@@ -646,7 +637,7 @@ end
 
 
 to-report user-id-to-creator-id [ uid ]
-  report remove "*" uid
+  report remove "\\*" uid
 end
 
 
@@ -665,6 +656,18 @@ to-report species-count
   report length species-list
 end
 
+
+to-report num-extinct-species
+  report count species-logs with [extinct?]
+end
+
+to-report num-extinct-species-2
+  report count species-logs - species-count
+end
+
+to-report time
+  report ticks
+end
 
 ; Copyright 2011 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -858,7 +861,7 @@ MONITOR
 130
 515
 # extinct species
-count species-logs - species-count
+num-extinct-species-2
 17
 1
 11
@@ -1038,7 +1041,7 @@ One or more computer generated species could be given the ability to generate mu
 
 The population graph updates to have a continually rolling x-axis.  This means that when a new maximum x-value is reached, that x-value becomes the new x-minimum value and the plots are wiped clean and the x-axis is reset with same x range as before, but the new minimum and maximum values.
 
-The command hubnet-send-override is used to change the appearance of agents in the client view, so that each client can customized what is displayed for that client.  This allows clients to "gray out" species that aren't their own in their client view or turn on labels for the agents in their view only.
+The command append-override is used to change the appearance of agents in the client view, so that each client can customized what is displayed for that client.  This allows clients to "gray out" species that aren't their own in their client view or turn on labels for the agents in their view only.
 
 ## CREDITS AND REFERENCES
 
