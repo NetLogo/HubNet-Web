@@ -4,6 +4,10 @@ students-own [ overrides ]
 
 patches-own [ true-color ]
 
+to startup
+  reset-ticks
+end
+
 to setup
   clear-patches
   clear-drawing

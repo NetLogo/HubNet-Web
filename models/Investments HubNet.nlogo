@@ -33,6 +33,7 @@ students-own
 
 to startup
   clear-all
+  reset-ticks
   ask patches [ set pcolor gray ]
   set __hnw_supervisor_car-cost 50
   set __hnw_supervisor_interest-rate 0.15

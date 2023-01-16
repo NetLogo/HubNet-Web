@@ -67,6 +67,7 @@ students-own
 
 to startup
   clear-all
+  reset-ticks
 
   set __hnw_supervisor_x-minimum -10
   set __hnw_supervisor_x-maximum 10

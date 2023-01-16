@@ -13,6 +13,10 @@ students-own
             ;; retrieve the value at will unless you store it in a variable on the server.
 ]
 
+to startup
+  reset-ticks
+end
+
 to setup
   clear-patches
   clear-drawing

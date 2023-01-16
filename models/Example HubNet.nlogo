@@ -2,6 +2,7 @@ breed [students student]
 turtles-own [ coords perspective user-id ]
 
 to setup
+  reset-ticks
   clear-patches
 end
 

@@ -114,6 +114,7 @@ end
 ;;  Startup ONLY runs when the model is first loaded.  It initializes the
 ;;  model's network capabilities and clears everything.
 to startup
+  reset-ticks
   set __hnw_supervisor_allow-change? true
   set __hnw_supervisor_show-data? true
   set __hnw_supervisor_lock-step? false

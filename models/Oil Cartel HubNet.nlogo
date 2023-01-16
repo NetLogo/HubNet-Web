@@ -60,6 +60,8 @@ buyers-own [
 ;; ---------------------------------------------------------
 to startup
 
+  reset-ticks
+
   set __hnw_supervisor_num-buyers 200
   set __hnw_supervisor_ideal-quantity 30
 

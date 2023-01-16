@@ -66,6 +66,8 @@ sellers-own [
 ;; ---------------------------------------------------------
 to startup
 
+  reset-ticks
+
   ;; Set up the Quick Start window
   quick-start-reset
 

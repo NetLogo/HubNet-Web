@@ -28,6 +28,7 @@ turtles-own
 ;;;;;;;;;;;;;;;;;;;;;
 
 to startup
+  reset-ticks
   setup
 end
 

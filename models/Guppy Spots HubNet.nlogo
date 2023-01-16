@@ -68,6 +68,7 @@ fish-parts-own [
 ;; Setup Procedures
 ;;;;;;;;;;;;;;;;;;;
 to startup
+  reset-ticks
   init-hnw-globals
   init-globals
   setup-environment

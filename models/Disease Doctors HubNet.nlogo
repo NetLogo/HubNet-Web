@@ -42,6 +42,7 @@ students-own
 ;;;;;;;;;;;;;;;;;;;;;;
 
 to startup
+  reset-ticks
   setup-vars
   setup-plot
   setup-quick-start

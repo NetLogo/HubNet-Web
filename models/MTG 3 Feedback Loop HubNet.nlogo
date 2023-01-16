@@ -38,6 +38,7 @@ students-own [
 
 to startup
   set __hnw_supervisor_tuition 0
+  reset-ticks
 end
 
 to setup

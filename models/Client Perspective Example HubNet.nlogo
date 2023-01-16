@@ -11,6 +11,7 @@ students-own
 
 to startup
   set __hnw_supervisor_radius 2
+  reset-ticks
 end
 
 to setup

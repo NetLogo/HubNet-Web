@@ -28,6 +28,10 @@ students-own [
 
 ;;;;;;;;; Setup Procedures ;;;;;;;;
 
+to startup
+  reset-ticks
+end
+
 to setup
   ; clear patches and plots, instead of clear all, to preserve students' connections to the server
   clear-patches

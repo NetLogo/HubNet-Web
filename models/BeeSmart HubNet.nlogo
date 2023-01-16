@@ -77,6 +77,8 @@ to startup
   set __hnw_supervisor_number-of-sites       9
   set __hnw_supervisor_student-vision-radius 10
 
+  reset-ticks
+
 end
 
 to setup

@@ -74,6 +74,7 @@ demand-links-own
 ;; Setup Procedures
 ;;
 to startup
+  reset-ticks
   ;; setup basic appearance globals
   set-default-shape students "circle"
   set-default-shape teams "square"

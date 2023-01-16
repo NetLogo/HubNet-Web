@@ -45,6 +45,8 @@ clients-own
 
 to startup
 
+  reset-ticks
+
   set __hnw_supervisor_%-green              50
   set __hnw_supervisor_random-%-green?      false
   set __hnw_supervisor_abnormality          0
