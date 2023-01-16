@@ -4,6 +4,7 @@
             "canJoinMidRun": false,
             "onCursorMove": null,
             "onCursorClick": null,
+            "onCursorRelease": null,
             "onDisconnect": "abandon-intersection",
             "afterDisconnect": null,
             "widgets": [
@@ -115,6 +116,7 @@
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": "select-player-for-client-plot",
+            "onCursorRelease": null,
             "onDisconnect": null,
             "afterDisconnect": null,
             "widgets": [

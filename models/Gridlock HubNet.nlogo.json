@@ -21,6 +21,7 @@
     , "onDisconnect": "abandon-intersection"
     , "afterDisconnect": null
     , "onCursorClick": null
+    , "onCursorRelease": null
     , "onCursorMove": null
     }
     , {
@@ -57,6 +58,7 @@
     , "onDisconnect": null
     , "afterDisconnect": null
     , "onCursorClick": null
+    , "onCursorRelease": null
     , "onCursorMove": null
     }
   ]
