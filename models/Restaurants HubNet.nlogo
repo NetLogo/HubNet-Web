@@ -16,12 +16,24 @@ globals [
  qs-item              ;; index of the current quickstart instruction
  qs-items             ;; list of quickstart instructions
 
- n/a                  ;; unset variable indicator
+ __hnw_supervisor_#auto-restaurants
+ __hnw_supervisor_bankruptcy
+ __hnw_supervisor_consumer-energy
+ __hnw_supervisor_consumer-threshold
+ __hnw_supervisor_day-length
+ __hnw_supervisor_num-consumer
+ __hnw_supervisor_quality-cost
+ __hnw_supervisor_rent-cost
+ __hnw_supervisor_service-cost
+ __hnw_supervisor_show-rank?
+
 ]
 
 patches-own [ ]
 
 breed [ restaurants restaurant ]         ;; controlled by the clients
+breed [ bot-restaurants bot-restaurant ] ;; controlled by the server
+
 breed [ customers customer ]             ;; created by the server
 
 customers-own [
@@ -37,12 +49,42 @@ customers-own [
 
  ;; Eating Patterns
  energy               ;; amount of energy the customer has
+
+]
+
+bot-restaurants-own [
+
+ ;; Owner Information
+ owner-name
+ bankrupt?            ;; is the owner bankrupt
+ account-balance      ;; total amount of money the owner has
+
+ ;; Ranking Statistics
+ received-rank?       ;; if given a rank, ranked? is true, otherwise false
+ rank                 ;; rank number according to account balance
+
+ ;; Restaurant Information
+ restaurant-color        ;; color of the restaurant
+
+ ;; Restaurant Taste Profile
+ restaurant-cuisine      ;; the type of cuisine the restaurant serves
+ restaurant-service      ;; the quality of the service
+ restaurant-quality      ;; the quality of the food
+ restaurant-price        ;; the price of a meal at the restaurant
+
+ ;; Restaurant Statistics
+ days-revenue         ;; amount of revenue generated so far today
+ days-cost            ;; amount of costs accumulated so far today
+ days-profit          ;; profit made so far today
+ num-customers        ;; number of customers today
+ profit-customer  ;; avg profit made per customer
+
 ]
 
 restaurants-own [
 
  ;; Owner Information
- auto?                ;; is the owner automated
+ owner-name
  bankrupt?            ;; is the owner bankrupt
  account-balance      ;; total amount of money the owner has
 
@@ -73,15 +115,28 @@ restaurants-own [
 ;;;;;;;;;;;;;;;;;;;;;
 
 to startup
-  hubnet-reset
+
+  set __hnw_supervisor_#auto-restaurants      5
+  set __hnw_supervisor_bankruptcy         false
+  set __hnw_supervisor_consumer-energy       50
+  set __hnw_supervisor_consumer-threshold    30
+  set __hnw_supervisor_day-length             5
+  set __hnw_supervisor_num-consumer         350
+  set __hnw_supervisor_quality-cost           0.2
+  set __hnw_supervisor_rent-cost            100
+  set __hnw_supervisor_service-cost           0.2
+  set __hnw_supervisor_show-rank?          true
+
   setup
+
 end
 
 ;; initializes the display and
 ;; set parameters for the system
 to setup
   clear-patches
-  TODO, can this model clear turtles? clear-turtles
+  ask bot-restaurants [ die ]
+  ask customers       [ die ]
   clear-output
   setup-quick-start
   reset
@@ -92,9 +147,7 @@ to reset
   setup-globals
   setup-consumers
   clear-all-plots
-  ask restaurants
-  [ reset-owner-variables ]
-  broadcast-system-info
+  ask all-restaurants [ reset-owner-variables ]
 end
 
 ;; initializes the global variables
@@ -111,7 +164,6 @@ to setup-globals
                    "violet" "magenta" "pink" "red" "green" "gray" "maroon" "hunter green" "navy" "sand"]
   set used-colors []
   set num-colors length colors
-  set n/a "n/a"
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -153,10 +205,9 @@ end
 
 ;; creates automated owners
 to create-automated-restaurants [ number ]
-  create-restaurants number
-  [ set user-id who
+  create-bot-restaurants number
+  [ set owner-name (word "bot " who)
     reset-owner-variables
-    set auto? true
     set color 32
     set size 2
     setup-automated-restaurant
@@ -206,16 +257,16 @@ end
 
 to go
 
-  every .5
-  [ broadcast-system-info
-    ask restaurants with [ auto? = false ]
-    [ send-personal-info ] ]
-
-  if not any? restaurants
+  if not any? all-restaurants
   [ user-message "There are no restaurant owners. Log people in or create restaurants."
     stop ]
 
-  ask restaurants [
+  ask all-restaurants [
+
+    set days-cost rent-cost
+    set days-revenue 0
+    set days-profit (days-revenue - days-cost)
+    set num-customers 0
 
     ifelse (restaurant-cuisine = "American")
     [ set shape "restaurant american" ]
@@ -227,7 +278,7 @@ to go
 
   ]
 
-  ask restaurants with [ bankrupt? = false ] ;; Let the Restaurants work
+  ask all-restaurants with [ bankrupt? = false ] ;; Let the Restaurants work
   [ serve-customers
     attract-customers ]
 
@@ -238,15 +289,15 @@ to go
   [ set day day + 1
    plot-disgruntled-customers
    plot-restaurant-statistics
-   ask restaurants with [ bankrupt? = false ]
+   ask all-restaurants with [ bankrupt? = false ]
    [ end-day ]
-   if show-rank? and any? restaurants with [auto? = false]
+   if show-rank? and any? restaurants
     [ rank-restaurants ] ]
   tick
 end
 
 to serve-customers ;; turtle procedure
- let restaurant# user-id
+ let restaurant# owner-name
  let new-customers 0
 
  ;; customers update the information of the restaurant where they have decided to dine
@@ -264,7 +315,7 @@ to serve-customers ;; turtle procedure
 end
 
 to attract-customers ;; turtle procedure
-  let restaurant# user-id
+  let restaurant# owner-name
   let r-x xcor
   let r-y ycor
   let r-cuisine restaurant-cuisine
@@ -301,21 +352,12 @@ end
 ;; the personal variables for the next day
 to end-day ;; turtle procedure
 
-  if (auto? = false)
-  [ hubnet-send user-id "Number of Customers" num-customers
-    hubnet-send user-id "Day's Profit" days-profit
-    hubnet-send user-id "Day's Revenue" days-revenue
-    hubnet-send user-id "Day's Cost" days-cost ]
-
   set account-balance round (account-balance + days-profit)
-  set days-cost rent-cost
-  set days-revenue 0
-  set days-profit (days-revenue - days-cost)
-  set num-customers 0
 
   if (bankruptcy?) ;; If the owner is bankrupt shut his restaurant down
   [ if (account-balance < 0)
   [ set bankrupt? true ] ]
+
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;
@@ -325,19 +367,19 @@ end
 ;; ranks owners by their account balance. if there are three players and two of them are tied with the
 ;; lower account balance, then they will both be ranked as 3rd place.
 to rank-restaurants
-  let num-ranks (length (remove-duplicates ([account-balance] of restaurants)))
-  let rank# count restaurants
+  let num-ranks (length (remove-duplicates ([account-balance] of all-restaurants)))
+  let rank# count all-restaurants
 
   repeat num-ranks
-  [ let min-rev min [account-balance] of restaurants with [not received-rank?]
-    let rankee restaurants with [account-balance = min-rev]
+  [ let min-rev min [account-balance] of all-restaurants with [not received-rank?]
+    let rankee all-restaurants with [account-balance = min-rev]
     let num-tied count rankee
     ask rankee
     [ set rank rank#
       set received-rank? true ]
     set rank# rank# - num-tied ]
 
-  ask restaurants
+  ask all-restaurants
   [ set received-rank? false ]
 end
 
@@ -353,23 +395,23 @@ end
 
 ;; plot the restaurant statistics for the user controlled restaurants
 to plot-restaurant-statistics
-    ask restaurants with [ auto? = false ]
+    ask restaurants
     [ set-current-plot "Profits"
-      set-current-plot-pen user-id
+      set-current-plot-pen owner-name
       plot days-profit
 
       set-current-plot "# Customers"
-      set-current-plot-pen user-id
+      set-current-plot-pen owner-name
       plot num-customers
     ]
 
     set-current-plot "Profits"
     set-current-plot-pen "avg-profit"
-    plot mean [days-profit] of restaurants
+    plot mean [days-profit] of all-restaurants
 
     set-current-plot "# Customers"
     set-current-plot-pen "avg-custs"
-    plot mean [num-customers] of restaurants
+    plot mean [num-customers] of all-restaurants
 
     set-current-plot "Customer Satisfaction"
     set-current-plot-pen "min."
@@ -386,26 +428,26 @@ end
 
 ;; reports the number of tavern restaurants in the marketplace
 to-report american-cuisines
-  report count restaurants with [ restaurant-cuisine = "American" ]
+  report count all-restaurants with [ restaurant-cuisine = "American" ]
 end
 
 ;; reports the number of fine dining restaurants in the marketplace
 to-report asian-cuisines
-  report count restaurants with [ restaurant-cuisine = "Asian" ]
+  report count all-restaurants with [ restaurant-cuisine = "Asian" ]
 end
 
 ;; reports the number of fast food restaurants in the marketplace
 to-report european-cuisines
-  report count restaurants with [ restaurant-cuisine = "European" ]
+  report count all-restaurants with [ restaurant-cuisine = "European" ]
 end
 
 ;; reports the avg profit from all the owners on the current day
 to-report avg-profit/owner
-  report mean [ days-profit ] of restaurants
+  report mean [ days-profit ] of all-restaurants
 end
 
 to-report avg-customers/owner
-  report mean [ num-customers ] of restaurants
+  report mean [ num-customers ] of all-restaurants
 end
 
 ;; reports the avg energy of the customers
@@ -472,15 +514,25 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; creates a new owner
-to create-new-restaurant
+to-report create-new-restaurant [username]
+
+  let out -1
+
   create-restaurants 1
   [
-    set auto? false
+
+    set owner-name         username
+    set restaurant-cuisine "American"
+    set out                who
+
     reset-owner-variables
     setup-restaurant
     setup-location
-    send-personal-info
+
   ]
+
+  report out
+
 end
 
 ;; sets up the owners personal variables and location
@@ -510,13 +562,13 @@ end
 to setup-location   ;; owner procedure
   setxy ((random (world-width - 2)) + 1)
         ((random (world-height - 2)) + 1)
-  if any? other restaurants in-radius 3
+  if any? other all-restaurants in-radius 3
   [ setup-location ]
 end
 
 ;; reset owners variables to initial values
 to reset-owner-variables  ;; owner procedure
-  set rank n/a
+  set rank "n/a"
   set received-rank? false
   set bankrupt? false
   set account-balance 2000
@@ -528,17 +580,15 @@ to reset-owner-variables  ;; owner procedure
   set restaurant-price random 50
   set restaurant-service 50 + random 50
   set restaurant-quality 50 + random 50
-  if (auto? = false) ;; send the personal info only to clients
-  [ send-personal-info ]
-  ask restaurants with [auto? = false]
+  ask restaurants
   [
     ;; Setup the plot pens for the restaurant
     set-current-plot "Profits"
-    create-temporary-plot-pen user-id
+    create-temporary-plot-pen owner-name
     set-plot-pen-color restaurant-color
 
     set-current-plot "# Customers"
-    create-temporary-plot-pen user-id
+    create-temporary-plot-pen owner-name
     set-plot-pen-color restaurant-color
   ]
 end
@@ -546,50 +596,8 @@ end
 ;; delete restaurant once client has exited
 to remove-restaurant
   let old-color restaurant-color
-  if not any? restaurants with [ color = old-color ] ;; make the unused color available again
+  if not any? all-restaurants with [ color = old-color ] ;; make the unused color available again
   [ set used-colors remove (position old-color colors) used-colors ]
-end
-
-;; sends the appropriate monitor information back to the client
-to send-personal-info ;; restaurant procedure
-  hubnet-send user-id "Restaurant Color" (color->string color)
-  hubnet-send user-id "Account Balance" account-balance
-  hubnet-send user-id "Profit / Customer" profit-customer
-  hubnet-send user-id "Rank" rank
-  hubnet-send user-id "Bankrupt?" bankrupt?
-  hubnet-send user-id "Cuisine" restaurant-cuisine
-  hubnet-send user-id "Service" restaurant-service
-  hubnet-send user-id "Quality" restaurant-quality
-  hubnet-send user-id "Price" restaurant-price
-
-
-
- ;; Owner Information
- ;auto?                ;; is the owner automated
- ;bankrupt?            ;; is the owner bankrupt
- ;account-balance      ;; total amount of money the owner has
-
- ;;; Ranking Statistics
- ;received-rank?       ;; if given a rank, ranked? is true, otherwise false
- ;rank                 ;; rank number according to account balance
-
- ;;; Restaurant Information
- ;restaurant-color        ;; color of the restaurant
-
- ;;; Restaurant Taste Profile
- ;restaurant-cuisine      ;; the type of cuisine the restaurant serves
- ;restaurant-service      ;; the quality of the service
- ;restaurant-quality      ;; the quality of the food
- ;restaurant-price        ;; the price of a meal at the restaurant
-
- ;;; Restaurant Statistics
- ;days-revenue         ;; amount of revenue generated so far today
- ;days-cost            ;; amount of costs accumulated so far today
- ;days-profit          ;; profit made so far today
- ;num-customers        ;; number of customers today
- ;profit-customer  ;; avg profit made per customer
-
-
 end
 
 ;; returns string version of color name
@@ -597,16 +605,17 @@ to-report color->string [ color-value ]
   report item (position color-value colors) color-names
 end
 
-;; sends the appropriate monitor information back to one client
-to send-system-info ;; owner procedure
-  hubnet-send user-id "Day" day
+to-report color-string
+  report color->string color
 end
 
-;; broadcasts the appropriate monitor information back to all clients
-to broadcast-system-info
-  hubnet-broadcast "Day" day
+to-report all-restaurants
+  report (turtle-set bot-restaurants restaurants)
 end
 
+to create-autos
+  create-automated-restaurants __hnw_supervisor_#auto-restaurants
+end
 
 ; Copyright 2004 Uri Wilensky.
 ; See Info tab for full copyright and license.
