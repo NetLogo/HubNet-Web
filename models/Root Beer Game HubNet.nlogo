@@ -118,10 +118,7 @@ end
 ;;
 
 to go
-  every 0.1
-  [
-    display
-  ]
+  display
 end
 
 to end-week ;; team procedure

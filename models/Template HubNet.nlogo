@@ -34,14 +34,9 @@ to setup
 end
 
 to go
-  every 0.1
-  [
-    ;; tick (and display) causes world updates messages to be sent to clients
-    ;; these types of messages should only be sent inside an every block.
-    ;; otherwise, the messages will be created as fast as possible
-    ;; and consume your bandwidth.
-    tick
-  ]
+  ;; Set the `targetFrameRate` value in the JSON file to control how frequently
+  ;; this procedure is called and adjust bandwidth usage
+  tick
 end
 
 ;;
