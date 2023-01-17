@@ -1,3 +1,5 @@
+extensions [bitmap fetch import-a]
+
 globals
 [
 
@@ -13,9 +15,6 @@ globals
   adult-age                     ;; the number of ticks before bugs are full grown
   image1                        ;; the first image uploaded by the user for the environment
   image2                        ;; the second image uploaded by the user for the environment
-  image3                        ;; default image
-  image4                        ;; default image
-  image5                        ;; default image
   number-of-predators           ;; keeps track of the number of predators (clients that are assigned this role) in the competition
   number-of-mates               ;; keeps track of the number of mates     (clients that are assigned this role) in the competition
 
@@ -118,7 +117,6 @@ to setup
   set leader ""
   set leader-found 0
   setup-regions
-  set-default-image-filenames
   change-environment
   make-initial-bugs __hnw_supervisor_carrying-capacity-environment-left  1
   make-initial-bugs __hnw_supervisor_carrying-capacity-environment-right 2
@@ -455,21 +453,12 @@ end
 ;; Image Loading  and Combining Procedures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-to set-default-image-filenames
-  ; TODO
-  set image3 "seashore.jpg"
-  set image4 "glacier.jpg"
-  set image5 "poppyfield.jpg"
-end
-
 to upload-image1
-  ; TODO
-  ;set image1 user-file
+  fetch:user-file-async [file -> set image1 file]
 end
 
 to upload-image2
-  ; TODO
-  ;set image2 user-file
+  fetch:user-file-async [file -> set image2 file]
 end
 
 ;; loads a single or combined image as environment
@@ -483,50 +472,52 @@ to change-environment
     user-message "Please upload image 2."
     stop
   ]
+
   if not (__hnw_supervisor_left-environment  = "none") [
-    set-environment (match-image-input __hnw_supervisor_left-environment) 1
+    set-environment __hnw_supervisor_left-environment true
   ]
+
   if not (__hnw_supervisor_environment-right = "none") [
-    set-environment (match-image-input __hnw_supervisor_environment-right) 2
+    set-environment __hnw_supervisor_environment-right false
   ]
-
-  ask bugs [ set hidden? true ]
-
-  let image-file-name "stitched-image.png"
-
-  ; TODO
-  ;bitmap:export bitmap:from-view image-file-name
-  ;import-drawing image-file-name
-  ;carefully [ file-delete image-file-name ] []
-
-  ask bugs [ set hidden? false ]
 
 end
 
-to set-environment [image-name region-name]
+to confirm-environment
+  ask bugs [ set hidden? true ]
+  import-a:drawing bitmap:to-base64 bitmap:from-view
+  ask bugs [ set hidden? false ]
+end
 
-  let xcor-image 0 ;;if region is 1 this will stay as 0, if 2 it will be 400
-  if region-name = 2 [ set xcor-image 400 ]
+to set-environment [ input-image is-left? ] ;; match the choices in the chooser with images
 
-  ; TODO
-  ;let image-name-scaled bitmap:scaled (bitmap:import image-name) 410 410
-  ;bitmap:copy-to-drawing image-name-scaled xcor-image 0
+  let xcor-image (ifelse-value is-left? [ -400 ] [ 400 ])
+
+  let finish [
+    base64 ->
+      let image  (bitmap:from-base64 base64)
+      let scaled (bitmap:scaled image 410 410)
+      bitmap:copy-to-drawing scaled xcor-image 0
+  ]
+
+  let download [
+    image-name ->
+      let base-url "https://hubnetweb.org/models/Bug Hunters Adaptations/"
+      let url      (word base-url image-name ".jpg")
+      fetch:url-async url finish
+  ]
+
+  if input-image = "image1"     [ (run finish image1) ]
+  if input-image = "image2"     [ (run finish image2) ]
+  if input-image = "seashore"   [ (run download input-image) ]
+  if input-image = "glacier"    [ (run download input-image) ]
+  if input-image = "poppyfield" [ (run download input-image) ]
 
 end
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Reporters
 ;;;;;;;;;;;;;;;;;;;;;
-
-to-report match-image-input [ input-image ] ;; match the choices in the chooser with images
-  let target-image ""
-  if input-image = "image1" [ set target-image image1 ]
-  if input-image = "image2" [ set target-image image2 ]
-  if input-image = "seashore" [ set target-image image3 ]
-  if input-image = "glacier" [ set target-image image4 ]
-  if input-image = "poppyfield" [ set target-image image5 ]
-  report target-image
-end
 
 ;; imposes a threshold limit on gene-frequency.
 ;; without this genes could drift into negative values
@@ -921,7 +912,7 @@ What if the body shape of the bugs was heritable and mutated?
 
 ## NETLOGO FEATURES
 
-TODO   The bitmap extension is used to support `bitmap:export bitmap:from-view` to build a new image file from the file selected for import, for later use by the IMPORT-DRAWING primitive.
+The bitmap extension is used to support `bitmap:export bitmap:from-view` to build a new image file from the file selected for import, for later use by the IMPORT-DRAWING primitive.
 
 IMPORT-DRAWING is the primitive that loads the image into the drawing, which in this case is merely a backdrop.
 
