@@ -168,8 +168,8 @@ const lineFields =
   };
 
 const  cDrawingFields = {};
-const  iDrawingFields = { hash: "sint64", imageBase64: "string" };
-const raincheckFields = { hash: "sint64" };
+const  iDrawingFields = { hash: "sint64", imageBase64: "string", x: "sint32", y: "sint32" };
+const raincheckFields = { hash: "sint64", x: "sint32", y: "sint32" };
 
 const        linePath = ["viewUpdate", "drawingEvents", "*", "line"                  ];
 const   linkStampPath = ["viewUpdate", "drawingEvents", "*", "linkStamp"             ];

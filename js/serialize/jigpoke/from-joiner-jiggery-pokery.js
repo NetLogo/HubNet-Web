@@ -74,7 +74,7 @@ const rejiggerRelay = (obj) => {
             out[k0][k1] = deepClone(v1);
           }
         } else if (v0.type === "hnw-cash-raincheck") {
-          out[k0].hnwCashRaincheckPayload = { hash: v0.hash };
+          out[k0].hnwCashRaincheckPayload = { hash: v0.hash, x: v0.x, y: v0.y };
         } else {
           out[k0][k1] = v1;
         }
