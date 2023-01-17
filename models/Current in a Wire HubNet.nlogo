@@ -1,28 +1,55 @@
 globals [
+
   charge-flow  ; a variable to keep track of the number of
                ;   electrons that have flowed through the cathode
   wire-patches ; a patch-set that contains all the patches that represent the wire
   previous-identity-option ; stores how students are labeled
+
+  __hnw_supervisor_diffusion-factor
+  __hnw_supervisor_identify-students?
+  __hnw_supervisor_nuclei-per-slice
+  __hnw_supervisor_perspective
+  __hnw_supervisor_share-heat-across-slices?
+  __hnw_supervisor_show-temps?
+  __hnw_supervisor_voltage
+
 ]
 
-breed [ students student ]
-students-own [
+breed [ slices slice ]
+slices-own [
   slice-id        ; stores which slice I represent
   left-bound      ; the left side of my slice
   right-bound     ; the right side of my slice
   my-patches      ; a set of patches that are mine
   my-average-temp ; stores average temp of my-patches
+  my-student
+]
+
+breed [ students student ]
+
+students-own [
+
+  my-slice
+  my-timer
+  temp-display
+  username
 
   ; variables for HubNet client options
-  user-name
   selected-nuclei
   watched-electron
+
+  perspective
+  overrides
+
 ]
 
 breed [ electrons electron ]
 electrons-own [ speed  ]
 
 breed [ nuclei nucleus ]
+
+breed [ borders border ]
+breed [ terminal-labels terminal-label ]
 
 patches-own [
   temp      ; variable to store how much heat is in the patch
@@ -33,15 +60,23 @@ patches-own [
 ;; Setup Procedures ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-
 to startup
-  hubnet-reset
-  ask turtles [ die ]
+
+  set __hnw_supervisor_diffusion-factor          0.05
+  set __hnw_supervisor_identify-students?        false
+  set __hnw_supervisor_nuclei-per-slice          15
+  set __hnw_supervisor_share-heat-across-slices? false
+  set __hnw_supervisor_show-temps?               true
+  set __hnw_supervisor_voltage                   0.1
+
   setup
+
 end
 
 to setup
   set charge-flow 0
+
+  set __hnw_supervisor_perspective []
 
   ; clear all remnants of a previous wire
   ask turtles with [not is-student? self] [ die ]
@@ -52,12 +87,12 @@ to setup
   divide-wire
 
   ; update labels of students if you need to
-  if any? students with [user-name != "" ] [
-    ask students with [user-name != ""] [
+  if any? slices with [ my-student != nobody ] [
+    ask slices with [ my-student != nobody ] [
       update-my-slice-label
     ]
   ]
-  set previous-identity-option identify-students?
+  set previous-identity-option __hnw_supervisor_identify-students?
 
   reset-ticks
 end
@@ -75,7 +110,7 @@ to setup-wire
   ]
 
   ; create electrons
-  let total-electrons 2 * num-students * nuclei-per-slice
+  let total-electrons 2 * (count students) * __hnw_supervisor_nuclei-per-slice
   create-electrons total-electrons [
     setxy random-xcor random 30 - 15
     set heading (random 271) + 135
@@ -84,22 +119,22 @@ to setup-wire
   ]
 
   ; create labels for the battery terminals
-  create-turtles 1 [
+  create-terminal-labels 1 [
     setxy (min-pxcor + 6) -21
     set shape "plus"
     set size 6
   ]
-  create-turtles 1 [
-      setxy (max-pxcor - 6) -21
-      set shape "minus"
-      set size 6
+  create-terminal-labels 1 [
+    setxy (max-pxcor - 6) -21
+    set shape "minus"
+    set size 6
   ]
 end
 
 ; procedure to divide the wire into the appropriate number of slices
 to divide-wire
-  ; calculate the width of a slice based on num-students
-  let slice-width (max-pxcor - min-pxcor) / num-students
+  ; calculate the width of a slice based on (count students)
+  let slice-width (max-pxcor - min-pxcor) / (max (list (count students) 1))
   let l 0
   let r 0
 
@@ -107,30 +142,47 @@ to divide-wire
   let color-list [ turquoise grey red orange brown sky green cyan pink violet ]
 
   ; Get the user name of any student currently logged in
-  let logged-in-students filter [ a-student -> a-student != "" ] [user-name] of students
+  let logged-in-students [self] of students
+
   ; Clear current students
-  if any? students [ ask students [ die ] ]
+  if any? slices [ ask slices [ die ] ]
+
+  let num-slices (max (list 1 (count students)))
+
   ; for every student
-  foreach (range 1 (num-students + 1)) [ n ->
+  foreach (range 1 (num-slices + 1)) [ n ->
 
     ; calculate the left and right bound of its slice
     set l min-pxcor + (slice-width * (n - 1))
     set r l + slice-width
 
     ; create a student turtle to store all the necessary info
-    create-students 1 [
-      set user-name ""
-
-      ; if there are students currently logged in, make sure to assign them a slice
-      if not empty? logged-in-students [
-        set user-name first logged-in-students
-        set logged-in-students but-first logged-in-students
-      ]
+    create-slices 1 [
 
       set slice-id n
       set left-bound l
       set right-bound r
       set color item (n - 1) color-list
+
+      ; if there are students currently logged in, make sure to assign them a slice
+      ifelse not empty? logged-in-students [
+
+        set my-student first logged-in-students
+        set logged-in-students but-first logged-in-students
+
+        ask my-student [
+
+          set my-slice     myself
+          set my-timer     (ticks / 50)
+          set temp-display ifelse-value __hnw_supervisor_show-temps? [ [my-average-temp] of myself ] [ "hidden" ]
+
+          set color ([color] of my-slice)
+
+        ]
+
+      ] [
+        set my-student nobody
+      ]
 
       ; put any patches in this slice into my-patches
       set my-patches patches with [ pxcor >= l and pxcor < r and (abs pycor <= 16) ]
@@ -143,29 +195,26 @@ to divide-wire
       hide-turtle
 
       ; create the nuclei
-      ask n-of nuclei-per-slice my-patches [
+      ask n-of __hnw_supervisor_nuclei-per-slice my-patches [
         sprout-a-nucleus
       ]
 
       ; now make sure all of our HubNet options are good to go
-      initialize-hubnet-client
+      if my-student != nobody [
+        ask my-student [
+          initialize-hubnet-client
+        ]
+      ]
+
     ]
-     ; Then create a border along the left edge of the student
-     create-turtles 1 [
+
+    ; Then create a border along the left edge of the student
+    create-borders 1 [
       setxy l 0
       set shape "line"
       set size 33
       set heading 0
       set color white
-    ]
-  ]
-
-  ; If there are still students that haven't been assigned
-  ;   a slice, we have to ask them to leave.
-  if not empty? logged-in-students [
-    foreach logged-in-students [ a-student ->
-      user-message "There is no more space in the wire!\nYou may want to change the 'num-students' slider\nand then re-setup."
-      hubnet-kick-client a-student
     ]
   ]
 
@@ -176,8 +225,6 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;
 
 to go
-  ; listen to HubNet clients
-  listen-to-clients
 
   every .25 [
     ; Handle slow radiation of temperature out
@@ -192,18 +239,19 @@ to go
   ]
 
   ; If there's been a change to the student label option, update the clients
-  if identify-students? != previous-identity-option [
-    if any? students with [user-name != "" ] [
-      ask students with [user-name != ""] [
+  if __hnw_supervisor_identify-students? != previous-identity-option [
+    if any? slices with [ my-student != nobody ] [
+      ask slices with [ my-student != nobody ] [
         update-my-slice-label
       ]
     ]
-    set previous-identity-option identify-students?
+    set previous-identity-option __hnw_supervisor_identify-students?
   ]
 
   ask electrons [ move ]
 
   tick
+
 end
 
 
@@ -213,7 +261,7 @@ end
 to move ; electron procedure
 
   ; calculate the distance to move
-  let dist max (list (speed + voltage) 1)
+  let dist max (list (speed + __hnw_supervisor_voltage) 1)
 
   ; if the electron has reached the cathode, generate a new electron and die
   if pxcor <= (min-pxcor + dist) [
@@ -234,9 +282,9 @@ to move ; electron procedure
   ifelse not any? nuclei in-cone dist 140 [
     ; if we aren't colliding, then we get pulled toward the cathode
     let delta (subtract-headings heading 270)
-    let wdelta (delta * speed) / ( voltage + speed )
+    let wdelta (delta * speed) / ( __hnw_supervisor_voltage + speed )
     set heading 270 + wdelta
-    set speed speed + voltage
+    set speed speed + __hnw_supervisor_voltage
   ][
     ; rules for collsion
     let the-collider one-of nuclei in-cone dist 140
@@ -277,7 +325,7 @@ to spread-temp ; patch procedure
 
   ask wire-patches [
     ; if the share-heat-across slices is ON, then we consider all neighbors
-    ifelse share-heat-across-slices? [
+    ifelse __hnw_supervisor_share-heat-across-slices? [
       set your-neighbors neighbors with [ slice-num > 0 ]
     ][
       ; otherwise, we only consider neighbors that are in our slice
@@ -294,20 +342,23 @@ to spread-temp ; patch procedure
     ]
 
     ; update the temperature and the patch color
-    set temp temp + (diffusion-factor * (((sum [temp] of your-neighbors) / count your-neighbors) - temp))
+    set temp temp + (__hnw_supervisor_diffusion-factor * (((sum [temp] of your-neighbors) / count your-neighbors) - temp))
   ]
 end
 
 ; Helper procedure to label your slice based on the model options
-to update-my-slice-label ; student procedure
+to update-my-slice-label ; slice procedure
+
   let slice-width right-bound - left-bound
   let r round right-bound
   let middle round ((right-bound + left-bound) / 2)
 
-  ; either display a user-name or a slice #
-  let short-name substring user-name 0
-    ifelse-value (round (slice-width / 4) + 1) > length user-name
-      [ length user-name ]
+  let name (ifelse-value (my-student != nobody) [ [username] of my-student ] [ "" ])
+
+  ; either display a username or a slice #
+  let short-name substring name 0
+    ifelse-value (round (slice-width / 4) + 1) > length name
+      [ length name ]
       [ (round (slice-width / 4) + 1) ]
 
   ; reset the labels
@@ -315,54 +366,23 @@ to update-my-slice-label ; student procedure
   ask patches with [ pxcor = r - 1 and pycor = 20] [ set plabel "" ]
 
   ; now place the labels
-  ifelse not identify-students? [
+  ifelse not __hnw_supervisor_identify-students? [
     ask patches with [ pxcor = (middle + 1) and pycor = 20] [ set plabel (word "#" [slice-id] of myself) ]
   ] [
     ask patches with [ pxcor = r - 1 and pycor = 20] [ set plabel short-name ]
   ]
+
 end
 
 ;;;;;;;;;;;;;;;;;;;;;
 ; HubNet Procedures ;
 ;;;;;;;;;;;;;;;;;;;;;
 
-; this is the main procedure that deals with receiving HubNet messages
-to listen-to-clients
-  ; If there is a HubNet message waiting to be processed
-  if hubnet-message-waiting? [
-    ; fetch them one at a time
-    hubnet-fetch-message
+to handle-click [x y]
 
-    ; handle them based on the type of message
-    ; If it's a log-in message, create a new student-observer
-    ifelse hubnet-enter-message? [
-      create-new-student-observer
-    ][
-      ; If this is a log-out we vacate our turtle
-      ifelse hubnet-exit-message? [
-        ask students with [ user-name = hubnet-message-source ] [ set user-name "" ]
-      ][
-        ; If it's a mouse up, we lookup the selected-mouse-option and then do the appropriate operation
-        ifelse hubnet-message-tag = "Mouse Up" [
-        ask students with [ user-name = hubnet-message-source ] [
-          let clicked-patch patch (item 0 hubnet-message) (item 1 hubnet-message)
-          move-a-nucleus clicked-patch
-        ]
-      ][
-          ; If they pressed the label button, then pick an electron to label
-          if hubnet-message-tag = "label-an-electron" [
-            ask students with [ user-name = hubnet-message-source ] [
-              label-electron-in-my-slice
-            ]
-          ]
-        ]
-      ]
-    ]
-  ]
-end
+  let clicked-patch patch x y
 
-to move-a-nucleus [ clicked-patch ] ; student procedure
-  if member? clicked-patch my-patches [
+  if member? clicked-patch [my-patches] of my-slice [
     ; if we don't have a selected nuclei and there's one here, select it
     ifelse selected-nuclei = nobody and any? [nuclei-here] of clicked-patch [
       set selected-nuclei one-of [nuclei-here] of clicked-patch
@@ -382,34 +402,57 @@ to move-a-nucleus [ clicked-patch ] ; student procedure
   ]
 
   ; recolor all of the nuclei in our slice
-  hubnet-send-override user-name (nuclei-on my-patches) "color" [ [color] of myself ]
+  ask my-slice [
+    let c color
+    append-override (list (nuclei-on my-patches) "color" [-> c])
+  ]
+
   ; highlight the selected nuclei
-  if selected-nuclei != nobody [ hubnet-send-override user-name selected-nuclei "color" [ yellow ] ]
+  if selected-nuclei != nobody [
+    append-override (list selected-nuclei "color" [-> yellow])
+  ]
+
 end
 
 ; procedure to send temperatures and updates to the connected clients
 to send-stats-to-students
-  ask students [
-    if watched-electron != nobody and member? [patch-here] of watched-electron my-patches [
-      hubnet-send-override user-name watched-electron "label" [ precision speed 1 ]
-    ]
+
+  ask slices [
+
     set my-average-temp round mean [ temp ] of my-patches
-    ; If a turtle is connected to a client, send it the temp info
-    if user-name != "" [
-      ifelse show-temps? [ hubnet-send user-name "avg temp" my-average-temp ] [ hubnet-send user-name "avg temp" "hidden" ]
-      hubnet-send user-name "timer" ticks / 50
+
+    ; If a slice is connected to a client, update its timer and temp info
+    if my-student != nobody [
+      ask my-student [
+
+        if watched-electron != nobody and member? ([patch-here] of watched-electron) ([my-patches] of my-slice) [
+          append-override (list watched-electron "label" [[el] -> precision ([speed] of el) 1 ])
+        ]
+
+        set temp-display ifelse-value __hnw_supervisor_show-temps? [ [my-average-temp] of my-slice ] [ "hidden" ]
+        set my-timer     ticks / 50
+
+      ]
     ]
+
   ]
+
 end
 
 ; here we have a procedure that controls labeling an electron in a client interface
 to label-electron-in-my-slice ; student procedure
+
   ; if there's already a labeled electron, remove its label
-  if watched-electron != nobody [ hubnet-send-override user-name watched-electron "label" [ "" ] ]
+  if watched-electron != nobody [
+    append-override (list watched-electron "label" [-> ""])
+  ]
+
   ; pick an electron as far right as possible and label it
-  set watched-electron max-one-of electrons-on my-patches [ xcor ]
-  hubnet-send-override user-name watched-electron "color" [ yellow - 1 ]
-  hubnet-send-override user-name watched-electron "label" [ precision speed 1 ]
+  set watched-electron max-one-of electrons-on ([my-patches] of my-slice) [ xcor ]
+
+  append-override (list watched-electron "color" [-> yellow - 1])
+  append-override (list watched-electron "label" [[el] -> precision ([speed] of el) 1])
+
 end
 
 ; helper procedure to generate a new nuclei
@@ -426,46 +469,80 @@ to sprout-a-nucleus ; nuclei procedure
 end
 
 ; Helper procedure to officially add a HubNet client to the model
-to create-new-student-observer
-  ; If there is a free wire slice, we can login; otherwise, we have to kick the incoming client
-  ifelse not any? students with [ user-name = "" ] [
-    user-message "There is no more space in the wire!\nYou may want to change the 'num-students' slider\nand then re-setup."
-    hubnet-kick-client hubnet-message-source
-  ][
-    ; If there's room, assign to an open slice
-    ask one-of students with [ user-name = "" ] [
-      set user-name hubnet-message-source
-      initialize-hubnet-client
-      update-my-slice-label
-    ]
+to-report create-new-student-observer [name]
+
+  let out -1
+
+  create-students 1 [
+
+    set my-slice     nobody
+    set my-timer     (ticks / 50)
+    set temp-display ifelse-value __hnw_supervisor_show-temps? [ 0 ] [ "hidden" ]
+    set username     name
+
+    hide-turtle
+
+    set out who
+
   ]
+
+  divide-wire
+
+  ask [my-slice] of (student out) [
+    update-my-slice-label
+  ]
+
+  report out
+
 end
 
+to append-override [x]
+  set overrides (lput x overrides)
+end
 
 ; Procedure to reset all of the options for a HubNet client
 to initialize-hubnet-client ; turtle procedure
+
   ; Reset HubNet Options for this student
   set watched-electron nobody
   set selected-nuclei nobody
 
+  let lb [ left-bound] of my-slice
+  let rb [right-bound] of my-slice
+
+  let follow-radius ifelse-value 18 > (round (abs(lb - rb)) / 2) [18] [ (round (abs(lb - rb)) / 2) ]
+  set perspective (list "follow" my-slice follow-radius)
+
+  set overrides   []
+
   ; Send the new interface options to the client
-  hubnet-clear-overrides user-name
-  hubnet-send-follow user-name self ifelse-value 18 > (round (abs(left-bound - right-bound)) / 2) [18] [ (round (abs(left-bound - right-bound)) / 2) ]
-  hubnet-send-override user-name (nuclei-on my-patches) "color" [ [color] of myself ]
-  hubnet-send user-name "slice" (word "#" slice-id)
+  append-override "reset-all"
+
+  let c [color] of my-slice
+
+  append-override (list (nuclei-on [my-patches] of my-slice) "color" [-> c])
+
+end
+
+to handle-disconnect
+  ask my-slice [ set my-student nobody ]
 end
 
 ;;;;;;;;;;;;;
 ; Reporters ;
 ;;;;;;;;;;;;;
 
+to-report slice-id-str
+  report (word "#" [slice-id] of my-slice)
+end
+
 ; Report back the name of the user with the highest slice temperature
 to-report get-leader
-  ifelse show-temps? [
-    let the-leader max-one-of students [ my-average-temp ]
-    ifelse identify-students? [
-      ifelse [user-name] of the-leader != "" [
-        report [user-name] of the-leader
+  ifelse __hnw_supervisor_show-temps? [
+    let the-leader max-one-of slices [ my-average-temp ]
+    ifelse __hnw_supervisor_identify-students? [
+      ifelse [username] of [my-student] of the-leader != "" [
+        report [username] of [my-student] of the-leader
       ][
         report "Computer"
       ]
@@ -477,20 +554,53 @@ to-report get-leader
   ]
 end
 
-; Report back the temperature of any given student
-to-report get-student-temp [ num ]
-  ifelse show-temps?
-  [ report [my-average-temp] of one-of students with [ slice-id = num ] ]
+; Report back the temperature of any given slice
+to-report get-slice-temp [ num ]
+  ifelse __hnw_supervisor_show-temps?
+  [ report [my-average-temp] of one-of slices with [ slice-id = num ] ]
   [ report "hidden" ]
 end
 
 ; Report back the highest slice temperature
 to-report get-leading-temp
-  ifelse show-temps?
-  [ report [my-average-temp] of max-one-of students [ my-average-temp] ]
+  ifelse __hnw_supervisor_show-temps?
+  [ report [my-average-temp] of max-one-of slices [ my-average-temp] ]
   [ report "hidden" ]
 end
 
+to-report tick-timer
+  report ticks / 50
+end
+
+to-report mean-average-temp
+  report mean [my-average-temp] of slices
+end
+
+to watch-an-electron
+  let elecs (electrons with [ xcor > max-pxcor - 5 ])
+  if any? elecs [
+    ask one-of elecs [
+      set color yellow
+      pen-down
+      set __hnw_supervisor_perspective (list "watch" self)
+    ]
+  ]
+end
+
+to stop-watching
+  ask electrons [ pen-up set color orange - 2]
+  set __hnw_supervisor_perspective []
+  clear-drawing
+end
+
+to reset-temps
+  if user-yes-or-no? "Are you sure you want to reset all\ntemperatures back to 20 Temp Units?" [
+    ask wire-patches [
+      set temp 20
+      recolor
+    ]
+  ]
+end
 
 ; Copyright 2008 Pratim Sengupta and Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -811,18 +921,18 @@ Temperature
 30.0
 true
 false
-"" "clear-plot\nif not show-temps? [ stop ]\nif any? students [ set-plot-x-range 1 (count students + 1) set-plot-y-range 0 ([my-average-temp] of max-one-of students [my-average-temp]) + 15 ]"
+"" "clear-plot\nif not show-temps? [ stop ]\nif any? slices [ set-plot-x-range 1 (count students + 1) set-plot-y-range 0 ([my-average-temp] of max-one-of slices [my-average-temp]) + 15 ]"
 PENS
-"slice-1" 1.0 1 -14835848 true "" "plotxy 1 get-student-temp 1"
-"slice-2" 1.0 1 -7500403 true "" "if count students > 1 [ plotxy 2 get-student-temp 2 ]"
-"slice-3" 1.0 1 -2674135 true "" "if count students > 2 [ plotxy 3 get-student-temp 3 ]"
-"slice-4" 1.0 1 -955883 true "" "if count students > 3 [ plotxy 4 get-student-temp 4 ]"
-"slice-5" 1.0 1 -6459832 true "" "if count students > 4 [ plotxy 5 get-student-temp 5 ]"
-"slice-6" 1.0 1 -13791810 true "" "if count students > 5 [ plotxy 6 get-student-temp 6 ]"
-"slice-7" 1.0 1 -10899396 true "" "if count students > 6 [ plotxy 7 get-student-temp 7 ]"
-"slice-8" 1.0 1 -11221820 true "" "if count students > 7 [ plotxy 8 get-student-temp 8 ]"
-"slice-9" 1.0 1 -2064490 true "" "if count students > 8 [ plotxy 9 get-student-temp 9 ]"
-"slice-10" 1.0 1 -8630108 true "" "if count students > 9 [ plotxy 10 get-student-temp 10 ]"
+"slice-1" 1.0 1 -14835848 true "" "plotxy 1 get-slice-temp 1"
+"slice-2" 1.0 1 -7500403 true "" "if count students > 1 [ plotxy 2 get-slice-temp 2 ]"
+"slice-3" 1.0 1 -2674135 true "" "if count students > 2 [ plotxy 3 get-slice-temp 3 ]"
+"slice-4" 1.0 1 -955883 true "" "if count students > 3 [ plotxy 4 get-slice-temp 4 ]"
+"slice-5" 1.0 1 -6459832 true "" "if count students > 4 [ plotxy 5 get-slice-temp 5 ]"
+"slice-6" 1.0 1 -13791810 true "" "if count students > 5 [ plotxy 6 get-slice-temp 6 ]"
+"slice-7" 1.0 1 -10899396 true "" "if count students > 6 [ plotxy 7 get-slice-temp 7 ]"
+"slice-8" 1.0 1 -11221820 true "" "if count students > 7 [ plotxy 8 get-slice-temp 8 ]"
+"slice-9" 1.0 1 -2064490 true "" "if count students > 8 [ plotxy 9 get-slice-temp 9 ]"
+"slice-10" 1.0 1 -8630108 true "" "if count students > 9 [ plotxy 10 get-slice-temp 10 ]"
 
 SWITCH
 5
@@ -871,13 +981,13 @@ The wire is divided into many "slices" so that each HubNet Client can monitor an
 
 ## HOW TO USE IT
 
-When the model opens, the teacher or activity leader needs to first select the number of students that will connect by using the NUM-STUDENTS slider. They also need to select how many nuclei will be present in each slice using the NUCLEI-PER-SLICE slider. Once those two options are selected, hit the SETUP button.
+When the model opens, the teacher or activity leader needs to select how many nuclei will be present in each slice using the NUCLEI-PER-SLICE slider. Once those two options are selected, hit the SETUP button.
 
 The COMPLETE RESET button should only be used as a last resort because it will disconnect all students who are currently connected.
 
 Then ask however many students you have selected to join through the HubNet Client application. If the model is not listed in the bottom of the login window, make sure to provide students with the correct IP address and port number for your model. After all students have joined, the teacher starts the model by clicking the GO button.
 
-In addition to the NUM-STUDENTS and NUCLEI-PER-SLICE sliders, there are several other interface elements the teacher or activity leader can control in order to change the behavior of the model:
+In addition to the NUCLEI-PER-SLICE slider, there are several other interface elements the teacher or activity leader can control in order to change the behavior of the model:
 
   * The VOLTAGE slider controls the voltage or the electric potential difference between the cathode and anode of the wire.
   * The DIFFUSION-FACTOR slider controls how much heat flows from one wire patch to its neighbors
@@ -889,7 +999,7 @@ In addition to the NUM-STUDENTS and NUCLEI-PER-SLICE sliders, there are several 
 The teacher or activity leader can also control two different aspects of the HubNet part of the model:
 
   * The SHOW-TEMP? switch, controls whether or not the temperatures of the wire slices and the average temperature of the wire are shown (both in this model and the client interfaces)
-  * The IDENTIFY-STUDENTS? switch, if on, labels all the slices with the `user-name` of the connected HubNet client who is controlling that slice (otherwise, the slices are just identified by an ID number).
+  * The IDENTIFY-STUDENTS? switch, if on, labels all the slices with the `username` of the connected HubNet client who is controlling that slice (otherwise, the slices are just identified by an ID number).
 
 Finally, there are a number of different monitors and plots:
 

@@ -3,10 +3,10 @@
         {
             "canJoinMidRun": true,
             "onCursorMove": null,
-            "onCursorClick": null,
+            "onCursorClick": "handle-click",
             "onCursorRelease": null,
-            "onDisconnect": "???DC",
-            "afterDisconnect": null,
+            "onDisconnect": "handle-disconnect",
+            "afterDisconnect": "divide-wire",
             "widgets": [
                 {
                     "height": 513,
@@ -22,9 +22,9 @@
                     "display": "avg temp",
                     "left": 430,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "temp-display",
                     "right": 520,
                     "type": "hnwMonitor",
                     "top": 530
@@ -34,9 +34,9 @@
                     "display": "slice",
                     "left": 105,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-procedure",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "slice-id-str",
                     "right": 197,
                     "type": "hnwMonitor",
                     "top": 530
@@ -46,9 +46,9 @@
                     "display": "timer",
                     "left": 10,
                     "precision": 3,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "turtle-var",
                     "fontSize": 10,
-                    "source": "???1",
+                    "source": "my-timer",
                     "right": 100,
                     "type": "hnwMonitor",
                     "top": 530
@@ -59,9 +59,9 @@
                     "display": "label-an-electron",
                     "disableUntilTicksStart": true,
                     "left": 200,
-                    "buttonKind": "???3",
-                    "source": "???1",
-                    "hnwProcName": "???2",
+                    "buttonKind": "turtle",
+                    "source": "label-electron-in-my-slice",
+                    "hnwProcName": "label-electron-in-my-slice",
                     "right": 425,
                     "type": "hnwButton",
                     "top": 530
@@ -69,53 +69,29 @@
             ],
             "name": "student",
             "namePlural": "students",
-            "onConnect": "???Connect",
-            "limit": -1,
-            "highlightMainColor": "#008000",
+            "onConnect": "create-new-student-observer",
+            "limit": 10,
+            "highlightMainColor": "#00800000",
             "isSpectator": false,
-            "perspectiveVar": null,
-            "viewOverrideVar": null
+            "perspectiveVar": "perspective",
+            "viewOverrideVar": "overrides"
         },
         {
             "canJoinMidRun": true,
             "onCursorMove": null,
             "onCursorClick": null,
             "onCursorRelease": null,
-            "onDisconnect": "???DC",
+            "onDisconnect": null,
             "afterDisconnect": null,
             "widgets": [
                 {
-                    "height": 863,
+                    "height": 264,
                     "bottom": 276,
                     "left": 233,
-                    "width": 264,
+                    "width": 863,
                     "right": 1096,
                     "type": "hnwView",
                     "top": 12
-                },
-                {
-                    "forever": false,
-                    "bottom": 170,
-                    "left": 5,
-                    "buttonKind": "observer",
-                    "source": "setup",
-                    "hnwProcName": "setup",
-                    "right": 205,
-                    "type": "hnwButton",
-                    "top": 130,
-                    "disableUntilTicksStarts": true
-                },
-                {
-                    "forever": true,
-                    "bottom": 210,
-                    "left": 100,
-                    "buttonKind": "observer",
-                    "source": "go",
-                    "hnwProcName": "go",
-                    "right": 205,
-                    "type": "hnwButton",
-                    "top": 175,
-                    "disableUntilTicksStarts": false
                 },
                 {
                     "max": "0.2",
@@ -137,8 +113,8 @@
                     "display": "Watch An Electron",
                     "left": 6,
                     "buttonKind": "observer",
-                    "source": "ask one-of electrons with [ xcor > max-pxcor - 5 ] [\\n    set color yellow\\n    pen-down\\n    watch-me\\n]",
-                    "hnwProcName": "ask one-of electrons with [ xcor > max-pxcor - 5 ] [\\n    set color yellow\\n    pen-down\\n    watch-me\\n]",
+                    "source": "watch-an-electron",
+                    "hnwProcName": "watch-an-electron",
                     "right": 206,
                     "type": "hnwButton",
                     "top": 382,
@@ -150,8 +126,8 @@
                     "display": "Stop Watching and Erase",
                     "left": 6,
                     "buttonKind": "observer",
-                    "source": "ask electrons [ pen-up set color orange - 2]\\nreset-perspective\\nclear-drawing",
-                    "hnwProcName": "ask electrons [ pen-up set color orange - 2]\\nreset-perspective\\nclear-drawing",
+                    "source": "stop-watching",
+                    "hnwProcName": "stop-watching",
                     "right": 206,
                     "type": "hnwButton",
                     "top": 416,
@@ -162,9 +138,9 @@
                     "display": "Electrons Arrived at Cathode",
                     "left": 760,
                     "precision": 17,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "global-var",
                     "fontSize": 14,
-                    "source": "???1",
+                    "source": "charge-flow",
                     "right": 981,
                     "type": "hnwMonitor",
                     "top": 460
@@ -174,9 +150,9 @@
                     "display": "Timer",
                     "left": 1105,
                     "precision": 2,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "procedure",
                     "fontSize": 13,
-                    "source": "???1",
+                    "source": "tick-timer",
                     "right": 1215,
                     "type": "hnwMonitor",
                     "top": 55
@@ -260,9 +236,9 @@
                     "display": "Avg. Temp",
                     "left": 1105,
                     "precision": 2,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "procedure",
                     "fontSize": 14,
-                    "source": "???1",
+                    "source": "mean-average-temp",
                     "right": 1215,
                     "type": "hnwMonitor",
                     "top": 330
@@ -287,9 +263,9 @@
                     "display": "with a temp of",
                     "left": 1105,
                     "precision": 17,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "procedure",
                     "fontSize": 13,
-                    "source": "???1",
+                    "source": "get-leading-temp",
                     "right": 1215,
                     "type": "hnwMonitor",
                     "top": 175
@@ -299,9 +275,9 @@
                     "display": "Leader is",
                     "left": 1105,
                     "precision": 1,
-                    "reporterStyle": "???2",
+                    "reporterStyle": "procedure",
                     "fontSize": 13,
-                    "source": "???1",
+                    "source": "get-leader",
                     "right": 1215,
                     "type": "hnwMonitor",
                     "top": 115
@@ -345,27 +321,12 @@
                     "display": "Reset All Temperatures",
                     "left": 6,
                     "buttonKind": "observer",
-                    "source": "  if user-yes-or-no? \\\"Are you sure you want to reset all\\\\ntemperatures back to 20 Temp Units?\\\" [\\n    ask wire-patches [\\n      set temp 20\\n      recolor\\n    ]\\n  ]",
-                    "hnwProcName": "  if user-yes-or-no? \\\"Are you sure you want to reset all\\\\ntemperatures back to 20 Temp Units?\\\" [\\n    ask wire-patches [\\n      set temp 20\\n      recolor\\n    ]\\n  ]",
+                    "source": "reset-temps",
+                    "hnwProcName": "reset-temps",
                     "right": 206,
                     "type": "hnwButton",
                     "top": 336,
                     "disableUntilTicksStarts": false
-                },
-                {
-                    "max": "10",
-                    "bottom": 123,
-                    "display": "num-students",
-                    "direction": "horizontal",
-                    "default": 3,
-                    "left": 5,
-                    "variable": "num-students",
-                    "step": 1,
-                    "min": "3",
-                    "units": "students",
-                    "right": 205,
-                    "type": "hnwSlider",
-                    "top": 90
                 },
                 {
                     "bottom": 453,
@@ -381,7 +342,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "plotxy 1 get-student-temp 1",
+                            "updateCode": "plotxy 1 get-slice-temp 1",
                             "display": "slice-1",
                             "color": -14835848,
                             "mode": 1,
@@ -391,7 +352,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count students > 1 [ plotxy 2 get-student-temp 2 ]",
+                            "updateCode": "if count slices > 1 [ plotxy 2 get-slice-temp 2 ]",
                             "display": "slice-2",
                             "color": -7500403,
                             "mode": 1,
@@ -401,7 +362,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count students > 2 [ plotxy 3 get-student-temp 3 ]",
+                            "updateCode": "if count slices > 2 [ plotxy 3 get-slice-temp 3 ]",
                             "display": "slice-3",
                             "color": -2674135,
                             "mode": 1,
@@ -411,7 +372,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count students > 3 [ plotxy 4 get-student-temp 4 ]",
+                            "updateCode": "if count slices > 3 [ plotxy 4 get-slice-temp 4 ]",
                             "display": "slice-4",
                             "color": -955883,
                             "mode": 1,
@@ -421,7 +382,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count students > 4 [ plotxy 5 get-student-temp 5 ]",
+                            "updateCode": "if count slices > 4 [ plotxy 5 get-slice-temp 5 ]",
                             "display": "slice-5",
                             "color": -6459832,
                             "mode": 1,
@@ -431,7 +392,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count students > 5 [ plotxy 6 get-student-temp 6 ]",
+                            "updateCode": "if count slices > 5 [ plotxy 6 get-slice-temp 6 ]",
                             "display": "slice-6",
                             "color": -13791810,
                             "mode": 1,
@@ -441,7 +402,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count students > 6 [ plotxy 7 get-student-temp 7 ]",
+                            "updateCode": "if count slices > 6 [ plotxy 7 get-slice-temp 7 ]",
                             "display": "slice-7",
                             "color": -10899396,
                             "mode": 1,
@@ -451,7 +412,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count students > 7 [ plotxy 8 get-student-temp 8 ]",
+                            "updateCode": "if count slices > 7 [ plotxy 8 get-slice-temp 8 ]",
                             "display": "slice-8",
                             "color": -11221820,
                             "mode": 1,
@@ -461,7 +422,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count students > 8 [ plotxy 9 get-student-temp 9 ]",
+                            "updateCode": "if count slices > 8 [ plotxy 9 get-slice-temp 9 ]",
                             "display": "slice-9",
                             "color": -2064490,
                             "mode": 1,
@@ -471,7 +432,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count students > 9 [ plotxy 10 get-student-temp 10 ]",
+                            "updateCode": "if count slices > 9 [ plotxy 10 get-slice-temp 10 ]",
                             "display": "slice-10",
                             "color": -8630108,
                             "mode": 1,
@@ -485,7 +446,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 282,
-                    "update": "clear-plot\nif not show-temps? [ stop ]\nif any? students [ set-plot-x-range 1 (count students + 1) set-plot-y-range 0 ([my-average-temp] of max-one-of students [my-average-temp]) + 15 ]"
+                    "update": "clear-plot\nif not __hnw_supervisor_show-temps? [ stop ]\nif any? slices [ set-plot-x-range 1 (count students + 1) set-plot-y-range 0 ([my-average-temp] of max-one-of slices [my-average-temp]) + 15 ]"
                 },
                 {
                     "bottom": 568,
@@ -496,33 +457,21 @@
                     "type": "hnwSwitch",
                     "top": 535,
                     "on": false
-                },
-                {
-                    "forever": false,
-                    "bottom": 43,
-                    "display": "Complete Reset",
-                    "left": 5,
-                    "buttonKind": "observer",
-                    "source": "startup",
-                    "hnwProcName": "startup",
-                    "right": 205,
-                    "type": "hnwButton",
-                    "top": 10,
-                    "disableUntilTicksStarts": true
                 }
             ],
             "name": "supervisor",
             "namePlural": "supervisors",
-            "onConnect": "???Connect",
+            "onConnect": null,
             "limit": 1,
-            "highlightMainColor": "#008000",
+            "highlightMainColor": "#00800000",
             "isSpectator": true,
-            "perspectiveVar": null,
+            "perspectiveVar": "supervisor-perspective",
             "viewOverrideVar": null
         }
     ],
     "onIterate": "go",
     "onStart": "setup",
+    "targetFrameRate": 20,
     "version": "hnw-alpha-1",
     "type": "hubnet-web"
 }
