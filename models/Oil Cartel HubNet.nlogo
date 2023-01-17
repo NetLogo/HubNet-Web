@@ -97,6 +97,7 @@ to reset
   initialize-shapes
 
   ;; Reset plots
+  ; TODO: This plot is narrowcast, and the below line should not be commented out
   set-current-plot "Current Profit Plot"
   ;;ask sellers [ __hubnet-clear-plot user-id ]
 
@@ -105,6 +106,9 @@ to reset
 
   set-current-plot "Average Price of Oil"
   clear-plot
+
+  ; We have to do this again for some reason
+  initial-login
 
 end
 

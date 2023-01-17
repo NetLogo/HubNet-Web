@@ -9,15 +9,6 @@
             "afterDisconnect": null,
             "widgets": [
                 {
-                    "height": 1,
-                    "bottom": 424,
-                    "left": 497,
-                    "width": 1,
-                    "right": 905,
-                    "type": "hnwView",
-                    "top": 15
-                },
-                {
                     "bottom": 420,
                     "display": "Current Profit",
                     "left": 20,
@@ -373,30 +364,6 @@
                     "update": ""
                 },
                 {
-                    "forever": false,
-                    "bottom": 63,
-                    "display": "reset",
-                    "left": 109,
-                    "buttonKind": "observer",
-                    "source": "reset",
-                    "hnwProcName": "reset",
-                    "right": 182,
-                    "type": "hnwButton",
-                    "top": 30,
-                    "disableUntilTicksStarts": true
-                },
-                {
-                    "bottom": 28,
-                    "display": "Activity:",
-                    "color": 0,
-                    "left": 8,
-                    "fontSize": 11,
-                    "right": 98,
-                    "type": "hnwTextBox",
-                    "top": 10,
-                    "transparent": false
-                },
-                {
                     "bottom": 311,
                     "display": "Current Cartel Agreement:",
                     "color": 0,
@@ -562,7 +529,7 @@
         }
     ],
     "onIterate": "run-market",
-    "onStart": "initial-login",
+    "onStart": "reset",
     "version": "hnw-alpha-1",
     "type": "hubnet-web"
 }
