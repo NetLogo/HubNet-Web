@@ -68,28 +68,13 @@
                     "top": 10
                 },
                 {
-                    "bottom": 426,
-                    "display": "metric-error-message",
-                    "left": 7,
-                    "precision": 3,
-                    "reporterStyle": "turtle-var",
-                    "fontSize": 10,
-                    "source": "metric-error",
-                    "right": 488,
-                    "type": "hnwMonitor",
-                    "top": 377
-                },
-                {
-                    "bottom": 374,
-                    "left": 7,
-                    "variable": "metric-code",
-                    "boxedValue": {
-                        "value": "",
-                        "multiline": true,
-                        "type": "String (reporter)"
-                    },
+                    "bottom": 181,
+                    "left": 192,
+                    "variable": "metric",
+                    "choices": ["Min Speed", "Max Speed", "Min Wait", "Max Wait"],
+                    "currentChoice": 0,
                     "right": 487,
-                    "type": "hnwInputBox",
+                    "type": "hnwChooser",
                     "top": 136
                 },
                 {
