@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     ).catch(
       (error) => {
-        alert(`Error with copying link: ${JSON.stringify(error)}`);
+        alert(`Error copying link: ${error.message}`);
       }
     );
 
