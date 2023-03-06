@@ -32,7 +32,7 @@ export default class JoinerNLWManager extends NLWManager {
 
   // () => Unit
   init = () => {
-    this._getFrame().src = `${this._galaURL}/hnw-join`;
+    this._getFrame().src = `${this._galaURL}/hnw/join`;
   };
 
   // (Object[Any]) => Unit

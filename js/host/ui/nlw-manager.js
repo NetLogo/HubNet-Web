@@ -90,7 +90,7 @@ export default class HostNLWManager extends NLWManager {
       conWind.postMessage(msg, this._galaURL, [babyMonitorChannel.port2]);
     };
 
-    iframe.src = `${this._galaURL}/hnw-host`;
+    iframe.src = `${this._galaURL}/hnw/host`;
 
   };
 
