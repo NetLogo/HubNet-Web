@@ -714,6 +714,7 @@
             "viewOverrideVar": null
         }
     ],
+    "targetFrameRate": 20,
     "onIterate": "go",
     "onStart": "setup-prompt",
     "version": "hnw-alpha-1",

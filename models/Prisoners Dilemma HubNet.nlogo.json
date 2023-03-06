@@ -564,6 +564,7 @@
             "viewOverrideVar": null
         }
     ],
+    "targetFrameRate": 20,
     "onIterate": "play-n-times",
     "onStart": "setup",
     "version": "hnw-alpha-1",

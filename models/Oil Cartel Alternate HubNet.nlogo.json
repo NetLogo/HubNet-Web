@@ -656,6 +656,7 @@
             "viewOverrideVar": null
         }
     ],
+    "targetFrameRate": 20,
     "onIterate": "run-market",
     "onStart": "re-run",
     "version": "hnw-alpha-1",
