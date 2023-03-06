@@ -193,6 +193,13 @@ const bandwidthManager =
                         , setIT("activity-status-span"), setIT("num-turn-span")
                         , nlwManager.notifyCongested, nlwManager.notifyUncongested);
 
+const queryString = new URLSearchParams(window.location.search);
+const params      = Object.fromEntries(queryString.entries());
+
+if (params.embedded === "true") {
+  document.querySelectorAll(".page-header")[0].style.display = "none";
+}
+
 window.addEventListener("message", ({ data }) => {
   switch (data.type) {
     case "galapagos-direct-launch": {
