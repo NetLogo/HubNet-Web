@@ -146,8 +146,7 @@
         },
         {
             "canJoinMidRun": true,
-            "cursorXVar": "mouse_x",
-            "cursorYVar": "mouse_y",
+            "onCursorMove": "handle-mouse-move",
             "onCursorClick": null,
             "onCursorRelease": null,
             "onDisconnect": null,
