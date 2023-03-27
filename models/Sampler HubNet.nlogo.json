@@ -228,7 +228,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 476,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "max": "10",

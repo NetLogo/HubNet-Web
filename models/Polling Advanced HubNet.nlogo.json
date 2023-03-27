@@ -221,7 +221,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 142,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 102,

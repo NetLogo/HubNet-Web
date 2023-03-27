@@ -212,7 +212,7 @@
                     "type": "hnwPlot",
                     "ymin": -12,
                     "top": 27,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 490,
@@ -242,7 +242,7 @@
                     "type": "hnwPlot",
                     "ymin": -6,
                     "top": 261,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "forever": false,

@@ -182,7 +182,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 312,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "forever": false,

@@ -401,7 +401,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 320,
-                    "update": ""
+                    "updateCode": ""
                 }
             ],
             "name": "supervisor",

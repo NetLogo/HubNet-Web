@@ -288,7 +288,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 365,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 365,
@@ -328,7 +328,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 245,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 150,
@@ -472,7 +472,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 495,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 493,

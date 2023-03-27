@@ -171,7 +171,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 165,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 160,
@@ -231,7 +231,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 10,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 680,
@@ -291,7 +291,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 430,
-                    "update": ""
+                    "updateCode": ""
                 }
             ],
             "name": "client",
@@ -408,7 +408,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 460,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 460,
@@ -468,7 +468,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 330,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 730,
@@ -528,7 +528,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 595,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "max": "36",

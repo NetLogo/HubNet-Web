@@ -48,8 +48,8 @@
       , { "type": "hnwSlider",   "left":  10, "right":  195, "top": 177, "bottom": 210, "display": "student-vision-radius", "variable": "student-vision-radius", "min": 1, "max": 10, "default": 10.0, "units": "", "direction": "horizontal", "step": 1 }
       , { "type": "hnwSlider",   "left":  10, "right":  195, "top":  95, "bottom": 128, "display": "number-of-sites", "variable": "number-of-sites", "min": 2, "max": 9, "default": 9.0, "units": "", "direction": "horizontal", "step": 1 }
       , { "type": "hnwMonitor",  "left":  12, "right":  195, "top": 265, "bottom": 310, "display": "Best site discovered?", "source": "best-site-discovered", "reporterStyle": "procedure", "precision": 17, "fontSize": 11 }
-      , { "type": "hnwPlot",     "left": 707, "right": 1014, "top":  10, "bottom": 263, "display": "Current Sites Support", "xAxis": "Sites", "yAxis": "Bee Count", "xmin": 0.0, "xmax": 10.0, "ymin": 0.0, "ymax": 10.0, "autoPlotOn": true, "legendOn": false, "setupCode": "", "update": "", "pens": {} }
-      , { "type": "hnwPlot",     "left": 708, "right": 1015, "top": 268, "bottom": 521, "display": "Sites Support Over Time", "xAxis": "Ticks", "yAxis": "Bee Count", "xmin": 0.0, "xmax": 10.0, "ymin": 0.0, "ymax": 10.0, "autoPlotOn": true, "legendOn": false, "setupCode": "ask sites [\n  create-temporary-plot-pen (word self)\n  set-plot-pen-color true-color\n]", "update": "ask sites [\n  set-current-plot-pen (word self)\n  plot count (turtle-set students robots) with [ supported-site = myself ]\n]", "pens": {} }
+      , { "type": "hnwPlot",     "left": 707, "right": 1014, "top":  10, "bottom": 263, "display": "Current Sites Support", "xAxis": "Sites", "yAxis": "Bee Count", "xmin": 0.0, "xmax": 10.0, "ymin": 0.0, "ymax": 10.0, "autoPlotOn": true, "legendOn": false, "setupCode": "", "updateCode": "", "pens": [] }
+      , { "type": "hnwPlot",     "left": 708, "right": 1015, "top": 268, "bottom": 521, "display": "Sites Support Over Time", "xAxis": "Ticks", "yAxis": "Bee Count", "xmin": 0.0, "xmax": 10.0, "ymin": 0.0, "ymax": 10.0, "autoPlotOn": true, "legendOn": false, "setupCode": "ask sites [\n  create-temporary-plot-pen (word self)\n  set-plot-pen-color true-color\n]", "updateCode": "ask sites [\n  set-current-plot-pen (word self)\n  plot count (turtle-set students robots) with [ supported-site = myself ]\n]", "pens": [] }
       , {
             "bottom": 263,
             "display": "Current Sites Support",
@@ -78,7 +78,7 @@
             "type": "hnwPlot",
             "ymin": 0,
             "top": 10,
-            "update": ""
+            "updateCode": ""
         },
         {
             "bottom": 521,
@@ -97,7 +97,7 @@
             "type": "hnwPlot",
             "ymin": 0,
             "top": 268,
-            "update": "ask sites [\n  set-current-plot-pen (word self)\n  plot count (turtle-set students robots) with [ supported-site = myself ]\n]"
+            "updateCode": "ask sites [\n  set-current-plot-pen (word self)\n  plot count (turtle-set students robots) with [ supported-site = myself ]\n]"
         }
       , { "type": "hnwInputBox", "left":  14, "right":  193, "top": 407, "bottom": 467, "variable": "filename", "boxedValue": { "type": "String", "multiline": true, "value": "history.csv" } }
       , { "type": "hnwButton",   "left":  14, "right":  193, "top": 473, "bottom": 519, "display": "save history", "source": "save-history", "hnwProcName": "save-history", "forever": false, "disableUntilTicksStart": false, "buttonKind": "observer" }

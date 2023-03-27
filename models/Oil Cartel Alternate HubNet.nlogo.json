@@ -223,7 +223,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 256,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 84,
@@ -412,7 +412,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 10,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 446,
@@ -533,7 +533,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 194,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "max": "25",

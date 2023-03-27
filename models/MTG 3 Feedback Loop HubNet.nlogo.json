@@ -240,7 +240,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 175,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 520,
@@ -270,7 +270,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 355,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 169,
@@ -300,7 +300,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 10,
-                    "update": "clear-plot\nif any? students [ \nset-plot-x-range 0 count turtles\nlet bar-list sort-on [sugar] turtles\nforeach bar-list [the-turtle -> ask the-turtle [plotxy position self bar-list sugar]]\n]"
+                    "updateCode": "clear-plot\nif any? students [ \nset-plot-x-range 0 count turtles\nlet bar-list sort-on [sugar] turtles\nforeach bar-list [the-turtle -> ask the-turtle [plotxy position self bar-list sugar]]\n]"
                 },
                 {
                     "bottom": 213,

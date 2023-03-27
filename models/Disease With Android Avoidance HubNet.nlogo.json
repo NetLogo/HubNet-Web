@@ -153,7 +153,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 262,
-                    "update": ""
+                    "updateCode": ""
                 }
             ],
             "name": "student",
@@ -251,7 +251,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 393,
-                    "update": "let n count turtles with [infected?]\n;; only plot if someone has been infected since the last time we plotted.\n;; this smoothes out the plot a bit.\nif n > num-infected-last-plotted [\n  plotxy ticks - 1 n\n  set num-infected-last-plotted n\n]"
+                    "updateCode": "let n count turtles with [infected?]\n;; only plot if someone has been infected since the last time we plotted.\n;; this smoothes out the plot a bit.\nif n > num-infected-last-plotted [\n  plotxy ticks - 1 n\n  set num-infected-last-plotted n\n]"
                 },
                 {
                     "max": "10",

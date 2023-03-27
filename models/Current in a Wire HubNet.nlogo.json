@@ -185,7 +185,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 460,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "max": "0.1",
@@ -229,7 +229,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 460,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 387,
@@ -446,7 +446,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 282,
-                    "update": "clear-plot\nif not __hnw_supervisor_show-temps? [ stop ]\nif any? slices [ set-plot-x-range 1 (count students + 1) set-plot-y-range 0 ([my-average-temp] of max-one-of slices [my-average-temp]) + 15 ]"
+                    "updateCode": "clear-plot\nif not __hnw_supervisor_show-temps? [ stop ]\nif any? slices [ set-plot-x-range 1 (count students + 1) set-plot-y-range 0 ([my-average-temp] of max-one-of slices [my-average-temp]) + 15 ]"
                 },
                 {
                     "bottom": 568,

@@ -33,7 +33,7 @@
     , "highlightMainColor": "#008000"
     , "widgets": [
         { "type": "hnwView",     "left": 461, "right": 742, "top":  98, "bottom": 380, "height": 282, "width": 281 }
-      , { "type": "hnwPlot",     "left": 155, "right": 455, "top": 129, "bottom": 396, "display": "Data", "xAxis": "choice", "yAxis": "count", "xmin": 0.0, "xmax": 10.0, "ymin": 0.0, "ymax": 5.0, "autoPlotOn": true, "legendOn": true, "setupCode": "", "update": "", "pens": {} }
+      , { "type": "hnwPlot",     "left": 155, "right": 455, "top": 129, "bottom": 396, "display": "Data", "xAxis": "choice", "yAxis": "count", "xmin": 0.0, "xmax": 10.0, "ymin": 0.0, "ymax": 5.0, "autoPlotOn": true, "legendOn": true, "setupCode": "", "updateCode": "", "pens": [] }
       , { "type": "hnwSwitch",   "left":   1, "right": 149, "top": 224, "bottom": 257, "display": "allow-change?", "variable": "allow-change?", "on": true }
       , { "type": "hnwButton",   "left":   1, "right": 149, "top": 129, "bottom": 164, "display": "Clear Current Data", "source": "clear-current-data", "hnwProcName": "clear-current-data", "forever": false, "disableUntilTicksStart": true, "buttonKind": "observer" }
       , { "type": "hnwMonitor",  "left":   1, "right": 455, "top": 401, "bottom": 446, "display": "Current Question", "source": "current-question-value", "reporterStyle": "procedure", "precision": 3, "fontSize": 11 }

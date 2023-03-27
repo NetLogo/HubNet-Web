@@ -503,7 +503,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 99,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 400,
@@ -543,7 +543,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 200,
-                    "update": ""
+                    "updateCode": ""
                 },
                 {
                     "bottom": 465,
