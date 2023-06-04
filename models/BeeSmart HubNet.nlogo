@@ -507,6 +507,33 @@ to-report best-site-discovered
   report [ color = true-color ] of max-one-of sites [ quality ]
 end
 
+to setup-current-pen
+  let num (max (list 1 (count sites)))
+  set-plot-x-range 0 num
+  set-plot-y-range 0 10
+  set-histogram-num-bars num
+end
+
+to update-current-pen
+  let sites-by-quality sort-on [ quality ] sites ; assemble a sorted list of sites by quality
+  let supporting-bees (turtle-set students robots) with [ is-site? supported-site ]
+  histogram [ position supported-site sites-by-quality ] of supporting-bees
+end
+
+to setup-overall-plot
+  ask sites [
+    create-temporary-plot-pen (word self)
+    set-plot-pen-color true-color
+  ]
+end
+
+to update-overall-plot
+  ask sites [
+    set-current-plot-pen (word self)
+    plot count (turtle-set students robots) with [ supported-site = myself ]
+  ]
+end
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;SAVE FILE;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
