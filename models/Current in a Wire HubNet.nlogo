@@ -602,6 +602,63 @@ to reset-temps
   ]
 end
 
+to plot-current-vs-time
+  if ticks > 5 [ plotxy (ticks / 50) (50 * charge-flow) / ticks ]
+end
+
+to plot-av-temp
+  plotxy (ticks / 50) mean [temp] of wire-patches
+end
+
+to plot-slice-1
+  plotxy 1 get-slice-temp 1
+end
+
+to plot-slice-2
+  if count slices > 1 [ plotxy 2 get-slice-temp 2 ]
+end
+
+to plot-slice-3
+  if count slices > 2 [ plotxy 3 get-slice-temp 3 ]
+end
+
+to plot-slice-4
+  if count slices > 3 [ plotxy 4 get-slice-temp 4 ]
+end
+
+to plot-slice-5
+  if count slices > 4 [ plotxy 5 get-slice-temp 5 ]
+end
+
+to plot-slice-6
+  if count slices > 5 [ plotxy 6 get-slice-temp 6 ]
+end
+
+to plot-slice-7
+  if count slices > 6 [ plotxy 7 get-slice-temp 7 ]
+end
+
+to plot-slice-8
+  if count slices > 7 [ plotxy 8 get-slice-temp 8 ]
+end
+
+to plot-slice-9
+  if count slices > 8 [ plotxy 9 get-slice-temp 9 ]
+end
+
+to plot-slice-10
+  if count slices > 9 [ plotxy 10 get-slice-temp 10 ]
+end
+
+to plot-slices
+  clear-plot
+  if not __hnw_supervisor_show-temps? [ stop ]
+  if any? slices [
+    set-plot-x-range 0 (count students + 2)
+    set-plot-y-range 0 ([my-average-temp] of max-one-of slices [my-average-temp]) + 15
+  ]
+end
+
 ; Copyright 2008 Pratim Sengupta and Uri Wilensky.
 ; See Info tab for full copyright and license.
 @#$#@#$#@

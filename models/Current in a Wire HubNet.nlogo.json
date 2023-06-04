@@ -12,8 +12,9 @@
                     "height": 513,
                     "bottom": 523,
                     "left": 9,
-                    "width": 513,
-                    "right": 522,
+                    "width": 519,
+                    "right": 528,
+                    "patchSize": 5,
                     "type": "hnwView",
                     "top": 10
                 },
@@ -90,6 +91,7 @@
                     "left": 233,
                     "width": 863,
                     "right": 1096,
+                    "patchSize": 5,
                     "type": "hnwView",
                     "top": 12
                 },
@@ -171,7 +173,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "if ticks > 5 [ plotxy (ticks / 50) (50 * charge-flow) / ticks ]",
+                            "updateCode": "plot-current-vs-time",
                             "display": "default",
                             "color": -16777216,
                             "mode": 0,
@@ -215,7 +217,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "plotxy (ticks / 50) mean [temp] of wire-patches",
+                            "updateCode": "plot-av-temp",
                             "display": "default",
                             "color": -16777216,
                             "mode": 0,
@@ -332,17 +334,17 @@
                     "bottom": 453,
                     "display": "Temperature in each Slice",
                     "yAxis": "Temperature",
-                    "xmin": 1,
+                    "xmin": 0,
                     "ymax": 30,
                     "legendOn": false,
                     "left": 216,
                     "xAxis": "Slice #",
                     "autoPlotOn": true,
-                    "xmax": 1,
+                    "xmax": 2,
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "plotxy 1 get-slice-temp 1",
+                            "updateCode": "plot-slice-1",
                             "display": "slice-1",
                             "color": -14835848,
                             "mode": 1,
@@ -352,7 +354,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count slices > 1 [ plotxy 2 get-slice-temp 2 ]",
+                            "updateCode": "plot-slice-2",
                             "display": "slice-2",
                             "color": -7500403,
                             "mode": 1,
@@ -362,7 +364,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count slices > 2 [ plotxy 3 get-slice-temp 3 ]",
+                            "updateCode": "plot-slice-3",
                             "display": "slice-3",
                             "color": -2674135,
                             "mode": 1,
@@ -372,7 +374,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count slices > 3 [ plotxy 4 get-slice-temp 4 ]",
+                            "updateCode": "plot-slice-4",
                             "display": "slice-4",
                             "color": -955883,
                             "mode": 1,
@@ -382,7 +384,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count slices > 4 [ plotxy 5 get-slice-temp 5 ]",
+                            "updateCode": "plot-slice-5",
                             "display": "slice-5",
                             "color": -6459832,
                             "mode": 1,
@@ -392,7 +394,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count slices > 5 [ plotxy 6 get-slice-temp 6 ]",
+                            "updateCode": "plot-slice-6",
                             "display": "slice-6",
                             "color": -13791810,
                             "mode": 1,
@@ -402,7 +404,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count slices > 6 [ plotxy 7 get-slice-temp 7 ]",
+                            "updateCode": "plot-slice-7",
                             "display": "slice-7",
                             "color": -10899396,
                             "mode": 1,
@@ -412,7 +414,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count slices > 7 [ plotxy 8 get-slice-temp 8 ]",
+                            "updateCode": "plot-slice-8",
                             "display": "slice-8",
                             "color": -11221820,
                             "mode": 1,
@@ -422,7 +424,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count slices > 8 [ plotxy 9 get-slice-temp 9 ]",
+                            "updateCode": "plot-slice-9",
                             "display": "slice-9",
                             "color": -2064490,
                             "mode": 1,
@@ -432,7 +434,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if count slices > 9 [ plotxy 10 get-slice-temp 10 ]",
+                            "updateCode": "plot-slice-10",
                             "display": "slice-10",
                             "color": -8630108,
                             "mode": 1,
@@ -446,7 +448,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 282,
-                    "updateCode": "clear-plot\nif not __hnw_supervisor_show-temps? [ stop ]\nif any? slices [ set-plot-x-range 1 (count students + 1) set-plot-y-range 0 ([my-average-temp] of max-one-of slices [my-average-temp]) + 15 ]"
+                    "updateCode": "plot-slices"
                 },
                 {
                     "bottom": 568,
