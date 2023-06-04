@@ -18,6 +18,17 @@ globals
   quick-start  ;; current quickstart instruction displayed in the quickstart monitor
   qs-item      ;; index of the current quickstart instruction
   qs-items     ;; list of quickstart instructions
+
+  __hnw_supervisor_android-delay
+  __hnw_supervisor_doctor-delay
+  __hnw_supervisor_infection-chance
+  __hnw_supervisor_initial-number-sick
+  __hnw_supervisor_num-androids
+  __hnw_supervisor_num-doctors
+
+  __hnw_supervisor_show-sick?
+  __hnw_supervisor_wander?
+
 ]
 
 ;; doctors cannot be infected but giving them an infected? variable makes code simpler
@@ -71,6 +82,16 @@ end
 
 ;; initialize global variables
 to setup-vars
+
+  set __hnw_supervisor_android-delay         0.6
+  set __hnw_supervisor_doctor-delay          0.6
+  set __hnw_supervisor_infection-chance      100
+  set __hnw_supervisor_num-androids          6
+  set __hnw_supervisor_num-doctors           2
+  set __hnw_supervisor_initial-number-sick   1
+  set __hnw_supervisor_show-sick?            true
+  set __hnw_supervisor_wander?               true
+
   set shape-names [ "box" "star" "wheel" "target" "cat" "dog"
                    "butterfly" "leaf" "car" "airplane"
                    "monster" "key" "cow skull" "ghost"
@@ -101,7 +122,7 @@ to setup-plot
 end
 
 to make-androids
-  create-androids num-androids
+  create-androids __hnw_supervisor_num-androids
   [
     move-to one-of patches
     face one-of neighbors4
@@ -114,7 +135,7 @@ to make-androids
 end
 
 to make-doctors
-  create-doctors num-doctors
+  create-doctors __hnw_supervisor_num-doctors
   [
     setxy random-xcor random-ycor
     face one-of neighbors4
@@ -136,7 +157,7 @@ to go
   every 0.1
   [
     ;; allow the androids and doctors to wander around the view
-    if wander?
+    if __hnw_supervisor_wander?
       [ wander ]
 
     ask turtles with [ infected? ]
@@ -150,19 +171,19 @@ to go
   ;; we don't want to reset the turtle shapes every time
   ;; through go but we do want to respond to the show-sick?
   ;; switch so keep track of when it's changed
-  if show-sick? != old-show-sick?
+  if __hnw_supervisor_show-sick? != old-show-sick?
   [
     ask turtles with [infected?] [ set-sick-shape ]
-    set old-show-sick? show-sick?
+    set old-show-sick? __hnw_supervisor_show-sick?
   ]
 end
 
 ;; controls the motion of the androids and doctors
 to wander
   ;; doctors and androids may wander at different rates
-  every android-delay
+  every __hnw_supervisor_android-delay
     [ breed-wander androids ]
-  every doctor-delay
+  every __hnw_supervisor_doctor-delay
     [ breed-wander doctors ]
 end
 
@@ -194,7 +215,7 @@ end
 ;; roll the dice and maybe get sick
 to maybe-get-sick ;; turtle procedure
   if not infected? [
-    if ((random 100) + 1) <= infection-chance
+    if ((random 100) + 1) <= __hnw_supervisor_infection-chance
     [ get-sick ] ]
 end
 
@@ -208,7 +229,7 @@ end
 ;; if show-ill? is true and change the shape to the base-shape if
 ;; show-ill? is false
 to set-sick-shape ;; turtle procedure
-  ifelse show-sick?
+  ifelse __hnw_supervisor_show-sick?
   [
     ;; we want to check if the turtles shape is already a sick shape
     ;; to prevent flickering in the turtles
@@ -239,7 +260,7 @@ end
 to infect-turtles
   let healthy-turtles turtles with [ not infected? and breed != doctors ]
 
-  ifelse count healthy-turtles < initial-number-sick
+  ifelse count healthy-turtles < __hnw_supervisor_initial-number-sick
   [
     ask healthy-turtles
     [
@@ -250,7 +271,7 @@ to infect-turtles
     stop
   ]
   [
-    ask n-of initial-number-sick healthy-turtles
+    ask n-of __hnw_supervisor_initial-number-sick healthy-turtles
     [
       get-sick
       set-sick-shape
