@@ -334,6 +334,14 @@ to client-submit
   ]
 end
 
+to plot-singles
+  histogram single-outcomes
+end
+
+to plot-pairs
+  histogram pair-outcomes
+end
+
 ; Copyright 2004 Uri Wilensky.
 ; See Info tab for full copyright and license.
 @#$#@#$#@
