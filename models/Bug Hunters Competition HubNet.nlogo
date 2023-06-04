@@ -383,6 +383,33 @@ to-report count-bugs
   report count bugs
 end
 
+to update-energy-plot
+
+  let num-bars 20
+  let y-axis-max-histogram  (5 + ((floor (count bugs with [floor (energy / 20) = (item 0 modes [floor (energy / 20)] of bugs)] / 5)) * 5))
+  if y-axis-max-histogram < 10 [set y-axis-max-histogram 10]
+
+  plot-pen-reset
+
+  ;; autoscale x axis by 500s
+  set-plot-x-range (500 * floor (min-energy-of-any-bug / 500)) (500 + 500 *  (floor (max-energy-of-any-bug / 500)))
+
+  ;; autoscale y axis by 5s, when above 10
+  set-plot-y-range 0 y-axis-max-histogram
+
+  set-histogram-num-bars num-bars
+  set x-min-histogram plot-x-min
+  set x-max-histogram plot-x-max
+  set x-interval-histogram (x-max-histogram - x-min-histogram) / num-bars
+
+  histogram [ energy ] of bugs
+
+end
+
+to update-population-pen
+  plotxy ticks count bugs
+end
+
 ; Copyright 2011 Uri Wilensky.
 ; See Info tab for full copyright and license.
 @#$#@#$#@
