@@ -116,9 +116,13 @@ export default class ConnectionManager {
   // (UUID) => Promise[(RTCDataChannel, RTCSessionDescriptionInit)]
   #initiateRTC = (joinerID) => {
     if (joinerID !== "No more hashes") {
+
       const rtcID   = uuidToRTCID(joinerID);
       const rtcOpts = { negotiated: true, id: rtcID };
       const channel = this.#conn.createDataChannel("hubnet-web", rtcOpts);
+
+      channel.binaryType = "arraybuffer";
+
       return this.#conn.createOffer().then(
         (ofr) => {
           // For Safari 15- --Jason B. (11/1/21)
@@ -127,6 +131,7 @@ export default class ConnectionManager {
           return [channel, offer];
         }
       );
+
     } else {
       return Promise.reject(new Error("Session is full"));
     }

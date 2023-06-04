@@ -202,8 +202,10 @@ export default class ConnectionManager {
   #processOffer = (joinerID, connection) => (offer) => {
 
     const rtcID   = uuidToRTCID(joinerID);
-    const props   = { negotiated: true, id: rtcID };
+    const props   = { negotiated: true, binaryType: "arraybuffer", id: rtcID };
     const channel = connection.createDataChannel("hubnet-web", props);
+
+    channel.binaryType = "arraybuffer";
 
     const onRun      = this.#onChannelMessage(joinerID, channel);
     const msgHandler = { reset: () => {}, run: onRun };

@@ -24,7 +24,7 @@ export default class RxQueue {
     this.reset();
   }
 
-  // (Object[{ data :: Any }]) => Unit
+  // (Object[{ data :: ArrayBuffer }]) => Unit
   enqueue = ({ data }) => {
 
     const decodeInput    = this.#decodeInput;
