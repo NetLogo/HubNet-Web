@@ -108,7 +108,6 @@ to go
   reproduce-bugs
   every 0.01 [ tick ]
   handle-flash
-  do-plots
 end
 
 to handle-flash
@@ -330,11 +329,9 @@ end
 ;; Plotting Procedure
 ;;;;;;;;;;;;;;;;;;;;;
 
-to do-plots
-  set-current-plot "Bugs Caught by All Hunters vs. Time"
+to update-caught-pen
   plot total-caught
 end
-
 
 ; Copyright 2006 Uri Wilensky.
 ; See Info tab for full copyright and license.
