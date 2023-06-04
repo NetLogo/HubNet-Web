@@ -12,8 +12,13 @@ import ChatManager from "/js/common/ui/chat-manager.js";
 const byEID = (eid) => document.getElementById(eid);
 
 // (String) => Unit
-const onNLWManError = (subtype) => {
-  alert(`Fatal error received from client: ${subtype}`);
+const onNLWManError = (data) => {
+  if (data.subtype === "unknown-agent") {
+    const { agentType: typ, agentID: id } = data;
+    alert(`Fatal error received from client\n\nUnknown agent: ${typ} ${id}`);
+  } else {
+    alert(`Fatal error received from client: ${data}`);
+  }
   self.location.reload();
 };
 

@@ -189,7 +189,7 @@ export default class HostNLWManager extends NLWManager {
       }
 
       case "hnw-fatal-error": {
-        this.#onError(data.subtype);
+        this.#onError(data);
         break;
       }
 
