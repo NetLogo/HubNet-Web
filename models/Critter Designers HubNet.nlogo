@@ -669,6 +669,47 @@ to-report time
   report ticks
 end
 
+to update-population-plot
+
+  if (ticks mod 5 = 0 and ticks != 0) [
+
+    if (ticks mod 2000 = 0) [
+      clear-all-plots
+      set-plot-x-range (ticks) / dt (ticks + 500) / dt
+    ]
+
+    if (ticks mod 2000) > 500 [ ; don't change the range until we've plotted all the way across once
+      set-plot-x-range (ticks - 500) / dt ticks / dt  ; only show the last 500 ticks
+    ]
+
+    foreach sort species-list [ the-creator-id ->
+
+      let crits critters with [ creator-id = the-creator-id ]
+
+      ; create-temporary-plot-pen will either create the pen, or set it current if it exists
+      create-temporary-plot-pen the-creator-id
+
+      ; make the whitish colors more visible on the plot
+      let col [color] of one-of crits
+      if (col mod 10 > 7) [ set col col - 1 ]
+      set-plot-pen-color col
+
+      plotxy (ticks / dt) (count crits) * 100 / count critters
+
+    ]
+
+  ]
+
+end
+
+to update-extinct-pen
+  histogram ([100 * age / ticks] of species-logs with [extinct?])
+end
+
+to update-alive-pen
+  histogram ([100 * age / ticks] of species-logs with [not extinct?])
+end
+
 ; Copyright 2011 Uri Wilensky.
 ; See Info tab for full copyright and license.
 @#$#@#$#@
