@@ -1135,6 +1135,139 @@ to-report instructions
   ]
 end
 
+;; HNW Plotting
+
+;;; "Dominant" plot
+
+to setup-dominant-pen [x]
+  plotxy number-selections x
+end
+
+to setup-dominant-a-pen
+  setup-dominant-pen frequency-allele-dominant-first-trait
+end
+
+to setup-dominant-b-pen
+  setup-dominant-pen frequency-allele-dominant-second-trait
+end
+
+to setup-dominant-c-pen
+  setup-dominant-pen frequency-allele-dominant-third-trait
+end
+
+to setup-dominant-d-pen
+  setup-dominant-pen frequency-allele-dominant-fourth-trait
+end
+
+to update-dominant-pen [x]
+  if new-selection-event-occurred? [
+    plotxy number-selections x
+  ]
+end
+
+to update-dominant-a-pen
+  update-dominant-pen frequency-allele-dominant-first-trait
+end
+
+to update-dominant-b-pen
+  update-dominant-pen frequency-allele-dominant-second-trait
+end
+
+to update-dominant-c-pen
+  update-dominant-pen frequency-allele-dominant-third-trait
+end
+
+to update-dominant-d-pen
+  update-dominant-pen frequency-allele-dominant-fourth-trait
+end
+
+;;; "Recessive" plot
+
+to setup-recessive-pen [x]
+  plotxy number-selections x
+end
+
+to setup-recessive-a-pen
+  setup-recessive-pen frequency-allele-recessive-first-trait
+end
+
+to setup-recessive-b-pen
+  setup-recessive-pen frequency-allele-recessive-second-trait
+end
+
+to setup-recessive-c-pen
+  setup-recessive-pen frequency-allele-recessive-third-trait
+end
+
+to setup-recessive-d-pen
+  setup-recessive-pen frequency-allele-recessive-fourth-trait
+end
+
+to update-recessive-pen [x]
+  if new-selection-event-occurred? [
+    plotxy number-selections x
+  ]
+end
+
+to update-recessive-a-pen
+  update-recessive-pen frequency-allele-recessive-first-trait
+end
+
+to update-recessive-b-pen
+  update-recessive-pen frequency-allele-recessive-second-trait
+end
+
+to update-recessive-c-pen
+  update-recessive-pen frequency-allele-recessive-third-trait
+end
+
+to update-recessive-d-pen
+  update-recessive-pen frequency-allele-recessive-fourth-trait
+end
+
+;;; "Variations" plot
+
+to setup-variations-pen [x]
+  plotxy number-selections x
+end
+
+to setup-variations-1-pen
+  setup-variations-pen #-birds-with-1-target-trait
+end
+
+to setup-variations-2-pen
+  setup-variations-pen #-birds-with-2-target-traits
+end
+
+to setup-variations-3-pen
+  setup-variations-pen #-birds-with-3-target-traits
+end
+
+to setup-variations-4-pen
+  setup-variations-pen #-birds-with-4-target-traits
+end
+
+to update-variations-pen [x]
+  if new-selection-event-occurred? [
+    plotxy number-selections x
+  ]
+end
+
+to update-variations-1-pen
+  update-variations-pen #-birds-with-1-target-trait
+end
+
+to update-variations-2-pen
+  update-variations-pen #-birds-with-2-target-traits
+end
+
+to update-variations-3-pen
+  update-variations-pen #-birds-with-3-target-traits
+end
+
+to update-variations-4-pen
+  update-variations-pen #-birds-with-4-target-traits
+end
 
 ; Copyright 2011 Uri Wilensky.
 ; See Info tab for full copyright and license.

@@ -127,42 +127,42 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-recessive-a-pen",
                             "display": "a",
                             "color": -8990512,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "",
+                            "setupCode": "setup-recessive-a-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-recessive-b-pen",
                             "display": "b",
                             "color": -2674135,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "",
+                            "setupCode": "setup-recessive-b-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-recessive-c-pen",
                             "display": "c",
                             "color": -1664597,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "",
+                            "setupCode": "setup-recessive-c-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-recessive-d-pen",
                             "display": "d",
                             "color": -7858858,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "",
+                            "setupCode": "setup-recessive-d-pen",
                             "type": "pen",
                             "inLegend": true
                         }
@@ -187,42 +187,42 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-dominant-a-pen",
                             "display": "A",
                             "color": -16777216,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "",
+                            "setupCode": "setup-dominant-a-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-dominant-b-pen",
                             "display": "B",
                             "color": -3026479,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "",
+                            "setupCode": "setup-dominant-b-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-dominant-c-pen",
                             "display": "C",
                             "color": -3889007,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "",
+                            "setupCode": "setup-dominant-c-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-dominant-d-pen",
                             "display": "D",
                             "color": -9276814,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "",
+                            "setupCode": "setup-dominant-d-pen",
                             "type": "pen",
                             "inLegend": true
                         }
@@ -247,42 +247,42 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-variations-1-pen",
                             "display": "1 variation",
                             "color": -4079321,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "",
+                            "setupCode": "setup-variations-1-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-variations-2-pen",
                             "display": "2 variations",
                             "color": -8330359,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "",
+                            "setupCode": "setup-variations-2-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-variations-3-pen",
                             "display": "3 variations",
                             "color": -12087248,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "",
+                            "setupCode": "setup-variations-3-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-variations-4-pen",
                             "display": "4 variations",
                             "color": -14333415,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "",
+                            "setupCode": "setup-variations-4-pen",
                             "type": "pen",
                             "inLegend": true
                         }
@@ -364,42 +364,42 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "if new-selection-event-occurred? [plotxy number-selections frequency-allele-recessive-first-trait]",
+                            "updateCode": "update-recessive-a-pen",
                             "display": "a",
                             "color": -8990512,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "plotxy number-selections frequency-allele-recessive-first-trait",
+                            "setupCode": "setup-recessive-a-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if new-selection-event-occurred? [plotxy number-selections frequency-allele-recessive-second-trait]",
+                            "updateCode": "update-recessive-b-pen",
                             "display": "b",
                             "color": -2674135,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "plotxy number-selections frequency-allele-recessive-second-trait",
+                            "setupCode": "setup-recessive-b-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if new-selection-event-occurred? [plotxy number-selections frequency-allele-recessive-third-trait]",
+                            "updateCode": "update-recessive-c-pen",
                             "display": "c",
                             "color": -1664597,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "plotxy number-selections frequency-allele-recessive-third-trait",
+                            "setupCode": "setup-recessive-c-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if new-selection-event-occurred? [plotxy number-selections frequency-allele-recessive-fourth-trait]",
+                            "updateCode": "update-recessive-d-pen",
                             "display": "d",
                             "color": -7858858,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "plotxy number-selections frequency-allele-recessive-fourth-trait",
+                            "setupCode": "setup-recessive-d-pen",
                             "type": "pen",
                             "inLegend": true
                         }
@@ -424,42 +424,42 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "if new-selection-event-occurred? \n[plotxy number-selections frequency-allele-dominant-first-trait]",
+                            "updateCode": "update-dominant-a-pen",
                             "display": "A",
                             "color": -16777216,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "plotxy number-selections frequency-allele-dominant-first-trait",
+                            "setupCode": "setup-dominant-a-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if new-selection-event-occurred? \n[plotxy number-selections frequency-allele-dominant-second-trait]",
+                            "updateCode": "update-dominant-b-pen",
                             "display": "B",
                             "color": -3026479,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "plotxy number-selections frequency-allele-dominant-second-trait",
+                            "setupCode": "setup-dominant-b-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if new-selection-event-occurred? \n[plotxy number-selections frequency-allele-dominant-third-trait]",
+                            "updateCode": "update-dominant-c-pen",
                             "display": "C",
                             "color": -3889007,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "plotxy number-selections frequency-allele-dominant-third-trait",
+                            "setupCode": "setup-dominant-c-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if new-selection-event-occurred? \n[plotxy number-selections frequency-allele-dominant-fourth-trait]",
+                            "updateCode": "update-dominant-d-pen",
                             "display": "D",
                             "color": -9276814,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "plotxy number-selections frequency-allele-dominant-fourth-trait",
+                            "setupCode": "setup-dominant-d-pen",
                             "type": "pen",
                             "inLegend": true
                         }
@@ -484,42 +484,42 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "if new-selection-event-occurred? [plotxy number-selections  #-birds-with-1-target-trait]",
+                            "updateCode": "update-variations-1-pen",
                             "display": "1 variation",
                             "color": -4079321,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "plotxy number-selections #-birds-with-1-target-trait",
+                            "setupCode": "setup-variations-1-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if new-selection-event-occurred? [plotxy number-selections  #-birds-with-2-target-traits]",
+                            "updateCode": "update-variations-2-pen",
                             "display": "2 variations",
                             "color": -8330359,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "plotxy number-selections #-birds-with-2-target-traits",
+                            "setupCode": "setup-variations-2-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if new-selection-event-occurred? [plotxy number-selections #-birds-with-3-target-traits]",
+                            "updateCode": "update-variations-3-pen",
                             "display": "3 variations",
                             "color": -12087248,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "plotxy number-selections #-birds-with-3-target-traits",
+                            "setupCode": "setup-variations-3-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if new-selection-event-occurred? [plotxy number-selections #-birds-with-4-target-traits]",
+                            "updateCode": "update-variations-4-pen",
                             "display": "4 variations",
                             "color": -14333415,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "plotxy number-selections #-birds-with-4-target-traits",
+                            "setupCode": "setup-variations-4-pen",
                             "type": "pen",
                             "inLegend": true
                         }
