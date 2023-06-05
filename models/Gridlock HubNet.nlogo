@@ -553,6 +553,35 @@ to-report intersection-phase
   report ifelse-value (my-player != nobody) [ [my-phase] of my-player ] [ 0 ]
 end
 
+to setup-speed-plot
+  set-plot-y-range 0 __hnw_supervisor_speed-limit
+end
+
+to setup-stopped-cars-plot
+  set-plot-y-range 0 __hnw_supervisor_number
+end
+
+to update-avg-speed-pen
+  if-else hide-or-show-pen "Average Speed of Cars"
+    [ set-plot-pen-color red ]
+    [ set-plot-pen-color white ]
+  plot mean [speed] of cars
+end
+
+to update-avg-wait-pen
+  if-else hide-or-show-pen "Average Wait Time of Cars"
+    [ set-plot-pen-color red ]
+    [ set-plot-pen-color white ]
+  plot mean [wait-time] of cars
+end
+
+to update-stopped-cars-pen
+  ifelse hide-or-show-pen "Stopped Cars"
+    [ set-plot-pen-color red ]
+    [ set-plot-pen-color white ]
+  plot num-cars-stopped
+end
+
 ; Copyright 1999 Uri Wilensky and Walter Stroup.
 ; See Info tab for full copyright and license.
 @#$#@#$#@
