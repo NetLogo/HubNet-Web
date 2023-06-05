@@ -142,7 +142,7 @@ end
 to go
 
   ;; if wander? is true then the androids wander around the landscape
-  if wander?
+  if __hnw_supervisor_wander?
     [ androids-wander ]
 
   ;; the delay below keep plants from growing too fast
@@ -171,7 +171,7 @@ end
 to androids-wander
 
   ;; only execute at android-delay rate to keep the androids from moving too fast
-  every android-delay
+  every __hnw_supervisor_android-delay
   [
     ask androids
     [
@@ -196,7 +196,7 @@ end
 ;; turtle procedure
 ;; creates a new android near the old one
 to reproduce-android-prey
-  if random-float 100 < prey-reproduce [
+  if random-float 100 < __hnw_supervisor_prey-reproduce [
     set energy (energy / 2)
     hatch 1 [ rt random-float 360 fd 1 ]
   ]
@@ -205,7 +205,7 @@ end
 ;; turtle procedure
 ;; creates a new android near the old one
 to reproduce-android-predator
-  if random-float 100 < predator-reproduce [
+  if random-float 100 < __hnw_supervisor_predator-reproduce [
     set energy (energy / 2 )
     hatch 1 [ rt random-float 360 fd 1 ]
   ]
@@ -216,9 +216,9 @@ to plants-regrow
   let brown-patches patches with [ pcolor = brown - 2 ]
 
   ;; only regrow until the entire world is full
-  ifelse count brown-patches > plant-regrowth-rate
+  ifelse count brown-patches > __hnw_supervisor_plant-regrowth-rate
   [
-    ask n-of plant-regrowth-rate brown-patches
+    ask n-of __hnw_supervisor_plant-regrowth-rate brown-patches
       [ set pcolor green - 3 ]
   ]
   [
@@ -232,7 +232,7 @@ to eat-prey
   let eaten-prey one-of other turtles-here with [ breed != icons and not predator? and energy > 0 ]
   if eaten-prey != nobody
   [
-    set energy energy + predator-gain-from-food
+    set energy energy + __hnw_supervisor_predator-gain-from-food
     ;; prey lose energy equal to one "life" when they are eaten
     ;; which is the amount of energy that everyone starts with.
     ask eaten-prey
@@ -247,7 +247,7 @@ to eat-grass
   ;; with the icon colors.
   if pcolor = green - 3
   [
-    set energy energy + prey-gain-from-food
+    set energy energy + __hnw_supervisor_prey-gain-from-food
     set pcolor brown - 2
   ]
 end
