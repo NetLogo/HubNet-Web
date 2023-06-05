@@ -26,6 +26,12 @@ globals
 
   score-list         ;; for plotting
   success-list       ;; for plotting
+
+  __hnw_supervisor_number-of-participants
+  __hnw_supervisor_player-memory
+  __hnw_supervisor_android-memory
+  __hnw_supervisor_strategies-per-android
+
 ]
 
 turtles-own
@@ -59,13 +65,28 @@ androids-own
 ;; startup of the model
 to startup
   clear-all
+  setup-vars
   setup
+end
+
+to setup-vars
+  set __hnw_supervisor_number-of-participants 229
+  set __hnw_supervisor_player-memory          5
+  set __hnw_supervisor_android-memory         3
+  set __hnw_supervisor_strategies-per-android 5
+  set shape-names [ "airplane" "bug" "butterfly" "car" "fish" "monster"
+                    "star" "turtle" "bird" "crown" "ufo" "sun" "train" ]
+  set colors      [ white   brown   yellow   green
+                    sky   violet   orange   pink  red ]
+  set color-names [ "white" "brown" "yellow"  "green"
+                   "blue" "purple" "orange" "pink" "red" ]
+  set used-shape-colors []
 end
 
 ;; setup for the overall program, will require clients to re-login
 to setup
   ;; prevent an infinite loop from occurring in assign-strategies
-  if (android-memory = 1 and strategies-per-android > 4 )
+  if (__hnw_supervisor_android-memory = 1 and __hnw_supervisor_strategies-per-android > 4 )
   [
     user-message word "You need to increase the memory variable or\n"
                       "decrease the strategies-per-agent variable"
@@ -92,16 +113,16 @@ to initialize-system
   ;; when generating a random history to start out with
   ;; first fill the longer memory then take a subsection
   ;; of that memory and give it to the other group
-  let temp-history random (2  ^ (max list player-memory android-memory))
+  let temp-history random (2  ^ (max list __hnw_supervisor_player-memory __hnw_supervisor_android-memory))
 
-  ifelse player-memory >= android-memory
+  ifelse __hnw_supervisor_player-memory >= __hnw_supervisor_android-memory
   [
     set player-history temp-history
-    set android-history (reduce-memory (full-history temp-history player-memory) android-memory)
+    set android-history (reduce-memory (full-history temp-history __hnw_supervisor_player-memory) __hnw_supervisor_android-memory)
   ]
   [
     set android-history temp-history
-    set player-history (reduce-memory (full-history temp-history android-memory) player-memory)
+    set player-history (reduce-memory (full-history temp-history __hnw_supervisor_android-memory) __hnw_supervisor_player-memory)
   ]
 
   set success-list []
@@ -155,17 +176,17 @@ to initialize-androids
   ask androids
     [ die ]
   set-default-shape androids "person"
-  create-androids (number-of-participants - count players)
+  create-androids (__hnw_supervisor_number-of-participants - count players)
   [
     set color gray
     set xcor random-xcor
     set heading 0
     assign-strategies
-    set current-strategy random strategies-per-android
+    set current-strategy random __hnw_supervisor_strategies-per-android
     set choice item android-history (item current-strategy strategies)
     set last-choice choice
     set score 0
-    set strategies-scores n-values strategies-per-android [0]
+    set strategies-scores n-values __hnw_supervisor_strategies-per-android [0]
   ]
   let num-picked-zero count turtles with [choice = 0]
   ifelse (num-picked-zero <= (count turtles - 1) / 2)
@@ -179,7 +200,7 @@ end
 to assign-strategies  ;; android procedure
   let temp-strategy false
   set strategies []
-  repeat strategies-per-android
+  repeat __hnw_supervisor_strategies-per-android
   [
     ;; make sure there are no duplicate strategies in the list
     set temp-strategy create-strategy
@@ -190,9 +211,9 @@ to assign-strategies  ;; android procedure
 end
 
 ;; creates a strategy (a binary number stored in a list of
-;; length 2 ^ android-memory)
+;; length 2 ^ __hnw_supervisor_android-memory)
 to-report create-strategy
-  report n-values (2 ^ android-memory) [random 2]
+  report n-values (2 ^ __hnw_supervisor_android-memory) [random 2]
 end
 
 ;; reset a player to some initial values
@@ -296,8 +317,8 @@ end
 ;; advances the system forward in time and updates the history
 to advance-system
   ;; remove the oldest entry in the memories and place the new one on the end
-  set player-history decimal (lput minority but-first full-history player-history player-memory)
-  set android-history decimal (lput minority but-first full-history android-history android-memory)
+  set player-history decimal (lput minority but-first full-history player-history __hnw_supervisor_player-memory)
+  set android-history decimal (lput minority but-first full-history android-history __hnw_supervisor_android-memory)
 end
 
 ;; ask all participants to update their choice
@@ -345,7 +366,7 @@ to-report execute-create
       set heading 0
       set xcor random-xcor
     ]
-    set number-of-participants number-of-participants + 2
+    set __hnw_supervisor_number-of-participants __hnw_supervisor_number-of-participants + 2
   ]
   let biggest-who (max [who] of androids)
   ask android biggest-who
@@ -365,9 +386,9 @@ to handle-quit
   hatch-androids 1 [
     set color gray
     assign-strategies
-    set current-strategy random strategies-per-android
+    set current-strategy random __hnw_supervisor_strategies-per-android
     set choice item android-history (item current-strategy strategies)
-    set strategies-scores n-values strategies-per-android [0]
+    set strategies-scores n-values __hnw_supervisor_strategies-per-android [0]
     set score 0
     set size 1
   ]
@@ -470,7 +491,7 @@ to view-previous
 end
 
 to-report full-player-history
-  report full-history player-history player-memory
+  report full-history player-history __hnw_supervisor_player-memory
 end
 
 to-report high-score
