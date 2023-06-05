@@ -52,7 +52,7 @@ export default class LaunchControlManager {
   #onSubmit = (finishLaunch) => () => {
 
     const formData = new FormData(this.#elem.querySelector("form"));
-    const model    = formData.get("libraryModel").slice(4);
+    const model    = formData.get("libraryModel");
 
     const config = { modelType:   "library"
                    , sessionName: formData.get("sessionName")
