@@ -66,13 +66,14 @@ sellers-own [
 ;; ---------------------------------------------------------
 to startup
 
-  reset-ticks
-
   ;; Set up the Quick Start window
   quick-start-reset
 
   ;; Set up global variables
   init-globals
+
+  reset-ticks
+
 end
 
 ;; ---------------------------------------------------------
@@ -87,9 +88,8 @@ to re-run
   update-clients
   send-news-item "The simulation has been reset!"
 
-  ;; Reset the "amount supplied" plot
-  set-current-plot "Oil Sold at Market"
-  clear-plot
+  ;; Reset the plots
+  clear-all-plots
 
 end
 
@@ -158,10 +158,9 @@ to run-market
   run-market-buyers
 
   ;; Plot the amount of oil that was sold
-  plot-oil-amounts
-
   ;; Keep the supply and demand graph updated
-  if market-characteristics-changed? [ plot-supply-and-demand ]
+  update-plots
+
   log-market-characteristics
 
   ;; Update seller ranks
@@ -471,26 +470,26 @@ end
 ;; ---------------------------------------------------------
 ;; PLOTTING PROCEDURES
 ;; ---------------------------------------------------------
-to plot-oil-amounts
-  set-current-plot "Oil Sold At Market"
 
-  set-current-plot-pen "Monopoly"
+to update-monopoly-pen
   plot monopoly-quantity
+end
 
-  set-current-plot-pen "Competitive"
+to update-competitive-pen
   plot perfect-market-quantity
+end
 
-  set-current-plot-pen "Real"
+to update-real-pen
   plot real-supply
 end
 
 to plot-supply-and-demand
+
   ;; Clients don't get to see this if perfect information is off
   if __hnw_supervisor_perfect-information? = false [
     stop
   ]
 
-  set-current-plot "Supply and Demand"
   clear-plot
 
   ;; Plot until demand crosses the x-axis (until demand's price is 0)

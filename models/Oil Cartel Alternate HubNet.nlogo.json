@@ -223,7 +223,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 256,
-                    "updateCode": ""
+                    "updateCode": "plot-supply-and-demand"
                 },
                 {
                     "bottom": 84,
@@ -378,7 +378,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-monopoly-pen",
                             "display": "Monopoly",
                             "color": -2674135,
                             "mode": 0,
@@ -388,7 +388,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-competitive-pen",
                             "display": "Competitive",
                             "color": -10899396,
                             "mode": 0,
@@ -398,7 +398,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-real-pen",
                             "display": "Real",
                             "color": -8630108,
                             "mode": 0,
@@ -533,7 +533,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 194,
-                    "updateCode": ""
+                    "updateCode": "plot-supply-and-demand"
                 },
                 {
                     "max": "25",
