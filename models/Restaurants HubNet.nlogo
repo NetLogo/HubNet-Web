@@ -17,7 +17,7 @@ globals [
  qs-items             ;; list of quickstart instructions
 
  __hnw_supervisor_#auto-restaurants
- __hnw_supervisor_bankruptcy
+ __hnw_supervisor_bankruptcy?
  __hnw_supervisor_consumer-energy
  __hnw_supervisor_consumer-threshold
  __hnw_supervisor_day-length
@@ -117,7 +117,7 @@ restaurants-own [
 to startup
 
   set __hnw_supervisor_#auto-restaurants      5
-  set __hnw_supervisor_bankruptcy         false
+  set __hnw_supervisor_bankruptcy?        false
   set __hnw_supervisor_consumer-energy       50
   set __hnw_supervisor_consumer-threshold    30
   set __hnw_supervisor_day-length             5
@@ -176,8 +176,8 @@ to setup-consumers
   ask customers
   [ die ]
 
-  create-customers num-consumer
-    [ set energy consumer-energy
+  create-customers __hnw_supervisor_num-consumer
+    [ set energy __hnw_supervisor_consumer-energy
     set persuaded? false
     set my-restaurant -1
 
@@ -263,7 +263,7 @@ to go
 
   ask all-restaurants [
 
-    set days-cost rent-cost
+    set days-cost __hnw_supervisor_rent-cost
     set days-revenue 0
     set days-profit (days-revenue - days-cost)
     set num-customers 0
@@ -274,7 +274,7 @@ to go
       [ set shape "restaurant asian" ]
       [ set shape "restaurant european" ] ]
 
-    set profit-customer round (restaurant-price - ((service-cost * restaurant-service) + (quality-cost * restaurant-quality)))
+    set profit-customer round (restaurant-price - ((__hnw_supervisor_service-cost * restaurant-service) + (__hnw_supervisor_quality-cost * restaurant-quality)))
 
   ]
 
@@ -285,13 +285,13 @@ to go
   ask customers ;; Move the customers
   [ move-customers ]
 
-  if (ticks mod day-length) = 0 ;; Is it time to end the day?
+  if (ticks mod __hnw_supervisor_day-length) = 0 ;; Is it time to end the day?
   [ set day day + 1
    plot-disgruntled-customers
    plot-restaurant-statistics
    ask all-restaurants with [ bankrupt? = false ]
    [ end-day ]
-   if show-rank? and any? restaurants
+   if __hnw_supervisor_show-rank? and any? restaurants
     [ rank-restaurants ] ]
   tick
 end
@@ -306,11 +306,11 @@ to serve-customers ;; turtle procedure
    set persuaded? false
    set my-restaurant -1
    set appeal 0
-   set energy consumer-energy ]
+   set energy __hnw_supervisor_consumer-energy ]
 
   set num-customers (num-customers + new-customers)
   set days-revenue (days-revenue + (new-customers * restaurant-price))
-  set days-cost round (days-cost + (new-customers * service-cost * restaurant-service) + (new-customers * quality-cost * restaurant-quality))
+  set days-cost round (days-cost + (new-customers * __hnw_supervisor_service-cost * restaurant-service) + (new-customers * __hnw_supervisor_quality-cost * restaurant-quality))
   set days-profit round (days-revenue - days-cost)
 end
 
@@ -326,7 +326,7 @@ to attract-customers ;; turtle procedure
   let restaurant-appeal false
 
   ;; Try and persuade customers that are within range
-  ask customers with [ (energy < consumer-threshold) and (customer-cuisine = r-cuisine) ] in-radius 7
+  ask customers with [ (energy < __hnw_supervisor_consumer-threshold) and (customer-cuisine = r-cuisine) ] in-radius 7
   [
     set util-price (customer-money - adj-price)
     set util-quality (adj-quality - customer-taste)
@@ -354,7 +354,7 @@ to end-day ;; turtle procedure
 
   set account-balance round (account-balance + days-profit)
 
-  if (bankruptcy?) ;; If the owner is bankrupt shut his restaurant down
+  if (__hnw_supervisor_bankruptcy?) ;; If the owner is bankrupt shut his restaurant down
   [ if (account-balance < 0)
   [ set bankrupt? true ] ]
 
@@ -573,7 +573,7 @@ to reset-owner-variables  ;; owner procedure
   set bankrupt? false
   set account-balance 2000
   set days-revenue 0
-  set days-cost rent-cost
+  set days-cost __hnw_supervisor_rent-cost
   set days-profit 0
   set profit-customer 100
   set num-customers 0
