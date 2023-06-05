@@ -385,6 +385,45 @@ to-report sugar-map
 
 end
 
+to setup-wealth-distro-plot
+  let num (max (list (count turtles) 1))
+  set-plot-x-range -1 num
+end
+
+to update-wealth-distro-plot
+  clear-plot
+  if any? students [
+    let num (max (list (count turtles) 1))
+    set-plot-x-range -1 num
+    let bar-list sort-on [sugar] turtles
+    foreach bar-list [
+      the-turtle -> ask the-turtle [plotxy position self bar-list sugar]
+    ]
+  ]
+end
+
+to setup-equal-pen
+  ;; draw a straight line from lower left to upper right
+  set-current-plot-pen "equal"
+  plot 0
+  plot 100
+end
+
+to update-lorenz-pen
+  plot-pen-reset
+  if any? students [
+    set-plot-pen-interval 100 / count turtles
+    plot 0
+    foreach lorenz-points plot
+  ]
+end
+
+to update-gini-pen
+  if any? students [
+    plot (gini-index-reserve / count turtles) * 2
+  ]
+end
+
 ; Copyright 2018 Uri Wilensky.
 ; See Info tab for full copyright and license.
 @#$#@#$#@

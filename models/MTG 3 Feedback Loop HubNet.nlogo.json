@@ -221,12 +221,12 @@
                             "color": -7500403,
                             "mode": 0,
                             "interval": 100,
-                            "setupCode": ";; draw a straight line from lower left to upper right\nset-current-plot-pen \"equal\"\nplot 0\nplot 100",
+                            "setupCode": "setup-equal-pen",
                             "type": "pen",
                             "inLegend": true
                         },
                         {
-                            "updateCode": "plot-pen-reset\nif any? students [ \nset-plot-pen-interval 100 / count turtles\nplot 0\nforeach lorenz-points plot\n]",
+                            "updateCode": "update-lorenz-pen",
                             "display": "lorenz",
                             "color": -2674135,
                             "mode": 0,
@@ -256,7 +256,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "if any? students [ \nplot (gini-index-reserve / count turtles) * 2\n]",
+                            "updateCode": "update-gini-pen",
                             "display": "default",
                             "color": -13345367,
                             "mode": 0,
@@ -283,7 +283,7 @@
                     "xAxis": "People",
                     "autoPlotOn": true,
                     "xmax": 10,
-                    "setupCode": "set-plot-x-range 0 count turtles",
+                    "setupCode": "setup-wealth-distro-plot",
                     "pens": [
                         {
                             "updateCode": "",
@@ -300,7 +300,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 10,
-                    "updateCode": "clear-plot\nif any? students [ \nset-plot-x-range 0 count turtles\nlet bar-list sort-on [sugar] turtles\nforeach bar-list [the-turtle -> ask the-turtle [plotxy position self bar-list sugar]]\n]"
+                    "updateCode": "update-wealth-distro-plot"
                 },
                 {
                     "bottom": 213,
