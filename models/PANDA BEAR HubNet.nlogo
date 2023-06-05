@@ -60,8 +60,7 @@ end
 
 ;; initialize the plot
 to setup-plot
-  set-current-plot "PANDA"
-  clear-plot
+  clear-all-plots
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;
@@ -287,6 +286,14 @@ to true-edgify
   ifelse count students > 2
   [ ask one-of students [ edgify ] ]
   [ user-message "You need at least 3 students to edgify" ]
+end
+
+to plot-area
+  if any? links [ plot area ]
+end
+
+to plot-perimeter
+  if any? links [ plot perimeter ]
 end
 
 ; Copyright 2007 Uri Wilensky.

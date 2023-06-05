@@ -222,18 +222,18 @@
                 {
                     "bottom": 385,
                     "display": "PANDA",
-                    "yAxis": "NIL",
+                    "yAxis": "",
                     "xmin": 0,
                     "ymax": 10,
                     "legendOn": true,
                     "left": 10,
-                    "xAxis": "NIL",
+                    "xAxis": "",
                     "autoPlotOn": true,
                     "xmax": 10,
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "if any? links [ plot perimeter ]",
+                            "updateCode": "plot-perimeter",
                             "display": "perimeter",
                             "color": -2064490,
                             "mode": 0,
@@ -243,7 +243,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "if any? links [ plot area ]",
+                            "updateCode": "plot-area",
                             "display": "area",
                             "color": -8630108,
                             "mode": 0,
