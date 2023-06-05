@@ -204,8 +204,6 @@ to plot-guesses
      not user-yes-or-no? "There are some clients that have not submitted an answer. Do you want to continue?"
   [ stop ]
 
-  set-current-plot "Student Guesses"
-
   ;; we're going to redraw the entire plot
   clear-plot
 
