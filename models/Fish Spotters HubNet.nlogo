@@ -711,6 +711,33 @@ to calculate-statistics
   set tank-2-avg-size mean [ size-gene ] of fish with [tank = 2]
 end
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; HNW Plotting Procedures ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+to update-tank-1-size-pen
+  plot tank-1-avg-size
+end
+
+to update-tank-2-size-pen
+  plot tank-2-avg-size
+end
+
+to update-tank-1-motion-pen
+  plot tank-1-avg-motion
+end
+
+to update-tank-2-motion-pen
+  plot tank-2-avg-motion
+end
+
+to update-tank-1-spotting-pen
+  plot tank-1-avg-spot-transparency
+end
+
+to update-tank-2-spotting-pen
+  plot tank-2-avg-spot-transparency
+end
 
 ; Copyright 2012 Uri Wilensky.
 ; See Info tab for full copyright and license.

@@ -264,7 +264,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "plot tank-1-avg-size",
+                            "updateCode": "update-tank-1-size-pen",
                             "display": "top tank",
                             "color": -16777216,
                             "mode": 0,
@@ -274,7 +274,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "plot tank-2-avg-size",
+                            "updateCode": "update-tank-2-size-pen",
                             "display": "bottom tank",
                             "color": -7500403,
                             "mode": 0,
@@ -304,7 +304,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "plot tank-1-avg-motion",
+                            "updateCode": "update-tank-1-motion-pen",
                             "display": "top tank",
                             "color": -16777216,
                             "mode": 0,
@@ -314,7 +314,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "plot tank-2-avg-motion",
+                            "updateCode": "update-tank-2-motion-pen",
                             "display": "bottom tank",
                             "color": -7500403,
                             "mode": 0,
@@ -448,7 +448,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "plot tank-1-avg-spot-transparency",
+                            "updateCode": "update-tank-1-spotting-pen",
                             "display": "top tank",
                             "color": -16777216,
                             "mode": 0,
@@ -458,7 +458,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "plot tank-2-avg-spot-transparency",
+                            "updateCode": "update-tank-2-spotting-pen",
                             "display": "bottom tank",
                             "color": -7500403,
                             "mode": 0,
