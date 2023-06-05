@@ -216,7 +216,7 @@ to play-n-times
 
     ]
 
-    do-plots
+    update-plots
     find-partners
 
     every 0.3 [
@@ -455,33 +455,62 @@ end
 ;;            Plotting           ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-to do-plots  ;;firsts plots the average turnout for provided strategies, then the rest
-  plot-strategies
-  plot-cooperate-defect
+to update-randomness-pen
+  plot-strategy 0
 end
 
-to plot-strategies  ;;plots the average scores for each of the given strategies
-  set-current-plot "Strategies"
+to update-cooperation-pen
+  plot-strategy 1
+end
 
-  let i 0
-  foreach (but-last strategy-list) [ s ->
-    set-current-plot-pen s
-    if ((item i strategy-totals-count) != 0)
-    [
-      plot-pen-reset
-      set-plot-pen-mode 1
-      plotxy i ( (item i strategy-totals) / (item i strategy-totals-count) )
-    ]
-    set i ( i + 1 )
+to update-defection-pen
+  plot-strategy 2
+end
+
+to update-majority-pen
+  plot-strategy 3
+end
+
+to update-tit-for-tat-pen
+  plot-strategy 4
+end
+
+to update-sus-tit-tat-pen
+  plot-strategy 5
+end
+
+to update-tit-for-two-tats-pen
+  plot-strategy 6
+end
+
+to update-pavlov-pen
+  plot-strategy 7
+end
+
+to update-unforgiving-pen
+  plot-strategy 8
+end
+
+;;plots the average scores for each of the given strategies
+to plot-strategy [i]
+  if ((item i strategy-totals-count) != 0) [
+    plot-pen-reset
+    plotxy i ( (item i strategy-totals) / (item i strategy-totals-count) )
   ]
 end
 
-to plot-cooperate-defect ;;plots the total number of times that turtles have cooperated or defected
-  set-current-plot "C-D Plot"
-  set-current-plot-pen "cooperate"
+;;plots the total number of times that turtles have cooperated
+to update-cd-cooperation-pen
   plot cooperate-total
-  set-current-plot-pen "defect"
+end
+
+;;plots the total number of times that turtles have defected
+to update-cd-defection-pen
   plot defect-total
+end
+
+to update-0-pen
+  plotxy 0 0
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
