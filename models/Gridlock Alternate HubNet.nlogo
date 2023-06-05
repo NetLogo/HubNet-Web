@@ -9,7 +9,6 @@ globals
   acceleration  ;; the constant that controls how much a car speeds up or slows down by if it is to accelerate or decelerate
   phase  ;; keeps track of the phase
   num-cars-stopped  ;; the number of cars that are stopped during a single pass thru the go procedure
-  old-display-which-metric  ;; holds the value of display-which-metric for the last time through the go procedure
 
   ;; patch agentsets
   intersections  ;; agentset containing the patches that are intersections
@@ -32,9 +31,10 @@ globals
   qs-item  ;; the index of the current quickstart instruction
   qs-items  ;; the list of quickstart instructions
 
+  plot-queue
+
   __hnw_supervisor_auto?
   __hnw_supervisor_crash?
-  __hnw_supervisor_display-which-metric
   __hnw_supervisor_grid-size-x
   __hnw_supervisor_grid-size-y
   __hnw_supervisor_number
@@ -93,7 +93,6 @@ to startup
 
   set __hnw_supervisor_auto?                false
   set __hnw_supervisor_crash?               false
-  set __hnw_supervisor_display-which-metric     4
   set __hnw_supervisor_grid-size-x              5
   set __hnw_supervisor_grid-size-y              5
   set __hnw_supervisor_number                 200
@@ -164,14 +163,14 @@ to setup
   ask cars
   [ set-car-speed ]
 
+  reset-ticks
+
   update-list-info
 
-  my-setup-plots
 end
 
 ;; Initialize the global variables to appropriate values
 to setup-globals
-  reset-ticks
   set phase 0
   set num-cars-stopped 0
   set grid-x-inc world-width / __hnw_supervisor_grid-size-x
@@ -190,6 +189,9 @@ to setup-globals
 
   ;; don't make acceleration 0.1 since we could get a rounding error and end up on a patch boundary
   set acceleration 0.099
+
+  set plot-queue []
+
 end
 
 ;; Make the patches have appropriate colors, setup the roads and intersections agentsets,
@@ -263,20 +265,6 @@ to put-on-empty-road  ;; turtle procedure
   [ put-on-empty-road ]
 end
 
-;; Initialize the plots
-to my-setup-plots
-  set-current-plot "Stopped Cars"
-  set-plot-y-range 0 __hnw_supervisor_number
-  plot num-cars-stopped
-
-  set-current-plot "Average Wait Time of Cars"
-  plot mean [wait-time] of cars
-
-  set-current-plot "Average Speed of Cars"
-  set-plot-y-range 0 __hnw_supervisor_speed-limit
-  plot mean [speed] of cars
-end
-
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Runtime Functions ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
@@ -285,15 +273,6 @@ end
 to go
   every delay
   [
-
-    ;; change the metric to plot on the client plot for the client
-    if current-player-for-client-metric != nobody and
-       (old-player-for-client-metric != current-player-for-client-metric or
-       old-client-metric != [metric] of current-player-for-client-metric) [
-      set-current-plot "Client Plot"
-      clear-plot
-      set current-client-metric [metric] of current-player-for-client-metric
-    ]
 
     ;; clear any accidents from the last time thru the go procedure
     clear-accidents
@@ -319,8 +298,8 @@ to go
     ;; update the information in the lists of plot data
     update-list-info
 
-    ;; update the plots with the new information from this pass thru the procedure
-    do-plotting
+    queue-client-plot-updates
+
     ;; update the clock and the phase
     clock-tick
   ]
@@ -481,163 +460,6 @@ to add-new-client-metric-value  ;; intersection procedure
 
 end
 
-;; clears the intersection's plot data and the client plot if
-;; current-intersection-for-metric is the intersection
-to clear-client-plot-data  ;; intersection procedure
-  if my-player != nobody [
-    ask my-player [
-      set metric       ""
-      set my-plot-data []
-    ]
-  ]
-  set metric-value ""
-  if current-player-for-client-metric = my-player
-  [
-    set-current-plot "Client Plot"
-    clear-plot
-    set current-player-for-client-metric nobody
-    set old-player-for-client-metric nobody
-    set old-client-metric current-client-metric
-    set current-client-metric ""
-  ]
-end
-
-;; plot the data from this pass thru the go procedure
-to do-plotting
-  if current-player-for-client-metric != nobody
-  [ update-client-plot ]
-  ifelse display-which-metric = old-display-which-metric
-  [
-    ;; don't plot if no plots should be plotted
-    if display-which-metric != 0
-    [
-      ;; we only need to plot 1 value since the current plot is the same as the plot we are supposed to plot to now
-      ifelse display-which-metric = 1
-      [ plot-new-value "Stopped Cars" num-cars-stopped ]
-      [
-        ifelse display-which-metric = 2
-        [ plot-new-value "Average Speed of Cars" mean [speed] of cars ]
-        [
-          ifelse display-which-metric = 3
-          [ plot-new-value "Average Wait Time of Cars" mean [wait-time] of cars ]
-          [
-            ;; therefore display-which-metric = 4
-            plot-new-value "Stopped Cars" num-cars-stopped
-            plot-new-value "Average Wait Time of Cars" mean [wait-time] of cars
-            plot-new-value "Average Speed of Cars" mean [speed] of cars
-          ]
-        ]
-      ]
-    ]
-  ]
-  [
-    ;; otherwise, we need to plot at least 1 list since the plot we are supposed to plot to is different from the plot we last plotted in
-    ifelse display-which-metric = 0
-    [ clear-all-non-client-plot ]
-    [
-      ifelse display-which-metric = 1
-      [ clear-plots-and-plot-in-new-plot "Stopped Cars" stopped-data ]
-      [
-        ifelse display-which-metric = 2
-        [ clear-plots-and-plot-in-new-plot "Average Speed of Cars" speed-data ]
-        [
-          ifelse display-which-metric = 3
-          [ clear-plots-and-plot-in-new-plot "Average Wait Time of Cars" wait-data ]
-          [
-            ;; therefore display-which-metric = 4
-            ifelse old-display-which-metric = 1
-            [ plot-value-and-lists "Stopped Cars" num-cars-stopped "Average Speed of Cars" speed-data "Average Wait Time of Cars" wait-data ]
-            [
-              ifelse old-display-which-metric = 2
-              [ plot-value-and-lists "Average Speed of Cars" (mean [speed] of cars) "Stopped Cars" stopped-data "Average Wait Time of Cars" wait-data ]
-              [
-                ifelse old-display-which-metric = 3
-                [ plot-value-and-lists "Average Wait Time of Cars" (mean [wait-time] of cars) "Stopped Cars" stopped-data "Average Speed of Cars" speed-data ]
-                [
-                  ;; therefore old-display-which-metric = 0
-                  plot-new-list "Stopped Cars" stopped-data
-                  plot-new-list "Average Speed of Cars" speed-data
-                  plot-new-list "Average Wait Time of Cars" wait-data
-                ]
-              ]
-            ]
-          ]
-        ]
-      ]
-    ]
-    set old-display-which-metric display-which-metric
-  ]
-end
-
-;; update the client plot with the appropriate information
-to update-client-plot
-  let current-item []
-  set-current-plot "Client Plot"
-  ifelse current-player-for-client-metric != old-player-for-client-metric
-  [
-    clear-plot
-    ;; update client plot with the new intersection's data
-    ask current-player-for-client-metric
-    [
-      set current-client-metric metric
-      let index 0
-      repeat length my-plot-data
-      [
-        set current-item item index my-plot-data
-        plotxy first current-item last current-item
-        set index index + 1
-      ]
-    ]
-    set old-player-for-client-metric current-player-for-client-metric
-  ]
-  [
-    ask current-player-for-client-metric
-    [
-      if length my-plot-data != 0
-      [ plotxy first last my-plot-data last last my-plot-data ]
-    ]
-  ]
-  set old-client-metric current-client-metric
-end
-
-;; clear all the plots that are not the client plot
-to clear-all-non-client-plot
-  set-current-plot "Stopped Cars"
-  clear-plot
-  set-current-plot "Average Speed of Cars"
-  clear-plot
-  set-current-plot "Average Wait Time of Cars"
-  clear-plot
-end
-
-to plot-new-value [name-of-plot value]
-  set-current-plot name-of-plot
-  plot value
-end
-
-to clear-plots-and-plot-in-new-plot [name-of-plot list-to-plot]
-  clear-all-non-client-plot
-  plot-new-list name-of-plot list-to-plot
-end
-
-to plot-new-list [name-of-plot list-to-plot]
-  let index 0
-
-  set-current-plot name-of-plot
-  clear-plot
-  repeat length list-to-plot
-  [
-    plot item index list-to-plot
-    set index index + 1
-  ]
-end
-
-to plot-value-and-lists [value-plot value list-plot1 list-to-plot1 list-plot2 list-to-plot2]
-  plot-new-value value-plot value
-  plot-new-list list-plot1 list-to-plot1
-  plot-new-list list-plot2 list-to-plot2
-end
-
 ;; increases the clock by 1 and cycles phase to the next appropriate value
 to clock-tick
   tick
@@ -647,73 +469,14 @@ to clock-tick
   [ set phase 0 ]
 end
 
-;; update the plots to show the current value of display-which-metric
-;; done only by the Refresh Plots button
-to show-current-metric-in-plots
-  if display-which-metric != old-display-which-metric
-  [
-    ;; we need to plot at least 1 list since the plot we are supposed to plot to is different from the plot we last plotted in
-    ifelse display-which-metric = 0
-    [ clear-all-non-client-plot ]
-    [
-      ifelse display-which-metric = 1
-      [ clear-plots-and-plot-in-new-plot "Stopped Cars" stopped-data ]
-      [
-        ifelse display-which-metric = 2
-        [ clear-plots-and-plot-in-new-plot "Average Speed of Cars" speed-data ]
-        [
-          ifelse display-which-metric = 3
-          [ clear-plots-and-plot-in-new-plot "Average Wait Time of Cars" wait-data ]
-          [
-            ;; therefore display-which-metric = 4
-            ifelse old-display-which-metric = 1
-            [
-              plot-new-list "Average Speed of Cars" speed-data
-              plot-new-list "Average Wait Time of Cars" wait-data
-            ]
-            [
-              ifelse old-display-which-metric = 2
-              [
-                plot-new-list "Stopped Cars" stopped-data
-                plot-new-list "Average Wait Time of Cars" wait-data
-              ]
-              [
-                ifelse old-display-which-metric = 3
-                [
-                  plot-new-list "Stopped Cars" stopped-data
-                  plot-new-list "Average Speed of Cars" speed-data
-                ]
-                [
-                  ;; therefore old-display-which-metric = 0
-                  plot-new-list "Stopped Cars" stopped-data
-                  plot-new-list "Average Speed of Cars" speed-data
-                  plot-new-list "Average Wait Time of Cars" wait-data
-                ]
-              ]
-            ]
-          ]
-        ]
-      ]
-    ]
-    set old-display-which-metric display-which-metric
-  ]
-  if current-player-for-client-metric != old-player-for-client-metric
-  [ update-client-plot ]
-end
-
-;; set the current client plot's variable information
-to set-current-client-metric-player [ player-to-plot ]
-  set current-player-for-client-metric player-to-plot
-  set current-client-metric [metric] of player-to-plot
-end
-
 ;; select an intersection to plot its metric in the client plot
 to select-player-for-client-plot [x y]
   let current-patch patch x y
   if ([intersection?] of current-patch) and (nobody != [my-player] of current-patch)
   [
-    set-current-client-metric-player [my-player] of current-patch
-    set current-client-metric        [metric] of current-player-for-client-metric
+    let player-to-plot                   [my-player] of current-patch
+    set current-player-for-client-metric player-to-plot
+    set current-client-metric            [metric] of player-to-plot
   ]
 end
 
@@ -750,14 +513,6 @@ to setup-quick-start
       "input it in the metric-code input box."
     "Teacher: Once everyone is ready,..."
       "start the simulation by pressing the GO button."
-    "Teacher: You may want to view some of the plots."
-      "Do this by changing the DISPLAY-WHICH-METRIC slider,..."
-        "which changes the plot displayed for everyone."
-    "Choose 0 to turn off all the plots..."
-      "Choose 1 to see the STOPPED CARS plot..."
-        "Choose 2 for the AVERAGE SPEED plot..."
-          "Choose 3 for the AVERAGE WAIT plot..."
-            "or Choose 4 for all the plots..."
 
     "Teacher: To run the activity again with the same group,..."
       "stop the model by pressing the GO button, if it is on."
@@ -890,6 +645,86 @@ end
 
 to-report intersection-phase
   report ifelse-value (my-player != nobody) [ [my-phase] of my-player ] [ 0 ]
+end
+
+to setup-stopped-plot
+  set-plot-y-range 0 __hnw_supervisor_number
+  plot num-cars-stopped
+end
+
+to setup-wait-plot
+  plot mean [wait-time] of cars
+end
+
+to setup-speed-plot
+  set-plot-y-range 0 __hnw_supervisor_speed-limit
+  plot mean [speed] of cars
+end
+
+to queue-client-plot-update [x]
+  set plot-queue (lput x plot-queue)
+end
+
+to queue-client-plot-updates
+
+  ;; change the metric to plot on the client plot for the client
+  if current-player-for-client-metric != nobody and
+     (old-player-for-client-metric != current-player-for-client-metric or
+     old-client-metric != [metric] of current-player-for-client-metric) [
+    queue-client-plot-update "clear"
+    set current-client-metric [metric] of current-player-for-client-metric
+  ]
+
+  ifelse current-player-for-client-metric != old-player-for-client-metric
+  [
+    queue-client-plot-update "clear"
+    ;; update client plot with the new intersection's data
+    ask current-player-for-client-metric
+    [
+      set current-client-metric metric
+      foreach my-plot-data queue-client-plot-update
+    ]
+    set old-player-for-client-metric current-player-for-client-metric
+  ]
+  [
+    if current-player-for-client-metric != nobody [
+      ask current-player-for-client-metric
+      [
+        if length my-plot-data != 0
+        [ queue-client-plot-update last my-plot-data ]
+      ]
+    ]
+  ]
+
+  set old-client-metric current-client-metric
+
+end
+
+to update-stopped-pen
+  plot num-cars-stopped
+end
+
+to update-wait-pen
+  plot mean [wait-time] of cars
+end
+
+to update-speed-pen
+  plot mean [speed] of cars
+end
+
+to update-client-plot
+
+  foreach plot-queue [
+    event ->
+      ifelse (event = "clear") [
+        clear-plot
+      ] [
+        plotxy (item 0 event) (item 1 event)
+      ]
+  ]
+
+  set plot-queue []
+
 end
 
 ; Copyright 2002 Uri Wilensky and Walter Stroup.
@@ -1325,13 +1160,6 @@ If you wish to keep track of your own metric, input it in the metric-code input 
 
 Teacher: Once everyone is ready, start the simulation by pressing the GO button.
 
-Teacher: You may want to view some of the plots.  Do this by changing the DISPLAY-WHICH-METRIC slider, which changes the plot displayed for everyone.
-- Choose 0 to turn off all the plots.
-- Choose 1 to see the STOPPED CARS plot.
-- Choose 2 for the AVERAGE SPEED OF CARS plot.
-- Choose 3 for the AVERAGE WAIT TIME OF CARS plot.
-- Choose 4 for all the plots.
-
 Teacher: To run the activity again with the same group, stop the model by pressing the GO button if it is on.  Change the values of the sliders and switches to the values you want for the new run.  Press the SETUP button.  Once everyone is ready, restart the simulation by pressing the GO button.
 
 Teacher: To start the simulation over with a new group, stop the model by pressing the GO button if it is on, press the RESET button in the Control Center and follow these instructions again from the beginning.
@@ -1341,7 +1169,6 @@ Teacher: To start the simulation over with a new group, stop the model by pressi
 SETUP - generates a new traffic grid based on the current GRID-SIZE-X and GRID-SIZE-Y and NUM-CARS number of cars.  This also clears all the plots.  If the size of the grid has changed the clients will be assigned to new intersections.
 GO - runs the simulation indefinitely
 LOGIN - allows users to log into the activity without running the model or collecting data
-REFRESH PLOTS - redraws the plots based on the current value of DISPLAY-WHICH-METRIC.  Useful for looking at different plots when GO is off.
 SELECT INTERSECTION TO PLOT METRIC IN CLIENT PLOT - allows you to use the mouse to click on an intersection associated with a HubNet client to plot that client's submitted metric in the CLIENT PLOT.
 
 ### Sliders
@@ -1352,12 +1179,6 @@ SIMULATION-SPEED - the speed at which the simulation runs
 TICKS-PER-CYCLE - sets the maximum value that the phase can be.  This has no effect when the model is run with AUTO? false.  Also, the phase that each user chooses is scaled to be less than or equal to this value.
 GRID-SIZE-X - sets the number of vertical roads there are (you must press the SETUP button to see the change)
 GRID-SIZE-Y - sets the number of horizontal roads there are (you must press the SETUP button to see the change)
-DISPLAY-WHICH-METRIC - determines which plot is drawn in NetLogo:
-- 0=No Plots.
-- 1=STOPPED CARS
-- 2=AVERAGE SPEED OF CARS
-- 3=AVERAGE WAIT TIME OF CARS
-- 4=All three plots.
 
 ### Switches
 

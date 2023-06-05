@@ -115,31 +115,6 @@
                     "top": 96
                 },
                 {
-                    "bottom": 463,
-                    "display": "This slider determines which plot is drawn.\\n0=no plots, 1=stopped cars\\n2=average speed, 3=average wait\\n4=all three plots",
-                    "color": 0,
-                    "left": 4,
-                    "fontSize": 11,
-                    "right": 279,
-                    "type": "hnwTextBox",
-                    "top": 400,
-                    "transparent": false
-                },
-                {
-                    "max": "4",
-                    "bottom": 497,
-                    "display": "display-which-metric",
-                    "direction": "horizontal",
-                    "default": 4,
-                    "left": 1,
-                    "variable": "display-which-metric",
-                    "step": 1,
-                    "min": "0",
-                    "right": 166,
-                    "type": "hnwSlider",
-                    "top": 464
-                },
-                {
                     "bottom": 689,
                     "display": "Average Wait Time of Cars",
                     "yAxis": "Average Wait",
@@ -150,10 +125,10 @@
                     "xAxis": "Time",
                     "autoPlotOn": true,
                     "xmax": 100,
-                    "setupCode": "",
+                    "setupCode": "setup-wait-plot",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-wait-pen",
                             "display": "default",
                             "color": -2674135,
                             "mode": 0,
@@ -180,10 +155,10 @@
                     "xAxis": "Time",
                     "autoPlotOn": true,
                     "xmax": 100,
-                    "setupCode": "",
+                    "setupCode": "setup-speed-plot",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-speed-pen",
                             "display": "default",
                             "color": -2674135,
                             "mode": 0,
@@ -334,10 +309,10 @@
                     "xAxis": "Time",
                     "autoPlotOn": true,
                     "xmax": 100,
-                    "setupCode": "",
+                    "setupCode": "setup-stopped-plot",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-stopped-pen",
                             "display": "default",
                             "color": -2674135,
                             "mode": 0,
@@ -408,22 +383,9 @@
                     "top": 170
                 },
                 {
-                    "forever": false,
-                    "bottom": 497,
-                    "display": "Refresh Plots",
-                    "left": 168,
-                    "buttonKind": "observer",
-                    "source": "show-current-metric-in-plots",
-                    "hnwProcName": "show-current-metric-in-plots",
-                    "right": 280,
-                    "type": "hnwButton",
-                    "top": 464,
-                    "disableUntilTicksStarts": true
-                },
-                {
                     "bottom": 498,
                     "display": "Client Plot",
-                    "yAxis": "NIL",
+                    "yAxis": "",
                     "xmin": 0,
                     "ymax": 1,
                     "legendOn": false,
@@ -448,7 +410,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 299,
-                    "updateCode": ""
+                    "updateCode": "update-client-plot"
                 },
                 {
                     "bottom": 347,
