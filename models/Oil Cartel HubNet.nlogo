@@ -81,6 +81,8 @@ end
 ;; ---------------------------------------------------------
 to reset
 
+  reset-ticks
+
   ;; clear out current buyers
   ask buyers [die]
 
@@ -97,15 +99,7 @@ to reset
   initialize-shapes
 
   ;; Reset plots
-  ; TODO: This plot is narrowcast, and the below line should not be commented out
-  set-current-plot "Current Profit Plot"
-  ;;ask sellers [ __hubnet-clear-plot user-id ]
-
-  set-current-plot "Oil Sold on Market"
-  clear-plot
-
-  set-current-plot "Average Price of Oil"
-  clear-plot
+  clear-all-plots
 
   ; We have to do this again for some reason
   initial-login
@@ -204,12 +198,10 @@ to run-market
   if age-of-news > 15 [ send-news-item " " ]
   set age-of-news age-of-news + 1
 
-  ;; do plots
-  plot-oil-amounts
-  plot-oil-price
-
   ;; update time-period
   set time-period time-period + 1
+
+  update-plots
 
 end
 
@@ -615,33 +607,38 @@ end
 
 
 ;; ---------------------------------------------------------
-;; PLOTTING PROCEDURES
+;; HNW PLOTTING PROCEDURES
 ;; ---------------------------------------------------------
-to plot-oil-amounts
-  set-current-plot "Oil Sold On Market"
 
-  set-current-plot-pen "Agreement"
+to update-oil-agreement-pen
   plot monopoly-quantity
+end
 
-  set-current-plot-pen "Competitive"
+to update-competitive-pen
   plot perfect-market-quantity
+end
 
-  set-current-plot-pen "Actual"
+to update-actual-pen
   plot total-supply
 end
 
-to plot-oil-price
-  set-current-plot "Average Price of Oil"
-
-  set-current-plot-pen "Average"
+to update-average-pen
   plot avg-price
+end
 
-  set-current-plot-pen "MC"
+to update-marginal-cost-pen
   plot marginal-cost
+end
 
-  set-current-plot-pen "Agreement"
-  plot monopoly-price
+to update-price-agreement-pen
+end
 
+to clear-my-plot
+  clear-plot
+end
+
+to plot-last-sale-profit
+  plot last-sale-profit
 end
 
 ; Copyright 2004 Uri Wilensky.

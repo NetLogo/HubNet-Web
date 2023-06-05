@@ -83,23 +83,23 @@
                 {
                     "bottom": 231,
                     "display": "Current Profit Plot",
-                    "yAxis": "NIL",
+                    "yAxis": "",
                     "xmin": 0,
                     "ymax": 20000000,
                     "legendOn": false,
                     "left": 316,
-                    "xAxis": "NIL",
+                    "xAxis": "",
                     "autoPlotOn": true,
                     "xmax": 500,
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "last-sale-profit",
+                            "updateCode": "plot-last-sale-profit",
                             "display": "default",
                             "color": -13345367,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "",
+                            "setupCode": "clear-my-plot",
                             "type": "pen",
                             "inLegend": true
                         }
@@ -327,7 +327,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-actual-pen",
                             "display": "Actual",
                             "color": -13345367,
                             "mode": 0,
@@ -337,7 +337,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-competitive-pen",
                             "display": "Competitive",
                             "color": -10899396,
                             "mode": 0,
@@ -347,7 +347,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-oil-agreement-pen",
                             "display": "Agreement",
                             "color": -2674135,
                             "mode": 0,
@@ -377,18 +377,18 @@
                 {
                     "bottom": 412,
                     "display": "Average Price of Oil",
-                    "yAxis": "NIL",
+                    "yAxis": "",
                     "xmin": 0,
                     "ymax": 100,
                     "legendOn": true,
                     "left": 201,
-                    "xAxis": "NIL",
+                    "xAxis": "",
                     "autoPlotOn": true,
                     "xmax": 200,
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-average-pen",
                             "display": "Average",
                             "color": -13345367,
                             "mode": 0,
@@ -398,7 +398,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-marginal-cost-pen",
                             "display": "MC",
                             "color": -10899396,
                             "mode": 0,
@@ -408,7 +408,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-price-agreement-pen",
                             "display": "Agreement",
                             "color": -2674135,
                             "mode": 0,
@@ -461,36 +461,6 @@
                     "right": 180,
                     "type": "hnwSlider",
                     "top": 132
-                },
-                {
-                    "bottom": 539,
-                    "display": "Current Profit Plot",
-                    "yAxis": "NIL",
-                    "xmin": 0,
-                    "ymax": 200000000,
-                    "legendOn": false,
-                    "left": 200,
-                    "xAxis": "NIL",
-                    "autoPlotOn": true,
-                    "xmax": 500,
-                    "setupCode": "",
-                    "pens": [
-                        {
-                            "updateCode": "",
-                            "display": "default",
-                            "color": -13345367,
-                            "mode": 0,
-                            "interval": 1,
-                            "setupCode": "",
-                            "type": "pen",
-                            "inLegend": true
-                        }
-                    ],
-                    "right": 476,
-                    "type": "hnwPlot",
-                    "ymin": 0,
-                    "top": 419,
-                    "updateCode": ""
                 },
                 {
                     "forever": false,
