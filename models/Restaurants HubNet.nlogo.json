@@ -143,7 +143,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-profits-pen",
                             "display": "avg-profit",
                             "color": -16777216,
                             "mode": 0,
@@ -157,7 +157,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 391,
-                    "updateCode": ""
+                    "updateCode": "update-supervisor-profits-plot"
                 },
                 {
                     "bottom": 389,
@@ -173,7 +173,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-max-satisfaction-pen",
                             "display": "max.",
                             "color": -955883,
                             "mode": 0,
@@ -183,7 +183,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-avg-satisfaction-pen",
                             "display": "avg.",
                             "color": -2674135,
                             "mode": 0,
@@ -193,7 +193,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-min-satisfaction-pen",
                             "display": "min.",
                             "color": -7500403,
                             "mode": 0,
@@ -223,7 +223,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-disgruntled-pen",
                             "display": "custs.",
                             "color": -13345367,
                             "mode": 0,
@@ -387,7 +387,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-customers-pen",
                             "display": "avg-custs",
                             "color": -16777216,
                             "mode": 0,
@@ -401,7 +401,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 391,
-                    "updateCode": ""
+                    "updateCode": "update-supervisor-customers-plot"
                 },
                 {
                     "bottom": 218,
@@ -611,7 +611,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-profits-pen",
                             "display": "avg-profit",
                             "color": -16777216,
                             "mode": 0,
@@ -625,7 +625,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 272,
-                    "updateCode": ""
+                    "updateCode": "update-clients-profits-plot"
                 },
                 {
                     "bottom": 59,
@@ -653,7 +653,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-customers-pen",
                             "display": "avg-custs",
                             "color": -16777216,
                             "mode": 0,
@@ -667,7 +667,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 272,
-                    "updateCode": ""
+                    "updateCode": "update-clients-customers-plot"
                 },
                 {
                     "bottom": 113,

@@ -16,6 +16,11 @@ globals [
  qs-item              ;; index of the current quickstart instruction
  qs-items             ;; list of quickstart instructions
 
+ profits-plot-supervisor-queue
+ customers-plot-supervisor-queue
+ profits-plot-clients-queue
+ customers-plot-clients-queue
+
  __hnw_supervisor_#auto-restaurants
  __hnw_supervisor_bankruptcy?
  __hnw_supervisor_consumer-energy
@@ -148,11 +153,11 @@ to reset
   setup-consumers
   clear-all-plots
   ask all-restaurants [ reset-owner-variables ]
+  reset-ticks
 end
 
 ;; initializes the global variables
 to setup-globals
-  reset-ticks
   set day 0
 
   set-default-shape customers "person"
@@ -164,6 +169,12 @@ to setup-globals
                    "violet" "magenta" "pink" "red" "green" "gray" "maroon" "hunter green" "navy" "sand"]
   set used-colors []
   set num-colors length colors
+
+  set profits-plot-supervisor-queue   []
+  set profits-plot-clients-queue      []
+  set customers-plot-supervisor-queue []
+  set customers-plot-clients-queue    []
+
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -287,8 +298,6 @@ to go
 
   if (ticks mod __hnw_supervisor_day-length) = 0 ;; Is it time to end the day?
   [ set day day + 1
-   plot-disgruntled-customers
-   plot-restaurant-statistics
    ask all-restaurants with [ bankrupt? = false ]
    [ end-day ]
    if __hnw_supervisor_show-rank? and any? restaurants
@@ -381,45 +390,6 @@ to rank-restaurants
 
   ask all-restaurants
   [ set received-rank? false ]
-end
-
-;;;;;;;;;;;;;;;;;;;;;;;;
-;; Plotting Functions ;;
-;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; plot the number of disgruntled customers
-to plot-disgruntled-customers
-  set-current-plot "Disgruntled Customers"
-  plot disgruntled-consumers
-end
-
-;; plot the restaurant statistics for the user controlled restaurants
-to plot-restaurant-statistics
-    ask restaurants
-    [ set-current-plot "Profits"
-      set-current-plot-pen owner-name
-      plot days-profit
-
-      set-current-plot "# Customers"
-      set-current-plot-pen owner-name
-      plot num-customers
-    ]
-
-    set-current-plot "Profits"
-    set-current-plot-pen "avg-profit"
-    plot mean [days-profit] of all-restaurants
-
-    set-current-plot "# Customers"
-    set-current-plot-pen "avg-custs"
-    plot mean [num-customers] of all-restaurants
-
-    set-current-plot "Customer Satisfaction"
-    set-current-plot-pen "min."
-    plot min [appeal] of customers
-    set-current-plot-pen "avg."
-    plot mean [appeal] of customers
-    set-current-plot-pen "max."
-    plot max [appeal] of customers
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -580,16 +550,12 @@ to reset-owner-variables  ;; owner procedure
   set restaurant-price random 50
   set restaurant-service 50 + random 50
   set restaurant-quality 50 + random 50
-  ask restaurants
-  [
-    ;; Setup the plot pens for the restaurant
-    set-current-plot "Profits"
-    create-temporary-plot-pen owner-name
-    set-plot-pen-color restaurant-color
-
-    set-current-plot "# Customers"
-    create-temporary-plot-pen owner-name
-    set-plot-pen-color restaurant-color
+  ask restaurants [
+    let pair (list owner-name restaurant-color)
+    set profits-plot-supervisor-queue   (lput pair profits-plot-supervisor-queue  )
+    set profits-plot-clients-queue      (lput pair profits-plot-clients-queue     )
+    set customers-plot-supervisor-queue (lput pair customers-plot-supervisor-queue)
+    set customers-plot-clients-queue    (lput pair customers-plot-clients-queue   )
   ]
 end
 
@@ -615,6 +581,107 @@ end
 
 to create-autos
   create-automated-restaurants __hnw_supervisor_#auto-restaurants
+end
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; HNW Plotting Functions ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+to update-supervisor-profits-plot
+
+  foreach profits-plot-supervisor-queue [
+    name-color-pair ->
+      create-temporary-plot-pen (item 0 name-color-pair)
+      set-plot-pen-color        (item 1 name-color-pair)
+  ]
+
+  set profits-plot-supervisor-queue []
+
+  ask restaurants [
+    set-current-plot-pen owner-name
+    plot days-profit
+  ]
+
+end
+
+to update-supervisor-customers-plot
+
+  foreach customers-plot-supervisor-queue [
+    name-color-pair ->
+      create-temporary-plot-pen (item 0 name-color-pair)
+      set-plot-pen-color        (item 1 name-color-pair)
+  ]
+
+  set customers-plot-supervisor-queue []
+
+  ask restaurants [
+    set-current-plot-pen owner-name
+    plot num-customers
+  ]
+
+end
+
+to update-clients-profits-plot
+
+  foreach profits-plot-clients-queue [
+    name-color-pair ->
+      create-temporary-plot-pen (item 0 name-color-pair)
+      set-plot-pen-color        (item 1 name-color-pair)
+  ]
+
+  set profits-plot-clients-queue []
+
+  ask restaurants [
+    set-current-plot-pen owner-name
+    plot days-profit
+  ]
+
+end
+
+to update-clients-customers-plot
+
+  foreach customers-plot-clients-queue [
+    name-color-pair ->
+      create-temporary-plot-pen (item 0 name-color-pair)
+      set-plot-pen-color        (item 1 name-color-pair)
+  ]
+
+  set customers-plot-clients-queue []
+
+  ask restaurants [
+    set-current-plot-pen owner-name
+    plot num-customers
+  ]
+
+end
+
+;; plot the number of disgruntled customers
+to update-disgruntled-pen
+  plot disgruntled-consumers
+end
+
+to update-customers-pen
+  if (any? all-restaurants) [
+    plot mean [num-customers] of all-restaurants
+  ]
+end
+
+to update-profits-pen
+  if (any? all-restaurants) [
+    plot mean [days-profit] of all-restaurants
+  ]
+end
+
+to update-min-satisfaction-pen
+  plot min [appeal] of customers
+end
+
+to update-avg-satisfaction-pen
+  plot mean [appeal] of customers
+end
+
+to update-max-satisfaction-pen
+  plot max [appeal] of customers
 end
 
 ; Copyright 2004 Uri Wilensky.
