@@ -83,7 +83,7 @@ to startup
   set-default-shape students "circle"
   set-default-shape teams "square"
   set __hnw_supervisor_weeks-of-simulation 30
-  set __hnw_supervisor_weeks-of-simulation 2
+  set __hnw_supervisor_periods-of-delay 2
   set colors [ red blue green violet pink orange brown yellow ]
   set color-names [ "red" "blue" "green" "violet" "pink" "orange" "brown" "yellow" ]
   set roles [ "retailer" "distributor" "wholesaler" "factory" ]
