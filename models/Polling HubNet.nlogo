@@ -13,6 +13,10 @@ globals
   quick-start  ;; current quickstart instruction displayed in the quickstart monitor
   qs-item      ;; index of the current quickstart instruction
   qs-items     ;; list of quickstart instructions
+
+  __hnw_supervisor_allow-change?
+  __hnw_supervisor_show-plot?
+
 ]
 
 turtles-own
@@ -44,6 +48,8 @@ end
 to setup-vars
   set not-voted?-color violet - 2
   set voted?-color violet + 2
+  set __hnw_supervisor_allow-change? true
+  set __hnw_supervisor_show-plot? true
   clear-all-data-and-questions
 end
 
@@ -165,7 +171,7 @@ to handle-quit
 end
 
 to execute-choose
-  if allow-change? or color = not-voted?-color
+  if __hnw_supervisor_allow-change? or color = not-voted?-color
   [
     set color voted?-color
     set my-choices replace-item current-question my-choices slider-value
@@ -180,7 +186,7 @@ end
 
 to do-plot
   clear-plot
-  if show-plot?
+  if __hnw_supervisor_show-plot?
   [
     let current-data [item current-question my-choices] of turtles
     set current-data remove false current-data
