@@ -773,23 +773,6 @@ NIL
 NIL
 1
 
-BUTTON
-68
-60
-158
-93
-Initial Login
-listen-to-clients
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 SWITCH
 299
 129
