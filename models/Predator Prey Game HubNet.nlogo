@@ -158,7 +158,6 @@ to go
         if energy <= 0
         [ student-die ]
       ]
-      do-plot
     ]
     tick
   ]
@@ -417,25 +416,37 @@ end
 ;;
 ;; Plotting Procedure
 ;;
-to do-plot
+
+;;this plots the total energy of predators
+to update-energy-predators-pen
   let players turtles with [ breed != icons ]
-  set-current-plot "Average Energy"  ;;this plots the total energy of prey, and of predators
-  set-current-plot-pen "Predators"
   ifelse any? players with [ predator? ]
-    [ plot mean [ energy ] of  players with [ predator? ] ]
-    [ plot 0 ]
+    [ plot-value mean [ energy ] of  players with [ predator? ] ]
+    [ plot-value 0 ]
+end
 
-  set-current-plot-pen "Prey"
+;;this plots the total energy of prey
+to update-energy-prey-pen
+  let players turtles with [ breed != icons ]
   ifelse any? players with [ not predator? ]
-    [ plot mean [ energy ] of players with [ not predator? ] ]
-    [ plot 0 ]
+    [ plot-value mean [ energy ] of players with [ not predator? ] ]
+    [ plot-value 0 ]
+end
 
-  set-current-plot "Population"
-  set-current-plot-pen "Predators"
-  plot count players with [ predator? ]
+to update-population-predators-pen
+  let players turtles with [ breed != icons ]
+  plot-value count players with [ predator? ]
+end
 
-  set-current-plot-pen "Prey"
-  plot count players with [ not predator? ]
+to update-population-prey-pen
+  let players turtles with [ breed != icons ]
+  plot-value count players with [ not predator? ]
+end
+
+to plot-value [x]
+  if (any? turtles) [
+    plot x
+  ]
 end
 
 to-report predator-count

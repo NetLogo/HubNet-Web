@@ -232,7 +232,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-energy-predators-pen",
                             "display": "predators",
                             "color": -2674135,
                             "mode": 0,
@@ -242,7 +242,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-energy-prey-pen",
                             "display": "prey",
                             "color": -10899396,
                             "mode": 0,
@@ -391,18 +391,18 @@
                 {
                     "bottom": 711,
                     "display": "Population",
-                    "yAxis": "NIL",
+                    "yAxis": "",
                     "xmin": 0,
                     "ymax": 10,
                     "legendOn": false,
                     "left": 28,
-                    "xAxis": "NIL",
+                    "xAxis": "",
                     "autoPlotOn": true,
                     "xmax": 10,
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "update-population-predators-pen",
                             "display": "predators",
                             "color": -2674135,
                             "mode": 0,
@@ -412,7 +412,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "",
+                            "updateCode": "update-population-prey-pen",
                             "display": "prey",
                             "color": -10899396,
                             "mode": 0,
