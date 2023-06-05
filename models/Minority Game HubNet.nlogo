@@ -267,8 +267,6 @@ to update-system
   ifelse num-picked-zero <= (count turtles - 1) / 2
   [ set minority 0 ]
   [ set minority 1 ]
-  set-current-plot "Number Picking Zero"
-  plot num-picked-zero
   set avg-score mean [score] of turtles
   set stdev-score standard-deviation [score] of turtles
   if ticks > 0
@@ -500,6 +498,48 @@ end
 
 to-report low-score
   report min [score] of turtles
+end
+
+to setup-success-rates-plot
+  set-histogram-num-bars 25
+end
+
+to setup-num-zeroes-plot
+  ifelse any? turtles
+    [ set-plot-y-range 0 count turtles ]
+    [ set-plot-y-range 0 1 ]
+end
+
+to update-num-zeroes-pen
+  plot count turtles with [choice = 0]
+end
+
+to update-max-success-pen
+  if length success-list > 0 [ plot max success-list ]
+end
+
+to update-min-success-pen
+  if length success-list > 0 [ plot min success-list ]
+end
+
+to update-avg-success-pen
+  if length success-list > 0 [ plot mean success-list ]
+end
+
+to update-max-score-pen
+  if length score-list > 0 [ plot max score-list ]
+end
+
+to update-min-score-pen
+  if length score-list > 0 [ plot min score-list ]
+end
+
+to update-avg-score-pen
+  if length score-list > 0 [ plot mean score-list ]
+end
+
+to update-success-pen
+  if length success-list > 0 [ histogram success-list ]
 end
 
 ; Copyright 2004 Uri Wilensky.
