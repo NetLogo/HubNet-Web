@@ -147,13 +147,13 @@
                     "xAxis": "time",
                     "autoPlotOn": true,
                     "xmax": 25,
-                    "setupCode": "",
+                    "setupCode": "setup-plot",
                     "pens": [],
                     "right": 223,
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 262,
-                    "updateCode": ""
+                    "updateCode": "update-student-plot"
                 }
             ],
             "name": "student",
@@ -234,24 +234,13 @@
                     "xAxis": "time",
                     "autoPlotOn": true,
                     "xmax": 25,
-                    "setupCode": ";; create a temporary plot pen for the current run\ncreate-temporary-plot-pen word \"run \" run-number\n;; cycle through a few colors so it is easy to\n;; differentiate the runs.\nset-plot-pen-color item (run-number mod 5) [blue red green orange violet]\n;; each run starts with zero infected.\nset num-infected-last-plotted 0",
-                    "pens": [
-                        {
-                            "updateCode": "",
-                            "display": "not-used",
-                            "color": -16777216,
-                            "mode": 0,
-                            "interval": 1,
-                            "setupCode": "",
-                            "type": "pen",
-                            "inLegend": false
-                        }
-                    ],
+                    "setupCode": "setup-plot",
+                    "pens": [],
                     "right": 257,
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 393,
-                    "updateCode": "let n count turtles with [infected?]\n;; only plot if someone has been infected since the last time we plotted.\n;; this smoothes out the plot a bit.\nif n > num-infected-last-plotted [\n  plotxy ticks - 1 n\n  set num-infected-last-plotted n\n]"
+                    "updateCode": "update-supervisor-plot"
                 },
                 {
                     "max": "10",

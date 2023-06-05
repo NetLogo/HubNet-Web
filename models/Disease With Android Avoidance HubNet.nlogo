@@ -18,8 +18,10 @@ globals
   qs-item      ;; index of the current quickstart instruction
   qs-items     ;; list of quickstart instructions
 
-  num-infected-last-plotted ;; used in plotting only
-                            ;; number of turtles that had infected? = true the last time we plotted.
+  num-infected-last-plotted-student    ;; used in plotting only
+  num-infected-last-plotted-supervisor ;; used in plotting only
+                                       ;; number of turtles that had
+                                       ;; infected? = true the last time we plotted.
 
   __hnw_supervisor_infection-chance
   __hnw_supervisor_android-delay
@@ -79,6 +81,9 @@ to setup-vars
   set __hnw_supervisor_show-sick? true
   set __hnw_supervisor_show-sick-on-clients? true
   set __hnw_supervisor_android-behavior "wander"
+
+  set num-infected-last-plotted-supervisor 0
+  set num-infected-last-plotted-student 0
 
   set shape-names ["box" "star" "wheel" "target" "cat" "dog"
                    "butterfly" "leaf" "car" "airplane"
@@ -307,7 +312,7 @@ to-report my-location
 end
 
 to-report my-status
-  report ifelse-value (show-sick-on-clients?) [ infected? ] [ "N/A" ]
+  report ifelse-value (__hnw_supervisor_show-sick-on-clients?) [ infected? ] [ "N/A" ]
 end
 
 ;; Kill the turtle, set its shape, color, and position
@@ -427,6 +432,33 @@ end
 
 to-report infected-count
   report count turtles with [infected?]
+end
+
+to setup-plot
+  ;; create a temporary plot pen for the current run
+  create-temporary-plot-pen word "run " run-number
+  ;; cycle through a few colors so it is easy to
+  ;; differentiate the runs.
+  set-plot-pen-color item (run-number mod 5) [blue red green orange violet]
+  ;; each run starts with zero infected.
+end
+
+to update-supervisor-plot
+  update-plot num-infected-last-plotted-supervisor [n -> set num-infected-last-plotted-supervisor n]
+end
+
+to update-student-plot
+  update-plot num-infected-last-plotted-student [n -> set num-infected-last-plotted-student n]
+end
+
+to update-plot [num set-cache]
+  let n count turtles with [infected?]
+  ;; only plot if someone has been infected since the last time we plotted.
+  ;; this smoothes out the plot a bit.
+  if n > num [
+    plotxy ticks - 1 n
+    (run set-cache n)
+  ]
 end
 
 ; Copyright 1999 Uri Wilensky.
