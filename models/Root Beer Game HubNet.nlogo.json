@@ -247,7 +247,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 446,
-                    "updateCode": ""
+                    "updateCode": "update-orders-placed-plot"
                 },
                 {
                     "bottom": 441,
@@ -277,7 +277,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 231,
-                    "updateCode": ""
+                    "updateCode": "update-cost-plot"
                 },
                 {
                     "bottom": 655,
@@ -307,7 +307,7 @@
                     "type": "hnwPlot",
                     "ymin": 0,
                     "top": 446,
-                    "updateCode": ""
+                    "updateCode": "update-orders-shipped-plot"
                 },
                 {
                     "max": "10",

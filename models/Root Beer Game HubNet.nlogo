@@ -4,6 +4,10 @@ globals [
   color-names    ;; the colors in words
   roles          ;; the names of the possible roles on each team
 
+  queued-orders-placed-pens
+  queued-cost-pens
+  queued-orders-shipped-pens
+
   __hnw_supervisor_weeks-of-simulation
   __hnw_supervisor_periods-of-delay
 
@@ -74,7 +78,7 @@ demand-links-own
 ;; Setup Procedures
 ;;
 to startup
-  reset-ticks
+
   ;; setup basic appearance globals
   set-default-shape students "circle"
   set-default-shape teams "square"
@@ -83,7 +87,14 @@ to startup
   set colors [ red blue green violet pink orange brown yellow ]
   set color-names [ "red" "blue" "green" "violet" "pink" "orange" "brown" "yellow" ]
   set roles [ "retailer" "distributor" "wholesaler" "factory" ]
+  set queued-orders-placed-pens  []
+  set queued-cost-pens           []
+  set queued-orders-shipped-pens []
+
+  reset-ticks
+
   setup
+
 end
 
 
@@ -126,10 +137,7 @@ to end-week ;; team procedure
   set cost sum [ inventory * 0.5 + back-orders ] of
                    students with [ my-team = myself ]
 
-  plot-cost
-  plot-shipped
-  ;; the last player is the factory
-  ask last-player [ plot-orders ]
+  update-plots
 
   ;; update the external demand to the retailer that drives the game
   ask my-out-demand-links
@@ -269,7 +277,7 @@ to create-team
     move-to p
     set-color
     set size 0.5
-    create-plot-pens
+    queue-plot-pens
     set clock 1
   ]
  ]
@@ -440,43 +448,62 @@ end
 ;; Plotting Procedures
 ;;
 
+to queue-plot-pens
+  let x (list color-name color)
+  set queued-orders-placed-pens  (lput x queued-orders-placed-pens)
+  set queued-cost-pens           (lput x queued-cost-pens)
+  set queued-orders-shipped-pens (lput x queued-orders-shipped-pens)
+end
+
 ;; use temporary plot pens for each team
 ;; so the legend is neat and the plot pen color
 ;; matches the color of the team
-to create-plot-pens
-  create-plot-pen "Orders to Factory"
-  create-plot-pen "Cost"
-  create-plot-pen "Orders Shipped"
+to create-plot-pen [name-color-pair]
+  create-temporary-plot-pen (item 0 name-color-pair)
+  set-plot-pen-color        (item 1 name-color-pair)
 end
 
-to create-plot-pen [my-plot]
-  set-current-plot my-plot
-  create-temporary-plot-pen color-name
-  set-plot-pen-color color
+to update-orders-placed-plot
+
+  foreach queued-orders-placed-pens create-plot-pen
+  set queued-orders-placed-pens []
+
+  ask teams [
+    set-current-plot-pen color-name
+    plot [last-received] of last-player
+  ]
+
 end
 
-to plot-orders
-  set-current-plot "Orders to Factory"
-  plot last-received
+to update-cost-plot
+
+  foreach queued-cost-pens create-plot-pen
+  set queued-cost-pens []
+
+  ask teams [
+    set-current-plot-pen color-name
+    plot cost
+  ]
+
 end
 
-to plot-cost
-  set-current-plot "Cost"
-  set-current-plot-pen color-name
-  plot cost
-end
+to update-orders-shipped-plot
 
-to plot-shipped
-  set-current-plot "Orders Shipped"
-  set-current-plot-pen color-name
-  plot sum [ last orders-filled ] of my-in-supply-links
+  foreach queued-orders-shipped-pens create-plot-pen
+  set queued-orders-shipped-pens []
+
+  ask teams [
+    set-current-plot-pen color-name
+    plot sum [ last orders-filled ] of my-in-supply-links
+  ]
+
 end
 
 ;; clearing the plot also clears the temporary
 ;; plot pens, so recreate them.
 to reset-plot
   clear-all-plots
-  ask teams [ create-plot-pens ]
+  ask teams [ queue-plot-pens ]
 end
 
 
