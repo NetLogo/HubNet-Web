@@ -64,6 +64,7 @@ students-own
 
 to startup
   setup-quick-start
+  setup-vars
   setup
 end
 
@@ -81,15 +82,17 @@ to setup
   ]
 end
 
-;; initialize global variables
-to setup-globals
-  reset-ticks
-  set day 0
-
+to setup-vars
   set __hnw_supervisor_grazing-period 34
   set __hnw_supervisor_init-num-goats/farmer 5
   set __hnw_supervisor_grass-growth-rate 0.5
   set __hnw_supervisor_cost/goat 893
+end
+
+;; initialize global variables
+to setup-globals
+  reset-ticks
+  set day 0
 
   set grass-max 50
   set food-max 50
@@ -131,10 +134,8 @@ to go
       stop
     ]
 
-    tick
-
     ;; when not milking time
-    ifelse (ticks mod __hnw_supervisor_grazing-period) != 0
+    ifelse ((ticks + 1) mod __hnw_supervisor_grazing-period) != 0
     [
       ask goats
         [ graze ]
@@ -144,8 +145,9 @@ to go
       ask students
         [ milk-goats ]
       go-to-market ;; to buy goats
-      plot-graph
     ]
+
+    tick
 
     reset-patches
   ]
@@ -285,18 +287,27 @@ end
 ;; Plotting Functions ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; plots the graph of the system
-to plot-graph
-  plot-value "Milk Supply" milk-supply
-  plot-value "Grass Supply" grass-supply
-  plot-value "Goat Population" goat-pop
-  plot-value "Average Revenue" avg-revenue
+to plot-milk
+  plot-value milk-supply
+end
+
+to plot-grass
+  plot-value grass-supply
+end
+
+to plot-goats
+  plot-value goat-pop
+end
+
+to plot-revenue
+  plot-value avg-revenue
 end
 
 ;; plot value on the plot called name-of-plot
-to plot-value [ name-of-plot value ]
-  set-current-plot name-of-plot
-  plot value
+to plot-value [ value ]
+  if (ticks mod __hnw_supervisor_grazing-period) = 0 [
+    plot value
+  ]
 end
 
 
@@ -315,7 +326,11 @@ to-report grass-supply
 end
 
 to-report avg-revenue
-  report mean [ current-revenue ] of students
+  ifelse (any? students) [
+    report mean [ current-revenue ] of students
+  ] [
+    report 0
+  ]
 end
 
 ;; returns agentset that of goats of a particular farmer

@@ -270,7 +270,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "plot-revenue",
                             "display": "revenue",
                             "color": -16777216,
                             "mode": 0,
@@ -300,7 +300,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "plot-goats",
                             "display": "num-goats",
                             "color": -16777216,
                             "mode": 0,
@@ -354,7 +354,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "plot-milk",
                             "display": "milk-amt",
                             "color": -16777216,
                             "mode": 0,
@@ -384,7 +384,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "",
+                            "updateCode": "plot-grass",
                             "display": "grass-amt",
                             "color": -16777216,
                             "mode": 0,
