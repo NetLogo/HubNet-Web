@@ -195,7 +195,7 @@
                     "xAxis": "Intervals",
                     "autoPlotOn": false,
                     "xmax": 9,
-                    "setupCode": "",
+                    "setupCode": "setup-position-plot",
                     "pens": [
                         {
                             "updateCode": "",
@@ -203,7 +203,7 @@
                             "color": -16777216,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "",
+                            "setupCode": "setup-x-axis-pen",
                             "type": "pen",
                             "inLegend": false
                         }
@@ -212,7 +212,7 @@
                     "type": "hnwPlot",
                     "ymin": -12,
                     "top": 27,
-                    "updateCode": ""
+                    "updateCode": "update-position-plot"
                 },
                 {
                     "bottom": 490,
@@ -225,7 +225,7 @@
                     "xAxis": "Intervals",
                     "autoPlotOn": false,
                     "xmax": 9,
-                    "setupCode": "",
+                    "setupCode": "setup-velocity-plot",
                     "pens": [
                         {
                             "updateCode": "",
@@ -233,7 +233,7 @@
                             "color": -16777216,
                             "mode": 0,
                             "interval": 1,
-                            "setupCode": "",
+                            "setupCode": "setup-x-axis-pen",
                             "type": "pen",
                             "inLegend": false
                         }
@@ -242,7 +242,7 @@
                     "type": "hnwPlot",
                     "ymin": -6,
                     "top": 261,
-                    "updateCode": ""
+                    "updateCode": "update-velocity-plot"
                 },
                 {
                     "forever": false,

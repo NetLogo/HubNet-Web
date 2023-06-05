@@ -1,3 +1,5 @@
+extensions [dialog]
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variable declarations ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -74,7 +76,6 @@ to startup
 end
 
 to setup
-  reset-ticks
   clear-drawing
   setup-patches
 
@@ -84,34 +85,31 @@ to setup
     set-position xcor-initial
   ]
   ask footprints [ die ]
-  my-setup-plots
+  reset-ticks
 end
 
 to reset-clock
-  reset-ticks
   clear-drawing
   setup-patches
   ask walkers
   [ set-position xcor
     pen-up ]
   ask footprints [ die ]
-  my-setup-plots
+  reset-ticks
 end
 
 to set-random-positions
-  reset-ticks
   setup-patches
   ask walkers [ set-position random-pxcor ]
   ask footprints [ die ]
-  my-setup-plots
+  reset-ticks
 end
 
 to set-uniform-positions
-  reset-ticks
   setup-patches
   ask walkers [ set-position __hnw_supervisor_walker-position ]
   ask footprints [ die ]
-  my-setup-plots
+  reset-ticks
 end
 
 to set-position [x]
@@ -193,7 +191,6 @@ to go
           set interval interval + 1
         ]
 
-        do-plotting
         ;; depending on the visualizations used
         ;; we may have to do some fading at the end of each move.
         if __hnw_supervisor_trails?
@@ -374,7 +371,7 @@ to-report setup-walker [username]
       set out who
       set walking-tick 0
     ]
-    my-setup-plots
+    setup-plots
   ]
   display
   report out
@@ -382,85 +379,68 @@ end
 
 to remove-walker
   die
-  my-setup-plots
+  setup-plots
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Plotting Procedures ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; plot the positions and velocities for the walkers in the appropriate plot
-to do-plotting
-  ;; walker-to-plot is a string
-  ;; assume we are plotting everyone
-  let guys-to-plot walkers
-
-  ;; if we're not get the agentset that includes the agents
-  ;; we're plotting, right now it can only be one but the code
-  ;; is simpler this way.
-  if walker-to-plot != "everybody"
-  [ set guys-to-plot walkers with [ user-id = walker-to-plot ] ]
-
-  ask guys-to-plot
-  [
-    set-current-plot "Position vs. Intervals"
-    set-current-plot-pen user-id
-    plot my-xcor
-
-    set-current-plot "Velocity vs. Intervals"
-    set-current-plot-pen user-id
-    plot velocity
-  ]
-
-  plot-x-axis "Velocity vs. Intervals"
-  plot-x-axis "Position vs. Intervals"
-end
-
-;; plots a black line at the x-axis of the plot this-plot
-to plot-x-axis [ this-plot ]
-  set-current-plot this-plot
-  set-current-plot-pen "x-axis"
-  plotxy plot-x-min 0
-  plotxy plot-x-max 0
-end
-
 to pick-walker-to-plot
-  set walker-to-plot "everybody" ;user-one-of
-                     ;"Please select the walker to plot"
-                     ;(fput "everybody" sort [user-id] of walkers )
+  let options (fput "everybody" sort [user-id] of walkers)
+  dialog:user-one-of "Please select the walker to plot" options [
+    choice -> set walker-to-plot choice
+  ]
 end
 
-;; setup the position and velocity plot
-to my-setup-plots
-  clear-all-plots
-
-  ask walkers
-  [
-    set-current-plot "Position vs. Intervals"
-    setup-pens false
-
-    set-current-plot "Velocity vs. Intervals"
-    setup-pens true
-
-    ;; make sure to plot the initial position
-    set-current-plot "Position vs. Intervals"
-    set-current-plot-pen user-id
-    plot my-xcor
-  ]
-
-  plot-x-axis "Velocity vs. Intervals"
-  plot-x-axis "Position vs. Intervals"
+to-report guys-to-plot
+  ;; if we're not plotting everyone, get the agentset that includes
+  ;; the agents we're plotting, right now it can only be one but the code
+  ;; is simpler this way.
+  report ifelse-value (walker-to-plot != "everybody")
+  [ walkers with [ user-id = walker-to-plot ] ]
+  [ walkers ]
 end
 
 ;; create pens for each of the existing walkers and color the pens to be the same color as
-;; their corresponding walker.  if bars? is true, set the pen mode to be 1 for bar mode.
-to setup-pens [ bars? ]
-  create-temporary-plot-pen user-id
-  if bars?
-  [ set-plot-pen-mode 1 ]
-  set-plot-pen-color color
+;; their corresponding walker
+to setup-position-plot
+  clear-plot
+  ask walkers [
+    create-temporary-plot-pen user-id
+    set-plot-pen-color color
+    plot my-xcor
+  ]
 end
 
+to update-position-plot
+  ask guys-to-plot [
+    set-current-plot-pen user-id
+    plot my-xcor
+  ]
+end
+
+to setup-velocity-plot
+  clear-plot
+  ask walkers [
+    create-temporary-plot-pen user-id
+    set-plot-pen-mode 1
+    set-plot-pen-color color
+  ]
+end
+
+to update-velocity-plot
+  ask guys-to-plot [
+    set-current-plot-pen user-id
+    plot velocity
+  ]
+end
+
+;; plots a black line at the x-axis of the plot this-plot
+to setup-x-axis-pen
+  plotxy plot-x-min 0
+  plotxy plot-x-max 0
+end
 
 ; Copyright 2006 Uri Wilensky and Walter Stroup.
 ; See Info tab for full copyright and license.
