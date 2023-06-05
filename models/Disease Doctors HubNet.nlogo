@@ -11,6 +11,11 @@ globals
   ;; tracks what run number we're on
   run-number
 
+  num-infected-last-plotted-student    ;; used in plotting only
+  num-infected-last-plotted-supervisor ;; used in plotting only
+                                       ;; number of turtles that had
+                                       ;; infected? = true the last time we plotted.
+
   ;; keep track of where the show-sick slider was last time around
   old-show-sick?
 
@@ -55,7 +60,6 @@ students-own
 to startup
   reset-ticks
   setup-vars
-  setup-plot
   setup-quick-start
 end
 
@@ -77,7 +81,6 @@ to cure-all
   ;; advance the run-number but don't clear the plot
   ;; so run results can be compared
   set run-number run-number + 1
-  setup-plot
 end
 
 ;; initialize global variables
@@ -97,6 +100,9 @@ to setup-vars
                    "monster" "key" "cow skull" "ghost"
                    "cactus" "moon" "heart" ]
 
+  set num-infected-last-plotted-supervisor 0
+  set num-infected-last-plotted-student 0
+
   ;; these colors were chosen with the goal of having colors
   ;; that are readily distinguishable from each other, and that
   ;; have names that everyone knows (e.g. no "cyan"!), and that
@@ -110,15 +116,6 @@ to setup-vars
   set used-shape-colors []
   set-default-shape doctors "android"
   set run-number 1
-end
-
-;; create a temporary plot pen for the current run
-;; cycle through a few colors so it is easy to
-;; differentiate the runs.
-to setup-plot
-  create-temporary-plot-pen word "run " run-number
-  set-plot-pen-color item (run-number mod 5)
-                          [blue red green orange violet]
 end
 
 to make-androids
@@ -456,7 +453,6 @@ end
 to clear-model-plot
   clear-all-plots
   set run-number 1
-  setup-plot
 end
 
 to-report num-sick
@@ -465,6 +461,33 @@ end
 
 to-report infectable-turtle-count
   report count students + count androids
+end
+
+to setup-plot
+  ;; create a temporary plot pen for the current run
+  create-temporary-plot-pen word "run " run-number
+  ;; cycle through a few colors so it is easy to
+  ;; differentiate the runs.
+  set-plot-pen-color item (run-number mod 5) [blue red green orange violet]
+  ;; each run starts with zero infected.
+end
+
+to update-supervisor-plot
+  update-plot num-infected-last-plotted-supervisor [n -> set num-infected-last-plotted-supervisor n]
+end
+
+to update-student-plot
+  update-plot num-infected-last-plotted-student [n -> set num-infected-last-plotted-student n]
+end
+
+to update-plot [num set-cache]
+  let n count turtles with [infected?]
+  ;; only plot if someone has been infected since the last time we plotted.
+  ;; this smoothes out the plot a bit.
+  if n > num [
+    plotxy ticks - 1 n
+    (run set-cache n)
+  ]
 end
 
 ; Copyright 2006 Uri Wilensky.
