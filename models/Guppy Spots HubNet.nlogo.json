@@ -377,7 +377,7 @@
                     "setupCode": "",
                     "pens": [
                         {
-                            "updateCode": "plot  total-prey-found",
+                            "updateCode": "plot-prey",
                             "display": "prey",
                             "color": -16777216,
                             "mode": 0,
@@ -387,7 +387,7 @@
                             "inLegend": true
                         },
                         {
-                            "updateCode": "plot  total-mates-found",
+                            "updateCode": "plot-mates",
                             "display": "mates",
                             "color": -8630108,
                             "mode": 0,

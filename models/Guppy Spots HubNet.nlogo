@@ -519,6 +519,14 @@ to import-background
   fetch:url-async url import-a:drawing
 end
 
+to plot-mates
+  plot total-mates-found
+end
+
+to plot-prey
+  plot total-prey-found
+end
+
 ; Copyright 2006 Uri Wilensky.
 ; See Info tab for full copyright and license.
 @#$#@#$#@
