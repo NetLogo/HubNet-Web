@@ -1,0 +1,26 @@
+<html>
+
+  <head>
+    <meta charset="utf-8"/>
+    <link href="/assets/stylesheets/embed.css" rel="stylesheet">
+  </head>
+
+  <body class="embed-body">
+    <iframe id="embed-frame" class="embed-frame" src=""
+            title="HubNet Web Authoring"
+            sandbox="allow-downloads allow-forms allow-scripts allow-modals allow-same-origin">
+    </iframe>
+  </body>
+
+  <script>
+
+    const proto = window.location.protocol;
+    const host  = window.location.hostname;
+    const url   = `${proto}//${host}:9000/hnw/authoring?embedded=true`;
+
+    const frame = document.getElementById("embed-frame");
+    frame.src   = url;
+
+  </script>
+
+</html>

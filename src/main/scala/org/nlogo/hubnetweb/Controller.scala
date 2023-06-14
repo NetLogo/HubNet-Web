@@ -99,6 +99,7 @@ object Controller {
          }
 
       path("")                 { getFromFile("html/index.html") } ~
+      path("authoring")        { getFromFile("html/embed-authoring.html") } ~
       path("host")             { getFromFile("html/host.html")  } ~
       path("launch-session")   { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
       path("join")             { getFromFile("html/join.html")  } ~

@@ -1,0 +1,9 @@
+.embed-body {
+  margin: 0;
+}
+
+.embed-frame {
+  border-width:    0;
+  height:       100%;
+  width:        100%;
+}
