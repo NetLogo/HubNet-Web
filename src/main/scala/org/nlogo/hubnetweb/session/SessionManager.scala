@@ -2,7 +2,7 @@ package org.nlogo.hubnetweb.session
 
 import java.util.UUID
 
-import scala.collection.Map
+import scala.collection.immutable.Map
 import scala.collection.mutable.{ LinkedHashMap => LHM, Map => MMap }
 import scala.concurrent.duration.FiniteDuration
 import scala.io.Source

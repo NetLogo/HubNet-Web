@@ -7,7 +7,7 @@ import scala.io.Source
 object ModelsLibrary {
 
   private lazy val fileMappings: Map[String, Path] = {
-    import scala.collection.JavaConverters.asScalaIteratorConverter
+    import scala.jdk.CollectionConverters.IteratorHasAsScala
     val path  = Paths.get("./models/")
     val files = Files.walk(path).filter(_.getFileName.toString.endsWith(".nlogo"))
     val paths = files.iterator.asScala.toVector
@@ -15,8 +15,8 @@ object ModelsLibrary {
   }
 
   private lazy val descriptions: Map[String, String] =
-    fileMappings.mapValues {
-      path =>
+    fileMappings.map {
+      case (k, path) =>
 
         val source = Source.fromURI(path.toUri)
         val text   = source.mkString
@@ -26,19 +26,22 @@ object ModelsLibrary {
 
         val Regex = """(?msi).*^## WHAT IS IT\?$(.*?)^## (?:HOW IT WORKS$(.*?)^## )?.*""".r
 
-        info match {
+        val v =
+          info match {
 
-          case Regex(what, how) =>
-            if (how != null) {
-              s"${what.trim}\n\n${how.trim}"
-            } else {
-              what.trim
-            }
+            case Regex(what, how) =>
+              if (how != null) {
+                s"${what.trim}\n\n${how.trim}"
+              } else {
+                what.trim
+              }
 
-          case _ =>
-            throw new Error(s"Failed to match info for $path:\n\n$info")
+            case _ =>
+              throw new Error(s"Failed to match info for $path:\n\n$info")
 
-        }
+          }
+
+        (k, v)
 
     }
 

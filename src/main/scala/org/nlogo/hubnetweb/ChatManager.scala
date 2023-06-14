@@ -81,7 +81,7 @@ private object ChatManager {
   def pullBuffer(uuid: UUID): List[(Int, String, Boolean)] = {
     msgMap.get(uuid).toList.flatMap {
       case buffer =>
-        val list = buffer.result
+        val list = buffer.result()
         buffer.clear()
         list.map { case (num, text) => (num, text, num == privilegedNum) }
     }

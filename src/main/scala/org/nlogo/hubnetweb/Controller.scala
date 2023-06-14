@@ -3,7 +3,7 @@ package org.nlogo.hubnetweb
 import java.nio.file.Paths
 import java.util.UUID
 
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{ Await, ExecutionContext, ExecutionContextExecutor, Future }
 import scala.concurrent.duration.FiniteDuration
 import scala.io.{ Source => SISource, StdIn }
 
@@ -24,7 +24,8 @@ import akka.actor.typed.{ ActorRef, ActorSystem => TASystem }
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.actor.typed.scaladsl.Behaviors
 
-import spray.json.{ JsArray, JsNumber, JsObject, JsonParser, JsString }
+import spray.json.{ JsArray, JsNumber, JsObject, JsonParser, JsString
+                  , RootJsonFormat }
 
 import session.{ SessionInfo, SessionManagerActor }
 import session.SessionManagerActor.{ CreateSession, DelistSession, GetPreview
@@ -43,25 +44,33 @@ object Controller {
   import spray.json.DefaultJsonProtocol._
 
   private case class LaunchReq(modelType: String, model: String, config: Option[String], sessionName: String, password: Option[String])
-  implicit private val launchReqFormat = jsonFormat5(LaunchReq)
+  implicit private val launchReqFormat: RootJsonFormat[LaunchReq] =
+    jsonFormat5(LaunchReq)
 
   private case class LaunchResp(id: String, `type`: String, nlogoMaybe: Option[String])
-  implicit private val launchRespFormat = jsonFormat3(LaunchResp)
+  implicit private val launchRespFormat: RootJsonFormat[LaunchResp] =
+    jsonFormat3(LaunchResp)
 
   private case class XLaunchResp(id: String, `type`: String, nlogoMaybe: Option[String], jsonMaybe: Option[String])
-  implicit private val xlaunchRespFormat = jsonFormat4(XLaunchResp)
+  implicit private val xlaunchRespFormat: RootJsonFormat[XLaunchResp] =
+    jsonFormat4(XLaunchResp)
 
   private case class SessionInfoUpdate(name: String, modelName: String, roleInfo: Vector[(String, Int, Int)], oracleID: String, hasPassword: Boolean)
-  implicit private val siuFormat = jsonFormat5(SessionInfoUpdate)
+  implicit private val siuFormat: RootJsonFormat[SessionInfoUpdate] =
+    jsonFormat5(SessionInfoUpdate)
 
   private case class CensusMessage(`type`: String, num: Int)
-  implicit private val cemFormat = jsonFormat2(CensusMessage)
+  implicit private val cemFormat: RootJsonFormat[CensusMessage] =
+    jsonFormat2(CensusMessage)
 
   private case class ChatMessage(`type`: String, sender: Int, message: String, isAuthority: Boolean)
-  implicit private val chmFormat = jsonFormat4(ChatMessage)
+  implicit private val chmFormat: RootJsonFormat[ChatMessage] =
+    jsonFormat4(ChatMessage)
 
-  implicit private val system           = ActorSystem("hnw-system")
-  implicit private val executionContext = system.dispatcher
+  implicit private val system: ActorSystem = ActorSystem("hnw-system")
+
+  implicit private val executionContext: ExecutionContextExecutor =
+    system.dispatcher
 
   private val seshManager = TASystem(SessionManagerActor(), "session-manager-system")
   private val chatManager = TASystem(   ChatManagerActor(),    "chat-manager-system")
@@ -74,7 +83,7 @@ object Controller {
 
   private val namesToPaths = ModelsLibrary.getFileMappings()
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
 
     val utf8 = ContentTypes.`text/html(UTF-8)`
 
@@ -105,7 +114,7 @@ object Controller {
       path("join")             { getFromFile("html/join.html")  } ~
       path("available-models") { get { complete(availableModels) } } ~
       path("library-config")   { get { complete(libraryConfig) } } ~
-      path("chat")                             { handleWebSocketMessages(chat) } ~
+      path("chat")                             { handleWebSocketMessages(chat()) } ~
       path("rtc" / "join" / Segment)           { (hostID)           => get { startJoin(toID(hostID)) } } ~
       path("rtc" / Segment / Segment / "host") { (hostID, joinerID) => handleWebSocketMessages(rtcHost(toID(hostID), toID(joinerID))) } ~
       path("rtc" / Segment / Segment / "join") { (hostID, joinerID) => handleWebSocketMessages(rtcJoiner(toID(hostID), toID(joinerID))) } ~
@@ -492,7 +501,11 @@ object Controller {
   }
 
   private lazy val libraryConfig = {
-    JsObject(ModelsLibrary.getDescriptions().mapValues(JsString.apply))
+    JsObject(
+      ModelsLibrary.getDescriptions().map {
+        case (k, v) => (k, JsString(v))
+      }
+    )
   }
 
   private def toID(id: String): UUID = UUID.fromString(id)
