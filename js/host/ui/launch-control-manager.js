@@ -76,7 +76,7 @@ export default class LaunchControlManager {
     const getDOM    = (s) => this.#elem.querySelector(s);
     const toSummary = (s) => s.split("\n", 1)[0];
 
-    const modelName   = selectElem.selectedOptions[0].value.slice(4);
+    const modelName   = selectElem.selectedOptions[0].value;
     const description = libConfig[modelName];
 
     if (description !== undefined) {
