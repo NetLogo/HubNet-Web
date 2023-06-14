@@ -123,7 +123,7 @@ object Controller {
 
     }
 
-    val bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
+    val bindingFuture = Http().newServerAt(interface = "localhost", port = 8080).bind(route)
     println("Now running at http://localhost:8080/.  Press Ctrl+C to stop.".stripMargin)
     StdIn.readLine()
 

@@ -15,9 +15,9 @@ scalacOptions ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor-typed"     % "2.6.12",
-  "com.typesafe.akka" %% "akka-http"            % "10.1.12",
-  "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.12",
-  "com.typesafe.akka" %% "akka-stream"          % "2.6.12",
-  "org.slf4j"         %  "slf4j-simple"         % "1.7.30"
+  "com.typesafe.akka" %% "akka-actor-typed"     % "2.8.2",
+  "com.typesafe.akka" %% "akka-http"            % "10.5.2",
+  "com.typesafe.akka" %% "akka-http-spray-json" % "10.5.2",
+  "com.typesafe.akka" %% "akka-stream"          % "2.8.2",
+  "org.slf4j"         %  "slf4j-simple"         % "2.0.7"
 )
