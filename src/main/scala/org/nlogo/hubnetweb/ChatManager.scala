@@ -69,7 +69,7 @@ private object ChatManager {
   private type Scheduler = (FiniteDuration, () => Unit) => Unit
 
   private var idCounter     = 0
-  private var privilegedNum = 0
+  private var privilegedNum = -1
 
   private val idMap   = MMap[UUID,                       Int]()
   private val tickMap = MMap[UUID,                      Long]()
@@ -94,7 +94,7 @@ private object ChatManager {
     idMap.get(uuid).foreach {
       (id) =>
 
-        if (msg == "ASSUMING DIRECT CONTROL") { // TODO
+        if (msg == "ASSUMING DIRECT CONTROL" && false) {
           privilegedNum = id
         } else {
           val sane = sanitize(msg)
