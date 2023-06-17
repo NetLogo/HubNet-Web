@@ -80,9 +80,10 @@ export default class LaunchControlManager {
     const description = libConfig[modelName];
 
     if (description !== undefined) {
+      const opts = { headerIds: false, mangle: false };
       getDOM(".modal-activity-title").innerText = modelName;
-      getDOM("#activity-text-full"  ).innerHTML = parse(          description );
-      getDOM("#activity-text-short" ).innerHTML = parse(toSummary(description));
+      getDOM("#activity-text-full"  ).innerHTML = parse(          description , opts);
+      getDOM("#activity-text-short" ).innerHTML = parse(toSummary(description), opts);
       getDOM("#preview-image"       ).src       = `/previews/${modelName} HubNet.png`;
     }
 
