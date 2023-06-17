@@ -45,70 +45,115 @@
             <h1 class="host-header">Hosting</h1>
 
             <div class="activity-selection">
-              <div class="activity-description">
-                <div class="library-model-container" class="library-model-container">
-                  <select class="library-model" id="library-model"
-                          name="libraryModel" type="chooser">
 
-                    <option>BeeSmart</option>
-                    <option>Bird Breeders</option>
-                    <option>Bug Hunters Adaptations</option>
-                    <option>Bug Hunters Camouflage</option>
-                    <option>Bug Hunters Competition</option>
-                    <option>Client Overrides Example</option>
-                    <option>Client Perspective Example</option>
-                    <option>Critter Designers</option>
-                    <option>Current in a Wire</option>
-                    <option>Dice Stalagmite</option>
-                    <option selected>Disease</option>
-                    <option>Disease Doctors</option>
-                    <option>Disease With Android Avoidance</option>
-                    <option>Example</option>
-                    <option>Fish Spotters</option>
-                    <option>Function</option>
-                    <option>Gridlock</option>
-                    <option>Gridlock Alternate</option>
-                    <option>Guppy Spots</option>
-                    <option>Investments</option>
-                    <option>Memory</option>
-                    <option>Minority Game</option>
-                    <option>MTG 1 Equal Opportunities</option>
-                    <option>MTG 2 Random Assignment</option>
-                    <option>MTG 3 Feedback Loop</option>
-                    <option>Oil Cartel</option>
-                    <option>Oil Cartel Alternate</option>
-                    <option>PANDA BEAR</option>
-                    <option>Polling</option>
-                    <option>Polling Advanced</option>
-                    <option>Predator Prey Game</option>
-                    <option>Prisoners Dilemma</option>
-                    <option>Public Good</option>
-                    <option>Restaurants</option>
-                    <option>Root Beer Game</option>
-                    <option>Sampler</option>
-                    <option>Template</option>
-                    <option>Tragedy of the Commons</option>
-                    <option>Walking</option>
+              <div class="selection-button-container">
+                <input type="button" id="upload-button" class="selection-button"
+                       value="Your Own Model">
+                <input type="button" id="library-button" class="selection-button active"
+                       value="Library Models">
+              </div>
 
-                  </select>
+              <div class="selection-area">
 
-                  <div class="custom-select-arrow">
-                    <div class="triangle-down-black"></div>
-                  </div>
+                <div id="upload-container" class="upload-container hidden">
+                  <label>
+                    <input id="file-upload-input" class="file-upload-input"
+                           type="file" multiple>
+                  </label>
+                  <p>
+                    Valid upload formats are as follows:
+                    <ol type="A">
+                      <li>One <code>.nlogo</code> file and one <code>.json</code> file</li>
+                      <li>One <code>.hnw.json</code> file</li>
+                    </ol>
+                  </p>
+                  <p>
+                    If you do not already have a model in one of these formats,
+                    you may create one by uploading your <code>.nlogo</code> file
+                    to the <a href="/authoring">HubNet Web authoring tool</a>.
+                  </p>
+                  <p>
+                    <strong>NOTE</strong>: Multiple files can be selected in
+                    the file picker by holding down Ctrl or Command on your
+                    keyboard.
+                  </p>
                 </div>
 
-                <p id="activity-text-short" class="activity-text-short">
-                  This model simulates the spread of a disease through a population. This population can consist of either students, which are turtles controlled by individual students via the HubNet Client, or turtles that are generated and controlled by NetLogo, called androids, or both androids and students.
-                </p>
-                <input type="button" id="read-more-button" class="read-more-button"
-                       value="Read More">
+                <div id="library-container" class="library-selection">
+
+                  <div class="library-model-container" class="library-model-container">
+
+                    <select class="library-model" id="library-model"
+                            name="libraryModel" type="chooser">
+
+                      <option>BeeSmart</option>
+                      <option>Bird Breeders</option>
+                      <option>Bug Hunters Adaptations</option>
+                      <option>Bug Hunters Camouflage</option>
+                      <option>Bug Hunters Competition</option>
+                      <option>Client Overrides Example</option>
+                      <option>Client Perspective Example</option>
+                      <option>Critter Designers</option>
+                      <option>Current in a Wire</option>
+                      <option>Dice Stalagmite</option>
+                      <option selected>Disease</option>
+                      <option>Disease Doctors</option>
+                      <option>Disease With Android Avoidance</option>
+                      <option>Example</option>
+                      <option>Fish Spotters</option>
+                      <option>Function</option>
+                      <option>Gridlock</option>
+                      <option>Gridlock Alternate</option>
+                      <option>Guppy Spots</option>
+                      <option>Investments</option>
+                      <option>Memory</option>
+                      <option>Minority Game</option>
+                      <option>MTG 1 Equal Opportunities</option>
+                      <option>MTG 2 Random Assignment</option>
+                      <option>MTG 3 Feedback Loop</option>
+                      <option>Oil Cartel</option>
+                      <option>Oil Cartel Alternate</option>
+                      <option>PANDA BEAR</option>
+                      <option>Polling</option>
+                      <option>Polling Advanced</option>
+                      <option>Predator Prey Game</option>
+                      <option>Prisoners Dilemma</option>
+                      <option>Public Good</option>
+                      <option>Restaurants</option>
+                      <option>Root Beer Game</option>
+                      <option>Sampler</option>
+                      <option>Template</option>
+                      <option>Tragedy of the Commons</option>
+                      <option>Walking</option>
+
+                    </select>
+
+                    <div class="custom-select-arrow">
+                      <div class="triangle-down-black"></div>
+                    </div>
+                  </div>
+
+                  <div class="activity-bottom-wrapper">
+
+                    <div id="activity-text-short" class="activity-text-short">
+                      This model simulates the spread of a disease through a population. This population can consist of either students, which are turtles controlled by individual students via the HubNet Client, or turtles that are generated and controlled by NetLogo, called androids, or both androids and students.
+                    </div>
+
+                    <input type="button" id="read-more-button" class="read-more-button"
+                           value="Read More">
+
+                  </div>
+
+                </div>
               </div>
 
               <div class="image-wrapper">
                 <img id="preview-image" class="preview-image" alt="Activity preview"
                      draggable="false" src="/previews/Disease HubNet.png">
               </div>
+
             </div>
+
           </div>
 
           <div class="footer">

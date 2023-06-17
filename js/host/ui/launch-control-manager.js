@@ -1,11 +1,14 @@
 import { parse } from "/depend/js/marked.esm.js";
 
+import { InvalidUpload, ValidUpload, processUploads } from "./model-upload.js";
+
 export default class LaunchControlManager {
 
   #awaitLaunchHTTP = undefined; // (Object[Any]) => Promise[Response]
   #elem            = undefined; // Element
   #notifyUser      = undefined; // (String) => Unit
   #password        = undefined; // String
+  #upload          = undefined; // Upload
 
   // (Element, (Object[Any]) => Promise[Response], (String) => Unit, (Object[Any]) => Unit) => LaunchControlManager
   constructor(elem, awaitLaunchHTTP, notifyUser, finishLaunch, getLibrary) {
@@ -13,9 +16,40 @@ export default class LaunchControlManager {
     this.#awaitLaunchHTTP = awaitLaunchHTTP;
     this.#elem            = elem;
     this.#notifyUser      = notifyUser;
+    this.#upload          = InvalidUpload;
 
     elem.querySelector(          "form").onsubmit = this.#onSubmit(finishLaunch);
     elem.querySelector(".library-model").onchange = this.#onChange(  getLibrary);
+
+    const byEID = (s) => elem.querySelector(`#${s}`);
+
+    byEID("file-upload-input").onchange = () => {
+      this.#updateUploadValidity();
+    };
+
+    byEID("upload-button").onclick = () => {
+
+      byEID( "upload-button").classList   .add("active");
+      byEID("library-button").classList.remove("active");
+
+      byEID( "upload-container").classList.remove("hidden");
+      byEID("library-container").classList   .add("hidden");
+
+      this.#updateUploadValidity();
+
+    };
+
+    byEID("library-button").onclick = () => {
+
+      byEID( "upload-button").classList.remove("active");
+      byEID("library-button").classList   .add("active");
+
+      byEID( "upload-container").classList   .add("hidden");
+      byEID("library-container").classList.remove("hidden");
+
+      byEID("file-upload-input").setCustomValidity("");
+
+    };
 
   }
 
@@ -51,16 +85,27 @@ export default class LaunchControlManager {
   // ((Object[Any]) => Unit) => () => Unit
   #onSubmit = (finishLaunch) => () => {
 
-    const formData = new FormData(this.#elem.querySelector("form"));
-    const model    = formData.get("libraryModel");
+    const getDOM = (s) => this.#elem.querySelector(s);
 
-    const config = { modelType:   "library"
-                   , sessionName: formData.get("sessionName")
-                   , password:    formData.get("password")
-                   , model
-                   };
+    const formData    = new FormData(getDOM("form"));
+    const sessionName = formData.get("sessionName");
+    const password    = formData.get("password");
 
-    this.launch(config).then(finishLaunch);
+    const basis  = { sessionName, password };
+    let   extras = undefined;
+
+    if (getDOM("#library-button").classList.contains("active")) {
+      extras = { modelType: "library", model: formData.get("libraryModel") };
+    } else if (this.#upload instanceof ValidUpload) {
+      const model  = this.#upload.getNlogo();
+      const config = this.#upload.getJson();
+      extras = { modelType: "upload", model, config };
+    } else {
+      throw new Error("Invalid upload format", this.#upload);
+    }
+
+    const conf = Object.assign(basis, extras);
+    this.launch(conf).then(finishLaunch);
 
     return true;
 
@@ -86,6 +131,18 @@ export default class LaunchControlManager {
       getDOM("#activity-text-short" ).innerHTML = parse(toSummary(description), opts);
       getDOM("#preview-image"       ).src       = `/previews/${modelName} HubNet.png`;
     }
+
+  };
+
+  // () => Unit
+  #updateUploadValidity = () => {
+
+    const finput = this.#elem.querySelector("#file-upload-input");
+    finput.setCustomValidity("");
+
+    const setUpload    = (u)   => { this.#upload = u; };
+    const setValidator = (msg) => { finput.setCustomValidity(msg); };
+    processUploads(finput.files, setUpload, setValidator);
 
   };
 
