@@ -2,14 +2,38 @@
 
   <head>
     <meta charset="utf-8"/>
+    <link href="/assets/stylesheets/main.css" rel="stylesheet">
     <link href="/assets/stylesheets/embed.css" rel="stylesheet">
   </head>
 
   <body class="embed-body">
-    <iframe id="embed-frame" class="embed-frame" src=""
-            title="HubNet Web Authoring"
-            sandbox="allow-downloads allow-forms allow-scripts allow-modals allow-same-origin">
-    </iframe>
+
+    <div class="flex-column main-flex">
+
+      <div class="page-header flex-row embed-header">
+        <a href="/" class="hnw-header-link-wrapper">
+          <div class="hnw-header" id="hnw-header">HubNet Web</div>
+        </a>
+
+        <div class="page-links-dropdown">
+          <div class="navigate-label">
+            <div>Navigate</div>
+            <div class="triangle-down"></div>
+          </div>
+          <div class="page-links-tabs">
+            <a href="/join"      class="page-links">Join</a>
+            <a href="/host"      class="page-links">Host</a>
+          </div>
+        </div>
+      </div>
+
+      <iframe id="embed-frame" class="embed-frame" src=""
+              title="HubNet Web Authoring"
+              sandbox="allow-downloads allow-forms allow-scripts allow-modals allow-same-origin">
+      </iframe>
+
+    </div>
+
   </body>
 
   <script>
