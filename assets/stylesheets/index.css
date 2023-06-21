@@ -1,15 +1,16 @@
 .body {
   font-family: sans-serif;
-  margin:      0;
-  padding:     0;
+  font-size:         48px;
+  margin:               0;
+  padding:              0;
 }
 
 .index-page-body {
-  margin: 10px 30px;
+  margin: 30px 90px;
 }
 
 .button-base {
-  border-radius: 15px;
+  border-radius: 40px;
   cursor:        pointer;
   user-select:   none;
   white-space:   normal;
@@ -24,20 +25,21 @@
   filter:     brightness(0.7);
 }
 
-.join-page-button {
+.major-button {
   background-color: var(--light-green);
   border:           3px solid black;
-  font-size:        32px;
+  font-size:        96px;
   font-weight:      bold;
-  height:           80px;
-  width:            350px;
+  height:          220px;
+  width:           345px;
 }
 
 .lesser-button {
-  border:           2px solid black;
-  font-size:        20px;
-  height:           60px;
-  width:            280px;
+  border:    2px solid black;
+  font-size:            60px;
+  height:              160px;
+  margin:          auto 36px;
+  width:               273px;
 }
 
 .blue {
@@ -48,65 +50,35 @@
   background-color: var(--orange);
 }
 
-.hnw-description-text {
-  background-color: var(--light-gray);
-  border:           3px solid black;
-  border-radius:    30px;
-  font-size:        18px;
-  line-height:      1.5;
-  margin:           30px auto 0 auto;
-  padding:          20px;
-  width:            90vw;
-}
-
-.hnw-description-text div:first-child {
-  margin-bottom: 15px;
-}
-
-.hnw-description-text div:last-child {
-  margin-top: 15px;
-}
-
-.page-links-group {
+.main-group {
   align-items: center;
-  margin:      30px 0;
+  gap:           39px;
+  margin:      90px 0;
 }
 
-.page-links-group a:first-child {
-  margin-bottom: 20px;
+.row {
+  width: 100%;
 }
 
-.page-links-row {
-  gap: 10px;
+.link {
+  margin: auto 0;
+}
+
+.description {
+  margin: auto 0;
 }
 
 .text-borders {
   border: 2px solid lightgray;
-  margin: 30px 0 30px 40px;
+  margin: 90px 0 90px 120px;
 }
 
 .page-end-margin {
-  margin-bottom: 50px;
+  margin-bottom: 150px;
 }
 
-@media (max-width: 1200px) and (max-height: 750px) {
-
-  .hnw-description-text {
-    font-size:   14px;
-    line-height: 1.5;
-    margin-top:  20px;
-  }
-
-  .join-page-button {
-    font-size: 28px;
-    height:    60px;
-    width:     250px;
-  }
-
-  .lesser-button {
-    font-size: 18px;
-    height:    45px;
-    width:     210px;
-  }
-
+.spacer {
+  border-left:   4px solid gray;
+  height:                 105px;
+  margin:   auto 30px auto 45px;
 }
