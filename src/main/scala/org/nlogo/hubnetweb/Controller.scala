@@ -112,6 +112,7 @@ object Controller {
       path("host")             { getFromFile("html/host.html")  } ~
       path("launch-session")   { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
       path("join")             { getFromFile("html/join.html")  } ~
+      path("about")            { getFromFile("html/about.html") } ~
       path("available-models") { get { complete(availableModels) } } ~
       path("library-config")   { get { complete(libraryConfig) } } ~
       path("chat")                             { handleWebSocketMessages(chat()) } ~

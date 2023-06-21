@@ -1,0 +1,17 @@
+.body {
+  background-color: var(--light-gray);
+  font-family:             sans-serif;
+  margin:                           0;
+  padding:                          0;
+}
+
+.hnw-description-text {
+  background-color: white;
+  border:           3px solid black;
+  border-radius:    30px;
+  font-size:        28px;
+  line-height:      1.5;
+  margin:           30px auto 30px auto;
+  padding:          0 20px;
+  width:            90vw;
+}
