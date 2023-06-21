@@ -33,12 +33,19 @@
   width:            350px;
 }
 
-.host-page-button {
-  background-color: var(--medium-blue);
+.lesser-button {
   border:           2px solid black;
   font-size:        20px;
   height:           60px;
-  width:            250px;
+  width:            280px;
+}
+
+.blue {
+  background-color: var(--medium-blue);
+}
+
+.orange {
+  background-color: var(--orange);
 }
 
 .hnw-description-text {
@@ -69,6 +76,10 @@
   margin-bottom: 20px;
 }
 
+.page-links-row {
+  gap: 10px;
+}
+
 .text-borders {
   border: 2px solid lightgray;
   margin: 30px 0 30px 40px;
@@ -92,10 +103,10 @@
     width:     250px;
   }
 
-  .host-page-button {
+  .lesser-button {
     font-size: 18px;
     height:    45px;
-    width:     200px;
+    width:     210px;
   }
 
 }
