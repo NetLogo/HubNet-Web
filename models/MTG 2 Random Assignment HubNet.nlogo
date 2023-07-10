@@ -160,15 +160,6 @@ to refresh-student ; student procedure
   send-info-to-clients
 end
 
-; procedure to handle student action requests
-to execute-command [ command ]
-  if command = "up"      [ execute-move 0 ]
-  if command = "down"    [ execute-move 180 ]
-  if command = "right"   [ execute-move 90 ]
-  if command = "left"    [ execute-move 270 ]
-  if command = "harvest" [ harvest-pressed ]
-end
-
 to send-info-to-clients ; student procedure
   ; set the client view to follow the agent so it's always at the
   ; center of the view (showing 7 patches in each direction around the agent).
@@ -258,7 +249,7 @@ to execute-move [ new-heading ] ; student procedure
 end
 
 ; procedure to handle a harvest request
-to harvest-pressed ; student procedure
+to handle-harvest ; student procedure
   ifelse state = "harvesting" [
     set message "already harvesting"
   ][
