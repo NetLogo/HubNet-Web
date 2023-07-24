@@ -11,6 +11,8 @@
 .DS_Store
 .history
 
+/cypress/screenshots/
+/cypress/videos/
 /node_modules/
 
 project/project/

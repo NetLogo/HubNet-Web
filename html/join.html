@@ -52,7 +52,7 @@
                 <div id="session-row-wrapper" class="session-row-wrapper">
                   <table id="session-row-container" class="session-row-container">
                     <template id="session-row-template">
-                      <tr class="session-row">
+                      <tr class="session-row" data-cy="session-row">
                         <td class="row-label session-element">
                           <input id="session-option" class="session-option" name="sessionOption" type="radio">
                         </td>
@@ -93,7 +93,9 @@
               <div class="user-inputs-top-row flex-row">
                 <div>
                   <label class="form-label">Username
-                    <input class="username block-display" id="username" name="username" type="text" required>
+                    <input id="username"
+                           class="username block-display" data-cy="username"
+                           name="username" type="text" required>
                   </label>
                 </div>
                 <div>
@@ -115,7 +117,8 @@
               </div>
 
               <div class="user-inputs-bottom-row flex-row">
-                <input id="join-button" class="join-button block-display"
+                <input id="join-button"
+                       class="join-button block-display" data-cy="submit"
                        type="submit" value="Join" disabled>
               </div>
 
@@ -146,7 +149,7 @@
               </div>
               <div class="session-detail">
                 <span class="bold">Latency: </span>
-                <span id="latency-span">(N/A)</span>ms
+                <span id="latency-span" data-cy="latency">(N/A)</span>ms
               </div>
             </div>
 
@@ -156,9 +159,12 @@
 
         <div id="join-b-page">
           <div class="session-buttons flex-row">
-            <input class="view-details-button" id="view-details-button" type="button" value="View Session Details">
+            <input id="view-details-button"
+                   class="view-details-button" data-cy="view-details"
+                   type="button" value="View Session Details">
             <div id="activity-name" class="activity-name"></div>
-            <input class="disconnect-button" id="disconnect-button" type="button" value="Disconnect">
+            <input id="disconnect-button" class="disconnect-button"
+                   type="button" value="Disconnect">
           </div>
           <iframe class="nlw-iframe"></iframe>
         </div>

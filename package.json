@@ -3,6 +3,8 @@
 , "dependencies": { "pako":   "~2.1.0"
                   , "marked": "~5.1.0"
                   }
-, "devDependencies": { "eslint": "~8.42.0"
+, "devDependencies": {
+                       "cypress": "~12.17.2"
+                     , "eslint": "~8.42.0"
                      }
 }
