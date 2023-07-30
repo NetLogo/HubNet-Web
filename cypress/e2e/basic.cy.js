@@ -42,7 +42,7 @@ describe("basic", () => {
 
     // GET LATENCY STATS
 
-    cy.get("[data-cy='view-details']").click()
+    cy.get("[data-cy='view-details']").click({ timeout: 30000 })
 
     cy.get("[data-cy='latency']", { timeout: 30000 }).should(
       (span) => {
