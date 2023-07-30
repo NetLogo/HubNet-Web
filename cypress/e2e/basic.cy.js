@@ -2,10 +2,12 @@ describe("basic", () => {
 
   it("connects with low latency", () => {
 
+    let idNum = Math.floor(Math.random() * 1e6)
+
     //cy.visit("https://hubnetweb.org/join")
     cy.visit("http://localhost:8080/join")
     cy.get("[data-cy='session-row']").click()
-    cy.get("[data-cy='username']").type("apples")
+    cy.get("[data-cy='username']").type(`apples-${idNum}`)
     cy.get("[data-cy='submit']").click()
     cy.get("[data-cy='view-details']").click()
 
