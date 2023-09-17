@@ -147,9 +147,30 @@ export default class ConnectionManager {
 
   // (Array[Object[Any]]) => Unit
   notifyRoles = (roles) => {
+
     this.#roleLimits = roles.map((r) => r.limit);
     this.#sessionManager.setNumRoles(roles.length);
-    this.#statusSocket.postRoles(roles);
+
+    const promises =
+      roles.map(
+        (role) => {
+
+          const msg         = { ...role.config, type: "role" };
+          const serializedP = this.#rtcManager.asyncSerialize(msg, false);
+
+          return serializedP.then(
+            (data) => {
+              const out = { ...role, data };
+              delete out.config;
+              return out;
+            }
+          );
+
+        }
+      );
+
+    Promise.all(promises).then(this.#statusSocket.postRoles);
+
   };
 
   // (Blob) => Unit
@@ -334,11 +355,11 @@ export default class ConnectionManager {
               reply("login-successful");
 
               this.#awaitJoinerInit(joinerID, username, roleIndex).
-                then(({ baseMessage: { role, state, viewState: view }
+                then(({ baseMessage: { state, viewState: view }
                       , agentMessage
                       }) => {
                   const token        = joinerID;
-                  const initModelMsg = { role, token, state, view };
+                  const initModelMsg = { token, state, view };
                   this.narrowcast    (token, "initial-model" , initModelMsg);
                   this.narrowcastFlat(token, "assigned-agent", agentMessage);
                   this.#sessionManager.setInitialized(token);

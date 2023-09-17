@@ -1,27 +1,27 @@
-import RxQueue         from "/js/common/rx-queue.js";
-import { uuidToRTCID } from "/js/common/util.js";
-
-import { rtcConfig } from "./webrtc.js";
-
 import ChannelHandler  from "./channel-handler.js";
 import SignalingStream from "./signaling-stream.js";
+import { rtcConfig }   from "./webrtc.js";
 
-import ChatSocket from "/js/common/chat-socket.js";
-import RTCManager from "/js/common/rtc-manager.js";
+import ChatSocket      from "/js/common/chat-socket.js";
+import RTCManager      from "/js/common/rtc-manager.js";
+import RxQueue         from "/js/common/rx-queue.js";
+import { uuidToRTCID } from "/js/common/util.js";
 
 export default class ConnectionManager {
 
   #channel     = undefined; // RTCDataChannel
   #chatSocket  = undefined; // ChatSocket
   #conn        = undefined; // RTCPeerConnection
+  #fetchRole   = undefined; // (UUID, Number) => Unit
   #isLeaving   = undefined; // Boolean
   #rtcMan      = undefined; // RTCManager
   #rxQueue     = undefined; // RxQueue
 
-  // () => ConnectionManager
-  constructor(chatManager) {
-    this.#chatSocket  = new ChatSocket(chatManager);
-    this.#isLeaving   = false;
+  // (ChatManager, (UUID, Number) => Unit) => ConnectionManager
+  constructor(chatManager, fetchRoleData) {
+    this.#chatSocket = new ChatSocket(chatManager);
+    this.#fetchRole  = fetchRoleData;
+    this.#isLeaving  = false;
     this.reset();
   }
 
@@ -41,6 +41,7 @@ export default class ConnectionManager {
   logIn = ( hostID, username, password, roleIndex, genCHBundle, notifyLoggingIn
           , notifyICEConnLost, onDoorbell, notifyUser, notifyFull, onTeardown) =>
           (joinerID) => {
+
     this.#initiateRTC(joinerID).
       then(([channel, offer]) => {
         this.#joinSession( hostID, joinerID, username, password, roleIndex, offer
@@ -153,19 +154,21 @@ export default class ConnectionManager {
     this.#conn.setLocalDescription(offer);
     this.#registerICEListeners(signalingStream, onTeardown, notifyICEConnLost);
     this.#registerChannelListeners( channel, username, password, roleIndex
-                                  , notifyLoggingIn, onDoorbell, onTeardown);
+                                  , hostID, notifyLoggingIn, onDoorbell
+                                  , onTeardown);
 
 
   };
 
-  // ( RTCDataChannel, String, String, Number, () => Unit, () => Unit
-  // , (Boolean) => Unit) => Unit
+  // ( RTCDataChannel, String, String, Number
+  // , UUID, () => Unit, () => Unit, (Boolean) => Unit) => Unit
   #registerChannelListeners = ( channel, username, password, roleIndex
-                              , notifyLoggingIn, onDoorbell, onTeardown) => {
+                              , hostID, notifyLoggingIn, onDoorbell, onTeardown) => {
 
     channel.onopen = () => {
       notifyLoggingIn();
       onDoorbell();
+      this.#fetchRole(hostID, roleIndex);
       this.#rtcMan.sendGreeting(this.#channel);
       this.send("login", { username, password, roleIndex });
     };

@@ -94,13 +94,13 @@ export default class RTCManager {
     if (jsonLength <= chunkSize) {
       channels.forEach((channel) => {
         const id = idMap.get(channel);
-        this.#asyncSerialize({ ...fullMsg, microBurstID: id }).then(
+        this.asyncSerialize({ ...fullMsg, microBurstID: id }).then(
           (microBurst) => this.#logAndSend(microBurst, channel)
         );
       });
     } else {
 
-      this.#asyncSerialize(fullMsg).then(
+      this.asyncSerialize(fullMsg).then(
         (serialized) => {
 
           const chunks = chunkForSending(serialized);
@@ -131,7 +131,7 @@ export default class RTCManager {
   };
 
   // (Object[Any]) => Promise[Any]
-  #asyncSerialize = (parcel) => {
+  asyncSerialize = (parcel) => {
     return this.#serializer.await(this.#isHost, parcel);
   };
 
@@ -158,14 +158,14 @@ export default class RTCManager {
   // (RTCDataChannel) => (String, Any, UUID) => Unit
   #send = (channel) => (type, obj, id = this.#genChanID(channel)) => {
     const parcel = { ...obj, id, type };
-    this.#asyncSerialize(parcel).then(
+    this.asyncSerialize(parcel).then(
       (serialized) => this.#logAndSend(serialized, channel)
     );
   };
 
   // (RTCDataChannel) => (String, Any) => Unit
   #sendOOB = (channel) => (type, obj) => {
-    this.#asyncSerialize({ type, ...obj }).then(
+    this.asyncSerialize({ type, ...obj }).then(
       (serialized) => {
         this.#logAndSend(serialized, channel);
       }

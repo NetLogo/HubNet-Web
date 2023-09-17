@@ -418,96 +418,8 @@ const rejiggerInitialModel = (obj) => {
     if (k0 === "token") {
       rejiggerToken(v0, out);
     } else if (k0 === "role") {
-
       out[k0] = {};
-      for (const k1 in v0) {
-
-        const v1 = v0[k1];
-        if (k1 === "widgets") {
-
-          out[k0][k1] = [];
-
-          for (const k2 in v1) {
-
-            const widget = v1[k2];
-
-            // Rejigger initial-model.role.widgets > [type="button"], etc.
-            if (widget.type === "hnwButton") {
-              const outer = { button: deepClone(widget, { type: 1 }) };
-              out[k0][k1].push(outer);
-            } else if (widget.type === "hnwChooser") {
-              const outer = { chooser: deepClone(widget, { type: 1 }) };
-              transform(outer.chooser)("choices", (xs) => JSON.stringify(xs));
-              out[k0][k1].push(outer);
-            } else if (widget.type === "hnwInputBox") {
-
-              transform(widget)("boxedValue", (bv) => {
-
-                bv.boxType = bv.type;
-                delete bv.type;
-
-                if (bv.boxType.startsWith("String")) {
-                  bv.strValue = bv.value;
-                } else {
-                  bv.numValue = bv.value;
-                }
-
-                delete bv.value;
-
-                return bv;
-
-              });
-
-              const outer = { inputBox: deepClone(widget, { type: 1 }) };
-              out[k0][k1].push(outer);
-
-            } else if (widget.type === "hnwMonitor") {
-              const outer = { monitor: deepClone(widget, { type: 1 }) };
-              out[k0][k1].push(outer);
-            } else if (widget.type === "hnwOutput") {
-              const outer = { output: deepClone(widget, { type: 1 }) };
-              out[k0][k1].push(outer);
-            } else if (widget.type === "hnwPlot") {
-
-              const outer = { plot: deepClone(widget, { type: 1 }) };
-
-              transform(outer.plot)("xmin", (x) => Math.round(x * 10));
-              transform(outer.plot)("xmax", (x) => Math.round(x * 10));
-              transform(outer.plot)("ymin", (y) => Math.round(y * 10));
-              transform(outer.plot)("ymax", (y) => Math.round(y * 10));
-
-              const pens = Object.values(outer.plot.pens);
-              pens.forEach(
-                (pen) =>
-                  transform(pen)("interval", (i) => Math.round(i * 100))
-              );
-
-              out[k0][k1].push(outer);
-
-            } else if (widget.type === "hnwSlider") {
-              const outer = { slider: deepClone(widget, { type: 1 }) };
-              out[k0][k1].push(outer);
-            } else if (widget.type === "hnwSwitch") {
-              const outer = { switch: deepClone(widget, { type: 1 }) };
-              out[k0][k1].push(outer);
-            } else if (widget.type === "hnwTextBox") {
-              const outer = { textBox: deepClone(widget, { type: 1 }) };
-              rejiggerColor(outer.textBox, "color");
-              out[k0][k1].push(outer);
-            } else if (widget.type === "hnwView") {
-              const outer = { view: deepClone(widget, { type: 1 }) };
-              out[k0][k1].push(outer);
-            } else {
-              console.log("This widget type shouldn't be possible...", widget);
-            }
-          }
-
-        } else {
-          out[k0][k1] = v1;
-        }
-
-      }
-
+      rejiggerRole(v0, out[k0]);
     } else if (k0 === "state") {
       out[k0] = {};
       rejiggerStateUpdateInner(v0, out[k0]);
@@ -518,6 +430,98 @@ const rejiggerInitialModel = (obj) => {
   }
 
   return out;
+
+};
+
+const rejiggerRole = (target, parent) => {
+
+  for (const k0 in target) {
+
+    const v1 = target[k0];
+    if (k0 === "widgets") {
+
+      parent[k0] = [];
+
+      for (const k1 in v1) {
+
+        const widget = v1[k1];
+
+        // Rejigger initial-model.role.widgets > [type="button"], etc.
+        if (widget.type === "hnwButton") {
+          const outer = { button: deepClone(widget, { type: 1 }) };
+          parent[k0].push(outer);
+        } else if (widget.type === "hnwChooser") {
+          const outer = { chooser: deepClone(widget, { type: 1 }) };
+          transform(outer.chooser)("choices", (xs) => JSON.stringify(xs));
+          parent[k0].push(outer);
+        } else if (widget.type === "hnwInputBox") {
+
+          transform(widget)("boxedValue", (bv) => {
+
+            bv.boxType = bv.type;
+            delete bv.type;
+
+            if (bv.boxType.startsWith("String")) {
+              bv.strValue = bv.value;
+            } else {
+              bv.numValue = bv.value;
+            }
+
+            delete bv.value;
+
+            return bv;
+
+          });
+
+          const outer = { inputBox: deepClone(widget, { type: 1 }) };
+          parent[k0].push(outer);
+
+        } else if (widget.type === "hnwMonitor") {
+          const outer = { monitor: deepClone(widget, { type: 1 }) };
+          parent[k0].push(outer);
+        } else if (widget.type === "hnwOutput") {
+          const outer = { output: deepClone(widget, { type: 1 }) };
+          parent[k0].push(outer);
+        } else if (widget.type === "hnwPlot") {
+
+          const outer = { plot: deepClone(widget, { type: 1 }) };
+
+          transform(outer.plot)("xmin", (x) => Math.round(x * 10));
+          transform(outer.plot)("xmax", (x) => Math.round(x * 10));
+          transform(outer.plot)("ymin", (y) => Math.round(y * 10));
+          transform(outer.plot)("ymax", (y) => Math.round(y * 10));
+
+          const pens = Object.values(outer.plot.pens);
+          pens.forEach(
+            (pen) =>
+              transform(pen)("interval", (i) => Math.round(i * 100))
+          );
+
+          parent[k0].push(outer);
+
+        } else if (widget.type === "hnwSlider") {
+          const outer = { slider: deepClone(widget, { type: 1 }) };
+          parent[k0].push(outer);
+        } else if (widget.type === "hnwSwitch") {
+          const outer = { switch: deepClone(widget, { type: 1 }) };
+          parent[k0].push(outer);
+        } else if (widget.type === "hnwTextBox") {
+          const outer = { textBox: deepClone(widget, { type: 1 }) };
+          rejiggerColor(outer.textBox, "color");
+          parent[k0].push(outer);
+        } else if (widget.type === "hnwView") {
+          const outer = { view: deepClone(widget, { type: 1 }) };
+          parent[k0].push(outer);
+        } else {
+          console.log("This widget type shouldn't be possible...", widget);
+        }
+      }
+
+    } else {
+      parent[k0] = v1;
+    }
+
+  }
 
 };
 
@@ -982,105 +986,8 @@ const recombobulateInitialModel = (obj) => {
     const v0 = obj[k0];
 
     if (k0 === "role") {
-
       out[k0] = {};
-      for (const k1 in v0) {
-
-        const v1 = v0[k1];
-        if (k1 === "widgets") {
-
-          out[k0][k1] = [];
-
-          // Recombobulate initial-model.role.widgets > *, etc.
-          for (const k2 in v1) {
-
-            const widget = v1[k2];
-
-            if (widget.button !== undefined) {
-              const inner = widget.button;
-              out[k0][k1].push({ type: "hnwButton", ...inner });
-            } else if (widget.chooser !== undefined) {
-
-              const inner      = widget.chooser;
-              const newChooser = { type: "hnwChooser", ...inner };
-              transform(newChooser)("choices", (str) => JSON.parse(str));
-
-              out[k0][k1].push(newChooser);
-
-            } else if (widget.inputBox !== undefined) {
-
-              const inner = widget.inputBox;
-
-              transform(inner)("boxedValue", (bv) => {
-
-                bv.type = bv.boxType;
-                delete bv.boxType;
-
-                bv.value = bv.strValue || bv.numValue;
-                delete bv.numValue;
-                delete bv.strValue;
-
-                return bv;
-
-              });
-
-              out[k0][k1].push({ type: "hnwInputBox", ...inner });
-
-            } else if (widget.monitor !== undefined) {
-              const inner = widget.monitor;
-              out[k0][k1].push({ type: "hnwMonitor", ...inner });
-            } else if (widget.output !== undefined) {
-              const inner = widget.output;
-              out[k0][k1].push({ type: "hnwOutput", ...inner });
-            } else if (widget.plot !== undefined) {
-
-              const inner   = deepClone(widget.plot);
-              const newPlot = { type: "hnwPlot", ...inner };
-
-              transform(newPlot)("xmin", (x) => x / 10);
-              transform(newPlot)("xmax", (x) => x / 10);
-              transform(newPlot)("ymin", (y) => y / 10);
-              transform(newPlot)("ymax", (y) => y / 10);
-
-              newPlot.pens = newPlot.pens || {};
-
-              const pens = Object.values(newPlot.pens);
-              pens.forEach(
-                (pen) =>
-                  transform(pen)("interval", (i) => i / 100)
-              );
-
-              out[k0][k1].push(newPlot);
-
-            } else if (widget.slider !== undefined) {
-              const inner = widget.slider;
-              out[k0][k1].push({ type: "hnwSlider", ...inner });
-            } else if (widget.switch !== undefined) {
-              const inner = widget.switch;
-              out[k0][k1].push({ type: "hnwSwitch", ...inner });
-            } else if (widget.textBox !== undefined) {
-              const inner       = widget.textBox;
-              const replacement = { type: "hnwTextBox", ...deepClone(inner) };
-              recombobulateColor(replacement, "color");
-              out[k0][k1].push(replacement);
-            } else if (widget.view !== undefined) {
-              const inner  = deepClone(widget.view);
-              inner.height = inner.bottom - inner.top;
-              inner.width  = inner.right  - inner.left;
-              out[k0][k1].push({ type: "hnwView", ...inner });
-            } else {
-              const s = "Well, that's impressive.  What widget type could this be?";
-              console.warn(s, widget);
-            }
-
-          }
-
-        } else {
-          out[k0][k1] = v1;
-        }
-
-      }
-
+      recombobulateRole(v0, out[k0]);
     } else if (k0 === "state") {
       out[k0] = {};
       recombobulateStateUpdateInner(v0, out[k0]);
@@ -1091,6 +998,107 @@ const recombobulateInitialModel = (obj) => {
   }
 
   return out;
+
+};
+
+const recombobulateRole = (target, parent) => {
+
+  for (const k0 in target) {
+
+    const v1 = target[k0];
+    if (k0 === "widgets") {
+
+      parent[k0] = [];
+
+      // Recombobulate initial-model.role.widgets > *, etc.
+      for (const k1 in v1) {
+
+        const widget = v1[k1];
+
+        if (widget.button !== undefined) {
+          const inner = widget.button;
+          parent[k0].push({ type: "hnwButton", ...inner });
+        } else if (widget.chooser !== undefined) {
+
+          const inner      = widget.chooser;
+          const newChooser = { type: "hnwChooser", ...inner };
+          transform(newChooser)("choices", (str) => JSON.parse(str));
+
+          parent[k0].push(newChooser);
+
+        } else if (widget.inputBox !== undefined) {
+
+          const inner = widget.inputBox;
+
+          transform(inner)("boxedValue", (bv) => {
+
+            bv.type = bv.boxType;
+            delete bv.boxType;
+
+            bv.value = bv.strValue || bv.numValue;
+            delete bv.numValue;
+            delete bv.strValue;
+
+            return bv;
+
+          });
+
+          parent[k0].push({ type: "hnwInputBox", ...inner });
+
+        } else if (widget.monitor !== undefined) {
+          const inner = widget.monitor;
+          parent[k0].push({ type: "hnwMonitor", ...inner });
+        } else if (widget.output !== undefined) {
+          const inner = widget.output;
+          parent[k0].push({ type: "hnwOutput", ...inner });
+        } else if (widget.plot !== undefined) {
+
+          const inner   = deepClone(widget.plot);
+          const newPlot = { type: "hnwPlot", ...inner };
+
+          transform(newPlot)("xmin", (x) => x / 10);
+          transform(newPlot)("xmax", (x) => x / 10);
+          transform(newPlot)("ymin", (y) => y / 10);
+          transform(newPlot)("ymax", (y) => y / 10);
+
+          newPlot.pens = newPlot.pens || {};
+
+          const pens = Object.values(newPlot.pens);
+          pens.forEach(
+            (pen) =>
+              transform(pen)("interval", (i) => i / 100)
+          );
+
+          parent[k0].push(newPlot);
+
+        } else if (widget.slider !== undefined) {
+          const inner = widget.slider;
+          parent[k0].push({ type: "hnwSlider", ...inner });
+        } else if (widget.switch !== undefined) {
+          const inner = widget.switch;
+          parent[k0].push({ type: "hnwSwitch", ...inner });
+        } else if (widget.textBox !== undefined) {
+          const inner       = widget.textBox;
+          const replacement = { type: "hnwTextBox", ...deepClone(inner) };
+          recombobulateColor(replacement, "color");
+          parent[k0].push(replacement);
+        } else if (widget.view !== undefined) {
+          const inner  = deepClone(widget.view);
+          inner.height = inner.bottom - inner.top;
+          inner.width  = inner.right  - inner.left;
+          parent[k0].push({ type: "hnwView", ...inner });
+        } else {
+          const s = "Well, that's impressive.  What widget type could this be?";
+          console.warn(s, widget);
+        }
+
+      }
+
+    } else {
+      parent[k0] = v1;
+    }
+
+  }
 
 };
 
@@ -1159,6 +1167,11 @@ const rejigger = (msg) => {
     case "state-update": {
       return rejiggerStateUpdate(msg);
     }
+    case "role": {
+      const out = {};
+      rejiggerRole(msg, out);
+      return out;
+    }
     default: {
       return deepClone(msg);
     }
@@ -1182,6 +1195,11 @@ const recombobulate = (msg) => {
     }
     case "state-update": {
       return recombobulateStateUpdate(msg);
+    }
+    case "role": {
+      const out = {};
+      recombobulateRole(msg, out);
+      return out;
     }
     default: {
       return deepClone(msg);

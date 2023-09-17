@@ -11,11 +11,15 @@ import genCHB from "./gen-chan-han-bundle.js";
 
 import ChatManager from "/js/common/ui/chat-manager.js";
 
+import { deserialize } from "/js/serialize/xserialize-root.js";
+
 // (String) => Element?
 const byEID = (eid) => document.getElementById(eid);
 
 // String
 const usernameLSKey = "hnw.global.username";
+
+let role = undefined; // Role
 
 const closedChatBox    = byEID("chat-box-closed");               // Element
 const chatBottom       = byEID("chat-box-closed-bottom");        // Element
@@ -144,6 +148,7 @@ const genBurstQueue = () => {
   const burstBundle =
     { appendOutput:       nlwManager.appendOutput
     , awaitLoadInterface: nlwManager.awaitLoadInterface
+    , getRoleDataP
     , getUsername:        loginControls.getUsername
     , relayToNLW:         nlwManager.relay
     , setOutput:          nlwManager.setOutput
@@ -281,6 +286,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
+// (UUID, Number) => Unit
+const fetchRoleData = (hostID, roleIndex) => {
+  fetch(`/role-data/${hostID}/${roleIndex}`).then((res) => res.text()).then(
+    (data) => {
+      const byteString = atob(data);
+      const empty      = new Uint8Array(byteString.length);
+      const bytes      = empty.map((_, i) => byteString.charCodeAt(i));
+      role             = deserialize(false, false)(bytes);
+    }
+  );
+};
+
+// () => Promise[Role]
+const getRoleDataP = () => {
+  const promise =
+    new Promise(
+      (resolve) => {
+        const poll = () => role !== undefined ? resolve(role) : setTimeout(poll);
+        poll();
+      }
+    );
+  return promise;
+};
+
 const sessionList =
   new SessionList( byEID("session-list-container"), byEID("session-filter-box")
                  , processURLHash, statusManager, previewManager
@@ -302,8 +331,7 @@ const globalChatManager =
                  , markGlobalChatUnread
                  , markChatRead);
 
-
-const connMan    = new ConnectionManager(globalChatManager);
+const connMan    = new ConnectionManager(globalChatManager, fetchRoleData);
 const nlwManager = new NLWManager( byEID("nlw-frame"), connMan.send
                                  , onSessionDisconnect, onHNWError);
 const burstQueue = genBurstQueue(); // BurstQueue

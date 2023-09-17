@@ -26,6 +26,7 @@ const basicMap =
   , "no-username-given":      lookupType("NoUsernameGiven")
   , "num-clients":            lookupType("NumClients")
   , "ping":                   lookupType("Ping")
+  , "role":                   lookupType("Role")
   , "role-is-full":           lookupType("RoleIsFull")
   , "set-output":             lookupType("SetOutput")
   , "state-update":           lookupType("StateUpdate")

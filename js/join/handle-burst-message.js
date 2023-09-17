@@ -49,20 +49,24 @@ export default (bundle) => {
 };
 
 // (Object[Any]) => (Object[Any]) => Unit
-const handleInitialModel = (bundle) => ({ role, token, view, state }) => {
+const handleInitialModel = (bundle) => ({ token, view, state }) => {
 
   bundle.statusManager.waitingForNLWBoot();
 
   const awaitInitialInterface =
     () => {
       bundle.statusManager.loadingNLWUI();
-      const initialInterface =
-        { username: bundle.getUsername()
-        , role
-        , token
-        , view
-        };
-      return bundle.awaitLoadInterface(initialInterface);
+      return bundle.getRoleDataP().then(
+        (role) => {
+          const initialInterface =
+            { username: bundle.getUsername()
+            , role
+            , token
+            , view
+            };
+          return bundle.awaitLoadInterface(initialInterface);
+        }
+      );
     };
 
   const postInitialState =

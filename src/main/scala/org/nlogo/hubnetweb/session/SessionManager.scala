@@ -58,12 +58,16 @@ object SessionManagerActor {
                                 , override val replyTo: ActorRef[Option[UUID]]
                                 ) extends SeshMessageAsk[Option[UUID]]
 
-  final case class PulseHost     (hostID: UUID)                                  extends SeshMessage
-  final case class PushFromHost  (hostID: UUID, joinerID: UUID, message: String) extends SeshMessage
-  final case class PushFromJoiner(hostID: UUID, joinerID: UUID, message: String) extends SeshMessage
-  final case class RegisterRoles (hostID: UUID, pairs:    Seq[(String, Int)])    extends SeshMessage
-  final case class UpdateNumPeers(hostID: UUID, numPeers: Seq[Int])              extends SeshMessage
-  final case class UpdatePreview (hostID: UUID, base64:   String)                extends SeshMessage
+  final case class RoleData( hostID: UUID, roleIndex: Int
+                           , override val replyTo: ActorRef[Either[String, String]]
+                           ) extends SeshMessageAsk[Either[String, String]]
+
+  final case class PulseHost     (hostID: UUID)                                       extends SeshMessage
+  final case class PushFromHost  (hostID: UUID, joinerID: UUID, message: String)      extends SeshMessage
+  final case class PushFromJoiner(hostID: UUID, joinerID: UUID, message: String)      extends SeshMessage
+  final case class RegisterRoles (hostID: UUID, triples:  Seq[(String, Int, String)]) extends SeshMessage
+  final case class UpdateNumPeers(hostID: UUID, numPeers: Seq[Int])                   extends SeshMessage
+  final case class UpdatePreview (hostID: UUID, base64:   String)                     extends SeshMessage
 
   def apply(): Behavior[SeshMessage] =
     Behaviors.receive {
@@ -118,6 +122,10 @@ object SessionManagerActor {
 
           case RegisterRoles(hostID, configs) =>
             SessionManager.registerRoles(hostID, configs)
+            Behaviors.same
+
+          case RoleData(hostID, roleIndex, replyTo) =>
+            replyTo ! SessionManager.getRoleData(hostID, roleIndex)
             Behaviors.same
 
           case UpdateNumPeers(hostID, numPeers) =>
@@ -200,15 +208,15 @@ private object SessionManager {
       session => sessionMap(hostID) = session.copy(lastCheckInTimestamp = System.currentTimeMillis())
     }
 
-  def registerRoles(hostID: UUID, configs: Seq[(String, Int)]): Unit = {
+  def registerRoles(hostID: UUID, configs: Seq[(String, Int, String)]): Unit = {
 
     pulseHost(hostID)
 
     val infos =
       configs.map({
-        case (name, limit) => {
+        case (name, limit, data) => {
           val l = if (limit == -1) None else Some(limit)
-          RoleInfo(name, 0, l)
+          RoleInfo(name, 0, l, data)
         }
       })
 
@@ -217,6 +225,11 @@ private object SessionManager {
         infos.foreach((ri) => sm.roleInfo += ri.name -> ri)
     }
 
+  }
+
+  def getRoleData(hostID: UUID, roleIndex: Int): Either[String, String] = {
+    val error = s"No such role index '${roleIndex}' in session"
+    getEither(hostID)(_.roleInfo.values.toIndexedSeq.lift(roleIndex).map(_.data).toRight(error))
   }
 
   def updateNumPeers(hostID: UUID, numPeers: Seq[Int]): Unit = {
@@ -344,7 +357,7 @@ case class ConnectionInfo( joinerIDs: Vector[UUID]
                          , fromHostMap: Map[UUID, Vector[String]]
                          , fromJoinerMap: Map[UUID, Vector[String]])
 
-case class RoleInfo(name: String, var numInRole: Int, limit: Option[Int])
+case class RoleInfo(name: String, var numInRole: Int, limit: Option[Int], data: String)
 
 case class SessionInfo( uuid: UUID, name: String, password: Option[String]
                       , roleInfo: LHM[String, RoleInfo], connInfo: ConnectionInfo

@@ -54,7 +54,10 @@ onmessage = (e) => {
     }
 
     case "role-config": {
-      socket.send("role-config", { roles: e.data.roles });
+      const convArr  = (arr) => btoa(String.fromCharCode(...arr));
+      const convData = (  r) => ({ ...r, data: convArr(r.data) });
+      const roles    = e.data.roles.map(convData);
+      socket.send("role-config", { roles });
       break;
     }
 

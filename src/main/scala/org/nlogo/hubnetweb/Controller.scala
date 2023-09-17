@@ -24,7 +24,7 @@ import akka.actor.typed.{ ActorRef, ActorSystem => TASystem }
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.actor.typed.scaladsl.Behaviors
 
-import spray.json.{ JsArray, JsNumber, JsObject, JsonParser, JsString
+import spray.json.{ JsArray, JsNumber, JsObject, JsonParser, JsString, JsValue
                   , RootJsonFormat }
 
 import session.{ SessionInfo, SessionManagerActor }
@@ -32,7 +32,8 @@ import session.SessionManagerActor.{ CreateSession, DelistSession, GetPreview
                                    , GetSessions, PullFromHost, PullFromJoiner
                                    , PullJoinerIDs, PulseHost, PushFromHost
                                    , PushFromJoiner, PushNewJoiner, RegisterRoles
-                                   , SeshMessageAsk, UpdateNumPeers, UpdatePreview
+                                   , RoleData, SeshMessageAsk, UpdateNumPeers
+                                   , UpdatePreview
                                    }
 
 import ChatManagerActor.{ Census, ChatMessageAsk, LogChat, LogTick, PullBuffer
@@ -115,6 +116,7 @@ object Controller {
       path("about")            { getFromFile("html/about.html") } ~
       path("available-models") { get { complete(availableModels) } } ~
       path("library-config")   { get { complete(libraryConfig) } } ~
+      path("role-data" / Segment / Segment) { (hostID, roleIndex) => get { roleData(toID(hostID), roleIndex.toInt) } } ~
       path("chat")                             { handleWebSocketMessages(chat()) } ~
       path("rtc" / "join" / Segment)           { (hostID)           => get { startJoin(toID(hostID)) } } ~
       path("rtc" / Segment / Segment / "host") { (hostID, joinerID) => handleWebSocketMessages(rtcHost(toID(hostID), toID(joinerID))) } ~
@@ -175,6 +177,10 @@ object Controller {
 
     })
 
+  }
+
+  private def roleData(uuid: UUID, roleIndex: Int): RequestContext => Future[RouteResult] = {
+    askSeshFor(RoleData(uuid, roleIndex, _)).fold(msg => complete((NotFound, msg)), msg => complete(msg))
   }
 
   private def handlePreview(uuid: UUID): RequestContext => Future[RouteResult] = {
@@ -362,16 +368,17 @@ object Controller {
 
                   val JsArray(configs) = parsed.fields("roles")
 
-                  val pairs =
+                  val triples =
                     configs.map {
                       (x) =>
                         val obj             = x.asInstanceOf[JsObject]
                         val JsString( name) = obj.fields("name")
                         val JsNumber(limit) = obj.fields("limit")
-                        (name, limit.toInt)
+                        val JsString( data) = obj.fields("data")
+                        (name, limit.toInt, data)
                     }
 
-                  seshManager ! RegisterRoles(hostID, pairs)
+                  seshManager ! RegisterRoles(hostID, triples)
 
                 case JsString("members-update") =>
                   val JsArray(xs) = parsed.fields("memberInfo")
