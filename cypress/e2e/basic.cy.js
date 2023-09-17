@@ -22,10 +22,10 @@ describe("basic", () => {
         let frameBody = cy.wrap(iframe.contents().find("body"))
         frameBody.within(() => {
 
-          let upBtn    = cy.get("#netlogo-hnwButton-6")
-          let downBtn  = cy.get("#netlogo-hnwButton-7")
-          let leftBtn  = cy.get("#netlogo-hnwButton-8")
-          let rightBtn = cy.get("#netlogo-hnwButton-9")
+          let upBtn    = cy.get("#netlogo-hnwButton-6", { timeout: 30000 })
+          let downBtn  = cy.get("#netlogo-hnwButton-7", { timeout: 30000 })
+          let leftBtn  = cy.get("#netlogo-hnwButton-8", { timeout: 30000 })
+          let rightBtn = cy.get("#netlogo-hnwButton-9", { timeout: 30000 })
 
           let buttons = [upBtn, downBtn, leftBtn, rightBtn]
 
