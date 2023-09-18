@@ -14,21 +14,25 @@ import DeserializerPoolParty from "/js/serialize/deserializer-pool-party.js";
 
 export default class ConnectionManager {
 
-  #awaitJoinerInit  = undefined; // (UUID, String, Number) => Promise[Object[Any]]
-  #broadSocket      = undefined; // BroadSocket
-  #chatManager      = undefined; // ChatManager
-  #chatSocket       = undefined; // ChatSocket
-  #deserializer     = undefined; // DeserializerPoolParty
-  #notifyUser       = undefined; // (String) => Unit
-  #onDisconnect     = undefined; // (UUID) => Unit
-  #passwordMatches  = undefined; // (String) => Boolean
-  #persistentPops   = undefined; // Array[Number]
-  #registerPingTime = undefined; // (UUID, Number) => Unit
-  #relay            = undefined; // (Object[Any]) => Unit
-  #roleLimits       = undefined; // Array[Number]
-  #rtcManager       = undefined; // RTCManager
-  #sessionManager   = undefined; // SessionManager
-  #statusSocket     = undefined; // StatusSocket
+  // type InitParams = { joinerID :: UUID, username :: String, roleIndex :: Number }
+
+  #awaitJoinerInit   = undefined; // (UUID, String, Number) => Promise[Object[Any]]
+  #broadSocket       = undefined; // BroadSocket
+  #chatManager       = undefined; // ChatManager
+  #chatSocket        = undefined; // ChatSocket
+  #deserializer      = undefined; // DeserializerPoolParty
+  #initQueue         = undefined; // Array[InitParams]
+  #initQueueIsLocked = undefined; // Boolean
+  #notifyUser        = undefined; // (String) => Unit
+  #onDisconnect      = undefined; // (UUID) => Unit
+  #passwordMatches   = undefined; // (String) => Boolean
+  #persistentPops    = undefined; // Array[Number]
+  #registerPingTime  = undefined; // (UUID, Number) => Unit
+  #relay             = undefined; // (Object[Any]) => Unit
+  #roleLimits        = undefined; // Array[Number]
+  #rtcManager        = undefined; // RTCManager
+  #sessionManager    = undefined; // SessionManager
+  #statusSocket      = undefined; // StatusSocket
 
   // ( ChatManager, ChatManager, (UUID, String, Number) => Promise[Object[Any]]
   // , (UUID, Number) => Unit, (Object[Any]) => Unit, (UUID) => Unit
@@ -39,19 +43,21 @@ export default class ConnectionManager {
              , onConnStatChange, passwordMatches, maxCapacity
              , notifyUser) {
 
-    this.#awaitJoinerInit  = awaitJoinerInit;
-    this.#broadSocket      = new BroadSocket();
-    this.#chatManager      = sessionChatManager;
-    this.#chatSocket       = new ChatSocket(globalChatManager);
-    this.#deserializer     = new DeserializerPoolParty();
-    this.#notifyUser       = notifyUser;
-    this.#onDisconnect     = onDisconnect;
-    this.#passwordMatches  = passwordMatches;
-    this.#registerPingTime = registerPing;
-    this.#relay            = relay;
-    this.#rtcManager       = new RTCManager(true);
-    this.#sessionManager   = new SessionManager(maxCapacity, onConnStatChange);
-    this.#statusSocket     = new StatusSocket();
+    this.#awaitJoinerInit   = awaitJoinerInit;
+    this.#broadSocket       = new BroadSocket();
+    this.#chatManager       = sessionChatManager;
+    this.#chatSocket        = new ChatSocket(globalChatManager);
+    this.#deserializer      = new DeserializerPoolParty();
+    this.#initQueue         = [];
+    this.#initQueueIsLocked = false;
+    this.#notifyUser        = notifyUser;
+    this.#onDisconnect      = onDisconnect;
+    this.#passwordMatches   = passwordMatches;
+    this.#registerPingTime  = registerPing;
+    this.#relay             = relay;
+    this.#rtcManager        = new RTCManager(true);
+    this.#sessionManager    = new SessionManager(maxCapacity, onConnStatChange);
+    this.#statusSocket      = new StatusSocket();
 
     sessionChatManager.onSend(
       (message) => {
@@ -128,6 +134,16 @@ export default class ConnectionManager {
     const channel = this.#sessionManager.getOpenChannelByID(joinerID, true);
     if (channel !== null) {
       this.#rtcManager.sendBurst(channel)(type, message);
+    }
+  };
+
+  // (UUID, String, Object[Any]?) => Promise[Unit]
+  narrowcastAsync = (joinerID, type, message = {}) => {
+    const channel = this.#sessionManager.getOpenChannelByID(joinerID, true);
+    if (channel !== null) {
+      return this.#rtcManager.sendBurst(channel)(type, message);
+    } else {
+      throw new Error(`Tried to send on unknown channel: ${joinerID} | ${type}`);
     }
   };
 
@@ -354,17 +370,8 @@ export default class ConnectionManager {
               this.#sessionManager.logIn(joinerID, username, roleIndex);
               reply("login-successful");
 
-              this.#awaitJoinerInit(joinerID, username, roleIndex).
-                then(({ baseMessage: { state, viewState: view }
-                      , agentMessage
-                      }) => {
-                  const token        = joinerID;
-                  const initModelMsg = { token, state, view };
-                  this.narrowcast    (token, "initial-model" , initModelMsg);
-                  this.narrowcastFlat(token, "assigned-agent", agentMessage);
-                  this.#sessionManager.setInitialized(token);
-                  this.#broadcastNumClients();
-                });
+              this.#initQueue.push({ joinerID, username, roleIndex });
+              this.#processInitQueue();
 
             } else {
               reply("role-is-full");
@@ -381,6 +388,43 @@ export default class ConnectionManager {
 
     } else {
       reply("no-username-given");
+    }
+
+  };
+
+  // () => Unit
+  #processInitQueue = () => {
+
+    if (this.#initQueue.length > 0 && !this.#initQueueIsLocked) {
+
+      this.#initQueueIsLocked = true;
+
+      const { joinerID, username, roleIndex } = this.#initQueue.shift();
+
+      this.#awaitJoinerInit(joinerID, username, roleIndex).
+        then(({ baseMessage: { state, viewState: view }
+              , agentMessage
+              }) => {
+
+          const token        = joinerID;
+          const initModelMsg = { token, state, view };
+
+          return this.narrowcastAsync(token, "initial-model", initModelMsg).
+            then(() => [token, agentMessage]);
+
+        }).then(
+          ([token, agentMessage]) => {
+
+            this.narrowcastFlat(token, "assigned-agent", agentMessage);
+            this.#sessionManager.setInitialized(token);
+            this.#broadcastNumClients();
+
+            this.#initQueueIsLocked = false;
+            this.#processInitQueue();
+
+          }
+        );
+
     }
 
   };
