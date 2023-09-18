@@ -84,13 +84,49 @@ const rejiggerLinks = (links, parent) => {
   );
 };
 
-// (Object[Any], Object[Any]) => Unit
-const rejiggerPatches = (patches, parent) => {
-  Object.entries(patches).forEach(
+// (Object[Any], Object[Any], Boolean) => Unit
+const rejiggerPatches = (patches, parent, isInitial) => {
+
+  let truePatches = patches;
+
+  /* eslint-disable dot-notation */
+  if (isInitial) {
+
+    const ps          = Object.values(patches);
+    const template    = {};
+
+    const basis          = ps[0];
+    const baseColor      = basis["pcolor"];
+    const baseLabel      = basis["plabel"];
+    const baseLabelColor = basis["plabel-color"];
+
+    if (ps.every((p) => p["pcolor"]       === baseColor) &&
+        ps.every((p) => p["plabel"]       === baseLabel) &&
+        ps.every((p) => p["plabel-color"] === baseLabelColor)) {
+
+      template["pcolor"]       = baseColor;
+      template["plabel"]       = baseLabel;
+      template["plabel-color"] = baseLabelColor;
+
+      const xcors = ps.map((p) => p.pxcor);
+      const ycors = ps.map((p) => p.pycor);
+
+      template["max-x"] = Math.max(...xcors);
+      template["max-y"] = Math.max(...ycors);
+      template["min-x"] = Math.min(...xcors);
+      template["min-y"] = Math.min(...ycors);
+
+      truePatches = { 0: template };
+
+    }
+    /* eslint-enable dot-notation */
+
+  }
+
+  Object.entries(truePatches).forEach(
     ([who, patch]) => {
 
-      const p     = deepClone(patch, {}, true);
-      const xform = transform(p);
+      const p = deepClone(patch, {}, true);
 
       rejiggerColor(p, "pcolor");
       rejiggerColor(p, "plabel-color");
@@ -102,6 +138,7 @@ const rejiggerPatches = (patches, parent) => {
 
     }
   );
+
 };
 
 // (Object[Any], Object[Any]) => Unit
@@ -225,8 +262,8 @@ const rejiggerWorlds = (worlds, parent) => {
   );
 };
 
-// (Object[Any], Object[Any]) => Unit
-const rejiggerViewUpdates = (target, parent) => {
+// (Object[Any], Object[Any], Boolean) => Unit
+const rejiggerViewUpdates = (target, parent, isInitial) => {
   for (const k0 in target) {
     const v0 = target[k0];
     if (k0 === "links") {
@@ -234,7 +271,7 @@ const rejiggerViewUpdates = (target, parent) => {
       rejiggerLinks(v0, parent[k0]);
     } else if (k0 === "patches") {
       parent[k0] = {};
-      rejiggerPatches(v0, parent[k0]);
+      rejiggerPatches(v0, parent[k0], isInitial);
     } else if (k0 === "turtles") {
       parent[k0] = {};
       rejiggerTurtles(v0, parent[k0]);
@@ -422,7 +459,7 @@ const rejiggerInitialModel = (obj) => {
       rejiggerRole(v0, out[k0]);
     } else if (k0 === "state") {
       out[k0] = {};
-      rejiggerStateUpdateInner(v0, out[k0]);
+      rejiggerStateUpdateInner(v0, out[k0], true);
     } else {
       out[k0] = v0;
     }
@@ -525,13 +562,13 @@ const rejiggerRole = (target, parent) => {
 
 };
 
-// (Object[Any], Object[Any]) => Unit
-const rejiggerStateUpdateInner = (target, parent) => {
+// (Object[Any], Object[Any], Boolean) => Unit
+const rejiggerStateUpdateInner = (target, parent, isInitial) => {
   for (const k0 in target) {
     const v0 = target[k0];
     if (k0 === "viewUpdate") {
       parent[k0] = {};
-      rejiggerViewUpdates(v0, parent[k0]);
+      rejiggerViewUpdates(v0, parent[k0], isInitial);
     } else if (k0 === "chooserUpdates") {
       parent[k0] = {};
       rejiggerChooserUpdates(v0, parent[k0]);
@@ -559,7 +596,7 @@ const rejiggerStateUpdate = (obj) => {
     const v0 = obj[k0];
     if (k0 === "update") {
       out[k0] = {};
-      rejiggerStateUpdateInner(v0, out[k0]);
+      rejiggerStateUpdateInner(v0, out[k0], false);
     } else {
       out[k0] = deepClone(v0);
     }
@@ -597,13 +634,13 @@ const recombobulateLinks = (links, parent) => {
   );
 };
 
-// (Object[Any], Object[Any]) => Object[Any]
-const recombobulatePatches = (patches, parent) => {
+// (Object[Any], Object[Any], Boolean) => Object[Any]
+const recombobulatePatches = (patches, parent, isInitial) => {
+
   Object.entries(patches).forEach(
     ([who, patch]) => {
 
-      const p     = deepClone(patch);
-      const xform = transform(p);
+      const p = deepClone(patch);
 
       recombobulateColor(p, "pcolor"      );
       recombobulateColor(p, "plabel-color");
@@ -615,6 +652,24 @@ const recombobulatePatches = (patches, parent) => {
 
     }
   );
+
+  if (isInitial && parent[0]["max-x"] !== undefined) {
+
+    let counter = 0;
+
+    const { "max-x": maxX, "max-y": maxY, "min-x": minX, "min-y": minY
+          , pcolor, plabel, "plabel-color": plabelColor } = patches[0];
+
+    for (let x = minX; x <= maxX; x++) {
+      for (let y = minY; y <= maxY; y++) {
+        const p = { pxcor: x, pycor: y, pcolor, plabel
+                  , "plabel-color": plabelColor };
+        parent[counter++] = p;
+      }
+    }
+
+  }
+
 };
 
 // (Object[Any], Object[Any]) => Object[Any]
@@ -735,8 +790,8 @@ const recombobulateWorlds = (worlds, parent) => {
 };
 
 
-// (Object[Any], Object[Any]) => Object[Any]
-const recombobulateViewUpdates = (target, parent) => {
+// (Object[Any], Object[Any], Boolean) => Object[Any]
+const recombobulateViewUpdates = (target, parent, isInitial) => {
   for (const k0 in target) {
     const v0 = target[k0];
     if (k0 === "links") {
@@ -744,7 +799,7 @@ const recombobulateViewUpdates = (target, parent) => {
       recombobulateLinks(v0, parent[k0]);
     } else if (k0 === "patches") {
       parent[k0] = {};
-      recombobulatePatches(v0, parent[k0]);
+      recombobulatePatches(v0, parent[k0], isInitial);
     } else if (k0 === "turtles") {
       parent[k0] = {};
       recombobulateTurtles(v0, parent[k0]);
@@ -990,7 +1045,7 @@ const recombobulateInitialModel = (obj) => {
       recombobulateRole(v0, out[k0]);
     } else if (k0 === "state") {
       out[k0] = {};
-      recombobulateStateUpdateInner(v0, out[k0]);
+      recombobulateStateUpdateInner(v0, out[k0], true);
     } else {
       out[k0] = v0;
     }
@@ -1102,13 +1157,13 @@ const recombobulateRole = (target, parent) => {
 
 };
 
-// (Object[Any]) => Object[Any]
-const recombobulateStateUpdateInner = (target, parent) => {
+// (Object[Any], Boolean) => Object[Any]
+const recombobulateStateUpdateInner = (target, parent, isInitial) => {
   for (const k0 in target) {
     const v0 = target[k0];
     if (k0 === "viewUpdate") {
       parent[k0] = {};
-      recombobulateViewUpdates(v0, parent[k0]);
+      recombobulateViewUpdates(v0, parent[k0], isInitial);
     } else if (k0 === "chooserUpdates") {
       parent[k0] = {};
       recombobulateChooserUpdates(v0, parent[k0]);
@@ -1139,7 +1194,7 @@ const recombobulateStateUpdate = (obj) => {
     const v0 = obj[k0];
     if (k0 === "update") {
       out[k0] = {};
-      recombobulateStateUpdateInner(v0, out[k0]);
+      recombobulateStateUpdateInner(v0, out[k0], false);
     } else {
       out[k0] = v0;
     }

@@ -34,6 +34,11 @@ const patchFields =
   , "plabel-color": "uint32"
   , "pxcor":        "sint32"
   , "pycor":        "sint32"
+  // Begin patch template optimizations
+  , "max-x":        "uint32"
+  , "max-y":        "uint32"
+  , "min-x":        "sint32"
+  , "min-y":        "sint32"
   // Begin jiggery optimizations
   , "pcolor-r":       "uint32"
   , "pcolor-g":       "uint32"
