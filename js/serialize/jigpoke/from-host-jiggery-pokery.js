@@ -131,9 +131,6 @@ const rejiggerPatches = (patches, parent, isInitial) => {
       rejiggerColor(p, "pcolor");
       rejiggerColor(p, "plabel-color");
 
-      xform("pxcor", (x) => Math.round(x * 10));
-      xform("pycor", (y) => Math.round(y * 10));
-
       parent[who] = p;
 
     }
@@ -644,9 +641,6 @@ const recombobulatePatches = (patches, parent, isInitial) => {
 
       recombobulateColor(p, "pcolor"      );
       recombobulateColor(p, "plabel-color");
-
-      xform("pxcor", (x) => x / 10);
-      xform("pycor", (y) => y / 10);
 
       parent[who] = p;
 
