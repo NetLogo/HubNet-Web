@@ -77,7 +77,7 @@ export default class RTCManager {
     });
   };
 
-  // (RTCDataChannel*) => (String, Any) => Unit
+  // (RTCDataChannel*) => (String, Any) => Promise[Unit]
   sendBurst = (...channels) => (type, msg) => {
 
     // Log the IDs right away, before we do anything async, lest message IDs get
@@ -91,16 +91,18 @@ export default class RTCManager {
     const fullMsg    = { type, ...msg };
     const jsonLength = JSON.stringify(fullMsg).length;
 
+    let promise = undefined;
+
     if (jsonLength <= chunkSize) {
       channels.forEach((channel) => {
         const id = idMap.get(channel);
-        this.asyncSerialize({ ...fullMsg, microBurstID: id }).then(
+        promise = this.asyncSerialize({ ...fullMsg, microBurstID: id }).then(
           (microBurst) => this.#logAndSend(microBurst, channel)
         );
       });
     } else {
 
-      this.asyncSerialize(fullMsg).then(
+      promise = this.asyncSerialize(fullMsg).then(
         (serialized) => {
 
           const chunks = chunkForSending(serialized);
@@ -121,6 +123,8 @@ export default class RTCManager {
       );
 
     }
+
+    return promise;
 
   };
 
