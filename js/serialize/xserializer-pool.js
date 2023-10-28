@@ -48,7 +48,7 @@ const handleMessage = (reqMsgType, innerMsgType, workerPath, poolDesc) => {
     switch (e.data.type) {
       case "client-connect": {
         if (workerPool.length < maxNumWorkers) {
-          initWorker(workerPath);
+          initWorker(workerPath, innerMsgType);
         }
         break;
       }
