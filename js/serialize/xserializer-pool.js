@@ -4,8 +4,16 @@ import genWorker       from "/js/common/worker.js";
 // Number
 const maxNumWorkers = Math.max(1, navigator.hardwareConcurrency);
 
-// Array[{ isIdle: Boolean, worker: WebWorker }]
+// type Job = { parcel: Object[Any], isHost: Boolean
+//            , post: MessagePort, type: String) }
+
+// type WorkerBundle = { isIdle: Boolean, worker: WebWorker }
+
+// Array[WorkerBundle]
 const workerPool = [];
+
+// Array[Job]
+const jobQueue = [];
 
 // (String, String) => Unit
 const initWorker = (workerPath, msgType) => {
@@ -22,22 +30,35 @@ const xserialize = (parcel, isHost, port, type) => {
       (bundle) => bundle.isIdle && bundle.worker.messageType === type
     );
 
+  const job = { parcel, isHost, port, type };
+
   if (workerBundle !== undefined) {
-
-    workerBundle.isIdle = false;
-
-    const message = { parcel, isHost };
-
-    awaitWorker(workerBundle.worker)(type, message).then(
-      (xserialized) => {
-        workerBundle.isIdle = true;
-        port.postMessage(xserialized);
-      }
-    );
-
+    runWorker(job, workerBundle);
   } else {
-    setTimeout((() => xserialize(parcel, isHost, port, type)), 1);
+    jobQueue.push(job);
   }
+
+};
+
+// ({ Object[Any], Boolean, MessagePort, String }, WorkerBundle) => Unit
+const runWorker = ({ parcel, isHost, port, type }, workerBundle) => {
+
+  workerBundle.isIdle = false;
+
+  const message = { parcel, isHost };
+
+  awaitWorker(workerBundle.worker)(type, message).then(
+    (xserialized) => {
+
+      port.postMessage(xserialized);
+
+      if (jobQueue.length > 0) {
+        runWorker(jobQueue.shift(), workerBundle);
+      } else {
+        workerBundle.isIdle = true;
+      }
+    }
+  );
 
 };
 
