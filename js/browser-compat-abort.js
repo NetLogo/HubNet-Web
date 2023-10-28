@@ -1,13 +1,21 @@
-const firefoxBad = `<p>We're sorry, but Firefox is not currently supported.
-  We plan to add support for Firefox once its "module Worker" functionality
-  has been implemented.  Updates on Mozilla's progress can be found on
-  <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1247687">Firefox issue
-  #1247687</a>.</p>`;
+const oldFirefoxBad = `<p>Firefox is only supported for versions 111
+  and later.</p>`;
 
-const useTheseInstead = "<p>In the meantime: Chromium, Brave, Chrome, Opera, Safari, and Edge can all be used to access HubNet Web.</p>";
+const changeFirefoxConfig = `In order to use HubNet Web in Firefox, you will need to enable an flag in your browser's configuration.  To do this, go to the URL 'about:config' and search for 'dom.workers.modules.enabled'.  This flag defaults to 'false', but must be set to 'true'.
 
-const checkUA = (name) => navigator.userAgent.includes(name);
+Would you like to hide this message forever?`;
 
-if (checkUA("Firefox")) {
-  document.body.innerHTML = `${firefoxBad}\n\n${useTheseInstead}`;
+const regex            = /^.*(Firefox)\/([0-9.]+)$/;
+const [ , ff, version] = navigator.userAgent.match(regex);
+
+if (ff !== null) {
+  if (parseFloat(version) >= 111) {
+    const mode = localStorage.getItem("hideFFNotification") || "false";
+    if (mode === "false") {
+      const res = confirm(changeFirefoxConfig) || false;
+      localStorage.setItem("hideFFNotification", res);
+    }
+  } else {
+    document.body.innerHTML = oldFirefoxBad;
+  }
 }
