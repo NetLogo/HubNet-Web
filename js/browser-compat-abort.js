@@ -5,17 +5,20 @@ const changeFirefoxConfig = `In order to use HubNet Web in Firefox, you will nee
 
 Would you like to hide this message forever?`;
 
-const regex            = /^.*(Firefox)\/([0-9.]+)$/;
-const [ , ff, version] = navigator.userAgent.match(regex);
+const regex       = /^.*(Firefox)\/([0-9.]+)$/;
+const browserName = navigator.userAgent;
 
-if (ff !== null) {
-  if (parseFloat(version) >= 111) {
-    const mode = localStorage.getItem("hideFFNotification") || "false";
-    if (mode === "false") {
-      const res = confirm(changeFirefoxConfig) || false;
-      localStorage.setItem("hideFFNotification", res);
+if (regex.test(browserName)) {
+  const [ , ff, version] = browserName.match(regex);
+  if (ff !== null) {
+    if (parseFloat(version) >= 111) {
+      const mode = localStorage.getItem("hideFFNotification") || "false";
+      if (mode === "false") {
+        const res = confirm(changeFirefoxConfig) || false;
+        localStorage.setItem("hideFFNotification", res);
+      }
+    } else {
+      document.body.innerHTML = oldFirefoxBad;
     }
-  } else {
-    document.body.innerHTML = oldFirefoxBad;
   }
 }
