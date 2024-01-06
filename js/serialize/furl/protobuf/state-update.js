@@ -329,8 +329,9 @@ const penColorFields =
   };
 
 const penModeFields =
-  { penName: "string"
-  , mode:    "string"
+  { penName:  "string"
+  , interval: "uint32"
+  , mode:     "string"
   };
 
 const plotUpsFields = { value: ["PlotUpdate", true] };
@@ -344,8 +345,9 @@ const plotFields =
   };
 
 const penFields =
-  { name:  "string"
-  , color: "uint32"
+  { name:     "string"
+  , color:    "uint32"
+  , interval: "uint32"
   // Begin jiggery optimizations
   , "color-r": "uint32"
   , "color-g": "uint32"
