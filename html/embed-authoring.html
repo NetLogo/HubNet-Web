@@ -39,12 +39,11 @@
 
   </body>
 
-  <script>
+  <script type="module">
 
-    const proto = window.location.protocol;
-    const host  = window.location.hostname;
-    const url   = `${proto}//${host}:9000/hnw/authoring?embedded=true`;
+    import { galapagos, galaProto } from "/js/static/domain.js";
 
+    const url   = `${galaProto}://${galapagos}/hnw/authoring?embedded=true`;
     const frame = document.getElementById("embed-frame");
     frame.src   = url;
 
