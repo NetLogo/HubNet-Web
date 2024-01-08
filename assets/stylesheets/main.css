@@ -419,6 +419,7 @@
     background-color: #343434;
     height:           40px;
     justify-content:  space-between;
+    min-height:       40px;
     padding:          0 40px;
     position:         sticky;
     top:              0;
