@@ -435,6 +435,9 @@ end
 to clear-the-plot
   clear-all-plots
   set run-number 0
+  set num-infected-last-plotted-student -1
+  set num-infected-last-plotted-supervisor -1
+  setup-plots
 end
 
 to-report num-turtles
