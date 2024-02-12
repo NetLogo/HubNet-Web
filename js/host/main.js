@@ -31,9 +31,9 @@ const finishLaunch = ({ isSuccess, data, config }) => {
 
     const title = config.modelType === "library" ? config.model : config.sessionName;
 
-    setIT("id-display"        )(hostID);
-    setIT("model-title-header")(title);
-    setIT("stats-session-name")(config.sessionName);
+    setIT("id-display"           )(hostID);
+    setIT("model-title-subheader")(config.sessionName);
+    setIT("model-title-header"   )(title);
 
     history.pushState({ name: "hosting" }, "hosting");
 

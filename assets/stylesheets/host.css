@@ -283,9 +283,16 @@
 .model-title-header {
   font-size:     36px;
   font-weight:   bold;
-  margin-bottom: 40px;
 }
 
+.model-title {
+  align-items: center;
+}
+
+.model-title-subheader {
+  font-size:     24px;
+  margin-bottom: 40px;
+}
 .more-details-button {
   background-color: var(--medium-green);
 }
