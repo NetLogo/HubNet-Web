@@ -315,34 +315,6 @@
   -webkit-appearance: slider-vertical;
 }
 
-.bottom-setup-row {
-  justify-content: center;
-  margin-top:      25px;
-}
-
-.setup-row-button {
-  align-items:     center;
-  border:          2px solid black;
-  display:         flex;
-  font-size:       18px;
-  justify-content: center;
-  user-select:     none;
-}
-
-.setup-button {
-  background-color: var(--medium-blue);
-  margin-right:     50px;
-}
-
-.go-button-standard {
-  background-color: var(--medium-blue);
-}
-
-.go-button-active {
-  background-color: var(--blue-gray);
-  font-weight:      bold;
-}
-
 .drawer-closed {
   align-items:      center;
   background-color: lightgray;

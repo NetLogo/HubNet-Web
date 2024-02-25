@@ -124,8 +124,7 @@ const connMan =
              , notifyUser);
 
 const nlwManager =
-  new NLWManager( byEID("nlw-frame"), byEID("hnw-setup-button")
-                , byEID("hnw-go-button"), connMan.broadcast, connMan.narrowcast
+  new NLWManager( byEID("nlw-frame"), connMan.broadcast, connMan.narrowcast
                 , connMan.notifyPersistentPops, connMan.notifyRoles
                 , onNLWManError);
 

@@ -6,7 +6,6 @@ import NLWManager from "/js/common/ui/nlw-manager.js";
 export default class HostNLWManager extends NLWManager {
 
   #broadcast           = undefined; // (String, Object[Any]?) => Unit
-  #goButton            = undefined; // HTMLButtonElement
   #narrowcast          = undefined; // () => Array[RTCDataChannel]
   #onError             = undefined; // (String) => Unit
   #onPersistentClients = undefined; // (Array[Number]) => Unit
@@ -16,24 +15,20 @@ export default class HostNLWManager extends NLWManager {
   #codePanePort = undefined; // MessagePort
   #infoPanePort = undefined; // MessagePort
 
-  // ( Element, Button, Button, (String, Object[Any]?) => Unit
+  // ( Element, (String, Object[Any]?) => Unit
   // , () => Array[RTCDataChannel], (Array[Number]) => Unit
   // , (Array[Object[Any]]) => Unit, (String) => Unit) => HostNLWManager
-  constructor( outerFrame, setupButton, goButton, broadcast
+  constructor( outerFrame, broadcast
              , narrowcast, onPersistentClients
              , onRoleInfo, onError) {
 
     super(outerFrame);
 
     this.#broadcast           = broadcast;
-    this.#goButton            = goButton;
     this.#narrowcast          = narrowcast;
     this.#onError             = onError;
     this.#onPersistentClients = onPersistentClients;
     this.#onRoleInfo          = onRoleInfo;
-
-    setUpSetup(setupButton, this.relay);
-    setUpGo   (   goButton, this.relay);
 
   }
 
@@ -62,12 +57,6 @@ export default class HostNLWManager extends NLWManager {
     this.#infoPanePort = setUpInfoPane(nlogo, infoFrame, this._galaURL);
 
     this._post({ ...props, type: "hnw-become-oracle", nlogo });
-
-    if (props.onIterate !== null) {
-      this.#goButton.classList.remove("hidden");
-    } else {
-      this.#goButton.classList.add("hidden");
-    }
 
   };
 
@@ -118,11 +107,6 @@ export default class HostNLWManager extends NLWManager {
   _onBabyMonitorMessage = (data) => {
 
     switch (data.type) {
-
-      case "hnw-stop-iterating": {
-        this.#goButton.click();
-        break;
-      }
 
       case "hnw-role-config": {
         this.#onRoleInfo(data.roles);
@@ -274,32 +258,5 @@ const setUpComCen = (nlogo, frame, url, relay) => {
   const urlSuffix  = "command-center-pane";
 
   return setUpPane(nlogo, frame, url, onMsg, onloadType, urlSuffix);
-
-};
-
-// (Button, (Object[Any]) => Unit) => Unit
-const setUpSetup = (setupButton, relay) => {
-  setupButton.onclick = () => {
-    relay({ type: "hnw-setup-button" });
-  };
-};
-
-// (Button, (Object[Any]) => Unit) => Unit
-const setUpGo = (goButton, relay) => {
-
-  goButton.onclick = () => {
-
-    const goWasActive = goButton.classList.contains("go-button-active");
-
-    const [remove, add, text, goStatus] =
-      goWasActive ? ["go-button-active"  , "go-button-standard", "Go"  , false]
-                  : ["go-button-standard", "go-button-active"  , "Stop", true ];
-
-    goButton.classList.remove(remove);
-    goButton.classList.add   (add);
-    goButton.innerText = text;
-    relay({ type: "hnw-go-checkbox", goStatus });
-
-  };
 
 };
