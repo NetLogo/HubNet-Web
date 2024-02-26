@@ -61,6 +61,8 @@ globals
   top-water-previous-value      ;; keeps track of previous top-water value from that chooser, in case it is changed while GO/STOP is running
   bottom-water-previous-value   ;; keeps track of previous bottom-water value from that chooser, in case it is changed while GO/STOP is running
 
+  last-flash-tick
+
   __hnw_supervisor_tank-capacity
   __hnw_supervisor_client-roles
   __hnw_supervisor_amount-of-debris
@@ -92,6 +94,8 @@ end
 ;; so we don't necessarily want to do this each time we setup
 to setup-clear
   clear-all
+
+  set last-flash-tick -1
 
   set __hnw_supervisor_tank-capacity 15
   set __hnw_supervisor_client-roles "all mates"
@@ -303,6 +307,7 @@ to go
   wander
   ask fish [grow-this-fish]
   calculate-statistics
+  handle-flash
   tick
 end
 
@@ -404,16 +409,7 @@ end
 ;; a visualization technique to find fish if you are convinced they are not there anymore
 ;; it allows flashing without actually changing and recalculating the color attribute of the fish
 to flash-fish
-  repeat 3
-  [
-    ask fish [ set color black ask link-neighbors [set color black ]]
-    wait 0.1
-    display
-    ask fish [ set color white ask link-neighbors [set color white ]]
-    wait 0.1
-    display
-  ]
-  ask fish [color-this-fish]
+  set last-flash-tick ticks
 end
 
 to check-finish-flash-predator-strike
@@ -676,6 +672,22 @@ to mutate-size ;; fish procedure
    set size-gene size-gene + (random-float .1) - (random-float .1)
    if size-gene > max-size [set size-gene max-size]
    if size-gene < min-size [set size-gene min-size]
+end
+
+to handle-flash
+  let num-flashes 3
+  let color-duration 3
+  ifelse last-flash-tick >= 0 and last-flash-tick > (ticks - (num-flashes * color-duration * 2)) [
+    let diff (last-flash-tick - ticks)
+    ifelse ((floor (diff / color-duration)) mod 2) = 0 [
+      ask fish [ set color black ask link-neighbors [set color black ] ]
+    ] [
+      ask fish [ set color white ask link-neighbors [set color white ] ]
+    ]
+  ] [
+    set last-flash-tick -1
+    ask fish [ color-this-fish ask link-neighbors [ set color [color] of myself ] ]
+  ]
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
