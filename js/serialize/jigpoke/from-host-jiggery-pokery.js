@@ -652,7 +652,7 @@ const recombobulatePatches = (patches, parent, isInitial) => {
     let counter = 0;
 
     const { "max-x": maxX, "max-y": maxY, "min-x": minX, "min-y": minY
-          , pcolor, plabel, "plabel-color": plabelColor } = patches[0];
+          , pcolor, plabel, "plabel-color": plabelColor } = parent[0];
 
     for (let x = minX; x <= maxX; x++) {
       for (let y = minY; y <= maxY; y++) {
