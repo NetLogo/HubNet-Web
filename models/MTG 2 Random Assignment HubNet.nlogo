@@ -316,6 +316,7 @@ end
 
 to hide-world
   ask patches [ set pcolor gray ]
+  ask students [ visualize-view-points ]
 end
 
 to-report sugar-map
