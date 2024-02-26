@@ -48,11 +48,11 @@ to deal
   set current-player 0
 
   let card-shapes remove "default" shapes
-  let y-max floor (pairs-in-deck * 2 / world-width)
-  let x-max pairs-in-deck * 2 mod world-width
+  let y-max floor (__hnw_supervisor_pairs-in-deck * 2 / world-width)
+  let x-max __hnw_supervisor_pairs-in-deck * 2 mod world-width
   let bounded-patches (patch-set patches with [pycor < y-max]
                                  patches with [pycor = y-max and pxcor < x-max])
-  ask n-of pairs-in-deck bounded-patches
+  ask n-of __hnw_supervisor_pairs-in-deck bounded-patches
   [
     sprout-cards 1
     [
