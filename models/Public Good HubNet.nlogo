@@ -134,7 +134,7 @@ end
 
 to wrap-go
   go
-  every total-turn-time [
+  every __hnw_supervisor_total-turn-time [
     take-money give-money
   ]
 end
