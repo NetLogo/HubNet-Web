@@ -1,0 +1,136 @@
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Conversion Guide | HubNet Web</title>
+    <link href="/assets/stylesheets/main.css" rel="stylesheet">
+    <link href="/assets/stylesheets/docs.css" rel="stylesheet">
+  </head>
+  <body class="not_full_height">
+
+    <div id="page-header" class="page-header flex-row">
+      <a href="/" class="hnw-header-link-wrapper">
+        <div class="hnw-header" id="hnw-header">HubNet Web</div>
+      </a>
+
+      <div class="page-links-dropdown">
+        <div class="navigate-label">
+          <div>Navigate</div>
+          <div class="triangle-down"></div>
+        </div>
+        <div class="page-links-tabs">
+          <a href="/join"      class="page-links">Join</a>
+          <a href="/host"      class="page-links">Host</a>
+          <a href="/authoring" class="page-links">Authoring</a>
+          <a href="/docs"      class="page-links">Docs</a>
+          <a href="/about"     class="page-links">About</a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="outer-content not_full_height">
+      <div class="content">
+        <div class="inner-content" style="margin: 0 10%; text-align: justify;">
+
+          <h1 class="top-header">HubNet Web Conversion Guide</h1>
+
+          <h2>Getting Started</h2>
+
+          <p>This is a guide on how to convert a traditional HubNet model to work in HubNet Web.  Please familiarize yourself with the <a href="/docs/authoring">authoring documentation</a> before attempting to convert a model, as the instructions on this page will assume that you have familiarity with the authoring tool in general.  We recommend reading this entire guide once through, before attempting to do the conversion of a model, since there are many steps involved, and you will likely need to make some changes to your model outside of HubNet Web before it is ready for conversion.  And, while we have designed HubNet Web to make "from scratch" authoring much more approachable, the process of converting old models can still be challenging.</p>
+
+          <p>Before converting a model for HubNet Web, there are two substantial issues that must be addressed: non-compiling code, and code inside of widgets.  Both of these things can be handled by first opening up our model in the desktop NetLogo or NetLogo Web.  NetLogo Web might be preferable, since it will be explicitly clear about the most important matter we have to resolve: the fact that the <code>hubnet-</code> primitives do not exist in HubNet Web.  The desktop version of NetLogo will not give compilation errors in the presence of these primitives, but NetLogo Web will.  Either way, comment out all usages of those primitives, to prepare for the authoring process.  We suggest marking those commented-out lines with something that will make it easy for you to search for them later (like <code>; TODO</code>), since your goal will be to eventually replace all of them with things that work in HubNet Web.</p>
+
+          <p>Next, you need to look inside each of the Buttons, Monitors, and Plots in the host interface.  If each widget is simply calling a single, zero-argument procedure defined in your "Code" tab, that's a great start.  But, often times, widgets will contain multiple primitive or procedure calls, which is not compatible with HubNet Web's way of doing things, where all widget fields can only run a single procedure.  As such, if, for example, your model has a button that says "Add More Agents", we recommend that you create a procedure called <code>add-more-agents</code> in your Code tab, and have the body of that procedure be all of the code that was contained in the "Add More Agents" button.  Then, set the "Add More Agents" button to merely run <code>add-more-agents</code>.</p>
+
+          <p>Once that has been done and everything is compiling, you should be ready to load your model into the HubNet Web authoring tool <a href="/authoring">here</a>.  Once you have loaded the page, choose the "Convert a desktop NetLogo model" option.  If you are still receiving any compilation errors, you will not be able to connect widgets to their respective code, so solving that has to be your first priority.</p>
+
+          <h2>Teacher Interface</h2>
+
+          <p>Once your model is loaded into the conversion tool, page over to the "teacher" role tab.  You should see the host's interface populated into the editor.  Whatever code the "setup" and "go" Buttons were running, make sure that the code now lives entirely in <code>setup</code> and <code>go</code> procedures in the Code tab.  Then, delete any "setup", "go", and "listen clients" Buttons from your teacher role's UI.  HubNet Web automatically creates "setup" and "go" buttons for you, and "listen clients" is not needed in HubNet Web.  You can now page back to the "Code" tab, and connect "On Setup" to <code>setup</code> and "On Go" to <code>go</code>.  Set the frame rate to a number of your choosing ("20" is a good starting point).</p>
+
+          <p>Now, we should embark on connecting the teacher's widgets to things in the Code tab.</p>
+
+          <p>For <strong>Label</strong>, <strong>Output</strong>, and <strong>View</strong> widgets, you should not need to do anything.</p>
+
+          <p>For <strong>Button</strong>, <strong>Monitor</strong>, and <strong>Plot</strong> widgets, go through the widgets and ensure that they are being linked to the procedures that you defined for these widgets in the Code tab.</p>
+
+          <p>For <strong>Chooser</strong>, <strong>Input</strong>, <strong>Slider</strong>, and <strong>Switch</strong> widgets, you will need to have a global variable for each widget.  For each variable name, add <code>__hnw_teacher_[varname]</code> to the <code>globals</code> section of your model's Code tab, replacing <code>[varname]</code> with the variable name used in the widget.  (For example, a <code>num-wolves</code> Slider would need a global variable called <code>__hnw_teacher_num-wolves</code>.)  Then, where ever you reset the state of your model (most likely, somewhere within a <code>startup</code> procedure), set each <code>__hnw_teacher_</code> global that you just added, using the corresponding default value for the widget (which you can see if you look at the model in NetLogo or NetLogo Web).  Finally, recompile the code, and use the widget editor to link each of these widgets to its corresponding global variable.</p>
+
+          <p>If you need to configure anything in the dropdowns at the top of the teacher role pane, you can do so, but, most commonly, teacher roles don't need any more changes beyond just getting the initial widgets wired up.  It's in the "student" role that those dropdowns will get used more heavily.</p>
+
+          <h2>Student Interface</h2>
+
+          <p>Unlike the teacher's interface, the students' will not be automatically imported into HubNet Web.  We will need to rebuild it from scratch, and it will be much more involved than with the teacher's interface.</p>
+
+          <p>First, take a look at your model's code and see if it already has a breed for the students.  It probably does.  If that breed is named "students", then you're all set.  Otherwise, you need to change all references to the breed in the Code tab to be to "students", or to delete the "students" tab and a make a new role with the "+" button—this one bearing the name of your breed (henceforth referred to as "student"/"students").  If you used the "+" to make a role for a breed that already exists, you'll get an error about a duplicate breed definition, which you can resolve by simply removing one of the (now two) lines that define your breed.</p>
+
+          <p>Next, go to the "student" tab.  Size the View how you want, and get all of the widgets added, sized, and positioned where you would like them.  You will need to look at the interface in the desktop NetLogo HubNet Client Editor, if you want to use the original UI as a reference.</p>
+
+          <p>For <strong>Output</strong> and <strong>View</strong> widgets, you should not need to do anything more with them.</p>
+
+          <p>For <strong>Label</strong> widgets, fill them in with whatever text and configuration you want them to have, but they are pretty simple and do not need to hook up to any variables or procedures.</p>
+
+          <p>We'll return to the other widget types later, but we should set up the basics of this role's lifecycle first.  So take note of the variable names used for all <strong>Chooser</strong>, <strong>Input</strong>, <strong>Slider</strong>, and <strong>Switch</strong> widgets.  Then, go over to the Code tab and add those variable names to the list of <code>students-own</code> variables.</p>
+
+          <p>Next, find the code in your model for where the <code>hubnet-enter-message?</code> primitive was being handled.  That code should be assigned to a <code>on-connect</code> procedure.  It is very common from legacy models to pass <code>hubnet-message-source</code> as an argument to their procedure that handles the <code>hubnet-enter-message?</code> message, but you should not need to worry about that, since HubNet Web will automatically pass the equivalent argument to your <code>on-connect</code> procedure, if it takes any arguments.  Make sure that the <code>on-connect</code> procedure creates 1 new student agent for the connecting client, and reports their <code>who</code> number, and is defined using <code>to-report</code> instead of simply <code>to</code>.  In the initialization block for <code>create-students 1 [ ... ]</code>, make sure that you set the variables that correspond to each widget's intended starting value.</p>
+
+          <p>Now that we have the variables defined and initialized, we can probably delete some old code.  Typically old HubNet models would have a <code>listen-clients</code> that would repeatedly run <code>hubnet-fetch-message</code>.  Messages that fit <code>hubnet-enter-message?</code> were handled by what is now the "On Connect" handler.  Messages that fit <code>hubnet-exit-message?</code> were handled by what is now the "After Disconnect" handler (and, uncommonly, the "On Disconnect" handler).  Everything else would fall through to a procedure that handled general messages, often called something like <code>execute-command</code>.  We need to work on pulling apart <code>execute-command</code>, putting its parts into the correct handlers, and deleting now-unneeded code.</p>
+
+          <p>One type of thing that would be handled in <code>execute-command</code> would be <code>hubnet-message-tag = "View"</code>, which represents the user clicking their mouse within the View.  You can put any code for that into a procedure and link it to the "On Click" handler in the "student" role tab.  When refactoring the code into a procedure, remember that X and Y coordinates will be passed into the handler as procedure arguments, so there is no need to try to process a <code>hubnet-message</code> for its parts.</p>
+
+          <p>Next, inside your model's analog to <code>execute-command</code>, find anything where it was handling messages named after one of your Chooser, Input, Slider, or Switch widgets.  This code was processing the clients' changes in the values of their input-y widgets.  If the logic isn't doing anything interesting, you can probably just delete it, since HubNet Web handles the variable updates automatically now.  If there was some logic attached to it, you probably need to change your <code>go</code> loop to watch for changes to that variable and then perform your additional logic.</p>
+
+          <p>While we're looking at <code>execute-command</code> it probably has handlers for client buttons.  So we should refactor each of those button press handlers into its own procedure (no matter how small).</p>
+
+          <p>Once you have the Code tab compiling again, head back to the "student" tab and link each of your Chooser, Input, Slider, and Switch widgets to their corresponding breed variables.  Then, link each of your <strong>Button</strong> widgets up to its now-disentangled click handler procedure.</p>
+
+          <p>Now we can head back to the Code tab and search for any instances of <code>hubnet-send</code> that seem to be updating the values of <strong>Monitors</strong>.  Usually, these lines will just be setting the Monitor to the value of some reporter or global variable or breed variable.  If the Monitor is wired up to a reporter, we can just delete the <code>hubnet-send</code> line.  If the Monitor is wired up to a variable, replace the text on the line to set the variable instead of running <code>hubnet-send</code>.  Either way, once you have a specific variable or reporter that the Monitor should be bound to, head back to the "student" tab and link up your Monitors accordingly.</p>
+
+          <p>With <strong>Plot</strong> widgets, we've saved the toughest part for last.  There are a variety of ways in which Plots can be programmed.  Some Plots have code written inside the widget or its pens.  Other Plots are controlled entirely in the Code tab.  As with the other widgets, we might have to massage the code a bit in order to make your Plot easy to hook up to HubNet Web.  The end goal should be to have all "setup" and "update" fields in the Plot and its pens set to either nothing or just a simple, zero-argument procedure call.</p>
+
+          <p>Ideally, your model will also eventually have no plotting code running in the <code>go</code> loop.  However, with some models that will not really be achievable, particularly if they need dynamic numbers of temporary plot pens.  Nearly all other plotting usages should be able to move all plotting code into procedures called by the plotting widget.</p>
+
+          <p>Once that is done, your Plots should be good to go.  You just need to return to the "student" tab and connect the parts of your Plot and its pens to their corresponding procedures.</p>
+
+          <p>One thing worth noting is that HubNet Web and the original HubNet have different ways of thinking about Plots.  In the original HubNet, Plots were owned by the singular host interface, and could be "experimentally" "mirrored" to clients.  Clients could not see individualized Plots (aside from using the hidden <code>__hubnet-make-plot-narrowcast</code> primitive, which was an unofficial feature used in almost no models).  Instead, they only saw what the host's Plot showed.</p>
+
+          <p>HubNet Web takes a different approach.  Here, we have two kinds of Plots: role-specific and client-specific, neither of which is quite like Plots in the original HubNet.  By default, Plots in HubNet Web are role-specific; every tick, when Plot data is generated, it is generated once for every single role in the model, and then the clients in that role are forwarded the relevant plotting information.  However, if the NetLogo Web compiler finds any procedure linked to a Plot or its pens that must run in the turtle context and cannot be run in the observer context, we conclude that the intention is for this plotting code to run in the context of the client's assigned turtle, and the Plot is turned into a client-specific Plot.  In this case, every client of that role will see an individualized version of the Plot.</p>
+
+        <p>Some HubNet models use <strong>perspectives</strong>.  Search your model for any uses of <code>hubnet-reset-perspective</code>, <code>hubnet-send-follow</code>, and <code>hubnet-send-watch</code>.  If you find any of those, they need to be removed and replaced with the perspective system described in <a href="/docs/authoring">the authoring document</a>.</p>
+          <p>A simple conversion between the old format and the HubNet Web format would look like this:
+            <ul>
+              <li><code>hubnet-reset-perspective user-id</code> ==> <code>set perspective []</code></li>
+              <li><code>hubnet-send-follow user-id self radius</code> ==> <code>set perspective (list "follow" self radius)</code></li>
+              <li><code>hubnet-send-watch user-id self</code> ==> <code>set perspective (list "watch" self)</code></li>
+            </ul>
+          </p>
+
+          <p>Finally, there is the matter of <strong>view overrides</strong>.  Search your model for any uses of <code>hubnet-clear-override</code>, <code>hubner-clear-overrides</code>, and <code>hubnet-send-override</code>.  You will need to remove those and replace them with the override system described in <a href="/docs/authoring">the authoring document</a>.</p>
+          <p>You'll usually want a utility procedure for this, which should look like: <pre>to append-override [x]
+  set overrides (lput x overrides)
+end</pre></p>
+          <p>Then, a simple conversion between the old format and the HubNet Web format would look like this:
+            <ul>
+              <li><code>hubnet-clear-overrides user-id</code> ==> <code>append-override "reset-all"</code></li>
+              <li><code>hubnet-clear-override user-id agents key</code> ==> <code>append-override (list "reset" agents key)</code></li>
+              <li><code>hubnet-send-override user-id agents key [variable]</code> ==> <code>append-override (list agents key [a -> [variable] of a])</code></li>
+            </ul>
+          </p>
+
+          <p>At this point, if everything went well, your model should now be converted and ready to run in HubNet Web.  Look back over the event handler dropdowns and make sure that they still hold all of the values that you had set them to; if there was a compilation error at some point, HubNet Web might have lost some of your dropdown values, since it didn't know what they were referring to.  Once you are happy with your model, be sure to save it, so that you don't have to repeat the conversion process again in the future!</p>
+
+          <h2>I tried to convert my model, but this is actually really hard!  Where can I get help?</h2>
+          <p>Please e-mail us <a href="mailto:feedback@ccl.northwestern.edu">here</a> to get in touch, and we will help you to work through the model conversion.  You can also contact us on our forum <a href="https://community.netlogo.org/">here</a>.</p>
+
+          <h2>There's an error in this guide!  Where can I report it?</h2>
+          <p>Please e-mail us <a href="mailto:feedback@ccl.northwestern.edu">here</a>, or <a href="https://github.com/NetLogo/HubNet-Web/compare">submit a pull request</a> with your suggested changes to the page.</p>
+
+          <h2>I found a bug!  Where can I report it?</h2>
+          <p>Please e-mail us <a href="mailto:bugs@ccl.northwestern.edu">here</a> with a description of what you did to cause the bug, what you expected to happen when you did it, and what unfortunate thing happened instead.</p>
+
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>

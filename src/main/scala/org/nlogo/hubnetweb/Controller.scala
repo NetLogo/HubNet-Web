@@ -109,6 +109,10 @@ object Controller {
          }
 
       path("")                 { getFromFile("html/index.html") } ~
+      path("docs")             { getFromFile("html/docs/index.html") } ~
+      path("docs"/"faq")       { getFromFile("html/docs/faq.html") } ~
+      path("docs"/"authoring") { getFromFile("html/docs/authoring.html") } ~
+      path("docs"/"converting"){ getFromFile("html/docs/converting.html") } ~
       path("authoring")        { getFromFile("html/embed-authoring.html") } ~
       path("host")             { getFromFile("html/host.html")  } ~
       path("launch-session")   { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
