@@ -82,3 +82,8 @@ body.not_full_height {
 .big-link {
   font-size: 26px;
 }
+
+.doc-image {
+  display: block;
+  margin:  0 auto;
+}
