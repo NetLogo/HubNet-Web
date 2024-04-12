@@ -32,10 +32,10 @@
 
           <h1 class="top-header">Authoring Guide</h1>
 
-          <h2>Where is the authoring tool?</h2>
+          <h2 id="where-is-it">Where is the authoring tool?</h2>
           <p>The authoring tool can be found by clicking <a href="/authoring">this link</a>.  You can also click the large "Authoring" button on <a href="/">the landing page</a>, or select the "Authoring" button in the navigation bar at the top of any page on this site.</p>
 
-          <h2>I have reached the authoring page, but I've been greeted by four strange buttons.  What do they mean?</h2>
+          <h2 id="four-buttons">I have reached the authoring page, but I've been greeted by four strange buttons.  What do they mean?</h2>
           <p>The four buttons all lead you to the authoring tool, but from different starting points.  These options will make more sense if we take a moment to go over how HubNet Web files are loaded.</p>
           <p>A fully operational HubNet Web model requires two things: An <code>.nlogo</code> file (which is perfectly compatible with being run in desktop NetLogo or NetLogo Web) and a JSON-based file that declares how to configure that NetLogo model and its widgets and its roles for use in HubNet Web.</p>
           <p>Even when you have both files, there are two formats that you can save them in: a pair of separate <code>.nlogo</code> and <code>.json</code> files, or as a single-file <code>.hnw.json</code> bundle.  Some users might prefer the two-file format, since it makes it easy to edit the non-HubNet parts of the model in desktop NetLogo, NetLogo Web, or even a third-party editor.  However, most users would probably prefer to just use the single-file bundle.</p>
@@ -44,11 +44,11 @@
           <p><strong>Edit an existing HubNet Web model (NLogo & JSON)</strong>: In this case, you have a working HubNet Web activity (both <code>.nlogo</code> and <code>.json</code>), and you want to make modifications to it, so you load both files into the authoring tool for modification.</p>
           <p><strong>Edit an existing HubNet Web model (bundle)</strong>: This is essentially the same as the previous option, but using the single-file bundle format (<code>.hnw.json</code>).</p>
 
-          <h2>I've reached the authoring interface, but I don't know how to use it.  What do all of these options and buttons do?</h2>
+          <h2 id="authoring-overview">I've reached the authoring interface, but I don't know how to use it.  What do all of these options and buttons do?</h2>
           <p>First, direct your attention to the tabs towards the bottom of the page.  One reads "Code", while another reads "+".  The "Code" tab pertains to the code for the entire HubNet activity.  This code will be executed by the host of the activity, when buttons are clicked and users are taking actions.  The tabs between "Code" and "+" define the roles in the activity.  The "+" button allows you to add extra roles to the activity.</p>
           <p>In traditional HubNet activities, there are only the "teacher" role (which exactly one user occupies) and the "student" role (which a variable number of users can occupy).  In HubNet Web, most activities follow a similar trend, having just two roles, usually referred to as "supervisor" and "student" (sometimes: "player").  However, HubNet Web is not rigidly restricted to that formula like the original HubNet was.  In HubNet Web, you can have just one role, or dozens of roles, or anything inbetween.  As the author of a HubNet Web model, you can define all of the roles, their properties, and their membership limits.</p>
 
-          <h2>What is the execution model of a HubNet Web activity?</h2>
+          <h2 id="execution-model">What is the execution model of a HubNet Web activity?</h2>
           <p>Whoever launches an activity will be that activity's host, and all NetLogo code in the activity is run on the host's device.  The client page that is used for connecting to the host's activity is mostly a "thin client".  Most NetLogo models follow the idiom of having a "setup" button that initializes a fresh run of the simulation, and a "go" button that runs repeatedly to advance the state of the simulation.  These procedures, like all other procedures, are run purely on the host's device, with the consequent updates being forwarded to all clients as new model states are produced.</p>
           <p>Many traditional HubNet activities also supplemented "setup" and "go" with a "listen-clients" button, which would poll a queue for new messages, and then process those messages.  However, in HubNet Web, there is no "listen-clients" or explicit message queue.  Instead, user activity generates events, and those events are promptly reacted to by event handler procedures.  When you build the configuration for a role in your model, you will specify things like "when a new user in this role connects to the activity, run this procedure (to setup their turtle for them)".  This is done by selecting the name of the relevant Code tab procedure from a dropdown.</p>
           <p>Similarly, there is no explicit message-handling of updates to client widgets (like Sliders).  Instead, when you add a Switch widget to the interface for a role, you select from a dropdown which global or (more commonly) breed-based variable the Switch widget should be bound to.  If every user in your activity is given control of a wolf agent, and all wolves in your activity own a <code>show-name?</code> variable, then you can add a Switch widget to the Wolf role's interface, and link the Switch to <code>show-name?</code>, so that changes the variable automatically update the remote widget, and changes to the widget automatically update the wolf's variable.</p>
@@ -57,7 +57,7 @@
           <p>One advantage of this dropdown-based approach is that it's just plain simpler and less error-prone to choose options from a dropdown than it is to write code.  Another advantage of the approach is that there is no longer any need for the multitude of <code>hubnet-*</code> language primitives that existed in the traditional version of HubNet.  Everything that those primitives accomplished is now handled by event listener procedures and automatically-linked variables.</p>
           <p>Now that you understand the execution model, you will be ready to learn how to use the authoring tool.</p>
 
-          <h2>What do the things in the "Code" tab do?</h2>
+          <h2 id="code-tab">What do the things in the "Code" tab do?</h2>
           <p>
             <ul>
               <li><strong>On Setup</strong>: The procedure that will set up a fresh run of the model.  Must be runnable from the observer context, return no value, and take no arguments.  If this is left blank, no "setup" button will be generated for you in the user interface.</li>
@@ -67,7 +67,7 @@
           </p>
           <p>Below those options, you will find the normal NetLogo Web code editor.  Whenever you make changes to the contents of the editor, be sure to press the "Recompile" button to validate your changes.</p>
 
-          <h2>I clicked into a role tab (such as the "student" tab).  What do the options in the role tab do?</h2>
+          <h2 id="role-tabs">I clicked into a role tab (such as the "student" tab).  What do the options in the role tab do?</h2>
           <p>
             <ul>
               <li><strong>Singular, Plural</strong>: These fields are read-only and are first set when a role is added to an activity.  A role's name cannot be changed, but a new role can be created, and the author can re-create widgets and settings in the new role.</li>
@@ -88,7 +88,7 @@
           </p>
           <p>Below those inputs, you will see the standard NetLogo Web WYSIWYG widget editor.  The gray box is the View widget, which can be repositioned and resized.  To add a widget, right-click the green area and select the type of widget from the context menu.  Then, fill in its properties and click "OK".  Some widgets, like Sliders, will offer you the option to define a new variable instead of selecting an existing one.  The variable will then be automatically added in the relevant place in the Code tab.</p>
 
-          <h2>What "shapes" of variables and procedures are supposed to be linked to each type of widget?</h2>
+          <h2 id="widget-shapes">What "shapes" of variables and procedures are supposed to be linked to each type of widget?</h2>
           <p>
             <ul>
               <li><strong>Button</strong>: Zero-argument procedure that reports no value</li>
@@ -105,11 +105,11 @@
             Note that execution context is also important.  If your role is a spectator role, linked variables must be globals with the <code>__hnw_</code> prefix described above, and linked procedures must be runnable as the observer.  If your role is not a spectator role, linked variables must be included in your role's breed's owned variables, and procedures must be runnable in the turtle context.
           </p>
 
-          <h2>I'm trying to link an event to a particular procedure, but I don't see it in the dropdown list.  Where is it?</h2>
+          <h2 id="where-is-the-procedure">I'm trying to link an event to a particular procedure, but I don't see it in the dropdown list.  Where is it?</h2>
           <p>First, be sure that the Code tab is compiling.  If your code won't compile, any changes to your list of procedures cannot be propagated to the widget editor.</p>
           <p>Next, if your code <em>is</em> compiling and the procedure still isn't showing up, the problem is most likely that your procedure does not fit the expected "shape" for that event handler.  Procedures will not show up in the list of event handlers if, for example, the handler needs a reporter, and your procedure is a command.  Another way in which your procedure might fail to meet the "shape" is having too many arguments, or not taking enough arguments.  Lastly, a procedure can have the wrong "shape" by being, for example, a procedure that only runs in the observer context, when a turtle-context procedure is needed.  Please see the previous sections of this page to verify the shape needed for each dropdown.</p>
 
-          <h2>How do perspective variables work?</h2>
+          <h2 id="perspectives">How do perspective variables work?</h2>
           <p>Perspective variables allow you to set client-specific perspectives, like using the <code>watch</code>/<code>follow</code>/<code>ride</code> primitives in NetLogo, but with each client having an individualized perspective target (for example, a model where everyone follows the agent that was created for them when they connected to the activity).</p>
           <p>In order to achieve this, you must assign a perspective variable to the role.  When you assign a perspective variable, HubNet Web will watch it for changes, and pass on the necessary information to the client to update their perspective.  The perspective variable must be two- or three-item list, of the following form:
             <ol>
@@ -121,7 +121,7 @@
           </p>
           <p>See the "Client Perspective Example" model for example code.</p>
 
-          <h2>How do view overrides variables work?</h2>
+          <h2 id="view-overrides">How do view overrides variables work?</h2>
           <p>Override variables allow you to set client-specific changes to what is shown in the View widget.</p>
           <p>As a simple example of this, we might have a button in our model that users can click to toggle a label beneath each turtle, showing its amount of energy remaining.  We want the user to be able to control this for themself, without forcing everyone else to have the same label show up on their screen.</p>
           <p>Another example of this is something like the "fog of war" feature in many strategy games, making it so that different participants are only able to see things in their vicinity, without global knowledge of the world.  To achieve this sort of thing in HubNet Web, you can set all of the information to be hidden or obscured, and then send each client some overrides with the true information about the agents near them.</p>
@@ -141,14 +141,14 @@
           </p>
           <p>See the "Client Overrides Example" model for example code.</p>
 
-          <h2>I think I'm done editing my activity.  How can I test it?</h2>
+          <h2 id="trying-it-out">I think I'm done editing my activity.  How can I test it?</h2>
           <p>Go to the bottom of the page, where the save buttons are, and click "Test".  This will launch a copy of your model on the global HubNet Web session listing.  Anyone can join your activity when it is launched like this, so be sure to password-protect your room if you don't want unexpected visitors.  Once you are done testing your model, you can click "Edit Model" to return to the authoring interface.</p>
 
-          <h2>I think I'm done with editing my activity.  How can I save and/or quit?</h2>
+          <h2 id="saving">I think I'm done with editing my activity.  How can I save and/or quit?</h2>
           <p>HubNet Web files are not automatically saved remotely anywhere.  If you want your work to persist beyond the end of your authoring session, you must scroll to the bottom of the page and choose either "Download Bundle" or "Download NLogo/JSON".  Both of these buttons do the same thing, but saving your data in one of two different formats.  See the "four strange buttons" section above for more information about the pros and cons of each format.  If you don't have a strong preference on which format to use, our recommendation is simply to choose "Download Bundle", since that will keep all of your work in a single file.</p>
           <p>Once you have your work saved and you are ready to exit the authoring tool, you can select "Start Over" at the bottom of the page, which will bring you back to the root of the authoring interface, where you were shown four buttons asking you what format you wanted to upload your model in.</p>
 
-          <h2>I found a bug!  Where can I report it?</h2>
+          <h2 id="report-bugs">I found a bug!  Where can I report it?</h2>
           <p>Please e-mail us <a href="mailto:bugs@ccl.northwestern.edu">here</a> with a description of what you did to cause the bug, what you expected to happen when you did it, and what unfortunate thing happened instead.</p>
 
         </div>
