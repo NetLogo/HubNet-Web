@@ -7,29 +7,28 @@
   </head>
   <body class="body">
 
-    <div class="content-wrapper">
+    <header class="page-header flex-row">
+      <a href="/" class="hnw-header-link-wrapper">
+        <div class="hnw-header" id="hnw-header">HubNet Web</div>
+      </a>
 
-      <header class="page-header flex-row">
-        <a href="/" class="hnw-header-link-wrapper">
-          <div class="hnw-header" id="hnw-header">HubNet Web</div>
-        </a>
-
-        <div class="page-links-dropdown">
-          <div class="navigate-label">
-            <div>Navigate</div>
-            <div class="triangle-down"></div>
-          </div>
-          <nav class="page-links-tabs">
-            <a href="/join"      class="page-links">Join</a>
-            <a href="/host"      class="page-links">Host</a>
-            <a href="/authoring" class="page-links">Authoring</a>
-            <a href="/docs"      class="page-links">Docs</a>
-            <a href="/about"     class="page-links">About</a>
-          </nav>
+      <div class="page-links-dropdown">
+        <div class="navigate-label">
+          <div>Navigate</div>
+          <div class="triangle-down"></div>
         </div>
-      </header>
+        <nav class="page-links-tabs">
+          <a href="/join"      class="page-links">Join</a>
+          <a href="/host"      class="page-links">Host</a>
+          <a href="/authoring" class="page-links">Authoring</a>
+          <a href="/docs"      class="page-links">Docs</a>
+          <a href="/about"     class="page-links">About</a>
+        </nav>
+      </div>
+    </header>
 
-      <main id="session-browser-frame" class="joinA-page-body" class="flex-column">
+    <main>
+      <div id="session-browser-frame" class="joinA-page-body" class="flex-column">
 
         <div class="top-section">
           <div class="join-session-header">
@@ -43,37 +42,33 @@
           <div class="flex-row standard-column-gap">
             <div class="left-column">
 
-              <input
-                class="session-filter-box"
-                id="session-filter-box"
-                type="search"
-                placeholder="Search..."
-              >
+              <input class="session-filter-box" id="session-filter-box"
+                     type="search" placeholder="Search...">
 
-              <div id="session-list-container">
-                <div id="session-row-wrapper" class="session-row-wrapper">
-                  <table id="session-row-container" class="session-row-container">
-                    <template id="session-row-template">
-                      <tr class="session-row" data-cy="session-row">
-                        <td class="row-label session-element">
-                          <input id="session-option" class="session-option" name="sessionOption" type="radio">
-                        </td>
-                        <td class="session-name session-element table-cell-padding-standard"></td>
-                        <td class="session-model-name session-element table-cell-padding-standard"></td>
-                        <td class="session-info session-element table-cell-padding-standard"></td>
-                      </tr>
-                    </template>
-                    <thead class="session-header" id="session-header">
-                      <tr>
-                        <th class="session-element session-name-header">Session Name</th>
-                        <th class="session-element activity-name-header">Activity</th>
-                        <th class="session-element participant-name-header"># Participants</th>
-                      </tr>
-                    </thead>
-                    <tbody class="session-rows" id="session-rows"></tbody>
-                  </table>
-                </div>
-              </div>
+                  <div id="session-list-container">
+                    <div id="session-row-wrapper" class="session-row-wrapper">
+                      <table id="session-row-container" class="session-row-container">
+                        <template id="session-row-template">
+                          <tr class="session-row" data-cy="session-row">
+                            <td class="row-label session-element">
+                              <input id="session-option" class="session-option" name="sessionOption" type="radio">
+                            </td>
+                            <td class="session-name session-element table-cell-padding-standard"></td>
+                            <td class="session-model-name session-element table-cell-padding-standard"></td>
+                            <td class="session-info session-element table-cell-padding-standard"></td>
+                          </tr>
+                        </template>
+                        <thead class="session-header" id="session-header">
+                          <tr>
+                            <th class="session-element session-name-header">Session Name</th>
+                            <th class="session-element activity-name-header">Activity</th>
+                            <th class="session-element participant-name-header"># Participants</th>
+                          </tr>
+                        </thead>
+                        <tbody class="session-rows" id="session-rows"></tbody>
+                      </table>
+                    </div>
+                  </div>
 
             </div>
 
@@ -95,9 +90,8 @@
               <div class="user-inputs-top-row flex-row">
                 <div>
                   <label class="form-label">Username
-                    <input id="username"
-                           class="username block-display" data-cy="username"
-                           name="username" type="text" required>
+                    <input id="username" class="username block-display"
+                           data-cy="username" name="username" type="text" required>
                   </label>
                 </div>
                 <div>
@@ -111,7 +105,7 @@
                     <select id="role-select" disabled required
                             class="role-select block-display">
                       <option selected="selected" disabled value="">
-                        Choose a role
+                      Choose a role
                       </option>
                     </select>
                   </label>
@@ -119,9 +113,8 @@
               </div>
 
               <div class="user-inputs-bottom-row flex-row">
-                <input id="join-button"
-                       class="join-button block-display" data-cy="submit"
-                       type="submit" value="Join" disabled>
+                <input id="join-button" class="join-button block-display"
+                       data-cy="submit" type="submit" value="Join" disabled>
               </div>
 
             </form>
@@ -129,89 +122,81 @@
 
         </div>
 
-      </div>
+        </div>
 
-      <div id="nlw-frame" class="frame joinB-page-body hidden">
+        <div id="nlw-frame" class="frame joinB-page-body hidden">
 
-        <div id="modal-container" class="modal-container modal-invis">
+          <div id="modal-container" class="modal-container modal-invis">
 
-          <div id="session-details-modal" class="modal flex-column">
+            <div id="session-details-modal" class="modal flex-column">
 
-            <div id="close-modal-button" class="close-modal-button"></div>
+              <div id="close-modal-button" class="close-modal-button"></div>
 
-            <div class="modal-session-name" id="modal-session-name"></div>
-            <div class="session-button">
-              <div class="session-detail">
-                <span class="bold">Number of Clients: </span>
-                <span id="client-num-span">(N/A)</span>
+              <div class="modal-session-name" id="modal-session-name"></div>
+              <div class="session-button">
+                <div class="session-detail">
+                  <span class="bold">Number of Clients: </span>
+                  <span id="client-num-span">(N/A)</span>
+                </div>
+                <div class="session-detail">
+                  <span class="bold">Connection Type: </span>
+                  <span id="connection-type-span">(N/A)</span>
+                </div>
+                <div class="session-detail">
+                  <span class="bold">Latency: </span>
+                  <span id="latency-span" data-cy="latency">(N/A)</span>ms
+                </div>
               </div>
-              <div class="session-detail">
-                <span class="bold">Connection Type: </span>
-                <span id="connection-type-span">(N/A)</span>
-              </div>
-              <div class="session-detail">
-                <span class="bold">Latency: </span>
-                <span id="latency-span" data-cy="latency">(N/A)</span>ms
-              </div>
+
             </div>
 
           </div>
 
-        </div>
-
-        <div id="join-b-page">
-          <div class="session-buttons flex-row">
-            <input id="view-details-button"
-                   class="view-details-button" data-cy="view-details"
-                   type="button" value="View Session Details">
-            <div id="activity-name" class="activity-name"></div>
-            <input id="disconnect-button" class="disconnect-button"
-                   type="button" value="Disconnect">
+          <div id="join-b-page">
+            <div class="session-buttons flex-row">
+              <input id="view-details-button" class="view-details-button"
+                     data-cy="view-details" type="button" value="View Session Details">
+              <div id="activity-name" class="activity-name"></div>
+              <input id="disconnect-button" class="disconnect-button"
+                     type="button" value="Disconnect">
+            </div>
+            <iframe class="nlw-iframe" data-cy="nlw-frame"></iframe>
           </div>
-          <iframe class="nlw-iframe" data-cy="nlw-frame"></iframe>
+
         </div>
 
-      </div>
-
-    </div>
-
-    <div id="chat-box">
-      <div id="chat-box-closed-container" class="chat-box-closed-container">
-        <div id="chat-box-closed" class="chat-box-closed flex-display">
-          Chat
-        </div>
-        <div id="chat-box-closed-bottom" class="chat-box-closed-bottom"></div>
-        <div id="chat-box-closed-bottom-border" class="chat-box-closed-bottom-border">
-        </div>
-      </div>
-
-      <div id="chat-box-open" class="chat-box-open invisible">
-
-        <div id="open-chat-header" class="open-chat-header flex-row">
-          <div class="popup-header-text">Chat</div>
-          <div class="triangle-down-black"></div>
         </div>
 
-        <div>
-          <div id="global-chat">
-            <div id="global-chat-output" class="open-chat-body"></div>
-            <input
-              id="global-chat-input"
-              class="open-chat-input"
-              type="text"
-              value=""
-              placeholder="Send a message"
-            />
+        <div id="chat-box">
+          <div id="chat-box-closed-container" class="chat-box-closed-container">
+            <div id="chat-box-closed" class="chat-box-closed flex-display">
+              Chat
+            </div>
+            <div id="chat-box-closed-bottom" class="chat-box-closed-bottom"></div>
+            <div id="chat-box-closed-bottom-border" class="chat-box-closed-bottom-border">
+            </div>
           </div>
-          <div id="session-chat" class="hidden">
-            <div id="session-chat-output" class="open-chat-body"></div>
-            <input
-              id="session-chat-input"
-              class="open-chat-input"
-              type="text"
-              value=""
-              placeholder="Send a message"
-            />
+
+          <div id="chat-box-open" class="chat-box-open invisible">
+
+            <div id="open-chat-header" class="open-chat-header flex-row">
+              <div class="popup-header-text">Chat</div>
+              <div class="triangle-down-black"></div>
+            </div>
+
+            <div>
+              <div id="global-chat">
+                <div id="global-chat-output" class="open-chat-body"></div>
+                <input id="global-chat-input" class="open-chat-input" type="text"
+                       value="" placeholder="Send a message" />
+              </div>
+              <div id="session-chat" class="hidden">
+                <div id="session-chat-output" class="open-chat-body"></div>
+                <input id="session-chat-input" class="open-chat-input" type="text"
+                       value="" placeholder="Send a message" />
+              </div>
+            </div>
+
           </div>
         </div>
 
