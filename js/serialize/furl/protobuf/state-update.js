@@ -348,6 +348,7 @@ const penFields =
   { name:     "string"
   , color:    "uint32"
   , interval: "uint32"
+  , mode:     "string"
   // Begin jiggery optimizations
   , "color-r": "uint32"
   , "color-g": "uint32"
