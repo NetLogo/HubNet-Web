@@ -89,3 +89,13 @@ body.not_full_height {
   display:       block;
   margin:        0 auto;
 }
+
+.video-box {
+  display:         flex;
+  justify-content: center;
+}
+
+.vid {
+  object-fit: contain;
+  width: 100%;
+}
