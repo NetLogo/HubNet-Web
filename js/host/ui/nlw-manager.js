@@ -137,7 +137,7 @@ export default class HostNLWManager extends NLWManager {
       }
 
       case "nlw-model-info": {
-        const msg = { type: "hnw-model-info", info: data.info };
+        const msg = { type: "hnw-model-info", info: citeHNW(data.info) };
         this.#infoPanePort.postMessage(msg);
         break;
       }
@@ -259,4 +259,11 @@ const setUpComCen = (nlogo, frame, url, relay) => {
 
   return setUpPane(nlogo, frame, url, onMsg, onloadType, urlSuffix);
 
+};
+
+// (String) => String
+const citeHNW = (original) => {
+  const str      = "^Please cite the NetLogo software as:.*?Wilensky.*?$";
+  const citation = "Please cite the HubNet Web software as:\n\n* Wilensky, U. Bertsche, J. & Stroup, W. (2024). **HubNet Web 1.0** [Computer Software]. Evanston, IL: Center for Connected Learning and Computer Based Modeling, Northwestern University. https://hubnetweb.org/";
+  return original.replace(new RegExp(str, "ms"), citation);
 };
