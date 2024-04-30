@@ -79,6 +79,23 @@ body.not_full_height {
   margin-top: 5px;
 }
 
+.breadcrumber {
+  margin-bottom: 15px;
+}
+
+.breadcrumber > a {
+  color:           blue;
+  text-decoration: none;
+}
+
+.breadcrumber > a:visited {
+  color: blue;
+}
+
+.breadcrumber > a:hover {
+  text-decoration: underline;
+}
+
 .big-link {
   font-size: 26px;
 }
