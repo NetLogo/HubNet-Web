@@ -84,8 +84,8 @@ body.not_full_height {
 }
 
 .doc-image {
-  border:        2px solid black;
-  border-radius: 4px;
+  border:        3px solid #e98a15;
+  border-radius: 5px;
   display:       block;
   margin:        0 auto;
   max-height:    300px;
