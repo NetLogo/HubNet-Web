@@ -88,6 +88,10 @@ body.not_full_height {
   border-radius: 4px;
   display:       block;
   margin:        0 auto;
+  max-height:    300px;
+  max-width:     100%;
+  height:        auto;
+  width:         fit-content;
 }
 
 .video-box {
