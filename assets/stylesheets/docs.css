@@ -108,7 +108,7 @@ body.not_full_height {
   max-height:    300px;
   max-width:     100%;
   height:        auto;
-  width:         fit-content;
+  width:         max-content;
 }
 
 .video-box {
