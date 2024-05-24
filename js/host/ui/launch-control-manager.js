@@ -35,6 +35,7 @@ export default class LaunchControlManager {
 
       byEID( "upload-container").classList.remove("hidden");
       byEID("library-container").classList   .add("hidden");
+      byEID(    "image-wrapper").classList   .add("hidden");
 
       this.#updateUploadValidity();
 
@@ -47,6 +48,7 @@ export default class LaunchControlManager {
 
       byEID( "upload-container").classList   .add("hidden");
       byEID("library-container").classList.remove("hidden");
+      byEID(    "image-wrapper").classList.remove("hidden");
 
       byEID("file-upload-input").setCustomValidity("");
 
