@@ -52,6 +52,13 @@ export default class LaunchControlManager {
 
     };
 
+    byEID("lib-edit-button").addEventListener("click", () => {
+      const modelName = byEID("library-model").value;
+      const anchor    = document.createElement("a");
+      anchor.href     = `/authoring#${modelName}`;
+      anchor.click();
+    });
+
   }
 
   // (Object[Any]) => Promise[(FormData, Response, Object[Any])]
