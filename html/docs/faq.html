@@ -78,6 +78,9 @@
           <h2>Converting an existing model</h2>
           <p>A tutorial on how to convert existing HubNet/NetLogo models to work in HubNet Web (including a start-to-finish video guide) can be found <a href="./converting">here</a>.</p>
 
+          <h2 id="client-doesnt-update">I tried opening a teacher client and student client, but the student client doesn't update.  What's going on?</h2>
+          <p>One property of modern web browsers is that browser tabs are given reduced CPU resources when they are not selected.  If you open the teacher interface in one tab, and then open the student interface in another tab of the same window of the same browser, the student client will not be able to see live updates of the activity, because the tab that is not being focused will not be getting resources.  Solving this issue is as simple as putting each client in its own window of your browser.  This way, the browser will consider both tabs to be "foregrounded", and will dedicate resources to both of them.</p>
+
           <h2>Which browsers are supported?</h2>
           <p>Nearly all reasonably-modern browsers are supported, except for versions of Firefox before Firefox 111.  Whether on a desktop, laptop, Chromebook, or mobile device, modern web browsers are expected to run HubNet Web well.</p>
 
