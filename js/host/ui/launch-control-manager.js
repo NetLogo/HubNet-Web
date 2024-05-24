@@ -18,10 +18,11 @@ export default class LaunchControlManager {
     this.#notifyUser      = notifyUser;
     this.#upload          = InvalidUpload;
 
-    elem.querySelector(          "form").onsubmit = this.#onSubmit(finishLaunch);
-    elem.querySelector(".library-model").onchange = this.#onChange(  getLibrary);
+    elem.querySelector("form").onsubmit = this.#onSubmit(finishLaunch);
 
     const byEID = (s) => elem.querySelector(`#${s}`);
+
+    byEID("library-model").onchange = this.#onChange(getLibrary);
 
     byEID("file-upload-input").onchange = () => {
       this.#updateUploadValidity();
