@@ -136,23 +136,25 @@
   width:                          50px;
 }
 
-.read-more-button {
+.evenly-spaced {
+  justify-content: space-evenly;
+}
+
+.lib-option-button {
   background-color: var(--medium-blue);
   border-radius:    8px;
   cursor:           pointer;
   display:          block;
   font-size:        24px;
   height:           58px;
-  margin-left:      auto;
-  margin-right:     auto;
   width:            170px;
 }
 
-.read-more-button:hover {
+.lib-option-button:hover {
   filter: brightness(0.9);
 }
 
-.read-more-button:active {
+.lib-option-button:active {
   box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
   filter:     brightness(0.8);
 }
