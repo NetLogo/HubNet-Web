@@ -191,7 +191,7 @@ end
 
 ;; loads an image as a background among the images listed in the environment chooser
 to change-environment
-  let base-url "https://hubnetweb.org/models/Bug Hunters Camouflage/"
+  let base-url "https://hubnetweb.org/extras/Bug Hunters Camouflage/"
   let url (word base-url __hnw_supervisor_environment)
   fetch:url-async url import-a:drawing
 end

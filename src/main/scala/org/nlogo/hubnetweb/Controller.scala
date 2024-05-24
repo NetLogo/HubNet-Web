@@ -134,7 +134,7 @@ object Controller {
       path("favicon.ico") { getFromFile("assets/images/favicon.ico") } ~
       pathPrefix("js")               { getFromDirectory("js")         } ~
       pathPrefix("assets")           { getFromDirectory("assets")     } ~
-      pathPrefix("models")           { respondWithHeaders(ACAO.*) { getFromDirectory("assets/models") } } ~
+      pathPrefix("extras")           { respondWithHeaders(ACAO.*) { getFromDirectory("assets/models") } } ~
       pathPrefix("previews")         { getFromDirectory("assets/previews")     }
 
     }

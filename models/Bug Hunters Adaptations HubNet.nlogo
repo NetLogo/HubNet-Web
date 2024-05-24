@@ -502,7 +502,7 @@ to set-environment [ input-image is-left? ] ;; match the choices in the chooser 
 
   let download [
     image-name ->
-      let base-url "https://hubnetweb.org/models/Bug Hunters Adaptations/"
+      let base-url "https://hubnetweb.org/extras/Bug Hunters Adaptations/"
       let url      (word base-url image-name ".jpg")
       fetch:url-async url finish
   ]

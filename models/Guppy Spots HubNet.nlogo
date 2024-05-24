@@ -514,7 +514,7 @@ to clear-background
 end
 
 to import-background
-  let base-url "https://hubnetweb.org/models/Guppy Spots"
+  let base-url "https://hubnetweb.org/extras/Guppy Spots"
   let url (word base-url "/" __hnw_supervisor_background)
   fetch:url-async url import-a:drawing
 end
