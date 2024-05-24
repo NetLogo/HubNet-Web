@@ -1,7 +1,22 @@
+#user-dialog {
+  max-width: 50%;
+}
+
 .body {
   font-family: sans-serif;
   margin:      0;
   padding:     0;
+}
+
+.user-dialog-button {
+  user-select: none;
+}
+
+.user-dialog-buttons {
+  display:         flex;
+  flex-direction:  row;
+  gap:             14px;
+  justify-content: center;
 }
 
 .chat-wrapper {

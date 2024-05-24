@@ -189,6 +189,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   nlwManager.init();
 
+  watchForFocusLoss();
+
 });
 
 const bandwidthManager =
@@ -238,3 +240,48 @@ self.addEventListener("popstate", (event) => {
     }
   }
 });
+
+// () => Unit
+const watchForFocusLoss = () => {
+
+  const prefKey = "prefs.disableTabBlockReminder";
+
+  if (localStorage.getItem(prefKey) !== "true") {
+
+    let timeout = undefined;
+
+    const onVis = () => {
+      if (document.hidden) {
+
+        timeout = setTimeout(() => {
+
+            const warningHTML = "This tab was hidden for several seconds, but a HubNet Web activity will not run properly if the host's tab is put into the background.  If you wish to open other HubNet Web clients while this activity is running, you must put them in a new browser window.  <a target='_blank' href='/docs/faq#client-doesnt-update'>For more information, see the FAQ.</a>";
+            byEID("user-dialog-text").innerHTML = warningHTML;
+
+            byEID("user-dialog-forgetter").onclick = () => {
+              localStorage.setItem(prefKey, "true");
+              document.removeEventListener("visibilitychange", onVis);
+              byEID("user-dialog").close();
+            };
+
+            byEID("user-dialog-closer").onclick = () => {
+              byEID("user-dialog").close();
+            };
+
+            byEID("user-dialog").showModal();
+
+        }, 5000);
+
+      } else {
+        if (timeout !== undefined) {
+          clearTimeout(timeout);
+        }
+      }
+
+    };
+
+    document.addEventListener("visibilitychange", onVis);
+
+  }
+
+};
