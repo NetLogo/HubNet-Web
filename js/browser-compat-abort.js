@@ -12,10 +12,12 @@ if (regex.test(browserName)) {
   const [ , ff, version] = browserName.match(regex);
   if (ff !== null) {
     if (parseFloat(version) >= 111) {
-      const mode = localStorage.getItem("hideFFNotification") || "false";
-      if (mode === "false") {
-        const res = confirm(changeFirefoxConfig) || false;
-        localStorage.setItem("hideFFNotification", res);
+      if (parseFloat(version) < 114) {
+        const mode = localStorage.getItem("hideFFNotification") || "false";
+        if (mode === "false") {
+          const res = confirm(changeFirefoxConfig) || false;
+          localStorage.setItem("hideFFNotification", res);
+        }
       }
     } else {
       document.body.innerHTML = oldFirefoxBad;
