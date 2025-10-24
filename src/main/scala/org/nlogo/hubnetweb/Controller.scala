@@ -48,11 +48,11 @@ object Controller {
   implicit private val launchReqFormat: RootJsonFormat[LaunchReq] =
     jsonFormat5(LaunchReq)
 
-  private case class LaunchResp(id: String, `type`: String, nlogoMaybe: Option[String])
+  private case class LaunchResp(id: String, `type`: String, nlogoxMaybe: Option[String])
   implicit private val launchRespFormat: RootJsonFormat[LaunchResp] =
     jsonFormat3(LaunchResp)
 
-  private case class XLaunchResp(id: String, `type`: String, nlogoMaybe: Option[String], jsonMaybe: Option[String])
+  private case class XLaunchResp(id: String, `type`: String, nlogoxMaybe: Option[String], jsonMaybe: Option[String])
   implicit private val xlaunchRespFormat: RootJsonFormat[XLaunchResp] =
     jsonFormat4(XLaunchResp)
 
@@ -129,7 +129,7 @@ object Controller {
       path("hnw" / "session-stream") { handleWebSocketMessages(sessionStream) } ~
       path("hnw" / "my-status" / Segment) { (hostID) => handleWebSocketMessages(sessionStatus(toID(hostID))) } ~
       path("preview" / Segment)      { uuid => get { handlePreview(toID(uuid)) } } ~
-      path("depend" / "js" / "pako.esm.mjs") { getFromFile("node_modules/pako/dist/pako.esm.mjs") } ~
+      path("depend" / "js" / "pako.esm.mjs")  { getFromFile("node_modules/pako/dist/pako.esm.mjs") } ~
       path("depend" / "js" / "marked.esm.js") { getFromFile("node_modules/marked/lib/marked.esm.js") } ~
       path("favicon.ico") { getFromFile("assets/images/favicon.ico") } ~
       pathPrefix("js")               { getFromDirectory("js")         } ~
@@ -152,8 +152,8 @@ object Controller {
 
     val modelSourceJsonEither =
       req.modelType match {
-        case "library" => slurpXModelSource(req.model)
-        case "upload"  => Right((req.model, req.config.getOrElse("no config supplied"), "User Upload"))
+        case "library"       => slurpXModelSource(req.model)
+        case "upload-nlogox" => Right((req.model, req.config.getOrElse("no config supplied"), "User Upload"))
         case x         => Left(s"Unknown model type: $x")
       }
 

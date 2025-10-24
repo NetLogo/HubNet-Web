@@ -96,10 +96,10 @@ const RolePB = {
 
       , Button: {
           fields: {
-            left:                   { type: "uint32"   , id:  1 }
-          , right:                  { type: "uint32"   , id:  2 }
-          , top:                    { type: "uint32"   , id:  3 }
-          , bottom:                 { type: "uint32"   , id:  4 }
+            x:                      { type: "uint32"   , id:  1 }
+          , width:                  { type: "uint32"   , id:  2 }
+          , y:                      { type: "uint32"   , id:  3 }
+          , height:                 { type: "uint32"   , id:  4 }
           , display:                { type: "string"   , id:  5 }
           , source:                 { type: "string"   , id:  6 }
           , hnwProcName:            { type: "string"   , id:  7 }
@@ -112,10 +112,10 @@ const RolePB = {
 
       , Chooser: {
           fields: {
-            left:          { type: "uint32", id:  1 }
-          , right:         { type: "uint32", id:  2 }
-          , top:           { type: "uint32", id:  3 }
-          , bottom:        { type: "uint32", id:  4 }
+            x:             { type: "uint32", id:  1 }
+          , width:         { type: "uint32", id:  2 }
+          , y:             { type: "uint32", id:  3 }
+          , height:        { type: "uint32", id:  4 }
           , display:       { type: "string", id:  5 }
           , variable:      { type: "string", id:  6 }
           , currentChoice: { type: "uint32", id:  7 }
@@ -125,10 +125,10 @@ const RolePB = {
 
       , InputBox: {
           fields: {
-            left:       { type: "uint32"    , id:  1 }
-          , right:      { type: "uint32"    , id:  2 }
-          , top:        { type: "uint32"    , id:  3 }
-          , bottom:     { type: "uint32"    , id:  4 }
+            x:          { type: "uint32"    , id:  1 }
+          , width:      { type: "uint32"    , id:  2 }
+          , y:          { type: "uint32"    , id:  3 }
+          , height:     { type: "uint32"    , id:  4 }
           , variable:   { type: "string"    , id:  5 }
           , boxedValue: { type: "BoxedValue", id:  6 }
           }
@@ -136,10 +136,10 @@ const RolePB = {
 
       , Monitor: {
           fields: {
-            left:          { type: "uint32"       , id:  1 }
-          , right:         { type: "uint32"       , id:  2 }
-          , top:           { type: "uint32"       , id:  3 }
-          , bottom:        { type: "uint32"       , id:  4 }
+            x:             { type: "uint32"       , id:  1 }
+          , width:         { type: "uint32"       , id:  2 }
+          , y:             { type: "uint32"       , id:  3 }
+          , height:        { type: "uint32"       , id:  4 }
           , display:       { type: "string"       , id:  5 }
           , source:        { type: "string"       , id:  6 }
           , reporterStyle: { type: "ReporterStyle", id:  7 }
@@ -150,20 +150,20 @@ const RolePB = {
 
       , Output: {
           fields: {
-            left:          { type: "uint32", id:  1 }
-          , right:         { type: "uint32", id:  2 }
-          , top:           { type: "uint32", id:  3 }
-          , bottom:        { type: "uint32", id:  4 }
+            x:             { type: "uint32", id:  1 }
+          , width:         { type: "uint32", id:  2 }
+          , y:             { type: "uint32", id:  3 }
+          , height:        { type: "uint32", id:  4 }
           , fontSize:      { type: "uint32", id:  5 }
           }
       }
 
       , Plot: {
           fields: {
-            left:          { type: "uint32" , id:  1 }
-          , right:         { type: "uint32" , id:  2 }
-          , top:           { type: "uint32" , id:  3 }
-          , bottom:        { type: "uint32" , id:  4 }
+            x:             { type: "uint32" , id:  1 }
+          , width:         { type: "uint32" , id:  2 }
+          , y:             { type: "uint32" , id:  3 }
+          , height:        { type: "uint32" , id:  4 }
           , display:       { type: "string" , id:  5 }
           , xAxis:         { type: "string" , id:  6 }
           , yAxis:         { type: "string" , id:  7 }
@@ -171,20 +171,21 @@ const RolePB = {
           , xmax:          { type: "uint32" , id:  9 }
           , ymin:          { type: "uint32" , id: 10 }
           , ymax:          { type: "uint32" , id: 11 }
-          , autoPlotOn:    { type: "bool"   , id: 12 }
-          , legendOn:      { type: "bool"   , id: 13 }
-          , setupCode:     { type: "string" , id: 14 }
-          , updateCode:    { type: "string" , id: 15 }
-          , pens:          { type: "Pen"    , id: 16, keyType: "string" }
+          , autoPlotX:     { type: "bool"   , id: 12 }
+          , autoPlotY:     { type: "bool"   , id: 13 }
+          , legendOn:      { type: "bool"   , id: 14 }
+          , setupCode:     { type: "string" , id: 15 }
+          , updateCode:    { type: "string" , id: 16 }
+          , pens:          { type: "Pen"    , id: 17, keyType: "string" }
           }
         }
 
       , Slider: {
           fields: {
-            left:      { type: "uint32"   , id:  1 }
-          , right:     { type: "uint32"   , id:  2 }
-          , top:       { type: "uint32"   , id:  3 }
-          , bottom:    { type: "uint32"   , id:  4 }
+            x:         { type: "uint32"   , id:  1 }
+          , width:     { type: "uint32"   , id:  2 }
+          , y:         { type: "uint32"   , id:  3 }
+          , height:    { type: "uint32"   , id:  4 }
           , display:   { type: "string"   , id:  5 }
           , variable:  { type: "string"   , id:  6 }
           , min:       { type: "double"   , id:  7 }
@@ -198,10 +199,10 @@ const RolePB = {
 
       , Switch: {
           fields: {
-            left:     { type: "uint32", id:  1 }
-          , right:    { type: "uint32", id:  2 }
-          , top:      { type: "uint32", id:  3 }
-          , bottom:   { type: "uint32", id:  4 }
+            x:        { type: "uint32", id:  1 }
+          , width:    { type: "uint32", id:  2 }
+          , y:        { type: "uint32", id:  3 }
+          , height:   { type: "uint32", id:  4 }
           , display:  { type: "string", id:  5 }
           , variable: { type: "string", id:  6 }
           , on:       { type: "bool"  , id:  7 }
@@ -210,10 +211,10 @@ const RolePB = {
 
       , TextBox: {
           fields: {
-            left:        { type: "uint32", id: 1 }
-          , right:       { type: "uint32", id: 2 }
-          , top:         { type: "uint32", id: 3 }
-          , bottom:      { type: "uint32", id: 4 }
+            x:           { type: "uint32", id: 1 }
+          , width:       { type: "uint32", id: 2 }
+          , y:           { type: "uint32", id: 3 }
+          , height:      { type: "uint32", id: 4 }
           , display:     { type: "string", id: 5 }
           , color:       { type: "uint32", id: 6 }
           , fontSize:    { type: "uint32", id: 7 }
@@ -223,10 +224,10 @@ const RolePB = {
 
       , View: {
           fields: {
-            left:   { type: "uint32", id:  1 }
-          , right:  { type: "uint32", id:  2 }
-          , top:    { type: "uint32", id:  3 }
-          , bottom: { type: "uint32", id:  4 }
+            x:      { type: "uint32", id:  1 }
+          , width:  { type: "uint32", id:  2 }
+          , y:      { type: "uint32", id:  3 }
+          , height: { type: "uint32", id:  4 }
           }
         }
 

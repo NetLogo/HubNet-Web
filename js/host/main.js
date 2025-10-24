@@ -27,7 +27,7 @@ const finishLaunch = ({ isSuccess, data, config }) => {
 
   if (isSuccess) {
 
-    const { hostID, json, nlogo } = data;
+    const { hostID, json, nlogox } = data;
 
     const title = config.modelType === "library" ? config.model : config.sessionName;
 
@@ -38,7 +38,7 @@ const finishLaunch = ({ isSuccess, data, config }) => {
     history.pushState({ name: "hosting" }, "hosting");
 
     nlwManager.show();
-    nlwManager.becomeOracle(hostID, json, nlogo);
+    nlwManager.becomeOracle(hostID, json, nlogox);
 
     connMan.connect(hostID);
 
@@ -209,9 +209,9 @@ if (params.embedded === "true") {
 window.addEventListener("message", ({ data }) => {
   switch (data.type) {
     case "galapagos-direct-launch": {
-      const { nlogo, config, sessionName, password } = data;
-      launchModel({ modelType:  "upload"
-                  , model:       nlogo
+      const { nlogox, config, sessionName, password } = data;
+      launchModel({ modelType:  "upload-nlogox"
+                  , model:       nlogox
                   , sessionName
                   , password
                   , config

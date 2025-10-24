@@ -45,18 +45,18 @@ export default class HostNLWManager extends NLWManager {
   };
 
   // (UUID, Object[Any], String) => Unit
-  becomeOracle = (uuid, props, nlogo) => {
+  becomeOracle = (uuid, props, nlogox) => {
 
     const ccFrame = this._querySelector("#command-center-iframe");
-    this.#comCenPort = setUpComCen(nlogo, ccFrame, this._galaURL, this.relay);
+    this.#comCenPort = setUpComCen(nlogox, ccFrame, this._galaURL, this.relay);
 
     const codeFrame = this._querySelector("#model-code-iframe");
-    this.#codePanePort = setUpCodePane(nlogo, codeFrame, this._galaURL, this.relay);
+    this.#codePanePort = setUpCodePane(nlogox, codeFrame, this._galaURL, this.relay);
 
     const infoFrame = this._querySelector("#model-info-iframe");
-    this.#infoPanePort = setUpInfoPane(nlogo, infoFrame, this._galaURL);
+    this.#infoPanePort = setUpInfoPane(nlogox, infoFrame, this._galaURL);
 
-    this._post({ ...props, type: "hnw-become-oracle", nlogo });
+    this._post({ ...props, type: "hnw-become-oracle", nlogox });
 
   };
 
@@ -188,7 +188,7 @@ export default class HostNLWManager extends NLWManager {
 }
 
 // (String, Frame, String, (Object[Any]) => Unit, String, String) => MessagePort
-const setUpPane = (nlogo, frame, url, onMsg, onloadType, urlSuffix) => {
+const setUpPane = (nlogox, frame, url, onMsg, onloadType, urlSuffix) => {
 
   const channel = new MessageChannel();
   const port    = channel.port1;
@@ -198,7 +198,7 @@ const setUpPane = (nlogo, frame, url, onMsg, onloadType, urlSuffix) => {
   }
 
   frame.onload = () => {
-    const msg = { type: onloadType, nlogo };
+    const msg = { type: onloadType, nlogox };
     frame.contentWindow.postMessage(msg, url, [channel.port2]);
   };
 
@@ -209,14 +209,14 @@ const setUpPane = (nlogo, frame, url, onMsg, onloadType, urlSuffix) => {
 };
 
 // (String, Frame, String) => MessagePort
-const setUpInfoPane = (nlogo, frame, url) => {
+const setUpInfoPane = (nlogox, frame, url) => {
   const onloadType = "hnw-set-up-info-pane";
   const urlSuffix  = "info-pane";
-  return setUpPane(nlogo, frame, url, undefined, onloadType, urlSuffix);
+  return setUpPane(nlogox, frame, url, undefined, onloadType, urlSuffix);
 };
 
 // (String, Frame, String, (Object[Any]) => Unit) => MessagePort
-const setUpCodePane = (nlogo, frame, url, relay) => {
+const setUpCodePane = (nlogox, frame, url, relay) => {
 
   const onMsg = ({ data }) => {
     switch (data.type) {
@@ -234,12 +234,12 @@ const setUpCodePane = (nlogo, frame, url, relay) => {
   const onloadType = "hnw-set-up-code-pane";
   const urlSuffix  = "code-pane";
 
-  return setUpPane(nlogo, frame, url, onMsg, onloadType, urlSuffix);
+  return setUpPane(nlogox, frame, url, onMsg, onloadType, urlSuffix);
 
 };
 
 // (String, Frame, String, (Object[Any]) => Unit) => MessagePort
-const setUpComCen = (nlogo, frame, url, relay) => {
+const setUpComCen = (nlogox, frame, url, relay) => {
 
   const onMsg = ({ data }) => {
     switch (data.type) {
@@ -257,7 +257,7 @@ const setUpComCen = (nlogo, frame, url, relay) => {
   const onloadType = "hnw-set-up-command-center";
   const urlSuffix  = "command-center-pane";
 
-  return setUpPane(nlogo, frame, url, onMsg, onloadType, urlSuffix);
+  return setUpPane(nlogox, frame, url, onMsg, onloadType, urlSuffix);
 
 };
 

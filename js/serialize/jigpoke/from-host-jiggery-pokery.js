@@ -1132,9 +1132,7 @@ const recombobulateRole = (target, parent) => {
           recombobulateColor(replacement, "color");
           parent[k0].push(replacement);
         } else if (widget.view !== undefined) {
-          const inner  = deepClone(widget.view);
-          inner.height = inner.bottom - inner.top;
-          inner.width  = inner.right  - inner.left;
+          const inner = deepClone(widget.view);
           parent[k0].push({ type: "hnwView", ...inner });
         } else {
           const s = "Well, that's impressive.  What widget type could this be?";

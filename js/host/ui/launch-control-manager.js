@@ -107,9 +107,10 @@ export default class LaunchControlManager {
     if (getDOM("#library-button").classList.contains("active")) {
       extras = { modelType: "library", model: formData.get("libraryModel") };
     } else if (this.#upload instanceof ValidUpload) {
-      const model  = this.#upload.getNlogo();
+      const type   = this.#upload.getType();
+      const model  = this.#upload.getModel();
       const config = this.#upload.getJson();
-      extras = { modelType: "upload", model, config };
+      extras = { modelType: `upload-${type}`, model, config };
     } else {
       throw new Error("Invalid upload format", this.#upload);
     }
@@ -197,15 +198,15 @@ const awaitProcessResponse = (frame, notifyUser, config) => (response) => {
   if (response.status === 200) {
 
     return response.json().then(
-      ({ id: hostID, type, nlogoMaybe, jsonMaybe }) => {
+      ({ id: hostID, type, nlogoxMaybe, jsonMaybe }) => {
 
-        const canDealWith = type === "from-library" || type === "from-upload";
-        const nlogo       = canDealWith ? nlogoMaybe            : "invalid model type";
+        const canDealWith = type === "from-library" || type === "from-upload-nlogox";
+        const nlogox      = canDealWith ? nlogoxMaybe           : "invalid model type";
         const json        = canDealWith ? JSON.parse(jsonMaybe) : "invalid model JSON";
 
         frame.classList.add("hidden");
 
-        return { isSuccess: true, data: { hostID, json, nlogo }, config };
+        return { isSuccess: true, data: { hostID, json, nlogox }, config };
 
       }
     );

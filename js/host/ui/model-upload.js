@@ -20,17 +20,31 @@ class NlogoPartial extends UploadResult {
   }
 }
 
+class NlogoxPartial extends UploadResult {
+  nlogox = undefined; // String
+  constructor(nlogox) {
+    super();
+    this.nlogox = nlogox;
+  }
+}
+
 class ValidUpload extends Upload {
 
+  #type  = undefined; // "nlogo" | "nlogox"
   #json  = undefined; // String
-  #nlogo = undefined; // String
+  #model = undefined; // String
 
   // (String, String) => ValidUpload
-  constructor(nlogo, json) {
+  constructor(type, model, json) {
     super();
+    this.#type  = type;
     this.#json  = json;
-    this.#nlogo = nlogo;
+    this.#model = model;
   }
+
+  getType = () => {
+    return this.#type;
+  };
 
   // () => String
   getJson = () => {
@@ -38,8 +52,8 @@ class ValidUpload extends Upload {
   };
 
   // () => String
-  getNlogo = () => {
-    return this.#nlogo;
+  getModel = () => {
+    return this.#model;
   };
 
 }
@@ -48,6 +62,27 @@ class ValidUpload extends Upload {
 const isNlogo = (str) => {
   return typeof(str) === "string" && str.split("\n@#$#@#$#@").length === 12;
 };
+
+// (String) => Boolean
+const isNlogox = (str) => {
+  return typeof(str) === "string" && str.trim().startsWith("<?xml");
+}
+
+// (String) => Document
+const nlogoXmlToDoc = (nlogox) => {
+  const parser = new DOMParser();
+  return parser.parseFromString(nlogox, "text/xml");
+}
+
+// (String) => String
+const stripXmlCdata = (text) => {
+  const CDATA_START = "<![CDATA[";
+  const CDATA_END   = "]]>";
+  if (text.startsWith(CDATA_START) && text.endsWith(CDATA_END))
+    return text.slice(CDATA_START.length, -1 * CDATA_END.length)
+  else
+    return text
+}
 
 // (File) => Promise[UploadResult]
 const processUpload = (file) => {
@@ -66,21 +101,33 @@ const processUpload = (file) => {
 
   return promise.then(
     (text) => {
-      try {
-        const json = JSON.parse(text);
-        if (json.type === "hubnet-web" && json.version === "hnw-alpha-1") {
-          const fromHnwJson = (config) => {
-            const nlogo = config.hnwNlogo;
-            delete config.hnwNlogo;
-            return new ValidUpload(nlogo, JSON.stringify(config));
-          };
-          return isNlogo(json.hnwNlogo) ? fromHnwJson(json)
-                                        : new JsonPartial(text);
-        } else {
-          return InvalidUpload;
+      if (isNlogox(text)) {
+        try {
+          const nlogoDoc      = nlogoXmlToDoc(text);
+          const modelElement  = nlogoDoc.querySelector("model");
+          const configElement = modelElement.querySelector("hubnet-web-config");
+          const config        = configElement === undefined ? undefined : stripXmlCdata(configElement.innerHTML);
+          return new ValidUpload("nlogox", text, config);
+        } catch (_) {
+          return new NlogoxPartial(text);
         }
-      } catch (_) {
-        return isNlogo(text) ? new NlogoPartial(text) : InvalidUpload;
+      } else {
+        try {
+          const json = JSON.parse(text);
+          if (json.type === "hubnet-web" && json.version === "hnw-alpha-1") {
+            const fromHnwJson = (config) => {
+              const nlogo = config.hnwNlogo;
+              delete config.hnwNlogo;
+              return new ValidUpload("nlogo", nlogo, JSON.stringify(config));
+            };
+            return isNlogo(json.hnwNlogo) ? fromHnwJson(json)
+                                          : new JsonPartial(text);
+          } else {
+            return InvalidUpload;
+          }
+        } catch (_) {
+          return isNlogo(text) ? new NlogoPartial(text) : InvalidUpload;
+        }
       }
     }
   );
@@ -116,9 +163,9 @@ const processUploads = (files, setUpload, setValidator) => {
             processUpload(files[1]).then(
               (file2) => {
                 if (file1 instanceof NlogoPartial && file2 instanceof JsonPartial) {
-                  setUpload(new ValidUpload(file1.nlogo, file2.json));
+                  setUpload(new ValidUpload("nlogo", file1.nlogo, file2.json));
                 } else if (file1 instanceof JsonPartial && file2 instanceof NlogoPartial) {
-                  setUpload(new ValidUpload(file2.nlogo, file1.json));
+                  setUpload(new ValidUpload("nlogo", file2.nlogo, file1.json));
                 } else {
                   setValidator("Multi-file uploads must consist of one NLOGO file and one JSON file");
                   setUpload(InvalidUpload);

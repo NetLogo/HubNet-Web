@@ -1,11 +1,12 @@
-{ "name": "hubnet-web"
-, "version": "0.0.1"
-, "dependencies": {
-                    "marked":  "~5.1.0"
-                  , "pako":    "~2.1.0"
-                  }
-, "devDependencies": {
-                       "cypress": "~12.17.2"
-                     , "eslint": "~8.42.0"
-                     }
+{
+  "name": "hubnet-web",
+  "version": "0.0.1",
+  "dependencies": {
+    "marked": "~5.1.0",
+    "pako": "~2.1.0"
+  },
+  "devDependencies": {
+    "cypress": "~12.17.2",
+    "eslint": "~8.42.0"
+  }
 }
