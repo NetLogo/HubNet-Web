@@ -167,13 +167,13 @@ private object SessionManager {
 
       import scala.concurrent.duration.DurationInt
 
-      scheduleIn(25 hours, {
+      scheduleIn(25.hours, {
         () =>
           delistSession(uuid)
           ()
       })
 
-      scheduleIn(1 minute, () => checkIn(scheduleIn)(uuid))
+      scheduleIn(1.minute, () => checkIn(scheduleIn)(uuid))
 
     }
 
@@ -189,7 +189,7 @@ private object SessionManager {
       session =>
         val timestamp = session.lastCheckInTimestamp
         if (timestamp > (System.currentTimeMillis() - (1 * 60 * 1000)))
-          scheduleIn(1 minute, () => checkIn(scheduleIn)(hostID))
+          scheduleIn(1.minute, () => checkIn(scheduleIn)(hostID))
         else
           delistSession(hostID)
 
@@ -331,7 +331,7 @@ private object SessionManager {
                      (getter: (SessionInfo) => Vector[T])
                      (item: T)
                      (setter: (SessionInfo, Vector[T]) => SessionInfo): Unit = {
-    val olds = get(uuid)(getter).fold(_ => Vector(), identity _)
+    val olds = get(uuid)(getter).fold(_ => Vector(), identity)
     get(uuid)(identity)
       .map((si) => setter(si, olds :+ item))
       .foreach((si) => sessionMap.update(uuid, si))
@@ -341,7 +341,7 @@ private object SessionManager {
                      (getter: (SessionInfo) => Map[UUID, Vector[T]])
                      (item: (UUID, T))
                      (setter: (SessionInfo, Map[UUID, Vector[T]]) => SessionInfo): Unit = {
-    val olds = get(uuid)(getter).fold(_ => Map[UUID, Vector[T]](), identity _)
+    val olds = get(uuid)(getter).fold(_ => Map[UUID, Vector[T]](), identity)
     get(uuid)(identity)
       .map((si) => setter(si, olds + (item._1 -> (olds.getOrElse(item._1, Vector()) ++ Vector(item._2)))))
       .foreach((si) => sessionMap.update(uuid, si))

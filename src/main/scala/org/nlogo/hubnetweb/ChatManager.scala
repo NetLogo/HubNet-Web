@@ -118,7 +118,7 @@ private object ChatManager {
 
   def startLoop(scheduleIn: Scheduler): Unit = {
     import scala.concurrent.duration.DurationInt
-    scheduleIn(30 seconds, {
+    scheduleIn(30.seconds, {
       () =>
         val currentTS = System.currentTimeMillis()
         tickMap.foreach {

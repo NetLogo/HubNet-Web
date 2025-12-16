@@ -46,27 +46,27 @@ object Controller {
 
   private case class LaunchReq(modelType: String, model: String, config: Option[String], sessionName: String, password: Option[String])
   implicit private val launchReqFormat: RootJsonFormat[LaunchReq] =
-    jsonFormat5(LaunchReq)
+    jsonFormat5(LaunchReq.apply)
 
   private case class LaunchResp(id: String, `type`: String, nlogoxMaybe: Option[String])
   implicit private val launchRespFormat: RootJsonFormat[LaunchResp] =
-    jsonFormat3(LaunchResp)
+    jsonFormat3(LaunchResp.apply)
 
   private case class XLaunchResp(id: String, `type`: String, nlogoxMaybe: Option[String], jsonMaybe: Option[String])
   implicit private val xlaunchRespFormat: RootJsonFormat[XLaunchResp] =
-    jsonFormat4(XLaunchResp)
+    jsonFormat4(XLaunchResp.apply)
 
   private case class SessionInfoUpdate(name: String, modelName: String, roleInfo: Vector[(String, Int, Int)], oracleID: String, hasPassword: Boolean)
   implicit private val siuFormat: RootJsonFormat[SessionInfoUpdate] =
-    jsonFormat5(SessionInfoUpdate)
+    jsonFormat5(SessionInfoUpdate.apply)
 
   private case class CensusMessage(`type`: String, num: Int)
   implicit private val cemFormat: RootJsonFormat[CensusMessage] =
-    jsonFormat2(CensusMessage)
+    jsonFormat2(CensusMessage.apply)
 
   private case class ChatMessage(`type`: String, sender: Int, message: String, isAuthority: Boolean)
   implicit private val chmFormat: RootJsonFormat[ChatMessage] =
-    jsonFormat4(ChatMessage)
+    jsonFormat4(ChatMessage.apply)
 
   implicit private val system: ActorSystem = ActorSystem("hnw-system")
 
@@ -171,11 +171,11 @@ object Controller {
         }
 
         val makeParcel =
-          replyTo =>
+          (replyTo: ActorRef[Either[String, String]]) =>
             CreateSession( modelName, modelSource, json, req.sessionName
                          , req.password, uuid, scheduleIn, replyTo)
 
-        val result = askSeshFor(makeParcel)
+        val result = askSeshFor[Either[String, String]](makeParcel)
 
         complete(XLaunchResp( uuid.toString, s"from-${req.modelType}"
                             , Some(modelSource), Some(json)))
@@ -185,11 +185,11 @@ object Controller {
   }
 
   private def roleData(uuid: UUID, roleIndex: Int): RequestContext => Future[RouteResult] = {
-    askSeshFor(RoleData(uuid, roleIndex, _)).fold(msg => complete((NotFound, msg)), msg => complete(msg))
+    askSeshFor[Either[String, String]](RoleData(uuid, roleIndex, _)).fold(msg => complete((NotFound, msg)), msg => complete(msg))
   }
 
   private def handlePreview(uuid: UUID): RequestContext => Future[RouteResult] = {
-    askSeshFor(GetPreview(uuid, _)).fold(msg => complete((NotFound, msg)), msg => complete(msg))
+    askSeshFor[Either[String, String]](GetPreview(uuid, _)).fold(msg => complete((NotFound, msg)), msg => complete(msg))
   }
 
   private def sessionStream: Flow[Message, Message, Any] = {
@@ -208,11 +208,12 @@ object Controller {
             }
         }
 
+    import spray.json.enrichAny
     val source =
       Source
-        .tick(0 seconds, 3 seconds, None)
+        .tick(0.seconds, 3.seconds, None)
         .takeWhile(_ => socketNotTerminated)
-        .map(_  => askSeshFor(GetSessions(_)).map(sessionToJsonable).map(x => siuFormat.write(x)).toList.toJson)
+        .map(_  => askSeshFor[Vector[SessionInfo]](GetSessions(_)).map(sessionToJsonable).map(x => siuFormat.write(x)).toList.toJson)
         .map(xs => TextMessage(xs.toString))
 
     sink.merge(source)
@@ -227,7 +228,7 @@ object Controller {
 
   private def startJoin(hostID: UUID): RequestContext => Future[RouteResult] = {
     val response =
-      askSeshFor(PushNewJoiner(hostID, _))
+      askSeshFor[Option[UUID]](PushNewJoiner(hostID, _))
         .fold("No more hashes")(uuid => uuid.toString)
     complete(response)
   }
@@ -242,7 +243,7 @@ object Controller {
     val sink =
       Flow[Message].mapConcat {
         case tm: TextMessage =>
-          tm.toStrict(100 seconds).map(text => {
+          tm.toStrict(100.seconds).map(text => {
             val msg = text.getStrictText
             seshManager ! PushFromHost(hostID, joinerID, msg)
           })
@@ -259,11 +260,11 @@ object Controller {
 
     val source =
       Source
-        .tick(0 seconds, 0.01 seconds, None)
+        .tick(0.seconds, 0.01.seconds, None)
         .takeWhile(_ => socketNotTerminated)
         .mapConcat(
           _ =>
-            askSeshFor(PullFromJoiner(hostID, joinerID, _))
+            askSeshFor[Either[String, Vector[String]]](PullFromJoiner(hostID, joinerID, _))
               .fold(_ => Vector(), identity)
               .map(m => TextMessage(m)).toList
         )
@@ -288,7 +289,7 @@ object Controller {
     val sink =
       Flow[Message].mapConcat {
         case tm: TextMessage =>
-          tm.toStrict(100 seconds).map(text => seshManager ! PushFromJoiner(hostID, joinerID, text.getStrictText))
+          tm.toStrict(100.seconds).map(text => seshManager ! PushFromJoiner(hostID, joinerID, text.getStrictText))
           Nil
         case binary: BinaryMessage =>
           binary.dataStream.runWith(Sink.ignore)
@@ -302,11 +303,11 @@ object Controller {
 
     val source =
       Source
-        .tick(0 seconds, 0.01 seconds, None)
+        .tick(0.seconds, 0.01.seconds, None)
         .takeWhile(_ => socketNotTerminated)
         .mapConcat(
           _ =>
-            askSeshFor(PullFromHost(hostID, joinerID, _))
+            askSeshFor[Either[String, Vector[String]]](PullFromHost(hostID, joinerID, _))
               .fold(_ => Vector(), identity)
               .map(m => TextMessage(m)).toList
         )
@@ -340,17 +341,17 @@ object Controller {
 
     val source =
       Source
-        .tick(0 seconds, 0.01 seconds, None)
+        .tick(0.seconds, 0.01.seconds, None)
         .takeWhile(_ => socketNotTerminated)
         .mapConcat {
           _ =>
-            askSeshFor(PullJoinerIDs(hostID, _)).fold(
+            askSeshFor[Either[String, Vector[UUID]]](PullJoinerIDs(hostID, _)).fold(
               _ => Nil
             , {
               ids =>
                 val maps  = ids.map(joinerID => Map("joinerID" -> joinerID.toString, "type" -> "hello"))
                 val lists = maps.map(map => map.toList.map { case (k, v) => k.toString -> JsString(v) })
-                lists.map(list => TextMessage(JsObject(list: _*).toString)).toList
+                lists.map(list => TextMessage(JsObject(list*).toString)).toList
             })
         }
 
@@ -365,34 +366,34 @@ object Controller {
     Flow[Message]
       .mapConcat {
         case text: TextMessage =>
-          text.toStrict(100 seconds).foreach {
+          text.toStrict(100.seconds).foreach {
             json =>
               val parsed = JsonParser(json.getStrictText).asInstanceOf[JsObject]
               parsed.fields("type") match {
                 case JsString("role-config") =>
 
-                  val JsArray(configs) = parsed.fields("roles")
+                  val JsArray(configs) = parsed.fields("roles"): @unchecked
 
                   val triples =
                     configs.map {
                       (x) =>
                         val obj             = x.asInstanceOf[JsObject]
-                        val JsString( name) = obj.fields("name")
-                        val JsNumber(limit) = obj.fields("limit")
-                        val JsString( data) = obj.fields("data")
+                        val JsString( name) = obj.fields("name" ): @unchecked
+                        val JsNumber(limit) = obj.fields("limit"): @unchecked
+                        val JsString( data) = obj.fields("data" ): @unchecked
                         (name, limit.toInt, data)
                     }
 
                   seshManager ! RegisterRoles(hostID, triples)
 
                 case JsString("members-update") =>
-                  val JsArray(xs) = parsed.fields("memberInfo")
+                  val JsArray(xs) = parsed.fields("memberInfo"): @unchecked
                   val nums        = xs.map(_.asInstanceOf[JsNumber])
                   val plainNums   = nums.map { case JsNumber(num) => num.toInt }
                   seshManager ! UpdateNumPeers(hostID, plainNums)
 
                 case JsString("image-update") =>
-                  val JsString(str) = parsed.fields("base64")
+                  val JsString(str) = parsed.fields("base64"): @unchecked
                   seshManager ! UpdatePreview(hostID, str)
 
                 case JsString("keep-alive") =>
@@ -411,7 +412,7 @@ object Controller {
       (_, dcFuture) =>
         dcFuture.onComplete {
           case _ =>
-            system.scheduler.scheduleOnce(5 seconds) {
+            system.scheduler.scheduleOnce(5.seconds) {
               seshManager ! DelistSession(hostID)
             }
         }
@@ -429,17 +430,17 @@ object Controller {
     val sink =
       Flow[Message].mapConcat {
         case tm: TextMessage =>
-          tm.toStrict(100 seconds).map(json => {
+          tm.toStrict(100.seconds).map(json => {
             val parsed = JsonParser(json.getStrictText).asInstanceOf[JsObject]
             parsed.fields("type") match {
               case JsString("chat") =>
-                val JsString( msg) = parsed.fields("message")
-                val JsString(uuid) = parsed.fields("sender")
+                val JsString( msg) = parsed.fields("message"): @unchecked
+                val JsString(uuid) = parsed.fields("sender" ): @unchecked
                 val id             = toID(uuid)
                 myID               = Option(id)
                 chatManager ! LogChat(msg, id)
               case JsString("tick") =>
-                val JsString(uuid) = parsed.fields("sender")
+                val JsString(uuid) = parsed.fields("sender"): @unchecked
                 val id             = toID(uuid)
                 myID               = Option(id)
                 chatManager ! LogTick(id)
@@ -456,12 +457,12 @@ object Controller {
 
     val msgSource =
       Source
-        .tick(0 seconds, 0.01 seconds, None)
+        .tick(0.seconds, 0.01.seconds, None)
         .mapConcat(
           _ => {
             myID.toList.flatMap {
               uuid =>
-                askChatFor(PullBuffer(uuid, _)).map {
+                askChatFor[List[(Int, String, Boolean)]](PullBuffer(uuid, _)).map {
                   case (id, msg, isPrivileged) =>
                     val cm     = ChatMessage("chat", id, msg, isPrivileged)
                     TextMessage(chmFormat.write(cm).toString)
@@ -472,10 +473,10 @@ object Controller {
 
     val censusSource =
       Source
-        .tick(0 seconds, 30 seconds, None)
+        .tick(0.seconds, 30.seconds, None)
         .mapConcat(
           _ => {
-            val result = askChatFor(Census(_))
+            val result = askChatFor[Int](Census(_))
             val cm = CensusMessage("census", result)
             List(TextMessage(cemFormat.write(cm).toString))
           }
@@ -488,7 +489,7 @@ object Controller {
   }
 
   private def slurpXModelSource(modelName: String): Either[String, (String, String, String)] = {
-    import scala.collection.JavaConverters.asScalaIteratorConverter
+    import scala.jdk.CollectionConverters._
     val pathStr     = s"./models/$modelName HubNet.nlogo"
     val modelPath   = Paths.get(pathStr)
     val jsonPath    = Paths.get(s"$pathStr.json")
@@ -510,7 +511,7 @@ object Controller {
 
   private lazy val availableModels = {
     val modelNames = namesToPaths.keys.map(JsString.apply).toVector
-    JsArray(modelNames: _*)
+    JsArray(modelNames*)
   }
 
   private lazy val libraryConfig = {
@@ -524,17 +525,19 @@ object Controller {
   private def toID(id: String): UUID = UUID.fromString(id)
 
   private def askSeshFor[T](makeParcel: ActorRef[T] => SeshMessageAsk[T]): T = {
+    import scala.concurrent.Awaitable
     import scala.concurrent.duration.DurationInt
-    val timeout = Timeout(20 seconds)
-    val future = seshManager.ask(replyTo => makeParcel(replyTo))(timeout, seshManager.scheduler)
-    Await.result(future, timeout.duration)
+    val timeout = Timeout(20.seconds)
+    val future = seshManager.ask(replyTo => makeParcel(replyTo))(using timeout, seshManager.scheduler)
+    Await.result(future.asInstanceOf[Awaitable[T]], timeout.duration)
   }
 
   private def askChatFor[T](makeParcel: ActorRef[T] => ChatMessageAsk[T]): T = {
+    import scala.concurrent.Awaitable
     import scala.concurrent.duration.DurationInt
-    val timeout = Timeout(20 seconds)
-    val future = chatManager.ask(replyTo => makeParcel(replyTo))(timeout, chatManager.scheduler)
-    Await.result(future, timeout.duration)
+    val timeout = Timeout(20.seconds)
+    val future = chatManager.ask(replyTo => makeParcel(replyTo))(using timeout, chatManager.scheduler)
+    Await.result(future.asInstanceOf[Awaitable[T]], timeout.duration)
   }
 
 }

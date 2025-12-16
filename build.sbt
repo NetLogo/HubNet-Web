@@ -2,15 +2,13 @@ name := "HubNetWeb"
 
 version := "1.0-SNAPSHOT"
 
-scalaVersion := "2.13.11"
+scalaVersion := "3.7.0"
 
 scalacOptions ++= Seq(
   "-encoding", "UTF-8",
   "-deprecation",
   "-unchecked",
   "-feature",
-  "-language:_",
-  "-Ywarn-value-discard",
   "-Xfatal-warnings"
 )
 
