@@ -1,0 +1,1937 @@
+<?xml version="1.0" encoding="utf-8"?><model version="NetLogo 6.0.4">
+  <code><![CDATA[extensions [bitmap fetch import-a]
+
+globals
+[
+
+  predator-leader               ;; a string expressing the player who has found the most bug (or a tie if appropriate)
+  predator-leader-found         ;; the number of bug the leader has found
+  mate-leader                   ;; a string expressing the player who has found the most bug (or a tie if appropriate)
+  mate-leader-found             ;; the number of bug the leader has found
+  predator-total-found          ;; running total of the total number of bug found
+  mate-total-found              ;; running total of the total number of bug found
+  leader                        ;; a string expressing the player who has found the most bugs (or a tie if appropriate)
+  leader-found                  ;; the number of bugs the leader has found
+  total-found                   ;; running total of the total number of bugs found by everyone
+  adult-age                     ;; the number of ticks before bugs are full grown
+  image1                        ;; the first image uploaded by the user for the environment
+  image2                        ;; the second image uploaded by the user for the environment
+  number-of-predators           ;; keeps track of the number of predators (clients that are assigned this role) in the competition
+  number-of-mates               ;; keeps track of the number of mates     (clients that are assigned this role) in the competition
+
+  last-flash-tick
+
+  __hnw_supervisor_adult-bug-size
+  __hnw_supervisor_carrying-capacity-environment-left
+  __hnw_supervisor_carrying-capacity-environment-right
+  __hnw_supervisor_left-environment
+  __hnw_supervisor_environment-right
+  __hnw_supervisor_initial-colors-bugs-left
+  __hnw_supervisor_initial-colors-bugs-right
+  __hnw_supervisor_max-color-mutation
+  __hnw_supervisor_offspring-distance
+  __hnw_supervisor_players-roles
+  __hnw_supervisor_show-genes?
+
+]
+
+;; each client controls one player turtle
+;; players are always hidden in the view
+breed [players player]
+breed [students student]
+breed [found-spots found-spot]
+breed [edges edge]
+breed [bugs bug]
+
+found-spots-own [countdown]
+
+students-own [
+  my-player
+  user-id
+]
+
+players-own
+[
+  role         ;; set as predator or mate
+  found        ;; the number of bugs this user as found
+  attempts     ;; times the user has clicked in the view trying to catch a bug
+  percent      ;; percent of catches relative to the leader
+]
+
+;; gene-frequencies determine the color
+;; of each bug and mutate as bugs reproduce
+bugs-own
+[
+  red-gene    ;; gene for strength of expressing red pigment (0-255)
+  blue-gene   ;; gene for strength of expressing blue pigment (0-255)
+  green-gene  ;; gene for strength of expressing green pigment (0-255)
+  birthday    ;; when this bug was born
+]
+
+patches-own [type-of-patch region]
+
+;;;;;;;;;;;;;;;;;;;
+;; Setup Procedures
+;;;;;;;;;;;;;;;;;;;
+
+to startup
+  clear-all
+  setup-clear
+end
+
+;; this kills off all the turtles (including the players)
+;; so we don't necessarily want to do this each time we setup
+to setup-clear
+
+  clear-environment
+  reset-ticks
+
+  set-default-shape bugs "moth"
+  set adult-age 25
+  set last-flash-tick -1
+
+  set __hnw_supervisor_adult-bug-size                      1.5
+  set __hnw_supervisor_carrying-capacity-environment-left  2
+  set __hnw_supervisor_carrying-capacity-environment-right 0
+  set __hnw_supervisor_left-environment                    "none"
+  set __hnw_supervisor_environment-right                   "none"
+  set __hnw_supervisor_initial-colors-bugs-left            "random variation"
+  set __hnw_supervisor_initial-colors-bugs-right           "random variation"
+  set __hnw_supervisor_max-color-mutation                  20
+  set __hnw_supervisor_players-roles                       "all predators"
+  set __hnw_supervisor_show-genes?                         false
+  set __hnw_supervisor_offspring-distance                  40
+
+  setup
+
+end
+
+;; setup the model for another round of bug catching
+;; with the same group of users logged in
+to setup
+  clear-patches
+  clear-all-plots
+  reset-ticks
+  ask bugs [ die ]
+  ask found-spots [ die ]
+  set total-found 0
+  set leader ""
+  set leader-found 0
+  setup-regions
+  change-environment
+  make-initial-bugs __hnw_supervisor_carrying-capacity-environment-left  1
+  make-initial-bugs __hnw_supervisor_carrying-capacity-environment-right 2
+  ;; make sure to return players to initial conditions
+  ask players [ initialize-player ]
+end
+
+to setup-regions
+  let min-pycor-edge min-pycor
+  let max-pycor-edge max-pycor
+  let water-patches nobody
+  ask edges [ die ]
+  ask patches [
+    set region 0
+    if (pxcor = 0 or pycor = min-pycor or pycor = max-pycor or pxcor = min-pxcor or pxcor = max-pxcor) [
+      set type-of-patch "outside-region"
+    ]
+    if pxcor < 0 and pxcor > min-pxcor and pycor < max-pycor and pycor > min-pycor [ set region 1 ]
+    if pxcor > 0 and pxcor > min-pxcor and pycor < max-pycor and pycor > min-pycor [ set region 2 ]
+    if type-of-patch = "outside-region" [
+      sprout-edges 1 [
+        set region 0
+        set color white
+        set shape "edges"
+      ]
+    ]
+  ]
+end
+
+to make-initial-bugs [__hnw_supervisor_carrying-capacity which-side]
+  let initial-colors-of-bugs ""
+  if which-side = 1 [ set initial-colors-of-bugs __hnw_supervisor_initial-colors-bugs-left ]
+  if which-side = 2 [ set initial-colors-of-bugs __hnw_supervisor_initial-colors-bugs-right ]
+  create-bugs __hnw_supervisor_carrying-capacity [
+    set size __hnw_supervisor_adult-bug-size
+    set shape "moth"
+    set birthday (-1 * adult-age)
+    ;; assign gene frequencies from 0 to 255, where 0 represents 0% expression of the gene
+    ;; and 255 represent 100% expression of the gene for that pigment
+    if initial-colors-of-bugs = "random variation" [
+      set red-gene random 255
+      set blue-gene random 255
+      set green-gene random 255
+    ]
+    if initial-colors-of-bugs = "all gray" [
+      set red-gene 122
+      set blue-gene 122
+      set green-gene 122
+    ]
+    if initial-colors-of-bugs = "all black or white" [
+      ifelse random 2 = 0 [
+         set red-gene 0
+         set blue-gene  0
+         set green-gene  0
+      ]
+      [
+         set red-gene  255
+         set blue-gene  255
+         set green-gene 255
+      ]
+    ]
+    if which-side = 1 [ move-to one-of patches with [ region = 1 ] ]
+    if which-side = 2 [ move-to one-of patches with [ region = 2 ] ]
+    set-phenotype-color
+    assign-genotype-labels
+  ]
+end
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Runtime Procedures
+;;;;;;;;;;;;;;;;;;;;;
+
+to go
+  grow-bugs
+  reproduce-bugs
+  cull-extra-bugs
+  handle-flash
+  visualize-found-spots
+  tick
+end
+
+to handle-flash
+  let num-flashes 3
+  let color-duration 3
+  ifelse last-flash-tick >= 0 and last-flash-tick > (ticks - (num-flashes * color-duration * 2)) [
+    let diff (last-flash-tick - ticks)
+    ifelse ((floor (diff / color-duration)) mod 2) = 0 [
+      ask bugs [ set color black ]
+    ] [
+      ask bugs [ set color white ]
+    ]
+  ] [
+    set last-flash-tick -1
+    ask bugs [ set-phenotype-color ]
+  ]
+end
+
+to grow-bugs
+  ask bugs [
+    ;; show genotypes if appropriate, hide otherwise
+    assign-genotype-labels
+    ;; if the bug is smaller than __hnw_supervisor_adult-bug-size then it's not full
+    ;; grown and it should get a little bigger
+    ;; so that bugs don't just appear full grown in the view
+    ;; but instead slowly come into existence. as it's easier
+    ;; to see the new bugs when they simply appear
+    let age ticks - birthday
+    ifelse age < adult-age
+      [ set size __hnw_supervisor_adult-bug-size * (age / adult-age) ]
+      [ set size __hnw_supervisor_adult-bug-size ]
+  ]
+ ;; grow the newly hatched offspring until they reach their ADULT-AGE, at which point they should be the full bug-SIZE
+end
+
+;; keep a stable population of bugs as predation rates go up or down
+to reproduce-bugs
+  ;; if all the bugs are removed by predators at once
+  ;; make a new batch of random bugs
+  if count bugs with [ region = 1 ] = 0
+    [ make-initial-bugs __hnw_supervisor_carrying-capacity-environment-left 1 ]
+  if count bugs with [ region = 2 ] = 0
+    [ make-initial-bugs __hnw_supervisor_carrying-capacity-environment-right 2 ]
+  ;; otherwise reproduce random other bugs  until
+  ;; you've reached the carrying capacity
+  if count bugs with [ region = 1 ] < __hnw_supervisor_carrying-capacity-environment-left
+    [ ask one-of bugs with [ region = 1 ] [ make-one-offspring ] ]
+  if count bugs with [region = 2 ] < __hnw_supervisor_carrying-capacity-environment-right
+    [ ask one-of bugs with [ region = 2 ] [ make-one-offspring ] ]
+end
+
+to cull-extra-bugs
+  ;; if all the bugs are removed by predators at once
+  ;; make a new batch of random bugs
+  if count bugs with [ region = 1 ] = 0
+    [ make-initial-bugs __hnw_supervisor_carrying-capacity-environment-left 1 ]
+  if count bugs with [ region = 2 ] = 0
+    [ make-initial-bugs __hnw_supervisor_carrying-capacity-environment-right 2 ]
+  ;; otherwise reproduce random other bugs  until
+  ;; you've reached the carrying capacity
+  if count bugs with [ region = 1 ] > __hnw_supervisor_carrying-capacity-environment-left
+    [ ask one-of bugs with [ region = 1 ] [ die ] ]
+  if count bugs with [ region = 2 ] > __hnw_supervisor_carrying-capacity-environment-right
+    [ ask one-of bugs with [ region = 2 ] [ die] ]
+end
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Visualization Procedures
+;;;;;;;;;;;;;;;;;;;;;
+
+to visualize-death
+  hatch 1 [
+    set breed found-spots
+    set hidden? false
+    set shape "x"
+    set size 1.6
+    set countdown 15
+  ]
+  die
+end
+
+to visualize-mating
+  hatch 1 [
+    set breed found-spots
+    set hidden? false
+    set shape "heart"
+    set size 1.8
+    set countdown 15
+  ]
+  die
+end
+
+to visualize-found-spots
+  ask found-spots [
+    set countdown countdown - 1
+    set color lput (countdown * 10) [255 255 255]  ;; sets the transparency of this spot to progressively more transparent as countdown decreases
+    if countdown <= 0 [ die ]
+  ]
+end
+
+to make-one-offspring ;; turtle procedure
+  ;; three possible random mutations can occur, one in each frequency of gene expression
+  ;; the max-color-mutation determines the maximum amount the gene frequency can drift up
+  ;; or down in this offspring
+  let red-mutation   random (__hnw_supervisor_max-color-mutation + 1) - random (__hnw_supervisor_max-color-mutation + 1)
+  let green-mutation random (__hnw_supervisor_max-color-mutation + 1) - random (__hnw_supervisor_max-color-mutation + 1)
+  let blue-mutation  random (__hnw_supervisor_max-color-mutation + 1) - random (__hnw_supervisor_max-color-mutation + 1)
+  hatch 1 [
+     set size 0.2
+     set birthday ticks
+     set red-gene   limit-gene (red-gene   + red-mutation)
+     set green-gene limit-gene (green-gene + green-mutation)
+     set blue-gene  limit-gene (blue-gene  + blue-mutation)
+     set-phenotype-color
+     ;; move away from the parent slightly
+     lay-offspring
+   ]
+end
+
+;; used to move bug slightly away from their parent
+to lay-offspring ;; bug procedure
+  let this-region region
+  let this-bug self
+  let birth-sites-in-radius patches with [ distance this-bug <= __hnw_supervisor_offspring-distance ]
+  let birth-sites-in-region birth-sites-in-radius with [ region = this-region ]
+  if any? birth-sites-in-region and not any? edges-on birth-sites-in-region
+    [ move-to one-of birth-sites-in-region ]
+  set heading random 360
+end
+
+to clear-environment
+  clear-drawing
+end
+
+;; a visualization technique to find bugs if you are convinced they are not there anymore
+to flash-bugs
+  set last-flash-tick ticks
+end
+
+to assign-genotype-labels  ;; turtle procedure
+  ifelse __hnw_supervisor_show-genes? [ set label color ] [ set label "" ]
+end
+
+;; convert the genetic representation of gene frequency
+;; into a phenotype (i.e., a color, using the rgb primitive)
+;; we are using rgb color rather than NetLogo colors, thus, we just
+;; make a list of the red green and blue genes.
+to set-phenotype-color  ;; turtle procedure
+  set color rgb red-gene green-gene blue-gene
+end
+
+to-report initialize-student [username]
+  let me nobody
+  create-students 1 [
+    set user-id username
+    set me self
+  ]
+  create-players 1 [ ; Create a player and stuff it into the student's variables
+    ask me [ set my-player myself ]
+    initialize-player
+  ]
+  report [who] of me
+end
+
+to-report student-found
+  report [found] of my-player
+end
+
+to-report student-attempts
+  report [attempts] of my-player
+end
+
+to-report student-role
+  report [role] of my-player
+end
+
+to initialize-player ;; player procedure
+  hide-turtle
+  set number-of-mates count players with [ role = "mate" ]
+  set number-of-predators count players with [ role = "predator" ]
+  if __hnw_supervisor_players-roles = "all mates"     [ set role "mate" ]
+  if __hnw_supervisor_players-roles = "all predators" [ set role "predator" ]
+  if __hnw_supervisor_players-roles = "mix of mates & predators" [
+    ifelse number-of-mates >= number-of-predators
+      [ set role "predator" ]
+      [ set role "mate" ]
+  ]
+  set attempts 0
+  set found 0
+  set-percent
+end
+
+to check-found-bugs-student [x y]
+  ask my-player [ check-found-bugs x y ]
+end
+
+to check-found-bugs [ clicked-xcor clicked-ycor ]
+  let this-region 0
+  if clicked-ycor > 0 [ set this-region 1 ]
+  if clicked-ycor < 0 [ set this-region 2 ]
+  let this-player-role role
+
+  set this-region region
+  set xcor clicked-xcor      ;; go to the location of the click
+  set ycor clicked-ycor
+  set attempts attempts + 1  ;; each mouse click is recorded as an attempt for that player
+
+  ;;  if the players clicks close enough to a bug's location, they catch it
+  ;;  the in-radius (bug-size / 2) calculation helps make sure the user catches the bug
+  ;;  if they click within one shape radius (approximately since the shape of the bug isn't
+  ;;  a perfect circle, even if the size of the bug is other than 1)
+  let candidates bugs with [ distance myself < size / 2 and region = this-region ]
+  let num-region-bugs count bugs with [ region = this-region ]
+  if any? candidates and num-region-bugs >= 2 [ ;; must have at least 2 bugs in the region
+    ;; randomly select one of the bugs you clicked on
+    let found-bug one-of candidates
+    set found found + 1
+    ifelse this-player-role = "mate"
+      [ set mate-total-found mate-total-found + 1 ]
+      [ set predator-total-found predator-total-found + 1 ]
+    ask found-bug [
+      ;; if you are a mate, kill of a random bug, make two offspring from your mating, and the selected mate is killed off too
+      if this-player-role = "mate" [
+        repeat 2 [ make-one-offspring ]
+        visualize-mating
+        ask one-of other bugs with [ region = this-region ] [ die ]
+        die
+      ]
+      ;; if you are a predator, make an offspring from another random bug, then remove the one you selected
+      if this-player-role = "predator" [
+        ask one-of other bugs with [ region = this-region ] [
+          make-one-offspring
+        ]
+        visualize-death
+      ]
+    ]
+  ]
+end
+
+;; when clients log out simply get rid of the player turtle
+to remove-student
+  ask my-player [ die ]
+  die
+end
+
+;; calculate the percentage that this player found to the leader
+to set-percent ;; player procedure
+  ;; make sure we don't get a divide by 0 error
+  ifelse leader-found > 0
+    [ set percent (found / leader-found) * 100]
+    [ set percent 0 ]
+end
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Image Loading  and Combining Procedures
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+to upload-image1
+  fetch:user-file-async [file -> set image1 file]
+end
+
+to upload-image2
+  fetch:user-file-async [file -> set image2 file]
+end
+
+;; loads a single or combined image as environment
+to change-environment
+  clear-drawing
+  if (__hnw_supervisor_left-environment = "image1" or __hnw_supervisor_environment-right = "image1") and (image1 = 0) [
+    user-message "Please upload image 1."
+    stop
+  ]
+  if (__hnw_supervisor_left-environment = "image2" or __hnw_supervisor_environment-right = "image2") and (image2 = 0) [
+    user-message "Please upload image 2."
+    stop
+  ]
+
+  if not (__hnw_supervisor_left-environment  = "none") [
+    set-environment __hnw_supervisor_left-environment true
+  ]
+
+  if not (__hnw_supervisor_environment-right = "none") [
+    set-environment __hnw_supervisor_environment-right false
+  ]
+
+end
+
+to confirm-environment
+  ask bugs [ set hidden? true ]
+  import-a:drawing bitmap:to-base64 bitmap:from-view
+  ask bugs [ set hidden? false ]
+end
+
+to set-environment [ input-image is-left? ] ;; match the choices in the chooser with images
+
+  let xcor-image (ifelse-value is-left? [ -400 ] [ 400 ])
+
+  let finish [
+    base64 ->
+      let image  (bitmap:from-base64 base64)
+      let scaled (bitmap:scaled image 410 410)
+      bitmap:copy-to-drawing scaled xcor-image 0
+  ]
+
+  let download [
+    image-name ->
+      let base-url "https://hubnetweb.org/extras/Bug Hunters Adaptations/"
+      let url      (word base-url image-name ".jpg")
+      fetch:url-async url finish
+  ]
+
+  if input-image = "image1"     [ (run finish image1) ]
+  if input-image = "image2"     [ (run finish image2) ]
+  if input-image = "seashore"   [ (run download input-image) ]
+  if input-image = "glacier"    [ (run download input-image) ]
+  if input-image = "poppyfield" [ (run download input-image) ]
+
+end
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Reporters
+;;;;;;;;;;;;;;;;;;;;;
+
+;; imposes a threshold limit on gene-frequency.
+;; without this genes could drift into negative values
+;; or very large values
+to-report limit-gene [ gene ]
+  if gene < 0   [ report 0   ]
+  if gene > 255 [ report 255 ]
+  report gene
+end
+
+; Copyright 2006 Uri Wilensky.
+; See Info tab for full copyright and license.]]></code>
+  <widgets>
+    <view x="190" wrappingAllowedX="false" y="95" frameRate="30" minPycor="-20" height="419" showTickCounter="true" patchSize="10" fontSize="10" wrappingAllowedY="false" width="818" tickCounterLabel="ticks" maxPycor="20" updateMode="1" maxPxcor="40" minPxcor="-40"/>
+    <button x="15" y="10" height="33" disableUntilTicks="false" forever="false" kind="Observer" width="65" sizeVersion="0">setup</button>
+    <button x="85" y="10" height="33" disableUntilTicks="true" forever="true" kind="Observer" display="go/pause" width="90" sizeVersion="0">go</button>
+    <slider x="215" step="1" y="10" max="100" display="carrying-capacity-environment-left" height="33" min="0" direction="Horizontal" default="2" variable="carrying-capacity-environment-left" width="295" sizeVersion="0"/>
+    <chooser x="375" y="45" height="45" variable="left-environment" current="5" display="left-environment" width="135" sizeVersion="0">
+      <choice type="string" value="seashore"/>
+      <choice type="string" value="glacier"/>
+      <choice type="string" value="poppyfield"/>
+      <choice type="string" value="image1"/>
+      <choice type="string" value="image2"/>
+      <choice type="string" value="none"/>
+    </chooser>
+    <button x="525" y="50" height="36" disableUntilTicks="false" forever="false" kind="Observer" display="change environments" width="145" sizeVersion="0">change-environment</button>
+    <button x="15" y="445" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="flash bugs" width="160" sizeVersion="0">flash-bugs</button>
+    <slider x="15" step="0.1" y="190" max="2" display="adult-bug-size" height="33" min="0.1" direction="Horizontal" default="1.5" variable="adult-bug-size" width="160" sizeVersion="0"/>
+    <button x="15" y="410" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="clear both backgrounds" width="160" sizeVersion="0">clear-environment</button>
+    <slider x="15" step="1" y="225" max="50" display="max-color-mutation" height="33" min="0" direction="Horizontal" default="20" variable="max-color-mutation" width="160" sizeVersion="0"/>
+    <chooser x="215" y="45" height="45" variable="initial-colors-bugs-left" current="0" display="initial-colors-bugs-left" width="155" sizeVersion="0">
+      <choice type="string" value="random variation"/>
+      <choice type="string" value="all gray"/>
+      <choice type="string" value="all black or white"/>
+    </chooser>
+    <button x="15" y="110" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="upload custom image 1" width="160" sizeVersion="0">upload-image1</button>
+    <button x="15" y="145" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="upload custom image 2" width="160" sizeVersion="0">upload-image2</button>
+    <chooser x="850" y="45" height="45" variable="environment-right" current="5" display="environment-right" width="135" sizeVersion="0">
+      <choice type="string" value="seashore"/>
+      <choice type="string" value="glacier"/>
+      <choice type="string" value="poppyfield"/>
+      <choice type="string" value="image1"/>
+      <choice type="string" value="image2"/>
+      <choice type="string" value="none"/>
+    </chooser>
+    <chooser x="15" y="50" height="45" variable="players-roles" current="1" display="players-roles" width="160" sizeVersion="0">
+      <choice type="string" value="all mates"/>
+      <choice type="string" value="all predators"/>
+      <choice type="string" value="mix of mates &amp; predators"/>
+    </chooser>
+    <slider x="685" step="1" y="10" max="100" display="carrying-capacity-environment-right" height="33" min="0" direction="Horizontal" default="0" variable="carrying-capacity-environment-right" width="300" sizeVersion="0"/>
+    <chooser x="685" y="45" height="45" variable="initial-colors-bugs-right" current="0" display="initial-colors-bugs-right" width="160" sizeVersion="0">
+      <choice type="string" value="random variation"/>
+      <choice type="string" value="all gray"/>
+      <choice type="string" value="all black or white"/>
+    </chooser>
+    <slider x="15" step="2" y="260" max="40" display="offspring-distance" height="33" min="2" direction="Horizontal" default="40" variable="offspring-distance" width="160" sizeVersion="0"/>
+    <switch x="15" y="480" height="33" on="false" variable="show-genes?" display="show-genes?" width="160" sizeVersion="0"/>
+  </widgets>
+  <info><![CDATA[## WHAT IS IT?
+
+This is a HubNet activity of natural selection that shows how a population hunted by a predator can develop camouflaging. It can shows how a population can become progressively more garish in appearance, when sexual selection is the prevalent selective pressure on the population.
+
+For example, in a forest with green leaves, green bugs may emerge as the predominant bug color, when predators are hunting them, while red or yellow bugs may emerge as the predominant bug color in the same green leaved forest, when only mates are seeking them.
+
+When a predator uses color to identify the location of prey in an environment, then the prey that have heritable trait variations that allow them to blend into the background better, tend to survive longer and reproduce more often.
+
+If this continues over many generations, the distribution of colors in a population may shift to become better camouflaged in the surrounding environment.
+
+When a bug uses color to identify the location of mates in an environment, then the mates that have heritable trait variations that allow them to stand out from the background better, tend to reproduce offspring with that bug more often.
+
+If this continues over many generations, the distribution of colors in a population may shift to become better less camouflaged and more garish in the surrounding environment.
+
+## HOW IT WORKS
+
+Each HubNet participant or player assumes the role of a predator or a mate. When the HubNet simulation is started after pressing GO, participants should try to click on bugs as fast as they can with the mouse.
+
+If the player is in the role of a predator, then each bug they catch is one that they ate. If the player is in the role of a mate, then each bug they catch is one that they mate with.
+
+Each participant can monitor his or her relative success compared to other participants by watching the monitors in the client that show the number of bugs found (YOU HAVE FOUND).
+
+Over time a population of bugs will either become harder or easier to detect in the environment (the environment is an image file that is loaded into the model), depending on whether mates or predators are exerting a selective pressure on the population.
+
+Camouflaging emerges from: 1) a selective pressure that results from the interaction of predator, prey, and environment, 2) the genetic representation for genes to show color, 3) and small random changes that accumulate in new offspring in the remaining population that tend to be more advantageous.
+
+Garishness also emerges from: 1) a selective pressure that results from the interaction of predator, prey, and environment, 2) the genetic representation for genes to show color, 3) and small random changes that accumulate in new offspring in the remaining population that tend to be more advantageous.
+
+Trying to become the most successful predator or mate (in NUMBER FOUND of bugs) in the HubNet environment helps simulate the competitive pressure for limited food resources that exists between individual predators in a population or the competitive pressure for limited mates available to mate with in a mating season. Without this simulated competition, a participant could leisurely hunt for bugs regardless of how easy they are to catch or find. This sort of interaction would not put any (or as much) selective pressure on the bug population over time, and so camouflaging or garish colors would not emerge as readily in the population in this case.
+
+3 genes determine the heritable trait of bug color. One gene is RED-GENE, another is GREEN-GENE, and the last is BLUE-GENE. Higher values for each of these genes, represent more copies of the gene/allele. More genes for producing pigmentation, leads to more saturated and brighter colors. So for example, a high values for the red-gene, results in the production of lots of red "substance" by the bug. A value of 0 for the RED-GENE would result in no red substance being expressed by the bug.
+
+These overall blend of pigments that results in a single phenotype for coloration is determined by an RGB [Red-Green-Blue] calculation of all the gene values.
+
+With each bug you eat, an existing bug is randomly chosen to reproduce one offspring. The offspring's gene-frequency for each of the three pigment genes may be slightly different than the parent (as determined by the MUTATION-STEP slider).
+
+With each bug you mate with, two new offspring are produced and the mate is removed from the population. The offspring's gene-frequency for each of the three pigment genes may be slightly different than the mate that was chosen (as determined by the MUTATION-STEP slider).
+
+## HOW TO USE IT
+
+To run the simulation the GO button. To start the simulation over with the same group of players stop the GO button by pressing it again, press the SETUP button, and press GO again. To run the activity with a new group of students press the RESET button in the Control Center.
+
+Make sure you select Mirror 2D view on clients in the HubNet Control Center after you press SETUP.
+
+PREDATOR-ROLES specifies the type of role each player is assigned.
+
+- when this value is set to "all mates" each player will eat bugs when they click on them.
+
+- when this value is set to "all predators" each player will mate with bugs when they click on them
+
+- when this value is set to "a mix of predator & mates", a player may end up being assigned the role of either a mate or predator, and then they keep that role until SETUP is pressed again. The assigned role for that player will appear in the YOUR ROLE monitor.
+
+UPLOAD IMAGE 1 is a button that is used to load an image file into memory, for use as a potential background. UPLOAD IMAGE 2 does the same, but for a 2nd image. Both buttons allow you to select an image file from anywhere on your computer hard drive to use as a background image. Once the image is loaded, then changing the LEFT-ENVIRONMENT or RIGHT ENVIRONMENT chooser to "image1" or "image2" will use that loaded image as the new background when SETUP or CHANGE ENVIRONMENTS is pressed.
+
+CARRYING-CAPACITY-ENVIRONMENT-LEFT determines the size of the population in the left environment on SETUP, and how many bugs are in the world at one time when GO is pressed and bugs are being eaten or mates with. CARRYING-CAPACITY-ENVIRONMENT-RIGHT determines the size of the population in the right environment.
+
+INITIAL-COLORS-BUGS-LEFT (applies to bugs in the left environment when SETUP is pressed) and INITIAL-COLORS-BUGS-RIGHT (applies to bugs in the right environment when SETUP is pressed):
+
+- when this value is set to "random variations", the genotype of each bug's pigment production can range from 0 to 255, for red, and for green, and for blue pigments.
+
+- when this value is set to "all gray", the genotype of each bug's pigment production will be set to 127.
+
+- when this value is set to "all black or white", each bug has a 50/50 chance of being black or white ( pigment production will be set to 0 for each pigment or 255 for each pigment)
+
+LEFT ENVIRONMENT is a chooser that specifies the file name to load as a background image in the left environment on SETUP or when the CHANGE ENVIRONMENTS button is pressed. RIGHT ENVIRONMENT is a chooser that specifies the image to use in the right environment. Three default images are provided in the models library folder with the model that can be selected: "seashore", "glacier", and "poppyfield"
+
+ADULT-BUG-SIZE is a slider that can be changed at any time during GO or before SETUP to modify the size of the shapes for the bugs. When bugs are born they start out at a size of 0, then quickly grow to the value set by ADULT-BUG-SIZE and remain at that value for the remainder of their life. This "growth" in size helps prevent the predators and mates on cueing in on "sudden" bug appearances in the environment, which diminish the survival/reproductive advantage that color variations would offer.
+
+MAX-COLOR-MUTATION is a slider that determines how much the pigment genes can drift from their current values in each new generation. For example, a MAX-COLOR-MUTATION of 1 means that the gene frequency for any of the three pigments could go up 1, down 1, or any value in between (including 0, which would be no change) in the offspring.
+
+OFFSPRING-DISTANCE is a slider that determines how far away (in patches) an offspring could show up from a parent. For example, a distance of 5 means the offspring could be between 0 and 5 patches away from the parent.
+
+CLEAR BOTH BACKGROUNDS is a button that removes the images from both background, and makes the background all black.
+
+FLASH BUGS is a button that quickly flashes the bugs from white to black and back a few times, to show the players where the camouflaged bugs were hiding.
+
+SHOW-GENES? is a switch that reveals the RGB (Red-Green-Blue) gene frequency values for each bug. The values for Red can range from 0 to 255, and this also true for Green and Blue. These numbers represent how fully expressed each pigment is (e.g. 102-255-51 would represent genetic information that expresses the red pigment at 40% its maximum value, the green pigment at 100%, and the blue pigment at 20%.
+
+## THINGS TO TRY
+
+Larger numbers of bugs tend to take longer to start camouflaging or becoming garish, but larger numbers of prey or mates (participants) speed up the emergence of these outcomes in larger populations.
+
+A common response from the players when they are predators (within about 1 minute of interaction with the model) is "where did the bugs all go?" If you keep playing with the model, the user might get better at finding those hard to find bugs, but if s/he keeps trying to catch bugs quickly, even an experienced user will find that the creatures will become very hard to find in certain environments.
+
+Each new offspring starts at zero size and grows to full size (specified by BUG-SIZE) after a while. This growth in size is included to make brand new offspring harder to detect. If newly created offspring were full sized right away, your eyes would more easily detect the sudden appearance of something new.
+
+Sometimes two or more "near background" colors emerge as a predominant feature in a population of bugs. An example of this is the appearance of mostly green and red bugs in the poppy field, or dark blue/black and snow blue in the glacier background. Other times, the saturation of the bugs appears to be selected for. An example of this is a common outcome of "shell colored" bugs on the seashore background (e.g. light yellow, light tan, and light blue bugs similar to the shells of the seashore).
+
+In environments that have two distinct areas (such as a ground and sky), each with their own patterns and background colors, you might see two distinct populations of different camouflaging outcomes. Often, while hunting in one area, you will be surprised to look over at the other area (after they hadn't been paying attention to that area in a while) and notice that now there are a bunch of bugs in that background that blend in this new area very well, but whose colors are distinctly different than those that blend into the original area you were hunting in.
+
+Once you reach a point where you are having trouble finding the bugs, it is useful to either press FLASH to show where they are (and how they are camouflaged), or press CLEAR-BACKGROUND to enable you to study their color distribution and location.
+
+## EXTENDING THE MODEL
+
+What if the body shape of the bugs was heritable and mutated?
+
+## NETLOGO FEATURES
+
+The bitmap extension is used to support `bitmap:export bitmap:from-view` to build a new image file from the file selected for import, for later use by the IMPORT-DRAWING primitive.
+
+IMPORT-DRAWING is the primitive that loads the image into the drawing, which in this case is merely a backdrop.
+
+IN-RADIUS is the primitive used to check if the mouse is within the graphical "footprint" of a turtle.
+
+This model uses RGB colors, that is, colors expressed as a three item list of red, green and blue. This gives a large range of colors than with NetLogo colors.
+
+The side by side 2 environment interface is a feature that is used in many of the update evolution and population dynamics models in the BEAGLE curriculum. It is built using a breed of turtles called edges that are on a graphics layer above the bugs. When bugs travel under the edges they are relocated so that they are "wrapped" around to the other side of their respective environment, similar to the world wrapping feature in the WORLD VIEW.
+
+It has proven useful for supporting students in comparing outcomes between different conditions/interactions in different environment, when they can see those environments and outcomes side by side.
+
+## RELATED MODELS
+
+Bacteria Hunt Speeds
+Bug Hunt Camouflage
+Bug Hunter Camouflage HubNet
+Peppered Moths
+Guppy Spots
+
+## CREDITS AND REFERENCES
+
+Inspired by this BugHunt! Macintosh freeware: https://web.archive.org/web/20101213084130/http://bcrc.bio.umass.edu/BugHunt/.
+
+Thanks to Michael Novak for his work on the design of this model and the BEAGLE Evolution curriculum.
+
+## HOW TO CITE
+
+If you mention this model or the NetLogo software in a publication, we ask that you include the citations below.
+
+For the model itself:
+
+* Novak, M. and Wilensky, U. (2006).  NetLogo HubNet Bug Hunters Adaptations HubNet model.  http://ccl.northwestern.edu/netlogo/models/HubNetBugHuntersAdaptationsHubNet.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+Please cite the NetLogo software as:
+
+* Wilensky, U. (1999). NetLogo. http://ccl.northwestern.edu/netlogo/. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+## COPYRIGHT AND LICENSE
+
+Copyright 2006 Uri Wilensky.
+
+![CC BY-NC-SA 3.0](http://ccl.northwestern.edu/images/creativecommons/byncsa.png)
+
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License.  To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/3.0/ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
+
+Commercial licenses are also available. To inquire about commercial licenses, please contact Uri Wilensky at uri@northwestern.edu.
+
+<!-- 2006 Cite: Novak, M. -->]]></info>
+  <turtleShapes>
+    <shape name="default" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="5"/>
+        <point x="40" y="250"/>
+        <point x="150" y="205"/>
+        <point x="260" y="250"/>
+      </polygon>
+    </shape>
+    <shape name="airplane" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="0"/>
+        <point x="135" y="15"/>
+        <point x="120" y="60"/>
+        <point x="120" y="105"/>
+        <point x="15" y="165"/>
+        <point x="15" y="195"/>
+        <point x="120" y="180"/>
+        <point x="135" y="240"/>
+        <point x="105" y="270"/>
+        <point x="120" y="285"/>
+        <point x="150" y="270"/>
+        <point x="180" y="285"/>
+        <point x="210" y="270"/>
+        <point x="165" y="240"/>
+        <point x="180" y="180"/>
+        <point x="285" y="195"/>
+        <point x="285" y="165"/>
+        <point x="180" y="105"/>
+        <point x="180" y="60"/>
+        <point x="165" y="15"/>
+      </polygon>
+    </shape>
+    <shape name="arrow" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="0"/>
+        <point x="0" y="150"/>
+        <point x="105" y="150"/>
+        <point x="105" y="293"/>
+        <point x="195" y="293"/>
+        <point x="195" y="150"/>
+        <point x="300" y="150"/>
+      </polygon>
+    </shape>
+    <shape name="box" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="285"/>
+        <point x="285" y="225"/>
+        <point x="285" y="75"/>
+        <point x="150" y="135"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="135"/>
+        <point x="15" y="75"/>
+        <point x="150" y="15"/>
+        <point x="285" y="75"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="15" y="75"/>
+        <point x="15" y="225"/>
+        <point x="150" y="285"/>
+        <point x="150" y="135"/>
+      </polygon>
+      <line endX="150" startY="285" marked="false" color="255" endY="135" startX="150"/>
+      <line endX="15" startY="135" marked="false" color="255" endY="75" startX="150"/>
+      <line endX="285" startY="135" marked="false" color="255" endY="75" startX="150"/>
+    </shape>
+    <shape name="bug" rotatable="true" editableColorIndex="0">
+      <circle x="96" y="182" marked="true" color="-1920102913" diameter="108" filled="true"/>
+      <circle x="110" y="127" marked="true" color="-1920102913" diameter="80" filled="true"/>
+      <circle x="110" y="75" marked="true" color="-1920102913" diameter="80" filled="true"/>
+      <line endX="80" startY="100" marked="true" color="-1920102913" endY="30" startX="150"/>
+      <line endX="220" startY="100" marked="true" color="-1920102913" endY="30" startX="150"/>
+    </shape>
+    <shape name="butterfly" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="165"/>
+        <point x="209" y="199"/>
+        <point x="225" y="225"/>
+        <point x="225" y="255"/>
+        <point x="195" y="270"/>
+        <point x="165" y="255"/>
+        <point x="150" y="240"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="165"/>
+        <point x="89" y="198"/>
+        <point x="75" y="225"/>
+        <point x="75" y="255"/>
+        <point x="105" y="270"/>
+        <point x="135" y="255"/>
+        <point x="150" y="240"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="139" y="148"/>
+        <point x="100" y="105"/>
+        <point x="55" y="90"/>
+        <point x="25" y="90"/>
+        <point x="10" y="105"/>
+        <point x="10" y="135"/>
+        <point x="25" y="180"/>
+        <point x="40" y="195"/>
+        <point x="85" y="194"/>
+        <point x="139" y="163"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="162" y="150"/>
+        <point x="200" y="105"/>
+        <point x="245" y="90"/>
+        <point x="275" y="90"/>
+        <point x="290" y="105"/>
+        <point x="290" y="135"/>
+        <point x="275" y="180"/>
+        <point x="260" y="195"/>
+        <point x="215" y="195"/>
+        <point x="162" y="165"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="255"/>
+        <point x="135" y="225"/>
+        <point x="120" y="150"/>
+        <point x="135" y="120"/>
+        <point x="150" y="105"/>
+        <point x="165" y="120"/>
+        <point x="180" y="150"/>
+        <point x="165" y="225"/>
+      </polygon>
+      <circle x="135" y="90" marked="false" color="255" diameter="30" filled="true"/>
+      <line endX="195" startY="105" marked="false" color="255" endY="60" startX="150"/>
+      <line endX="105" startY="105" marked="false" color="255" endY="60" startX="150"/>
+    </shape>
+    <shape name="car" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="300" y="180"/>
+        <point x="279" y="164"/>
+        <point x="261" y="144"/>
+        <point x="240" y="135"/>
+        <point x="226" y="132"/>
+        <point x="213" y="106"/>
+        <point x="203" y="84"/>
+        <point x="185" y="63"/>
+        <point x="159" y="50"/>
+        <point x="135" y="50"/>
+        <point x="75" y="60"/>
+        <point x="0" y="150"/>
+        <point x="0" y="165"/>
+        <point x="0" y="225"/>
+        <point x="300" y="225"/>
+        <point x="300" y="180"/>
+      </polygon>
+      <circle x="180" y="180" marked="false" color="255" diameter="90" filled="true"/>
+      <circle x="30" y="180" marked="false" color="255" diameter="90" filled="true"/>
+      <polygon color="255" filled="true" marked="false">
+        <point x="162" y="80"/>
+        <point x="132" y="78"/>
+        <point x="134" y="135"/>
+        <point x="209" y="135"/>
+        <point x="194" y="105"/>
+        <point x="189" y="96"/>
+        <point x="180" y="89"/>
+      </polygon>
+      <circle x="47" y="195" marked="true" color="-1920102913" diameter="58" filled="true"/>
+      <circle x="195" y="195" marked="true" color="-1920102913" diameter="58" filled="true"/>
+    </shape>
+    <shape name="circle" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"/>
+    </shape>
+    <shape name="circle 2" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"/>
+      <circle x="30" y="30" marked="false" color="255" diameter="240" filled="true"/>
+    </shape>
+    <shape name="cow" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="200" y="193"/>
+        <point x="197" y="249"/>
+        <point x="179" y="249"/>
+        <point x="177" y="196"/>
+        <point x="166" y="187"/>
+        <point x="140" y="189"/>
+        <point x="93" y="191"/>
+        <point x="78" y="179"/>
+        <point x="72" y="211"/>
+        <point x="49" y="209"/>
+        <point x="48" y="181"/>
+        <point x="37" y="149"/>
+        <point x="25" y="120"/>
+        <point x="25" y="89"/>
+        <point x="45" y="72"/>
+        <point x="103" y="84"/>
+        <point x="179" y="75"/>
+        <point x="198" y="76"/>
+        <point x="252" y="64"/>
+        <point x="272" y="81"/>
+        <point x="293" y="103"/>
+        <point x="285" y="121"/>
+        <point x="255" y="121"/>
+        <point x="242" y="118"/>
+        <point x="224" y="167"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="73" y="210"/>
+        <point x="86" y="251"/>
+        <point x="62" y="249"/>
+        <point x="48" y="208"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="25" y="114"/>
+        <point x="16" y="195"/>
+        <point x="9" y="204"/>
+        <point x="23" y="213"/>
+        <point x="25" y="200"/>
+        <point x="39" y="123"/>
+      </polygon>
+    </shape>
+    <shape name="cylinder" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"/>
+    </shape>
+    <shape name="dot" rotatable="false" editableColorIndex="0">
+      <circle x="90" y="90" marked="true" color="-1920102913" diameter="120" filled="true"/>
+    </shape>
+    <shape name="edges" rotatable="false" editableColorIndex="0">
+      <rectangle endX="300" startY="0" marked="true" color="-1920102913" endY="300" startX="0" filled="true"/>
+    </shape>
+    <shape name="face happy" rotatable="false" editableColorIndex="0">
+      <circle x="8" y="8" marked="true" color="-1920102913" diameter="285" filled="true"/>
+      <circle x="60" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <circle x="180" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="255"/>
+        <point x="90" y="239"/>
+        <point x="62" y="213"/>
+        <point x="47" y="191"/>
+        <point x="67" y="179"/>
+        <point x="90" y="203"/>
+        <point x="109" y="218"/>
+        <point x="150" y="225"/>
+        <point x="192" y="218"/>
+        <point x="210" y="203"/>
+        <point x="227" y="181"/>
+        <point x="251" y="194"/>
+        <point x="236" y="217"/>
+        <point x="212" y="240"/>
+      </polygon>
+    </shape>
+    <shape name="face neutral" rotatable="false" editableColorIndex="0">
+      <circle x="8" y="7" marked="true" color="-1920102913" diameter="285" filled="true"/>
+      <circle x="60" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <circle x="180" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <rectangle endX="240" startY="195" marked="false" color="255" endY="225" startX="60" filled="true"/>
+    </shape>
+    <shape name="face sad" rotatable="false" editableColorIndex="0">
+      <circle x="8" y="8" marked="true" color="-1920102913" diameter="285" filled="true"/>
+      <circle x="60" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <circle x="180" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="168"/>
+        <point x="90" y="184"/>
+        <point x="62" y="210"/>
+        <point x="47" y="232"/>
+        <point x="67" y="244"/>
+        <point x="90" y="220"/>
+        <point x="109" y="205"/>
+        <point x="150" y="198"/>
+        <point x="192" y="205"/>
+        <point x="210" y="220"/>
+        <point x="227" y="242"/>
+        <point x="251" y="229"/>
+        <point x="236" y="206"/>
+        <point x="212" y="183"/>
+      </polygon>
+    </shape>
+    <shape name="fish" rotatable="false" editableColorIndex="0">
+      <polygon color="-1" filled="true" marked="false">
+        <point x="44" y="131"/>
+        <point x="21" y="87"/>
+        <point x="15" y="86"/>
+        <point x="0" y="120"/>
+        <point x="15" y="150"/>
+        <point x="0" y="180"/>
+        <point x="13" y="214"/>
+        <point x="20" y="212"/>
+        <point x="45" y="166"/>
+      </polygon>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="135" y="195"/>
+        <point x="119" y="235"/>
+        <point x="95" y="218"/>
+        <point x="76" y="210"/>
+        <point x="46" y="204"/>
+        <point x="60" y="165"/>
+      </polygon>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="75" y="45"/>
+        <point x="83" y="77"/>
+        <point x="71" y="103"/>
+        <point x="86" y="114"/>
+        <point x="166" y="78"/>
+        <point x="135" y="60"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="30" y="136"/>
+        <point x="151" y="77"/>
+        <point x="226" y="81"/>
+        <point x="280" y="119"/>
+        <point x="292" y="146"/>
+        <point x="292" y="160"/>
+        <point x="287" y="170"/>
+        <point x="270" y="195"/>
+        <point x="195" y="210"/>
+        <point x="151" y="212"/>
+        <point x="30" y="166"/>
+      </polygon>
+      <circle x="215" y="106" marked="false" color="255" diameter="30" filled="true"/>
+    </shape>
+    <shape name="flag" rotatable="false" editableColorIndex="0">
+      <rectangle endX="75" startY="15" marked="true" color="-1920102913" endY="300" startX="60" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="90" y="150"/>
+        <point x="270" y="90"/>
+        <point x="90" y="30"/>
+      </polygon>
+      <line endX="90" startY="135" marked="true" color="-1920102913" endY="135" startX="75"/>
+      <line endX="90" startY="45" marked="true" color="-1920102913" endY="45" startX="75"/>
+    </shape>
+    <shape name="flower" rotatable="false" editableColorIndex="0">
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="135" y="120"/>
+        <point x="165" y="165"/>
+        <point x="180" y="210"/>
+        <point x="180" y="240"/>
+        <point x="150" y="300"/>
+        <point x="165" y="300"/>
+        <point x="195" y="240"/>
+        <point x="195" y="195"/>
+        <point x="165" y="135"/>
+      </polygon>
+      <circle x="85" y="132" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="130" y="147" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="192" y="85" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="85" y="40" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="177" y="40" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="177" y="132" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="70" y="85" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="130" y="25" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="96" y="51" marked="true" color="-1920102913" diameter="108" filled="true"/>
+      <circle x="113" y="68" marked="false" color="255" diameter="74" filled="true"/>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="189" y="233"/>
+        <point x="219" y="188"/>
+        <point x="249" y="173"/>
+        <point x="279" y="188"/>
+        <point x="234" y="218"/>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="180" y="255"/>
+        <point x="150" y="210"/>
+        <point x="105" y="210"/>
+        <point x="75" y="240"/>
+        <point x="135" y="240"/>
+      </polygon>
+    </shape>
+    <shape name="hawk" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="166" y="230"/>
+        <point x="165" y="255"/>
+        <point x="138" y="289"/>
+        <point x="158" y="304"/>
+        <point x="171" y="304"/>
+        <point x="194" y="289"/>
+        <point x="165" y="255"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="166" y="222"/>
+        <point x="165" y="247"/>
+        <point x="143" y="285"/>
+        <point x="155" y="295"/>
+        <point x="176" y="294"/>
+        <point x="189" y="285"/>
+        <point x="165" y="247"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="175" y="164"/>
+        <point x="174" y="151"/>
+        <point x="164" y="144"/>
+        <point x="145" y="143"/>
+        <point x="154" y="152"/>
+        <point x="148" y="171"/>
+        <point x="142" y="203"/>
+        <point x="150" y="240"/>
+        <point x="154" y="262"/>
+        <point x="165" y="296"/>
+        <point x="175" y="264"/>
+        <point x="180" y="240"/>
+        <point x="184" y="201"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="153" y="175"/>
+        <point x="224" y="159"/>
+        <point x="285" y="179"/>
+        <point x="271" y="183"/>
+        <point x="293" y="199"/>
+        <point x="275" y="200"/>
+        <point x="286" y="213"/>
+        <point x="269" y="213"/>
+        <point x="277" y="223"/>
+        <point x="263" y="220"/>
+        <point x="266" y="227"/>
+        <point x="227" y="232"/>
+        <point x="152" y="229"/>
+      </polygon>
+      <circle x="159" y="145" marked="false" color="255" diameter="7" filled="true"/>
+      <polygon color="255" filled="true" marked="false">
+        <point x="144" y="143"/>
+        <point x="150" y="148"/>
+        <point x="154" y="144"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="168" y="171"/>
+        <point x="94" y="158"/>
+        <point x="35" y="177"/>
+        <point x="51" y="182"/>
+        <point x="27" y="197"/>
+        <point x="45" y="198"/>
+        <point x="34" y="211"/>
+        <point x="51" y="211"/>
+        <point x="43" y="221"/>
+        <point x="57" y="218"/>
+        <point x="54" y="225"/>
+        <point x="93" y="230"/>
+        <point x="168" y="227"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="214"/>
+        <point x="164" y="239"/>
+        <point x="142" y="277"/>
+        <point x="154" y="287"/>
+        <point x="175" y="286"/>
+        <point x="188" y="277"/>
+        <point x="164" y="239"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="171" y="251"/>
+        <point x="164" y="246"/>
+        <point x="143" y="270"/>
+        <point x="155" y="280"/>
+        <point x="176" y="279"/>
+        <point x="189" y="270"/>
+        <point x="161" y="251"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="201"/>
+        <point x="164" y="226"/>
+        <point x="149" y="261"/>
+        <point x="154" y="274"/>
+        <point x="175" y="273"/>
+        <point x="181" y="260"/>
+        <point x="164" y="226"/>
+      </polygon>
+      <polygon color="255" filled="false" marked="false">
+        <point x="145" y="142"/>
+        <point x="154" y="152"/>
+        <point x="149" y="168"/>
+        <point x="92" y="158"/>
+        <point x="33" y="176"/>
+        <point x="49" y="182"/>
+        <point x="25" y="196"/>
+        <point x="45" y="197"/>
+        <point x="33" y="211"/>
+        <point x="52" y="211"/>
+        <point x="42" y="221"/>
+        <point x="57" y="218"/>
+        <point x="52" y="225"/>
+        <point x="93" y="231"/>
+        <point x="147" y="228"/>
+        <point x="150" y="240"/>
+        <point x="150" y="252"/>
+        <point x="149" y="267"/>
+        <point x="143" y="271"/>
+        <point x="145" y="272"/>
+        <point x="141" y="276"/>
+        <point x="145" y="281"/>
+        <point x="137" y="289"/>
+        <point x="150" y="300"/>
+        <point x="177" y="300"/>
+        <point x="194" y="289"/>
+        <point x="184" y="279"/>
+        <point x="189" y="275"/>
+        <point x="185" y="274"/>
+        <point x="188" y="271"/>
+        <point x="179" y="262"/>
+        <point x="181" y="258"/>
+        <point x="176" y="253"/>
+        <point x="181" y="240"/>
+        <point x="181" y="230"/>
+        <point x="228" y="233"/>
+        <point x="267" y="227"/>
+        <point x="261" y="219"/>
+        <point x="277" y="222"/>
+        <point x="267" y="213"/>
+        <point x="286" y="213"/>
+        <point x="275" y="200"/>
+        <point x="292" y="198"/>
+        <point x="271" y="182"/>
+        <point x="285" y="178"/>
+        <point x="226" y="159"/>
+        <point x="175" y="170"/>
+        <point x="174" y="151"/>
+        <point x="164" y="144"/>
+      </polygon>
+    </shape>
+    <shape name="heart" rotatable="false" editableColorIndex="0">
+      <polygon color="-684578305" filled="true" marked="false">
+        <point x="241" y="99"/>
+        <point x="239" y="131"/>
+        <point x="209" y="176"/>
+        <point x="179" y="206"/>
+        <point x="150" y="240"/>
+        <point x="149" y="99"/>
+      </polygon>
+      <polygon color="-684578305" filled="true" marked="false">
+        <point x="241" y="97"/>
+        <point x="237" y="82"/>
+        <point x="226" y="70"/>
+        <point x="208" y="61"/>
+        <point x="196" y="59"/>
+        <point x="180" y="62"/>
+        <point x="165" y="71"/>
+        <point x="158" y="82"/>
+        <point x="153" y="90"/>
+        <point x="149" y="104"/>
+        <point x="242" y="104"/>
+      </polygon>
+      <polygon color="-684578305" filled="true" marked="false">
+        <point x="59" y="97"/>
+        <point x="63" y="82"/>
+        <point x="74" y="70"/>
+        <point x="92" y="61"/>
+        <point x="104" y="59"/>
+        <point x="120" y="62"/>
+        <point x="135" y="71"/>
+        <point x="142" y="82"/>
+        <point x="147" y="90"/>
+        <point x="151" y="104"/>
+        <point x="58" y="104"/>
+      </polygon>
+      <polygon color="-684578305" filled="true" marked="false">
+        <point x="58" y="99"/>
+        <point x="60" y="131"/>
+        <point x="90" y="176"/>
+        <point x="120" y="206"/>
+        <point x="150" y="240"/>
+        <point x="150" y="99"/>
+      </polygon>
+      <polygon color="255" filled="false" marked="false">
+        <point x="149" y="97"/>
+        <point x="143" y="82"/>
+        <point x="136" y="74"/>
+        <point x="128" y="65"/>
+        <point x="116" y="59"/>
+        <point x="104" y="58"/>
+        <point x="88" y="60"/>
+        <point x="74" y="69"/>
+        <point x="64" y="78"/>
+        <point x="58" y="100"/>
+        <point x="58" y="110"/>
+        <point x="59" y="131"/>
+        <point x="75" y="155"/>
+        <point x="90" y="177"/>
+        <point x="120" y="207"/>
+        <point x="150" y="240"/>
+        <point x="180" y="204"/>
+        <point x="210" y="175"/>
+        <point x="227" y="147"/>
+        <point x="238" y="131"/>
+        <point x="241" y="105"/>
+        <point x="239" y="85"/>
+        <point x="227" y="72"/>
+        <point x="211" y="61"/>
+        <point x="195" y="58"/>
+        <point x="181" y="60"/>
+        <point x="169" y="66"/>
+        <point x="159" y="77"/>
+        <point x="154" y="86"/>
+      </polygon>
+    </shape>
+    <shape name="heart2" rotatable="false" editableColorIndex="0">
+      <polygon color="-528509185" filled="true" marked="false">
+        <point x="59" y="97"/>
+        <point x="63" y="82"/>
+        <point x="74" y="70"/>
+        <point x="92" y="61"/>
+        <point x="104" y="59"/>
+        <point x="120" y="62"/>
+        <point x="135" y="71"/>
+        <point x="142" y="82"/>
+        <point x="147" y="90"/>
+        <point x="151" y="104"/>
+        <point x="58" y="104"/>
+      </polygon>
+      <polygon color="-684578305" filled="true" marked="false">
+        <point x="29" y="67"/>
+        <point x="33" y="52"/>
+        <point x="44" y="40"/>
+        <point x="62" y="31"/>
+        <point x="74" y="29"/>
+        <point x="90" y="32"/>
+        <point x="105" y="41"/>
+        <point x="112" y="52"/>
+        <point x="117" y="60"/>
+        <point x="121" y="74"/>
+        <point x="28" y="74"/>
+      </polygon>
+      <polygon color="-528509185" filled="true" marked="false">
+        <point x="241" y="97"/>
+        <point x="237" y="82"/>
+        <point x="226" y="70"/>
+        <point x="208" y="61"/>
+        <point x="196" y="59"/>
+        <point x="180" y="62"/>
+        <point x="165" y="71"/>
+        <point x="158" y="82"/>
+        <point x="153" y="90"/>
+        <point x="149" y="104"/>
+        <point x="242" y="104"/>
+      </polygon>
+      <polygon color="-684578305" filled="true" marked="false">
+        <point x="211" y="67"/>
+        <point x="207" y="52"/>
+        <point x="196" y="40"/>
+        <point x="178" y="31"/>
+        <point x="166" y="29"/>
+        <point x="150" y="32"/>
+        <point x="135" y="41"/>
+        <point x="128" y="52"/>
+        <point x="123" y="60"/>
+        <point x="119" y="74"/>
+        <point x="212" y="74"/>
+      </polygon>
+      <polygon color="-528509185" filled="true" marked="false">
+        <point x="58" y="99"/>
+        <point x="60" y="131"/>
+        <point x="90" y="176"/>
+        <point x="120" y="206"/>
+        <point x="150" y="221"/>
+        <point x="150" y="99"/>
+      </polygon>
+      <polygon color="-684578305" filled="true" marked="false">
+        <point x="28" y="69"/>
+        <point x="30" y="101"/>
+        <point x="60" y="146"/>
+        <point x="90" y="176"/>
+        <point x="120" y="191"/>
+        <point x="120" y="69"/>
+      </polygon>
+      <polygon color="-528509185" filled="true" marked="false">
+        <point x="241" y="99"/>
+        <point x="239" y="131"/>
+        <point x="209" y="176"/>
+        <point x="179" y="206"/>
+        <point x="149" y="221"/>
+        <point x="149" y="99"/>
+      </polygon>
+      <polygon color="-684578305" filled="true" marked="false">
+        <point x="211" y="69"/>
+        <point x="209" y="101"/>
+        <point x="179" y="146"/>
+        <point x="149" y="176"/>
+        <point x="119" y="191"/>
+        <point x="119" y="69"/>
+      </polygon>
+    </shape>
+    <shape name="house" rotatable="false" editableColorIndex="0">
+      <rectangle endX="255" startY="120" marked="true" color="-1920102913" endY="285" startX="45" filled="true"/>
+      <rectangle endX="180" startY="210" marked="false" color="255" endY="285" startX="120" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="15" y="120"/>
+        <point x="150" y="15"/>
+        <point x="285" y="120"/>
+      </polygon>
+      <line endX="270" startY="120" marked="false" color="255" endY="120" startX="30"/>
+    </shape>
+    <shape name="leaf" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="210"/>
+        <point x="135" y="195"/>
+        <point x="120" y="210"/>
+        <point x="60" y="210"/>
+        <point x="30" y="195"/>
+        <point x="60" y="180"/>
+        <point x="60" y="165"/>
+        <point x="15" y="135"/>
+        <point x="30" y="120"/>
+        <point x="15" y="105"/>
+        <point x="40" y="104"/>
+        <point x="45" y="90"/>
+        <point x="60" y="90"/>
+        <point x="90" y="105"/>
+        <point x="105" y="120"/>
+        <point x="120" y="120"/>
+        <point x="105" y="60"/>
+        <point x="120" y="60"/>
+        <point x="135" y="30"/>
+        <point x="150" y="15"/>
+        <point x="165" y="30"/>
+        <point x="180" y="60"/>
+        <point x="195" y="60"/>
+        <point x="180" y="120"/>
+        <point x="195" y="120"/>
+        <point x="210" y="105"/>
+        <point x="240" y="90"/>
+        <point x="255" y="90"/>
+        <point x="263" y="104"/>
+        <point x="285" y="105"/>
+        <point x="270" y="120"/>
+        <point x="285" y="135"/>
+        <point x="240" y="165"/>
+        <point x="240" y="180"/>
+        <point x="270" y="195"/>
+        <point x="240" y="210"/>
+        <point x="180" y="210"/>
+        <point x="165" y="195"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="195"/>
+        <point x="135" y="240"/>
+        <point x="120" y="255"/>
+        <point x="105" y="255"/>
+        <point x="105" y="285"/>
+        <point x="135" y="285"/>
+        <point x="165" y="240"/>
+        <point x="165" y="195"/>
+      </polygon>
+    </shape>
+    <shape name="line" rotatable="true" editableColorIndex="0">
+      <line endX="150" startY="0" marked="true" color="-1920102913" endY="300" startX="150"/>
+    </shape>
+    <shape name="line half" rotatable="true" editableColorIndex="0">
+      <line endX="150" startY="0" marked="true" color="-1920102913" endY="150" startX="150"/>
+    </shape>
+    <shape name="moth" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="165"/>
+        <point x="209" y="199"/>
+        <point x="225" y="225"/>
+        <point x="225" y="255"/>
+        <point x="195" y="270"/>
+        <point x="165" y="255"/>
+        <point x="150" y="240"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="165"/>
+        <point x="89" y="198"/>
+        <point x="75" y="225"/>
+        <point x="75" y="255"/>
+        <point x="105" y="270"/>
+        <point x="135" y="255"/>
+        <point x="150" y="240"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="139" y="148"/>
+        <point x="100" y="105"/>
+        <point x="55" y="90"/>
+        <point x="25" y="90"/>
+        <point x="10" y="105"/>
+        <point x="10" y="135"/>
+        <point x="25" y="180"/>
+        <point x="40" y="195"/>
+        <point x="85" y="194"/>
+        <point x="139" y="163"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="162" y="150"/>
+        <point x="200" y="105"/>
+        <point x="245" y="90"/>
+        <point x="275" y="90"/>
+        <point x="290" y="105"/>
+        <point x="290" y="135"/>
+        <point x="275" y="180"/>
+        <point x="260" y="195"/>
+        <point x="215" y="195"/>
+        <point x="162" y="165"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="255"/>
+        <point x="135" y="225"/>
+        <point x="120" y="150"/>
+        <point x="135" y="120"/>
+        <point x="150" y="105"/>
+        <point x="165" y="120"/>
+        <point x="180" y="150"/>
+        <point x="165" y="225"/>
+      </polygon>
+      <circle x="135" y="90" marked="true" color="-1920102913" diameter="30" filled="true"/>
+      <line endX="195" startY="105" marked="true" color="-1920102913" endY="60" startX="150"/>
+      <line endX="105" startY="105" marked="true" color="-1920102913" endY="60" startX="150"/>
+    </shape>
+    <shape name="moth-black" rotatable="true" editableColorIndex="0">
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="165"/>
+        <point x="209" y="199"/>
+        <point x="225" y="225"/>
+        <point x="225" y="255"/>
+        <point x="195" y="270"/>
+        <point x="165" y="255"/>
+        <point x="150" y="240"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="165"/>
+        <point x="89" y="198"/>
+        <point x="75" y="225"/>
+        <point x="75" y="255"/>
+        <point x="105" y="270"/>
+        <point x="135" y="255"/>
+        <point x="150" y="240"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="139" y="148"/>
+        <point x="100" y="105"/>
+        <point x="55" y="90"/>
+        <point x="25" y="90"/>
+        <point x="10" y="105"/>
+        <point x="10" y="135"/>
+        <point x="25" y="180"/>
+        <point x="40" y="195"/>
+        <point x="85" y="194"/>
+        <point x="139" y="163"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="162" y="150"/>
+        <point x="200" y="105"/>
+        <point x="245" y="90"/>
+        <point x="275" y="90"/>
+        <point x="290" y="105"/>
+        <point x="290" y="135"/>
+        <point x="275" y="180"/>
+        <point x="260" y="195"/>
+        <point x="215" y="195"/>
+        <point x="162" y="165"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="255"/>
+        <point x="135" y="225"/>
+        <point x="120" y="150"/>
+        <point x="135" y="120"/>
+        <point x="150" y="105"/>
+        <point x="165" y="120"/>
+        <point x="180" y="150"/>
+        <point x="165" y="225"/>
+      </polygon>
+      <circle x="135" y="90" marked="false" color="255" diameter="30" filled="true"/>
+      <line endX="195" startY="105" marked="false" color="255" endY="60" startX="150"/>
+      <line endX="105" startY="105" marked="false" color="255" endY="60" startX="150"/>
+    </shape>
+    <shape name="moth-white" rotatable="true" editableColorIndex="0">
+      <polygon color="-1" filled="true" marked="false">
+        <point x="150" y="165"/>
+        <point x="209" y="199"/>
+        <point x="225" y="225"/>
+        <point x="225" y="255"/>
+        <point x="195" y="270"/>
+        <point x="165" y="255"/>
+        <point x="150" y="240"/>
+      </polygon>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="150" y="165"/>
+        <point x="89" y="198"/>
+        <point x="75" y="225"/>
+        <point x="75" y="255"/>
+        <point x="105" y="270"/>
+        <point x="135" y="255"/>
+        <point x="150" y="240"/>
+      </polygon>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="139" y="148"/>
+        <point x="100" y="105"/>
+        <point x="55" y="90"/>
+        <point x="25" y="90"/>
+        <point x="10" y="105"/>
+        <point x="10" y="135"/>
+        <point x="25" y="180"/>
+        <point x="40" y="195"/>
+        <point x="85" y="194"/>
+        <point x="139" y="163"/>
+      </polygon>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="162" y="150"/>
+        <point x="200" y="105"/>
+        <point x="245" y="90"/>
+        <point x="275" y="90"/>
+        <point x="290" y="105"/>
+        <point x="290" y="135"/>
+        <point x="275" y="180"/>
+        <point x="260" y="195"/>
+        <point x="215" y="195"/>
+        <point x="162" y="165"/>
+      </polygon>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="150" y="255"/>
+        <point x="135" y="225"/>
+        <point x="120" y="150"/>
+        <point x="135" y="120"/>
+        <point x="150" y="105"/>
+        <point x="165" y="120"/>
+        <point x="180" y="150"/>
+        <point x="165" y="225"/>
+      </polygon>
+      <circle x="135" y="90" marked="false" color="-1" diameter="30" filled="true"/>
+      <line endX="195" startY="105" marked="false" color="-1" endY="60" startX="150"/>
+      <line endX="105" startY="105" marked="false" color="-1" endY="60" startX="150"/>
+    </shape>
+    <shape name="pentagon" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="15"/>
+        <point x="15" y="120"/>
+        <point x="60" y="285"/>
+        <point x="240" y="285"/>
+        <point x="285" y="120"/>
+      </polygon>
+    </shape>
+    <shape name="person" rotatable="false" editableColorIndex="0">
+      <circle x="110" y="5" marked="true" color="-1920102913" diameter="80" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="105" y="90"/>
+        <point x="120" y="195"/>
+        <point x="90" y="285"/>
+        <point x="105" y="300"/>
+        <point x="135" y="300"/>
+        <point x="150" y="225"/>
+        <point x="165" y="300"/>
+        <point x="195" y="300"/>
+        <point x="210" y="285"/>
+        <point x="180" y="195"/>
+        <point x="195" y="90"/>
+      </polygon>
+      <rectangle endX="172" startY="79" marked="true" color="-1920102913" endY="94" startX="127" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="195" y="90"/>
+        <point x="240" y="150"/>
+        <point x="225" y="180"/>
+        <point x="165" y="105"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="105" y="90"/>
+        <point x="60" y="150"/>
+        <point x="75" y="180"/>
+        <point x="135" y="105"/>
+      </polygon>
+    </shape>
+    <shape name="plant" rotatable="false" editableColorIndex="0">
+      <rectangle endX="165" startY="90" marked="true" color="-1920102913" endY="300" startX="135" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="255"/>
+        <point x="90" y="210"/>
+        <point x="45" y="195"/>
+        <point x="75" y="255"/>
+        <point x="135" y="285"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="255"/>
+        <point x="210" y="210"/>
+        <point x="255" y="195"/>
+        <point x="225" y="255"/>
+        <point x="165" y="285"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="180"/>
+        <point x="90" y="135"/>
+        <point x="45" y="120"/>
+        <point x="75" y="180"/>
+        <point x="135" y="210"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="180"/>
+        <point x="165" y="210"/>
+        <point x="225" y="180"/>
+        <point x="255" y="120"/>
+        <point x="210" y="135"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="105"/>
+        <point x="90" y="60"/>
+        <point x="45" y="45"/>
+        <point x="75" y="105"/>
+        <point x="135" y="135"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="105"/>
+        <point x="165" y="135"/>
+        <point x="225" y="105"/>
+        <point x="255" y="45"/>
+        <point x="210" y="60"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="90"/>
+        <point x="120" y="45"/>
+        <point x="150" y="15"/>
+        <point x="180" y="45"/>
+        <point x="165" y="90"/>
+      </polygon>
+    </shape>
+    <shape name="square" rotatable="false" editableColorIndex="0">
+      <rectangle endX="300" startY="0" marked="true" color="-1920102913" endY="300" startX="0" filled="true"/>
+    </shape>
+    <shape name="square 2" rotatable="false" editableColorIndex="0">
+      <rectangle endX="270" startY="30" marked="true" color="-1920102913" endY="270" startX="30" filled="true"/>
+      <rectangle endX="240" startY="60" marked="false" color="255" endY="240" startX="60" filled="true"/>
+    </shape>
+    <shape name="star" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="151" y="1"/>
+        <point x="185" y="108"/>
+        <point x="298" y="108"/>
+        <point x="207" y="175"/>
+        <point x="242" y="282"/>
+        <point x="151" y="216"/>
+        <point x="59" y="282"/>
+        <point x="94" y="175"/>
+        <point x="3" y="108"/>
+        <point x="116" y="108"/>
+      </polygon>
+    </shape>
+    <shape name="target" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"/>
+      <circle x="30" y="30" marked="false" color="255" diameter="240" filled="true"/>
+      <circle x="60" y="60" marked="true" color="-1920102913" diameter="180" filled="true"/>
+      <circle x="90" y="90" marked="false" color="255" diameter="120" filled="true"/>
+      <circle x="120" y="120" marked="true" color="-1920102913" diameter="60" filled="true"/>
+    </shape>
+    <shape name="tree" rotatable="false" editableColorIndex="0">
+      <circle x="118" y="3" marked="true" color="-1920102913" diameter="94" filled="true"/>
+      <rectangle endX="180" startY="195" marked="false" color="-1653716737" endY="300" startX="120" filled="true"/>
+      <circle x="65" y="21" marked="true" color="-1920102913" diameter="108" filled="true"/>
+      <circle x="116" y="41" marked="true" color="-1920102913" diameter="127" filled="true"/>
+      <circle x="45" y="90" marked="true" color="-1920102913" diameter="120" filled="true"/>
+      <circle x="104" y="74" marked="true" color="-1920102913" diameter="152" filled="true"/>
+    </shape>
+    <shape name="triangle" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="30"/>
+        <point x="15" y="255"/>
+        <point x="285" y="255"/>
+      </polygon>
+    </shape>
+    <shape name="triangle 2" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="30"/>
+        <point x="15" y="255"/>
+        <point x="285" y="255"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="151" y="99"/>
+        <point x="225" y="223"/>
+        <point x="75" y="224"/>
+      </polygon>
+    </shape>
+    <shape name="truck" rotatable="false" editableColorIndex="0">
+      <rectangle endX="195" startY="45" marked="true" color="-1920102913" endY="187" startX="4" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="296" y="193"/>
+        <point x="296" y="150"/>
+        <point x="259" y="134"/>
+        <point x="244" y="104"/>
+        <point x="208" y="104"/>
+        <point x="207" y="194"/>
+      </polygon>
+      <rectangle endX="195" startY="60" marked="false" color="-1" endY="105" startX="195" filled="true"/>
+      <polygon color="255" filled="true" marked="false">
+        <point x="238" y="112"/>
+        <point x="252" y="141"/>
+        <point x="219" y="141"/>
+        <point x="218" y="112"/>
+      </polygon>
+      <circle x="234" y="174" marked="false" color="255" diameter="42" filled="true"/>
+      <rectangle endX="214" startY="185" marked="true" color="-1920102913" endY="194" startX="181" filled="true"/>
+      <circle x="144" y="174" marked="false" color="255" diameter="42" filled="true"/>
+      <circle x="24" y="174" marked="false" color="255" diameter="42" filled="true"/>
+      <circle x="24" y="174" marked="true" color="-1920102913" diameter="42" filled="false"/>
+      <circle x="144" y="174" marked="true" color="-1920102913" diameter="42" filled="false"/>
+      <circle x="234" y="174" marked="true" color="-1920102913" diameter="42" filled="false"/>
+    </shape>
+    <shape name="turtle" rotatable="true" editableColorIndex="0">
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="215" y="204"/>
+        <point x="240" y="233"/>
+        <point x="246" y="254"/>
+        <point x="228" y="266"/>
+        <point x="215" y="252"/>
+        <point x="193" y="210"/>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="195" y="90"/>
+        <point x="225" y="75"/>
+        <point x="245" y="75"/>
+        <point x="260" y="89"/>
+        <point x="269" y="108"/>
+        <point x="261" y="124"/>
+        <point x="240" y="105"/>
+        <point x="225" y="105"/>
+        <point x="210" y="105"/>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="105" y="90"/>
+        <point x="75" y="75"/>
+        <point x="55" y="75"/>
+        <point x="40" y="89"/>
+        <point x="31" y="108"/>
+        <point x="39" y="124"/>
+        <point x="60" y="105"/>
+        <point x="75" y="105"/>
+        <point x="90" y="105"/>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="132" y="85"/>
+        <point x="134" y="64"/>
+        <point x="107" y="51"/>
+        <point x="108" y="17"/>
+        <point x="150" y="2"/>
+        <point x="192" y="18"/>
+        <point x="192" y="52"/>
+        <point x="169" y="65"/>
+        <point x="172" y="87"/>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="85" y="204"/>
+        <point x="60" y="233"/>
+        <point x="54" y="254"/>
+        <point x="72" y="266"/>
+        <point x="85" y="252"/>
+        <point x="107" y="210"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="119" y="75"/>
+        <point x="179" y="75"/>
+        <point x="209" y="101"/>
+        <point x="224" y="135"/>
+        <point x="220" y="225"/>
+        <point x="175" y="261"/>
+        <point x="128" y="261"/>
+        <point x="81" y="224"/>
+        <point x="74" y="135"/>
+        <point x="88" y="99"/>
+      </polygon>
+    </shape>
+    <shape name="wheel" rotatable="false" editableColorIndex="0">
+      <circle x="3" y="3" marked="true" color="-1920102913" diameter="294" filled="true"/>
+      <circle x="30" y="30" marked="false" color="255" diameter="240" filled="true"/>
+      <line endX="150" startY="285" marked="true" color="-1920102913" endY="15" startX="150"/>
+      <line endX="285" startY="150" marked="true" color="-1920102913" endY="150" startX="15"/>
+      <circle x="120" y="120" marked="true" color="-1920102913" diameter="60" filled="true"/>
+      <line endX="79" startY="40" marked="true" color="-1920102913" endY="269" startX="216"/>
+      <line endX="269" startY="84" marked="true" color="-1920102913" endY="221" startX="40"/>
+      <line endX="269" startY="216" marked="true" color="-1920102913" endY="79" startX="40"/>
+      <line endX="221" startY="40" marked="true" color="-1920102913" endY="269" startX="84"/>
+    </shape>
+    <shape name="x" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="75" y="30"/>
+        <point x="30" y="75"/>
+        <point x="105" y="150"/>
+        <point x="30" y="225"/>
+        <point x="75" y="270"/>
+        <point x="150" y="195"/>
+        <point x="225" y="270"/>
+        <point x="270" y="225"/>
+        <point x="195" y="150"/>
+        <point x="270" y="75"/>
+        <point x="225" y="30"/>
+        <point x="150" y="105"/>
+      </polygon>
+      <polygon color="255" filled="false" marked="false">
+        <point x="30" y="75"/>
+        <point x="105" y="150"/>
+        <point x="30" y="225"/>
+        <point x="75" y="270"/>
+        <point x="150" y="195"/>
+        <point x="225" y="270"/>
+        <point x="270" y="225"/>
+        <point x="195" y="150"/>
+        <point x="270" y="75"/>
+        <point x="225" y="30"/>
+        <point x="150" y="105"/>
+        <point x="75" y="30"/>
+      </polygon>
+    </shape>
+  </turtleShapes>
+  <linkShapes>
+    <shape name="default" curviness="0">
+      <lines>
+        <line x="-0.2" visible="false">
+          <dash value="0"/>
+          <dash value="1"/>
+        </line>
+        <line x="0" visible="true">
+          <dash value="1"/>
+          <dash value="0"/>
+        </line>
+        <line x="0.2" visible="false">
+          <dash value="0"/>
+          <dash value="1"/>
+        </line>
+      </lines>
+      <indicator>
+        <shape name="link direction" rotatable="true" editableColorIndex="0">
+          <line endX="90" startY="150" marked="true" color="-1920102913" endY="180" startX="150"/>
+          <line endX="210" startY="150" marked="true" color="-1920102913" endY="180" startX="150"/>
+        </shape>
+      </indicator>
+    </shape>
+  </linkShapes>
+<hubnet-web-config xmlns="http://www.w3.org/1999/xhtml"><![CDATA[{"onStart":"setup","onIterate":"go","roles":[{"name":"student","namePlural":"students","limit":-1,"highlightMainColor":"#00000000","widgets":[{"type":"hnwMonitor","display":"Your name","source":"user-id","reporterStyle":"turtle-var","precision":0,"fontSize":10,"x":5,"width":125,"y":10,"height":49,"oldSize":true},{"type":"hnwMonitor","display":"You have found","source":"student-found","reporterStyle":"turtle-procedure","precision":3,"fontSize":10,"x":5,"width":125,"y":120,"height":49,"oldSize":true},{"type":"hnwMonitor","display":"# Attempts","source":"student-attempts","reporterStyle":"turtle-procedure","precision":0,"fontSize":10,"x":5,"width":125,"y":175,"height":49,"oldSize":true},{"type":"hnwMonitor","display":"Your role","source":"student-role","reporterStyle":"turtle-procedure","precision":3,"fontSize":10,"x":5,"width":125,"y":65,"height":49,"oldSize":true},{"type":"hnwView","height":410,"width":810,"x":140,"y":10,"oldSize":true}],"canJoinMidRun":false,"isSpectator":false,"perspectiveVar":null,"viewOverrideVar":null,"onConnect":"initialize-student","onDisconnect":"remove-student","afterDisconnect":null,"onCursorClick":"check-found-bugs-student","onCursorRelease":null,"onCursorMove":null},{"name":"supervisor","namePlural":"supervisors","limit":1,"highlightMainColor":"#008000","widgets":[{"type":"hnwView","height":419,"width":818,"x":190,"y":95,"oldSize":true},{"type":"hnwSlider","display":"carrying-capacity-environment-left","variable":"carrying-capacity-environment-left","min":0,"max":100,"default":2,"units":"","direction":"horizontal","step":1,"x":215,"width":295,"y":10,"height":33,"oldSize":true},{"type":"hnwChooser","display":"left-environment","variable":"left-environment","choices":["seashore","glacier","poppyfield","image1","image2","none"],"currentChoice":5,"x":375,"width":135,"y":45,"height":45,"oldSize":true},{"type":"hnwButton","display":"change environments","source":"change-environment","hnwProcName":"change-environment","forever":false,"disableUntilTicksStart":true,"buttonKind":"observer","x":525,"width":145,"y":10,"height":36,"oldSize":true},{"type":"hnwButton","display":"confirm environments","source":"confirm-environment","hnwProcName":"confirm-environment","forever":false,"disableUntilTicksStart":true,"buttonKind":"observer","x":525,"width":145,"y":50,"height":36,"oldSize":true},{"type":"hnwButton","display":"flash bugs","source":"flash-bugs","hnwProcName":"flash-bugs","forever":false,"disableUntilTicksStart":true,"buttonKind":"observer","x":15,"width":160,"y":445,"height":33,"oldSize":true},{"type":"hnwSlider","display":"adult-bug-size","variable":"adult-bug-size","min":0.1,"max":2,"default":1.5,"units":"","direction":"horizontal","step":0.1,"x":15,"width":160,"y":190,"height":33,"oldSize":true},{"type":"hnwButton","display":"clear both backgrounds","source":"clear-environment","hnwProcName":"clear-environment","forever":false,"disableUntilTicksStart":true,"buttonKind":"observer","x":15,"width":160,"y":410,"height":33,"oldSize":true},{"type":"hnwSlider","display":"max-color-mutation","variable":"max-color-mutation","min":0,"max":50,"default":20,"units":"","direction":"horizontal","step":1,"x":15,"width":160,"y":225,"height":33,"oldSize":true},{"type":"hnwChooser","display":"initial-colors-bugs-left","variable":"initial-colors-bugs-left","choices":["random variation","all gray","all black or white"],"currentChoice":0,"x":215,"width":155,"y":45,"height":45,"oldSize":true},{"type":"hnwButton","display":"upload custom image 1","source":"upload-image1","hnwProcName":"upload-image1","forever":false,"disableUntilTicksStart":true,"buttonKind":"observer","x":15,"width":160,"y":110,"height":33,"oldSize":true},{"type":"hnwButton","display":"upload custom image 2","source":"upload-image2","hnwProcName":"upload-image2","forever":false,"disableUntilTicksStart":true,"buttonKind":"observer","x":15,"width":160,"y":145,"height":33,"oldSize":true},{"type":"hnwChooser","display":"environment-right","variable":"environment-right","choices":["seashore","glacier","poppyfield","image1","image2","none"],"currentChoice":5,"x":850,"width":135,"y":45,"height":45,"oldSize":true},{"type":"hnwChooser","display":"players-roles","variable":"players-roles","choices":["all mates","all predators","mix of mates & predators"],"currentChoice":1,"x":15,"width":160,"y":50,"height":45,"oldSize":true},{"type":"hnwSlider","display":"carrying-capacity-environment-right","variable":"carrying-capacity-environment-right","min":0,"max":100,"default":0,"units":"","direction":"horizontal","step":1,"x":685,"width":300,"y":10,"height":33,"oldSize":true},{"type":"hnwChooser","display":"initial-colors-bugs-right","variable":"initial-colors-bugs-right","choices":["random variation","all gray","all black or white"],"currentChoice":0,"x":685,"width":160,"y":45,"height":45,"oldSize":true},{"type":"hnwSlider","display":"offspring-distance","variable":"offspring-distance","min":2,"max":40,"default":40,"units":"","direction":"horizontal","step":2,"x":15,"width":160,"y":260,"height":33,"oldSize":true},{"type":"hnwSwitch","display":"show-genes?","variable":"show-genes?","on":false,"x":15,"width":160,"y":480,"height":33,"oldSize":true}],"canJoinMidRun":true,"isSpectator":true,"perspectiveVar":null,"viewOverrideVar":null,"onConnect":null,"onDisconnect":null,"afterDisconnect":null,"onCursorClick":null,"onCursorRelease":null,"onCursorMove":null}],"targetFrameRate":20,"type":"hubnet-web","version":"hnw-beta-1"}]]></hubnet-web-config></model>

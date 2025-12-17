@@ -27,6 +27,8 @@ import akka.actor.typed.scaladsl.Behaviors
 import spray.json.{ JsArray, JsNumber, JsObject, JsonParser, JsString, JsValue
                   , RootJsonFormat }
 
+import org.nlogo.api.XMLReader
+
 import session.{ SessionInfo, SessionManagerActor }
 import session.SessionManagerActor.{ CreateSession, DelistSession, GetPreview
                                    , GetSessions, PullFromHost, PullFromJoiner
@@ -490,11 +492,10 @@ object Controller {
 
   private def slurpXModelSource(modelName: String): Either[String, (String, String, String)] = {
     import scala.jdk.CollectionConverters._
-    val pathStr     = s"./models/$modelName HubNet.nlogo"
+    val pathStr     = s"./models/$modelName HubNet.nlogox"
     val modelPath   = Paths.get(pathStr)
-    val jsonPath    = Paths.get(s"$pathStr.json")
     val modelSource = { val src = SISource.fromURI(modelPath.toUri); val text = src.mkString; src.close(); text }
-    val jsonSource  = { val src = SISource.fromURI( jsonPath.toUri); val text = src.mkString; src.close(); text }
+    val jsonSource  = XMLReader.read(modelSource).map(_.getChild("hubnet-web-config").text).getOrElse("{}")
     Right((modelSource, jsonSource, modelName))
   }
 

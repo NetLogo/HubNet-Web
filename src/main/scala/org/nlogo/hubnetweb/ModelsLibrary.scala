@@ -1,5 +1,7 @@
 package org.nlogo.hubnetweb
 
+import org.nlogo.api.XMLReader
+
 import java.nio.file.{ Files, Path, Paths }
 
 import scala.io.Source
@@ -9,9 +11,9 @@ object ModelsLibrary {
   private lazy val fileMappings: Map[String, Path] = {
     import scala.jdk.CollectionConverters.IteratorHasAsScala
     val path  = Paths.get("./models/")
-    val files = Files.walk(path).filter(_.getFileName.toString.endsWith(".nlogo"))
+    val files = Files.walk(path).filter(_.getFileName.toString.endsWith(".nlogox"))
     val paths = files.iterator.asScala.toVector
-    paths.map(x => (x.getFileName.toString.stripSuffix(" HubNet.nlogo"), x)).toMap
+    paths.map(x => (x.getFileName.toString.stripSuffix(" HubNet.nlogox"), x)).toMap
   }
 
   private lazy val descriptions: Map[String, String] =
@@ -22,7 +24,7 @@ object ModelsLibrary {
         val text   = source.mkString
         source.close()
 
-        val info = text.split("\\Q@#$#@#$#@\\E\n")(2)
+        val info = XMLReader.read(text).map(_.getChild("info").text).getOrElse("")
 
         val Regex = """(?msi).*^## WHAT IS IT\?$(.*?)^## (?:HOW IT WORKS$(.*?)^## )?.*""".r
 

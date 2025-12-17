@@ -1,0 +1,2267 @@
+<?xml version="1.0" encoding="utf-8"?><model version="NetLogo 6.1.0">
+  <code><![CDATA[;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;
+;;;;;;    The hard coded sample questions are the first section of code
+;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Variable and Breed declarations ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+extensions [dialog export-the fetch send-to]
+
+globals
+[
+  current-question  ;; index of the current question in the question list
+  question-list     ;; list of all the questions.  Each question is itself a list.
+
+  steps-locked?     ;; are the clients locked to the host's question?
+  voted?-color      ;; color of turtles which have voted
+  not-voted?-color  ;; color of turtles which haven't voted
+
+  activity          ;; how many votes have been cast since last autosave?
+  auto-saving?      ;; autosave poll data?
+  auto-save-file    ;; base file name for the autosave files
+  auto-saving-web?
+  auto-save-web     ;; full directory information for auto-saving polls as HTML
+
+  web-response-file
+  web-responding?
+  web-response-data
+  web-response-how-many?
+  web-processing?
+  web-questions
+
+  names-showing?    ;; are client names being shown in the view?
+  graphics-display  ;; what mode is the graphics display in?
+
+  plot-showing?     ;; are the votes being shown in the plot?
+  plot-dirty?       ;; does the plot need a redraw?
+  plot-first        ;; first item included in the special mode data plot
+  plot-last         ;; last item included in the special mode data plot
+  plot-mode-is?     ;; what plot mode is the model in?
+
+  sort-up           ;; used to sort turtles up / down according to if the word is in their string response
+  sort-right        ;; used to sort turtles right / left according to if the word is in their string response
+
+  save-state-var
+  save-state-value
+
+  tmp1
+  tmp2
+  tmp3
+  tmp4
+
+  __hnw_supervisor_allow-change?
+  __hnw_supervisor_show-data?
+  __hnw_supervisor_lock-step?
+  __hnw_supervisor_see-names?
+  __hnw_supervisor_auto-save?
+  __hnw_supervisor_turtle-display
+  __hnw_supervisor_auto-save-every
+  __hnw_supervisor_plot-mode
+
+]
+
+breed [ poll-clients poll-client ]
+breed [ non-clients non-client ]
+
+turtles-own
+[
+  user-id       ;; unique id, input by the client when they log in, to identify each student turtle
+  slider-value  ;; the value of the client's choice slider
+  my-choice
+  my-choices    ;; list of my choices for each question
+  my-current-question   ;; which question is the student currently on?
+  question-one
+  question-two
+  question-three
+  typed-response
+  last-typed-response
+]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;
+;;;;;;     Sample Questions Section
+;;;;;;     at the beginning to make them easy to find and edit
+;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+to load-sample-questions
+    set question-list
+    [
+      ["Sample Question 1" "Poller"]
+      ["Sample Question 2" "Web Text"]
+      ["Sample Question 3" "Likert" 5]
+      ["Sample Question 4" "Web Number"]
+    ]
+    set current-question 0
+    ask turtles [clear-my-data  set-my-current-question 0]
+end
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;         Setup Functions
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;  Startup ONLY runs when the model is first loaded.  It initializes the
+;;  model's network capabilities and clears everything.
+to startup
+  reset-ticks
+  set __hnw_supervisor_allow-change? true
+  set __hnw_supervisor_show-data? true
+  set __hnw_supervisor_lock-step? false
+  set __hnw_supervisor_see-names? false
+  set __hnw_supervisor_auto-save? false
+  set __hnw_supervisor_turtle-display "Sit"
+  set __hnw_supervisor_auto-save-every 5
+  set __hnw_supervisor_plot-mode "Histogram"
+  setup
+end
+
+;; give the user some information about what the setup button does so they can
+;; know whether they want to proceed before actually doing the setup
+;; If you are tired of this prompt, change the code in the SETUP button from
+;; setup-prompt to setup.
+to setup-prompt
+  if user-yes-or-no? (word "The SETUP button should only be used when starting "
+              "over with a new group and new questions (such as a"
+              "different course) since ALL data is lost.\n"
+              "Are you sure you want to SETUP?")
+  [ setup ]
+end
+
+;; Initializes the display and variables.
+;; Also loads the data lists, if so desired.
+;; Only called by SETUP-PROMPT, which is called by the setup button, and STARTUP.
+to setup
+  clear-clients
+  setup-vars
+  load-questions-prompt
+end
+
+to walkthrough
+  startup-walkthrough
+  setup-vars-walkthrough
+end
+
+to startup-walkthrough
+    if user-yes-or-no? "Would you like to load questions?"
+    [load-questions-prompt]
+    ifelse user-yes-or-no? "Would you like to AUTOSAVE world data?"
+    [auto-save-prompt]
+    [set __hnw_supervisor_auto-save? false]
+end
+
+to setup-vars-walkthrough
+    ifelse user-yes-or-no? "Allow students to change their responses?"
+    [  set __hnw_supervisor_allow-change? true]
+    [  set __hnw_supervisor_allow-change? false]
+    ifelse user-yes-or-no? "Plot student responses?"
+    [  set __hnw_supervisor_show-data? true   set plot-showing? __hnw_supervisor_show-data?]
+    [  set __hnw_supervisor_show-data? false  set plot-showing? __hnw_supervisor_show-data?]
+    ifelse user-yes-or-no? "Allow students to see questions at their own pace?"
+    [  set __hnw_supervisor_lock-step? false  set steps-locked? false]
+    [  set __hnw_supervisor_lock-step? true  set steps-locked? true]
+    ifelse user-yes-or-no? "See student names?"
+    [  set __hnw_supervisor_see-names? true]
+    [  set __hnw_supervisor_see-names? false]
+end
+
+;; initialize global variables
+to setup-vars
+  set not-voted?-color green - 2
+  set voted?-color red + 2
+  set plot-showing? __hnw_supervisor_show-data?
+  set plot-dirty? true
+  set steps-locked? __hnw_supervisor_lock-step?
+
+  set activity 0
+  set auto-saving? false
+  set auto-save-file ""
+  set auto-saving-web? false
+  set auto-save-web ""
+
+  set names-showing? __hnw_supervisor_see-names?
+  set graphics-display __hnw_supervisor_turtle-display
+  set __hnw_supervisor_plot-mode "Histogram"
+  set plot-mode-is? __hnw_supervisor_plot-mode
+  set sort-up ""
+  set sort-right ""
+
+  set web-response-file ""
+  set web-responding? false
+
+  clear-all-data-and-questions
+end
+
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;        Clearing Data
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;; give the user some information about what the clear clients button does so they can
+;; know whether they want to proceed before actually doing the setup
+;; If you are tired of this prompt, change the code in the CLEAR CLIENTS button from
+;; clear-clients-prompt to clear-clients.
+to clear-clients-prompt
+  if user-yes-or-no? (word "The CLEAR CLIENTS button should only be used when starting "
+              "over with a new group (such as a new set of students) since "
+              "all STUDENT data is lost, but questions are saved.\n"
+              "Are you sure you want to CLEAR CLIENTS?")
+  [ clear-clients ]
+end
+
+;;  Clears the plots, clears the command center, and kills all turtles and patches.
+;;  Clients are dead in the water - they must exit and relogin.
+to clear-clients
+  clear-plot
+  clear-patches
+  clear-output
+end
+
+
+;; give the user some information about what the clear questions button does so they can
+;; know whether they want to proceed before actually doing the clear questions
+;; If you are tired of this prompt, change the code in the CLEAR QUESTIONS button from
+;; clear-all-data-and-questions-prompt to clear-all-data-and-questions-clients.
+to clear-all-data-and-questions-prompt
+  if user-yes-or-no? (word "The CLEAR QUESTIONS button should only be used when starting "
+              "over with the same students but new questions since "
+              "all question and poll data is lost, but clients are saved.\n"
+              "Are you sure you want to CLEAR QUESTIONS?")
+  [ clear-all-data-and-questions ]
+end
+
+to clear-all-data-and-questions
+  clear-plot
+  set activity 0
+  set current-question 0
+  set question-list []
+  set sort-up ""
+  set sort-right ""
+  ask turtles [ clear-my-data ]
+end
+
+to clear-my-data  ;; turtle procedure
+  set color not-voted?-color
+  set my-choices []
+  repeat length question-list
+  [ set my-choices lput false my-choices ]
+  ifelse length question-list = 0
+  [  set my-current-question -1]
+  [  set my-current-question 0]
+end
+
+
+;; give the user some information about what the clear current data button does so they can
+;; know whether they want to proceed before actually doing the clear current data
+;; If you are tired of this prompt, change the code in the CLEAR CURRENT DATA button from
+;; clear-current-data-prompt to clear-current-data.
+to clear-current-data-prompt
+  if user-yes-or-no? (word "The CLEAR CURRENT DATA button should only be used when clearing "
+              "the responses to the question that the TEACHER is currently viewing. "
+              "Student responses to this question will be lost, but the question"
+              "itself and student logins are unchanged.\n"
+              "Are you sure you want to CLEAR CURRENT DATA?")
+  [ clear-current-data ]
+end
+
+to clear-current-data
+  clear-plot
+  ask turtles
+  [
+    set my-choices replace-item current-question my-choices false
+    if my-current-question = -1 [set-my-current-question 0]
+  ]
+  set-current-question current-question
+end
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;        Runtime Procedures
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+to go
+  lock-step-listener
+  see-names-listener
+  see-typed-listener
+
+  plot-mode-listener
+
+  every 0.5
+  [ ;;  The turtles do whatever MOVEMENTS they're gonna do.
+    turtle-movement-listener
+    show-data-listener
+  ]
+
+  auto-save-listener
+  if auto-saving? or auto-saving-web?
+  [  if activity >= __hnw_supervisor_auto-save-every
+     [  auto-save ]
+  ]
+
+  display
+end
+
+to lock-step-listener
+  ;;check to see if __hnw_supervisor_lock-step? status has changed.  If it has changed to TRUE, then adjust clients.
+  if __hnw_supervisor_lock-step? = true and steps-locked? = false
+  [    set steps-locked? true
+      ask turtles [ set-my-current-question current-question ]
+  ]
+  if __hnw_supervisor_lock-step? = false and steps-locked? = true
+  [  set steps-locked? false
+  ]
+end
+
+to see-names-listener
+  ifelse __hnw_supervisor_see-names?
+  [  if not names-showing?
+     [  ask turtles [ set label word user-id "   "]  set names-showing? __hnw_supervisor_see-names? ]
+  ]
+  [  if names-showing?
+     [  ask turtles [ set label ""]  set names-showing? __hnw_supervisor_see-names? ]
+  ]
+end
+
+to see-typed-listener
+  let show-teacher ""
+  if mouse-down?
+  [ wait .35
+    ;this wait is necessary to keep the popup from interrupting the mouse-down? reporter,
+    ;which would prevent it from resetting to false
+    if any? turtles-on patch mouse-xcor mouse-ycor
+    [ ask one-of turtles-on patch mouse-xcor mouse-ycor
+      [ set show-teacher item current-question my-choices ]
+      user-message show-teacher
+    ]
+    wait .25
+  ]
+end
+
+to plot-mode-listener
+    if plot-mode-is? != __hnw_supervisor_plot-mode
+    [  if __hnw_supervisor_plot-mode = "Average" [ plot-average-prompt ]
+       set plot-mode-is? __hnw_supervisor_plot-mode
+       set plot-dirty? true
+    ]
+end
+
+to show-data-listener
+    ;;  Check to see if the poll data is to be displayed.
+    ifelse __hnw_supervisor_show-data?
+    [ if not plot-showing?
+      [ set plot-showing? true
+        set plot-dirty? true
+      ]
+      if plot-dirty?
+      [ set plot-dirty? false
+        do-plot
+      ]
+    ]
+    [ if plot-showing?
+      [ set plot-showing?
+        false clear-plot
+      ]
+    ]
+end
+
+to turtle-movement-listener
+  if not (graphics-display = __hnw_supervisor_turtle-display)
+  [ set graphics-display __hnw_supervisor_turtle-display
+    if graphics-display = "Word-Sort"
+    [ if sort-up = "" [set sort-up user-input "Sort up / down word -"]
+      if sort-right = "" [set sort-right user-input "Sort right / left word -"]
+    ]
+  ]
+    if graphics-display = "Sit" [ ask turtles [sit] ]
+    if graphics-display = "Wander" [ ask turtles [wander] ]
+    if graphics-display = "Line-Up" [ ask turtles [line-up] ]
+    if graphics-display = "Word-Sort" [ ask turtles [word-sort] ]
+end
+
+to auto-save-listener
+  if __hnw_supervisor_auto-save? and not auto-saving?
+  [  set auto-saving? __hnw_supervisor_auto-save?
+     auto-save-prompt
+  ]
+  if auto-saving? and not __hnw_supervisor_auto-save?
+  [  ifelse user-yes-or-no? "Do you really want to turn off auto-save world data?"
+     [  set auto-saving? false]
+     [  set __hnw_supervisor_auto-save? true ]
+  ]
+
+end
+
+to save-button-prompt
+  dialog:user-one-of (word "save QUESTIONS\n"
+    "save all responses to a WEB page\n"
+    "save INDividual responses to separate web pages\n"
+    "save ALL data to a file\n"
+    "auto-save NOW\n"
+    "CANCEL" )
+    ["QUESTIONS" "ALL" "NOW" "CANCEL"]
+    [
+      option ->
+        if option = "QUESTIONS" [save-questions-prompt]
+        if option = "ALL" [save-world-prompt]
+        if option = "NOW" [auto-save-now]
+    ]
+end
+
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;
+;;;;;;   Turtle Movement procedures
+;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+to sit
+  ifelse color = voted?-color
+  [  while [count turtles-here > 1 or xcor <= 0]
+     [ setxy random-xcor random-ycor ]
+  ]
+  [  while [count turtles-here > 1 or xcor >= 0]
+     [ setxy random-float min-pxcor random-ycor ]
+  ]
+end
+
+to wander  ;; turtle procedure
+  rt 90 * random-float 4
+  ifelse color = voted?-color
+  [  if xcor <= 0 [ set heading 90 ]
+  ]
+  [  if xcor >= 0 [ set heading 270]
+  ]
+  if patch-ahead 1 != nobody and not any? turtles-on patch-ahead 1
+  [ fd 1 ]
+end
+
+to line-up
+  set heading 0
+  ifelse is-number? item current-question my-choices
+  [ ifelse min [item current-question my-choices] of turtles < 0 or max [item current-question my-choices] of turtles > 10
+    [ set xcor ((1 + item current-question my-choices - min [item current-question my-choices] of turtles) * world-width /
+        (1 + max [item current-question my-choices] of turtles - min [item current-question my-choices] of turtles) + min-pxcor)]
+    [ set xcor ((1 + item current-question my-choices) * world-width / 12 + min-pxcor)]
+  ]
+  [ set xcor -1 * max-pxcor ]
+  if count turtles-here > 1  [ jump random-float 4 ]
+  if ((count turtles-at 0 -1 = 0) and (ycor > -1 * max-pycor)) [back 1]
+end
+
+to word-sort
+  ifelse not is-string? item current-question my-choices
+  [  while [(count turtles-here > 1) or not (abs xcor <= 3 and abs ycor <= 3) ]
+     [setxy random-float 7 - 3 random-float 7 - 3]
+  ]
+  [  if not (sort-up = "")
+     [ ifelse member? sort-up (item current-question my-choices)
+       [ while [(count turtles-here > 1) or (ycor <= 0) or (abs xcor <= 3 and ycor >= 0)]
+         [ set ycor (random-float max-pycor) + 1
+           set xcor xcor - 1 + random-float 3
+         ]
+       ]
+       [ while [(count turtles-here > 1) or (ycor >= 0) or (abs xcor <= 3 and ycor <= 0)]
+         [ set ycor (random-float max-pycor) + min-pycor - 1
+           set xcor xcor - 1 + random-float 3
+         ]
+       ]
+     ]
+     if not (sort-right = "")
+     [ ifelse member? sort-right item current-question my-choices
+       [ while [(count turtles-here > 1) or (xcor <= 0) or (xcor >= 0 and abs ycor <= 3)]
+         [ set xcor (random-float max-pxcor) + 1
+           set ycor ycor - 1 + random-float 3
+         ]
+       ]
+       [ while [(count turtles-here > 1) or (xcor >= 0) or (xcor <= 0 and abs ycor <= 3)]
+         [ set xcor (random-float max-pxcor) + min-pxcor - 1
+           set ycor ycor - 1 + random-float 3
+         ]
+       ]
+     ]
+  ]
+end
+
+
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;
+;;;;;;   Client Message Processing Procedures
+;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+to-report execute-create [username]
+  let out -1
+  create-poll-clients 1
+  [
+    let pos one-of patches with [not any? turtles-here]
+    ifelse pos != nobody
+    [ move-to pos ]
+    [ user-message "Too many students. Make a bigger view." ]
+    set user-id username
+    if names-showing? [ set label word user-id "   "]
+    set slider-value 25
+    clear-my-data
+    if any? non-clients with [user-id = username]
+    [ set my-choices [my-choices] of one-of non-clients with [user-id = username] ]
+    set my-choice 25
+    ask non-clients with [user-id = username] [die]
+    if steps-locked? = true
+    [  set my-current-question current-question]
+    set-my-current-question my-current-question
+
+    set question-one ""
+    set question-two ""
+    set question-three ""
+    set typed-response ""
+    set last-typed-response ""
+    set out who
+
+  ]
+  report out
+end
+
+to execute-disconnect
+  set plot-dirty? true
+end
+
+to execute-choose
+  if (__hnw_supervisor_allow-change? or color = not-voted?-color)
+  [
+    if my-current-question = current-question [set color voted?-color]
+    set my-choices replace-item my-current-question my-choices slider-value
+    set my-choice slider-value
+    set activity activity + 1
+  ]
+  if plot-showing?
+  [ set plot-dirty? true ]
+end
+
+to execute-type
+  if typed-response != last-typed-response
+  [
+    if (__hnw_supervisor_allow-change? or color = not-voted?-color)
+    [
+      if my-current-question = current-question [set color voted?-color]
+      set my-choices replace-item my-current-question my-choices safer-read-from-string typed-response
+      set activity activity + 1
+      set last-typed-response typed-response
+    ]
+    if plot-showing?
+    [ set plot-dirty? true ]
+  ]
+end
+
+to execute-prev
+  if not steps-locked?
+  [
+    if my-current-question > 0
+      [ set-my-current-question my-current-question - 1]
+  ]
+end
+
+to execute-next
+  if not steps-locked?
+  [
+    if my-current-question + 1 < length question-list
+      [ set-my-current-question my-current-question + 1]
+  ]
+end
+
+to update-my-choice-list
+    while [length my-choices < length question-list]    ;;be sure that my-choices has enough spots
+    [ set my-choices lput false my-choices ]
+end
+
+to set-my-current-question [n]
+  if n >= 0 and n < length question-list    ;;check to be sure that the question number is valid
+  [
+    update-my-choice-list
+
+    set my-current-question n               ;;if it is, adjust the number the turtle has
+
+    if breed = poll-clients
+    [
+      send-question (item 0 item my-current-question question-list)
+
+      ifelse (item my-current-question my-choices) = false    ;;display the current choice on the client
+      [  set my-choice ""
+         set typed-response ""
+      ]
+      [  if is-number? item my-current-question my-choices
+         [ set my-choice (item my-current-question my-choices)
+           set typed-response ""
+         ]
+         if is-string? item my-current-question my-choices
+         [ set my-choice ""
+           set typed-response (item my-current-question my-choices)
+         ]
+      ]
+    ]
+  ]
+end
+
+to send-question [question]
+    ifelse length question <= 80
+    [  set question-one   question
+       set question-two   ""
+       set question-three ""
+    ]
+    [  ifelse length question > 80 and length question <= 160
+       [  set question-one   substring question 0 80
+          set question-two   substring question 80 (length question)
+          set question-three ""
+       ]
+       [  set question-one   substring question 0 80
+          set question-two   substring question 80 160
+          set question-three substring question 160 (length question)
+       ]
+    ]
+end
+
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;
+;;;;;;   Host Questions
+;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+to-report build-question [what-type?]
+  ifelse what-type? = "Likert"
+  [ report (sentence (user-input "Input new question?") (list "Likert" read-from-string user-input "How many items?"))]
+  [ report sentence user-input "Input new question?" what-type? ]
+end
+
+to add-question [what-type?]
+  ;;  If the question list is empty as indicated with "", then set to empty list.
+  ;;  Add the typed question to question-list
+  ;;  Set the host viewed question to be the one just entered.  Is this necessary?
+  set question-list lput (build-question what-type?) question-list
+  set-current-question (length question-list - 1)
+  clear-current-data
+end
+
+to set-current-question [n]
+  if n >= 0 and n < length question-list
+  [
+    set current-question n
+    ask turtles
+    [
+      ;;  If all the clients are supposed to be on the same question,
+      ;;  then they switch to the host's question.
+      ;;  If not, they only check to be sure that
+      ifelse steps-locked? = true
+      [  set-my-current-question current-question]
+      [  update-my-choice-list ]
+
+      ifelse (item current-question my-choices) = false
+      [  set color not-voted?-color      ]
+      [  set color voted?-color      ]
+    ]
+
+    if plot-showing?
+    [ set plot-dirty? true ]
+
+  ]
+end
+
+to prev-question
+  if current-question > 0
+  [ set-current-question current-question - 1]
+end
+
+to next-question
+  if current-question + 1 < length question-list
+  [ set-current-question current-question + 1]
+end
+
+to edit-question
+  dialog:user-one-of (word "REPLACE - replace this question with a new one.  This will clear the poll results for the question\n"
+      "INSERT  - insert a new question and move the current question one position later in the list\n"
+      "DELETE  - delete this question and it's poll results\n")
+      ["REPLACE" "INSERT" "DELETE" "CANCEL"]
+      [
+        option ->
+          if option = "REPLACE" [replace-question]
+          if option = "INSERT" [insert-question]
+          if option = "DELETE" [delete-question]
+      ]
+end
+
+to choose-type [f]
+  dialog:user-one-of (word "What type of question?\n"
+    "POLLER \n"
+    "web TEXT \n"
+    "LIKERT scale \n"
+    "web NUMBER \n")
+    ["POLLER" "TEXT" "LIKERT" "NUMBER"]
+    [
+      option ->
+        let chosen-type ""
+        if option = "POLLER" [set chosen-type "Poller"]
+        if option = "TEXT" [set chosen-type "Web Text"]
+        if option = "LIKERT" [set chosen-type "Likert"]
+        if option = "NUMBER" [set chosen-type "Web Number"]
+        (run f chosen-type)
+    ]
+end
+
+to replace-question
+  choose-type [
+    type' ->
+      set question-list (replace-item current-question question-list build-question type')
+      clear-current-data
+      ask turtles [set-my-current-question my-current-question]
+  ]
+
+end
+
+to insert-question
+  choose-type [
+    type' ->
+      set question-list (sentence (lput (build-question type') (items 0 current-question question-list)) (items current-question length question-list question-list))
+      ask turtles
+      [  set my-choices sentence (sentence items 0 current-question my-choices false) items current-question length my-choices my-choices
+         if my-current-question >= current-question and steps-locked? = false [set my-current-question my-current-question + 1]
+      ]
+      clear-current-data
+      ask turtles [set-my-current-question my-current-question]
+  ]
+end
+
+to delete-question
+  set question-list sentence (items 0 current-question question-list) (items (current-question + 1) (length question-list) question-list)
+  ask turtles
+  [  set my-choices sentence (items 0 current-question my-choices) (items (current-question + 1) (length my-choices) my-choices)
+  ]
+  if current-question = length question-list [set current-question (length question-list - 1)]
+  ask turtles [ if my-current-question > current-question [set my-current-question (my-current-question - 1)]]
+  set-current-question current-question
+  ask turtles [set-my-current-question my-current-question]
+  if length question-list = 0 [ clear-all-data-and-questions]
+end
+
+;; reports items x through y - 1 of the list somelist
+;; if x and y are the same, it reports an empty list
+to-report items [x y somelist]
+    let n 0
+    let buildlist []
+    repeat (y - x)
+    [  set buildlist lput (item (x + n) somelist) buildlist
+       set n n + 1
+    ]
+    report buildlist
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Plotting Procedures
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+to do-plot
+  if plot-mode-is? = "Histogram" [do-one-item-histogram]
+  if plot-mode-is? = "Average" [do-multi-item-average]
+end
+
+to do-one-item-histogram
+  clear-plot
+  if length filter is-number? [item current-question my-choices] of (turtles with [length my-choices > 0]) > 0
+  [ if max [item current-question my-choices] of turtles > 10
+    [ set-plot-x-range plot-x-min (ceiling max [item current-question my-choices] of turtles + 1) ]
+    if min [item current-question my-choices] of turtles < 0
+    [ set-plot-x-range (floor min [item current-question my-choices] of turtles) plot-x-max]
+    let current-data map [ t -> item current-question [my-choices] of t ] sort turtles
+    if not empty? remove false current-data
+    [
+      set-current-plot-pen "data"
+      histogram current-data
+  ;;    set-current-plot-pen "mean"
+  ;;    plot-vline mean current-data
+  ;;    set-current-plot-pen "median"
+  ;;    plot-vline median current-data
+  ;;    set-current-plot-pen "mode"
+  ;;    plot-modes current-data
+    ]
+  ]
+end
+
+to plot-vline [value]
+  plotxy value 0
+  plotxy value plot-y-max
+end
+
+to plot-modes [lst]
+  set lst remove false lst
+  let values remove-duplicates lst
+  ifelse length values = length lst
+  [ histogram lst ]  ;; no duplicates so all items are modes
+  [
+    let counts []
+    let i 0
+    repeat length values
+    [
+      set counts lput ((length lst) - (length remove (item i values) lst)) counts
+      set i i + 1
+    ]
+    let n max counts  ;; how many votes for the most frequent choice(s)?
+    while [member? n counts]
+    [
+      set values (replace-item (position n counts) values false)
+      set counts (replace-item (position n counts) counts 0)
+    ]
+    set values remove false values
+    set i 0
+    repeat length values
+    [
+      set lst (remove (item i values) lst)
+      set i i + 1
+    ]
+    histogram lst
+  ]
+end
+
+to plot-average-prompt
+    let startitem read-from-string user-input "First Question Number?"
+    let enditem read-from-string user-input "Last Question Number?"
+    if startitem >= 0 and enditem >= startitem and enditem < length question-list
+    [ set plot-first startitem
+      set plot-last enditem
+      set __hnw_supervisor_show-data? true
+    ]
+    if startitem > enditem or enditem >= length question-list
+    [ set __hnw_supervisor_plot-mode plot-mode-is?]
+end
+
+to do-multi-item-average
+    clear-plot
+    set-plot-x-range (plot-first) (plot-last + 1)
+    set-plot-y-range 0 10
+    let index plot-first
+    while [index <= plot-last]
+    [  if count turtles with [is-number? item index my-choices] > 0
+       [  plotxy index ((sum [item index my-choices] of turtles with [is-number? item index my-choices]) / (count turtles with [is-number? item index my-choices]))]
+       set index index + 1
+    ]
+end
+
+
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;
+;;;;;;     Saving Questions
+;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;Saving questions
+;ALWAYS makes a web page.  Poller data is hidden in comments at the bottom.
+to save-questions-prompt
+
+  let option user-input "What would you like to name your saved questions?"
+
+  ifelse is-string? option
+  [ if not (substring option (length option - 5) (length option) = ".html")
+    [ if not (substring option (length option - 4) (length option) = ".htm")
+      [ set option word option ".html"
+      ]
+    ]
+    save-questions-page option
+  ]
+  [ user-message "Save has been cancelled."
+  ]
+end
+
+to save-questions-page [destination]
+
+   let buffer ""
+   let append [x -> set buffer (word buffer x "\n")]
+
+   (run append "<HTML>")
+   (run append "<head>")
+   (run append (word "<title>Poller Questions " (substring remove ":" date-and-time 0 6) "</title>"))
+   (run append "</head>")
+   (run append "<body>")
+   (run append "<center>")
+   (run append "<P><FORM ACTION=\".FormSaver\" METHOD=POST>")
+   (run append "<P><INPUT TYPE=hidden NAME=command VALUE=save></P>")
+   (run append "<P><B>User name (identical to NetLogo username)</B>")
+   (run append "<p><INPUT TYPE=text NAME=Field1 VALUE=\"\">")       ;this will later be read as item 4 in the list, when responses are read in from the web
+   let counter-q 0
+   let counter-f 2
+   repeat length question-list
+   [
+     (run append (word "<h2> " item 0 item counter-q question-list " </h2>"))
+     if item 1 item counter-q question-list = "Web Text"
+     [ (run append (word "<P><TEXTAREA NAME=Field" counter-f " ROWS=8 COLS=81 WRAP=virtual></TEXTAREA>"))
+       set counter-f counter-f + 1
+     ]
+     if item 1 item counter-q question-list = "Likert"
+     [ let counter-l 0
+       (run append "<p>")
+       repeat item 2 item counter-q question-list
+       [ (run append (word "<INPUT TYPE=radio NAME=Field" counter-f " VALUE=\"" counter-l "\">" counter-l))
+         set counter-l counter-l + 1
+       ]
+       set counter-f counter-f + 1
+     ]
+     if item 1 item counter-q question-list = "Web Number"
+     [ (run append (word "<P><input type=TEXT NAME=Field" counter-f " VALUE=\"\">"))
+       set counter-f counter-f + 1
+     ]
+     (run append "<p>")
+     set counter-q counter-q + 1
+   ]
+
+   (run append (word "<INPUT TYPE=submit NAME=Field" counter-f " VALUE=\"Submit\">&lt;---------&gt;<INPUT TYPE=reset VALUE=\"Reset\">"))
+   (run append "</center>")
+   (run append "</body>")
+   (run append "</html>")
+
+   (run append "<!-- NETLOGO POLLER QUESTION LIST")
+   (run append question-list)
+   (run append " POLLER QUESTION LIST END -->")
+
+   send-to:file destination buffer
+
+ end
+
+
+
+
+
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;
+;;;;;;     Loading Questions
+;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+to load-questions-prompt
+  dialog:user-one-of (word "Load questions from a local FILE\n"
+              "Load questions from a WEB page\n"
+              "Load the BUILT-IN questions\n"
+              "Load NO questions") ["FILE" "BUILT-IN" "NO"]
+    [
+      chosen ->
+        if chosen = "FILE"
+        [  user-message "Select the saved questions file."
+           fetch:user-file-async [
+             load-file ->
+               ifelse is-string? load-file
+               [  load-local load-file
+               ]
+               [  set chosen "NO"
+               ]
+           ]
+        ]
+        if chosen = "BUILT-IN"
+        [ load-sample-questions
+        ]
+        if chosen = "NO"
+        [  ;do nothing, just end
+        ]
+    ]
+end
+
+;load the data file locally, and extract the question information from it
+to load-local [file-text]
+  output-show word "load-local ---- " file-text
+  clear-all-data-and-questions
+  output-show read-setup file-text
+  set web-questions which-questions-are-web? question-list
+  set-current-question 0
+  ask turtles
+  [ clear-my-data
+    set-my-current-question 0
+  ]
+end
+
+;does all of the setting of variables and stuff.
+;ALSO, reports true is successful, false if not
+to-report read-setup [some-data]
+  let z-start position "<!-- NETLOGO POLLER QUESTION LIST" some-data
+  ifelse is-number? z-start
+  [ set z-start z-start + length "<!-- NETLOGO POLLER QUESTION LIST"
+    let z-end position "POLLER QUESTION LIST END -->" some-data
+    ifelse is-number? z-end
+    [ let z-data substring some-data z-start z-end
+      clear-all-data-and-questions
+      set question-list read-from-string z-data
+      set-current-question 0
+      ask turtles
+      [ clear-my-data
+        set-my-current-question 0
+      ]
+      set question-list read-from-string z-data
+      report true
+    ]
+    [ report false
+    ]
+  ]
+  [ report false
+  ]
+end
+
+to-report web-data-where [response-file]
+  if substring response-file (length response-file - 5) (length response-file) = ".html"
+  [ report word substring response-file 0 (length response-file - 5) ".fs"]
+  if substring response-file (length response-file - 4) (length response-file) = ".htm"
+  [ report word substring response-file 0 (length response-file - 4) ".fs"]
+  report response-file
+end
+
+to-report which-questions-are-web? [z-list]
+  let a-list []
+  let index 0
+  repeat length z-list
+  [ if not (item 1 item index z-list = "Poller")
+    [ set a-list lput index a-list
+    ]
+    set index index + 1
+  ]
+  report a-list
+end
+
+to-report safer-read-from-string [str]
+  let out ""
+  carefully
+  [ set out (read-from-string str)
+  ]
+  [ set out str
+  ]
+  report out
+end
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;
+;;;;;;     Save World (to capture EVERYTHING that is going on)
+;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+to save-world-prompt
+   let filename (word (user-input "What would you like to name your saved world?") ".csv")
+
+   ifelse is-string? filename
+   [  send-to:file filename export-the:world
+   ]
+   [  user-message "Save has been cancelled."
+   ]
+end
+
+to load-world-prompt
+  if user-yes-or-no? (word "LOAD WORLD will clear all current data and remove all students.\n\n"
+              "Do you want to continue?")
+  [  user-message "Select the saved world file."
+     fetch:user-file-async [
+       load-file ->
+         ifelse is-string? load-file
+         [  import-world load-file
+         ]
+         [  user-message "Load world has been cancelled."
+         ]
+     ]
+  ]
+end
+
+to auto-save-prompt
+   if ((auto-save-file = "") or (not is-string? auto-save-file))
+   [ auto-save-file-change
+   ]
+
+   ifelse ((auto-save-file = "") or (not is-string? auto-save-file))
+   [ user-message "Auto-save setup has been cancelled.  Use the AUTO-SAVE? switch to turn on the autosave feature."
+     set __hnw_supervisor_auto-save? false
+   ]
+   [ set auto-saving? true
+   ]
+end
+
+to auto-save-file-change
+   let option false
+   user-message "Choose a new base file name for the auto-save files.  "
+   set option user-input "Base filename"
+   ifelse is-string? option
+   [ set auto-save-file option]
+   [ user-message "World auto save base filename has been left UNCHANGED"]
+end
+
+to auto-save
+   if auto-saving?
+   [ send-to:file (word auto-save-file (substring remove ":" date-and-time 0 6) ".csv") export-the:world ]
+   set activity 0
+end
+
+to auto-save-now
+   if not auto-saving?
+   [ set __hnw_supervisor_auto-save? user-yes-or-no? "Auto-save all data to file?"
+     if __hnw_supervisor_auto-save?
+     [ auto-save-prompt
+     ]
+   ]
+   if auto-saving?
+   [ send-to:file (word auto-save-file (substring remove ":" date-and-time 0 6) "NOW.csv") export-the:world ]
+end
+
+to save-responses
+
+  let filename (word user-id (substring remove ":" date-and-time 0 6) ".html")
+
+  let contents ""
+
+  let file-print' [s -> set contents (word contents s "\n")]
+
+  (run file-print' "<HTML>")
+  (run file-print' "<head>")
+  (run file-print' (word "<title>Poller Responses " user-id " " (substring remove ":" date-and-time 0 6) "</title>"))
+  (run file-print' "</head>")
+  (run file-print' "<body>")
+  (run file-print' "<table border=\"2\" align=\"center\" >")
+  let counter-q 0
+  repeat length question-list
+  [
+    (run file-print' "<tr>")
+    (run file-print' "<td width=\"200\">")
+    (run file-print' (word "<b>" item 0 item counter-q question-list "</b>"))
+    (run file-print' "</td>")
+    (run file-print' "<td>")
+    (run file-print' item counter-q my-choices)
+    (run file-print' "</td>")
+    (run file-print' "</tr>")
+    set counter-q counter-q + 1
+  ]
+  (run file-print' "</table>")
+  (run file-print' "</body>")
+  (run file-print' "</html>")
+
+  send-to:file filename contents
+
+end
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;
+;;;;;;     Export poll responses as spreadsheet file
+;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+to save-polls-prompt
+   let save-file user-input "What would you like to name your saved poll results?  (Don't forget to add a file extension, like '.txt' or '.poll')"
+
+   ifelse is-string? save-file
+   [  save-polls save-file
+   ]
+   [  user-message "Save has been cancelled."
+   ]
+end
+
+to save-polls [ destination ]
+
+    let buffer ""
+    let append [x -> set buffer (word buffer x)]
+
+    if count turtles > 0
+    [
+       (run append "User-ID\t")
+       let counter-t 0
+       repeat count turtles
+       [  (run append [ user-id ] of turtle counter-t)
+          (run append "\t")
+          set counter-t counter-t + 1
+       ]
+       (run append "\n")
+       let counter-q 0
+       repeat length question-list
+       [  (run append (item 0 item counter-q question-list))
+          (run append "\t")
+          set counter-t 0
+          repeat count turtles
+          [  (run append [item counter-q my-choices] of turtle counter-t)
+             (run append "\t")
+             set counter-t counter-t + 1
+          ]
+          (run append "\n")
+          set counter-q counter-q + 1
+       ]
+    ]
+
+    send-to:file destination buffer
+
+end
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;
+;;;;;;     Pop Up Help
+;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+to help-autosave
+  user-message (word "HELP: Autosave settings\n\n"
+    "When turned on, autosave will periodically automatically save your classroom data.\n"
+    "The slider 'auto-save-every' determines how often auto-save happens.  "
+    "You can autosave all of the current data (student data and your current viewing settings) "
+    "using the regular auto-save feature.  You can turn this on using 'auto-save?'\n"
+    "You can also autosave questions and students responses to an html file, for viewing on the web.  "
+    "You can turn this on using 'auto-save-web?'")
+end
+
+to help-save
+  user-message (word "HELP: Save options : Page 1 of 2\n\n"
+    "You can save all of the current data (student data and your current viewing settings) "
+    "using the 'Save ALL' button.  This saves data in the same format as 'auto-save' above.\n"
+    "You can load this data for later viewing using the 'Load ALL' button.  This will overwrite "
+    "everything in the current model, so you may want to save current data before using this.")
+  user-message (word "HELP: Save options : Page 2 of 2\n\n"
+    "'Save RESPONSES as SPREADSHEET' will save the questions and student responses in a format "
+    "readable by most spreadsheet programs.\n\n"
+    "'Save RESPONSES as WEBPAGE' saves all questions and student responses to an html file.  "
+    "This file can be viewed in any web browser, and is the same format used by 'auto-save-web?' above.\n\n"
+    "'Save INDIVIDUAL responses' saves each students responses (along with the questions) to a separate "
+    "html file.")
+end
+
+to help-web
+  user-message (word "HELP: Web Response settings : Page 1 of 2\n\n"
+    "This tool can read responses that students have submitted to a web page "
+    "(also generated by the discussion tool)\n"
+    "When you have 'web-responses?' on, this tool will periodically check for new submissions "
+    "to the web page. The web pages generated by this tool require that you use Formsaver "
+    "(a free application for Macintosh servers)  This is not an endorsement of said product, but a "
+    "historical artifact of the originating project.")
+  user-message (word "HELP: Web Response settings : Page 2 of 2\n\n"
+    "To use web questions in class, you must first prepare the questions.  Go to the third panel "
+    "(scroll to the right) to find the preparation section.  After the questions are prepared, you "
+    "must put the web page on the server, where students can access the page.  You should also prepare "
+    "the page by submitting a set of default responses.  In class, when you setup the activity, you can "
+    "choose to load the questions from a web page.  Put in the URL for this question page, and NetLogo "
+    "will automatically load the questions you prepared and the students' responses.")
+end
+
+to help-prepare
+  user-message (word "HELP: Preparation : Page 1 of 3\n\n"
+    "In this screen, you can prepare questions for class.  You can prepare in class questions that "
+    "use HubNet to gather real time responses from your students, and you can prepare web-based "
+    "questions to allow students to give responses out of class, too "
+    "(or to share information not easily shared using the in class polling)\n\n"
+    "'SETUP' will clear everything in the current activity, and give you the option of loading an existing "
+    "set of questions.\n\n"
+    "'New Poller Question' will generate a new question that uses the HubNet client.  "
+    "Using the HubNet client, students will be able to share integer responses from 0 to 50 and typed "
+    "responses in real-time in class.\n\n"
+    "'New Web Text Question' creates a new web based text entry question.  Students will be able to go to the "
+    "web page and submit a typed response to this question.\n\n")
+  user-message (word "HELP: Preparation : Page 2 of 3\n\n"
+    "'New Likert Scale Question' creates a question for which students choose a number from 0 to n.\n\n"
+    "New Web Number Question' creates a question for which students supply a typed number response."
+    "The arrow buttons allow you to move between the questions you've created.\n\n"
+    "'Edit Question' allows you to Delete, Replace, or Insert a new question at the current "
+    "spot in the question list.\n\n"
+    "'Clear Questions' clears all of the current questions.")
+  user-message (word "HELP: Preparation : Page 3 of 3\n\n"
+    "When you are satisfied with the question list, hit 'PREPARATIONS FINISHED.'  "
+    "This will generate an html file in which you can view the questions (and to which you can add "
+    "pictures or other materials).  This file also contains the question data in a format that this "
+    "NetLogo model can work with.\n\n"
+    "If you have web based questions, you should copy this preparation file to a Formsaver equipped "
+    "web server.  You should then go to that page in your web browser and submit a sample set of responses "
+    "using the name QUESTIONS.  If you do not have web based questions, just be sure to remember where you "
+    "put the file.\n\n"
+    "In class, when the activity starts up, you can choose to load a question file.  If you used "
+    "web questions, then choose WEB.  If you did not, just load a LOCAL file.  Either way, tell "
+    "NetLogo where to find your file.  It will automatically load the questions, and you'll be ready to go.")
+end
+
+to-report current-question-string
+  report item 0 item current-question question-list
+end
+
+to-report who-it-is
+  report [user-id] of one-of turtles-on patch mouse-xcor mouse-ycor
+end
+
+to-report the-type
+  report item 1 item current-question question-list + ifelse-value (item 1 item current-question question-list = "Likert") [word "  " item 2 item current-question question-list] [""]
+end
+
+to add-question-poller
+  add-question "Poller"
+end
+
+to change-sort-up
+  set sort-up user-input "Sort up / down word -"
+  set turtle-display "Word-Sort"
+end
+
+to change-sort-right
+  set sort-right user-input "Sort right / left word -"
+  set turtle-display "Word-Sort"
+end
+
+to save-individual-responses
+  ask turtles [ save-responses ]
+end
+
+; Copyright 2002 Uri Wilensky and Walter Stroup.
+; See Info tab for full copyright and license.]]></code>
+  <widgets>
+    <view x="317" wrappingAllowedX="false" y="142" frameRate="30" minPycor="-10" height="282" showTickCounter="false" patchSize="13" fontSize="10" wrappingAllowedY="false" width="281" tickCounterLabel="ticks" maxPycor="10" updateMode="1" maxPxcor="10" minPxcor="-10"/>
+    <button x="270" y="10" height="53" disableUntilTicks="false" forever="true" kind="Observer" display="GO" width="110" sizeVersion="0">go</button>
+    <plot x="10" autoPlotX="true" yMax="5" autoPlotY="true" yAxis="count" y="142" xMin="0" height="254" legend="false" xMax="11" yMin="0" xAxis="choice" display="Data" width="300" sizeVersion="0">
+      <setup/>
+      <update/>
+      <pen interval="1" mode="1" display="data" color="-16777216" legend="true">
+        <setup/>
+        <update/>
+      </pen>
+      <pen interval="1" mode="0" display="mean" color="-10899396" legend="true">
+        <setup/>
+        <update/>
+      </pen>
+      <pen interval="1" mode="0" display="median" color="-13345367" legend="true">
+        <setup/>
+        <update/>
+      </pen>
+      <pen interval="1" mode="1" display="mode" color="-2674135" legend="true">
+        <setup/>
+        <update/>
+      </pen>
+    </plot>
+    <switch x="587" y="69" height="33" on="true" variable="allow-change?" display="allow-change?" width="132" sizeVersion="0"/>
+    <monitor x="64" precision="3" y="78" height="45" fontSize="11" display="Current Question" width="397" sizeVersion="0">item 0 item current-question question-list</monitor>
+    <button x="1257" y="363" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="Clear Questions" width="101" sizeVersion="0">clear-all-data-and-questions-prompt</button>
+    <button x="462" y="78" height="49" disableUntilTicks="false" forever="false" kind="Observer" display="&lt;&lt;&lt;" width="55" sizeVersion="0">prev-question</button>
+    <button x="518" y="78" height="49" disableUntilTicks="false" forever="false" kind="Observer" display="&gt;&gt;&gt;" width="55" sizeVersion="0">next-question</button>
+    <switch x="10" y="403" height="33" on="true" variable="show-data?" display="show-data?" width="138" sizeVersion="0"/>
+    <switch x="587" y="102" height="33" on="false" variable="lock-step?" display="lock-step?" width="132" sizeVersion="0"/>
+    <button x="977" y="199" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="Save RESPONSES as SPREADSHEET" width="198" sizeVersion="0">save-polls-prompt</button>
+    <button x="1151" y="363" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="Edit Question" width="101" sizeVersion="0">edit-question</button>
+    <monitor x="9" precision="0" y="78" height="45" fontSize="11" display="Number" width="56" sizeVersion="0">current-question</monitor>
+    <switch x="601" y="142" height="33" on="false" variable="see-names?" display="see-names?" width="119" sizeVersion="0"/>
+    <chooser x="602" y="179" height="45" variable="turtle-display" current="0" display="turtle-display" width="119" sizeVersion="0">
+      <choice type="string" value="Sit"/>
+      <choice type="string" value="Wander"/>
+      <choice type="string" value="Line-Up"/>
+      <choice type="string" value="Word-Sort"/>
+    </chooser>
+    <monitor x="602" precision="0" y="227" height="45" fontSize="11" display="Who is it?" width="119" sizeVersion="0">[user-id] of one-of turtles-on patch mouse-xcor mouse-ycor</monitor>
+    <switch x="815" y="55" height="33" on="false" variable="auto-save?" display="auto-save?" width="164" sizeVersion="0"/>
+    <slider x="815" step="5" y="115" max="100" display="auto-save-every" height="33" min="5" direction="Horizontal" default="5" variable="auto-save-every" units="votes" width="164" sizeVersion="0"/>
+    <button x="819" y="201" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="Save ALL" width="69" sizeVersion="0">save-world-prompt</button>
+    <button x="897" y="199" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="Load ALL" width="67" sizeVersion="0">load-world-prompt</button>
+    <chooser x="171" y="403" height="45" variable="plot-mode" current="0" display="plot-mode" width="138" sizeVersion="0">
+      <choice type="string" value="Histogram"/>
+      <choice type="string" value="Average"/>
+    </chooser>
+    <button x="8" y="10" height="52" disableUntilTicks="false" forever="false" kind="Observer" display="SETUP" width="94" sizeVersion="0">setup-prompt</button>
+    <button x="106" y="10" height="52" disableUntilTicks="false" forever="false" kind="Observer" display="LOAD QUESTIONS" width="108" sizeVersion="0">load-questions-prompt</button>
+    <button x="434" y="10" height="52" disableUntilTicks="false" forever="false" kind="Observer" display="ADD QUESTION" width="102" sizeVersion="0">add-question "Poller"</button>
+    <button x="614" y="10" height="52" disableUntilTicks="false" forever="false" kind="Observer" display="SAVE" width="105" sizeVersion="0">save-button-prompt</button>
+    <button x="602" y="335" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="^ CHANGE ^" width="118" sizeVersion="0">set sort-up user-input "Sort up / down word -"
+set __hnw_supervisor_turtle-display "Word-Sort"</button>
+    <button x="602" y="421" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="^ CHANGE ^" width="118" sizeVersion="0">set sort-right user-input "Sort right / left word -"
+set __hnw_supervisor_turtle-display "Word-Sort"</button>
+    <monitor x="602" precision="0" y="286" height="45" fontSize="11" width="118" sizeVersion="0">sort-up</monitor>
+    <monitor x="602" precision="0" y="372" height="45" fontSize="11" width="118" sizeVersion="0">sort-right</monitor>
+    <button x="1232" y="277" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="New Poller Question" width="177" sizeVersion="0">add-question "Poller"</button>
+    <monitor x="916" precision="3" y="312" height="45" fontSize="11" display="Current Question" width="532" sizeVersion="0">item 0 item current-question question-list</monitor>
+    <monitor x="852" precision="3" y="312" height="45" fontSize="11" display="Number" width="63" sizeVersion="0">current-question</monitor>
+    <button x="988" y="363" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="&lt;&lt;&lt;" width="63" sizeVersion="0">prev-question</button>
+    <button x="1054" y="363" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="&gt;&gt;&gt;" width="63" sizeVersion="0">next-question</button>
+    <monitor x="1070" precision="3" y="106" height="45" fontSize="11" display="Auto-save base name" width="152" sizeVersion="0">auto-save-file</monitor>
+    <button x="987" y="106" height="49" disableUntilTicks="false" forever="false" kind="Observer" display="CHANGE -&gt;" width="81" sizeVersion="0">auto-save-file-change</button>
+    <button x="1367" y="362" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="PREPARATIONS FINISHED" width="178" sizeVersion="0">save-questions-prompt</button>
+    <monitor x="1249" precision="3" y="106" height="45" fontSize="11" display="Type" width="109" sizeVersion="0">item 1 item current-question question-list + ifelse-value (item 1 item current-question question-list = "Likert") [word "  " item 2 item current-question question-list] [""]</monitor>
+    <button x="815" y="10" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="AUTOSAVE SETTINGS" width="714" sizeVersion="0">help-autosave</button>
+    <button x="819" y="162" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="SAVE OPTIONS" width="705" sizeVersion="0">help-save</button>
+    <button x="820" y="242" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="PREPARE FOR CLASS" width="706" sizeVersion="0">help-prepare</button>
+    <button x="1105" y="277" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="SETUP" width="125" sizeVersion="0">setup-prompt</button>
+    <button x="1186" y="200" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="Save INDIVIDUAL responses" width="167" sizeVersion="0">save-individual-responses</button>
+    <output x="816" y="419" height="54" fontSize="12" width="505"/>
+  </widgets>
+  <info><![CDATA[## WHAT IS IT?
+
+This model can be used to poll data from a set of students using HubNet Clients.  The teacher can input questions to ask and then the students can input their numerical choice (from 0 to 50) in response to the question.  The collective data can then be plotted.
+
+## HOW TO USE IT
+
+The simplest way to use this tool is to hit the GO button (to allow students to place their votes) and use the NEW QUESTION button repeatedly to input questions.  With the default settings, students will respond at their own pace, and their responses will be histogrammed in the plot.  The teacher can use the <<< and >>> buttons to move among the questions and see the students' responses.
+
+However, this activity has many features that can be useful in preparing for discussion, inciting discussion, and later analyzing discussions.
+
+Preparation:
+The teacher can load this model before class and prepare questions for loading in class.  By scrolling the window to the right-most screen, the teacher can use the Preparation features.  The teacher can create questions that use the HubNet Client (New Poller Question).  After entering a set of questions and editing them as necessary (using the Edit Question button) the teacher can save those questions in a web-ready HTML file (using the PREPARATIONS FINISHED button).  Then, in class, the teacher can load the questions using the LOAD QUESTIONS button to load the questions either from the local harddrive.
+
+If the teacher makes a mistake while typing a question, he can correct it using the EDIT QUESTION button.  He can insert a question before the current one, re-type the current question, or delete a question.  (These can all be done in class, on the fly, as well)
+
+Inciting Discussion:
+In the default settings, students can move through questions at their own pace, they can change their answers as often as they want, and the class results are histogrammed on the teacher's computer in real time.  What if the teacher wants students to make their decisions without seeing what their classmates have chosen?  The teacher can turn off SHOW-DATA?.  The teacher can show the average response to several questions side-by-side by changing PLOT-MODE to "Average."  If the teacher wants to call everyone's attention to a particular question, he can turn on LOCK-STEP?.  If the teacher wants students to place a vote and stick to it, he can turn off ALLOW-CHANGE?.
+
+The ability for students to give anonymous responses can help fuel discussions.  Teachers should feel free to allow students to log in with fake names, or turn off SEE-NAMES?  When students see that others share their opinions, they tend to be more willing to discuss the reasoning behind their views, and avoid the classic problems of "I don't want to seem stupid" or "I don't want to seem smart."
+
+In addition to the plot, turtle positions can be used to present information about students' responses.  By setting the TURTLE-DISPLAY chooser to "Sit" or "Wander", the teacher can have the turtles sort left and right according to if they've voted or not.  "Line Up" causes the turtles to duplicate a histogram of their choices.  "Word Sort" will cause the turtles to sort left / right and up /down according to the presence of a string in their responses (so, for example, all of the students who included the word "gravity" would move to the top half of the view, and all the students who included the word "air resistance" would move to the right, if the teacher chose those words for the sorting).
+
+While students are voting, the teacher can have the model automatically save their data, allowing for later analysis or use in discussion.  When the teacher turns on AUTO-SAVE?,  prompts help him pick the directory and file name for the saved data.
+
+Analyzing Discussion:
+After a discussion has occurred, the teacher can load the class data from different times in the discussion and view the responses.  The teacher can also export the data in a format that can be conveniently opened in any spreadsheet.  Just LOAD "world data" to revisit the students' responses in the tool, and use "save RESPONSES to SPREADSHEET" to save interesting data to a spreadsheet readable format.
+Widgets:
+
+Screen 1 (left)
+SETUP - clears everything including logged in clients.  This should only be pressed when starting out with a new group of users since all data and questions are lost.  Presents the load questions menu
+LOAD QUESTIONS - presents a menu of options for loading questions
+GO - processes data from the clients.  THIS MUST BE ON to receive responses or use the interface.
+ADD QUESTION - adds a new HubNet Client question
+SAVE - presents a menu of options for saving questions and student responses
+
+Number - shows the current question number (starts at 0)
+Current Question - shows the current question being voted on by the clients
+<<< - changes the current question to the previous question
+>>> - changes the current question to the next question.
+allow-change? - controls whether clients are able to change their choices after they've chosen.  Can be changed at any time.
+lock-step? - controls whether clients are forced to view only the question the teacher is currently viewing.  Can be changed at any time.
+
+show-data? - controls whether the data collected are shown in the plot window.  Can be changed at any time
+plot-mode - controls whether a histogram of current responses is shown, or a plot showing the average to several questions
+
+see-names? - controls whether the turtle shows the corresponding user ID.  Can be changed at any time
+turtle-display - controls how the turtles position themselves.  With "sit" and "wander," turtles who have voted move to the right half of the screen.  With "line up," the turtles line up according to the number value of their responses (and turtles who haven't voted or who have a string response move to the far left).  With "word sort," turtles are sorted up / down and right / left according to the presence of a substring in their string response (turtles who've not voted or who have a numerical response gather in the middle)
+Who Is It? - shows the user id of the turtle under the mouse
+Sort-Up - shows the word used to sort turtles up / down
+^ CHANGE ^ - changes the sort-up value
+Sort-Right - shows the word used to sort turtles right / left
+^ CHANGE ^ - changes the sort-right value
+
+Screen 2 (middle)
+auto-save? - determines whether autosave is on or off
+auto-save-every - determines how often the model autosaves, based on the number of votes cast between saves
+auto-save directory - the directory in which autosave files are written
+auto-save base name - the base name for autosave files.  The time is added to this name.
+
+Save ALL - save all of the current information - questions, student responses, interface settings.  This is the format used by auto-save
+Load ALL - load an ALL file
+Save RESPONSES as SPREADSHEEET - saves student questions and responses in a spreadsheet compatible format
+Save INDIVIDUAL responses - creates a web page for each student with the questions and that individual's responses
+
+Screen 3 (right)
+SETUP - clears everything including logged in clients.  This should only be pressed when starting out with a new group of users since all data and questions are lost.  Presents the load questions menu
+Number - shows the current question number (starts at 0)
+Current Question - shows the current question
+Type - shows the type of the current questions (Poller, Web Text, Likert, or Web Number)
+<<< - changes the current question to the previous question
+>>> - changes the current question to the next question.
+Edit Question - calls a menu of options for editing the current question.  REPLACE replaces the current question, DELETE deletes it, and INSERT inserts a new question
+Clear Questions - clears all of the questions
+New Poller Question - adds a new HubNet Client question
+
+## EXTENDING THE MODEL
+
+There are many more ways the turtles could be used to convey information.  Change the model so they set their shape according to type of response they have to the current question.  Or have the turtles adjust their size according to how many responses they have.  There could also be a turtle-display mode where they sit according to their responses to two questions.
+
+## HOW TO CITE
+
+If you mention this model or the NetLogo software in a publication, we ask that you include the citations below.
+
+For the model itself:
+
+* Wilensky, U. and Stroup, W. (2002).  NetLogo HubNet Polling Advanced HubNet model.  http://ccl.northwestern.edu/netlogo/models/HubNetPollingAdvancedHubNet.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+Please cite the NetLogo software as:
+
+* Wilensky, U. (1999). NetLogo. http://ccl.northwestern.edu/netlogo/. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+## COPYRIGHT AND LICENSE
+
+Copyright 2002 Uri Wilensky and Walter Stroup.
+
+![CC BY-NC-SA 3.0](http://ccl.northwestern.edu/images/creativecommons/byncsa.png)
+
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License.  To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/3.0/ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
+
+Commercial licenses are also available. To inquire about commercial licenses, please contact Uri Wilensky at uri@northwestern.edu.
+
+This activity and associated models and materials were created as part of the projects: PARTICIPATORY SIMULATIONS: NETWORK-BASED DESIGN FOR SYSTEMS LEARNING IN CLASSROOMS and/or INTEGRATED SIMULATION AND MODELING ENVIRONMENT. The project gratefully acknowledges the support of the National Science Foundation (REPP & ROLE programs) -- grant numbers REC #9814682 and REC-0126227.
+
+<!-- 2002 Stroup -->]]></info>
+  <turtleShapes>
+    <shape name="default" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="5"/>
+        <point x="40" y="250"/>
+        <point x="150" y="205"/>
+        <point x="260" y="250"/>
+      </polygon>
+    </shape>
+    <shape name="airplane" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="0"/>
+        <point x="135" y="15"/>
+        <point x="120" y="60"/>
+        <point x="120" y="105"/>
+        <point x="15" y="165"/>
+        <point x="15" y="195"/>
+        <point x="120" y="180"/>
+        <point x="135" y="240"/>
+        <point x="105" y="270"/>
+        <point x="120" y="285"/>
+        <point x="150" y="270"/>
+        <point x="180" y="285"/>
+        <point x="210" y="270"/>
+        <point x="165" y="240"/>
+        <point x="180" y="180"/>
+        <point x="285" y="195"/>
+        <point x="285" y="165"/>
+        <point x="180" y="105"/>
+        <point x="180" y="60"/>
+        <point x="165" y="15"/>
+      </polygon>
+    </shape>
+    <shape name="arrow" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="0"/>
+        <point x="0" y="150"/>
+        <point x="105" y="150"/>
+        <point x="105" y="293"/>
+        <point x="195" y="293"/>
+        <point x="195" y="150"/>
+        <point x="300" y="150"/>
+      </polygon>
+    </shape>
+    <shape name="box" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="285"/>
+        <point x="285" y="225"/>
+        <point x="285" y="75"/>
+        <point x="150" y="135"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="135"/>
+        <point x="15" y="75"/>
+        <point x="150" y="15"/>
+        <point x="285" y="75"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="15" y="75"/>
+        <point x="15" y="225"/>
+        <point x="150" y="285"/>
+        <point x="150" y="135"/>
+      </polygon>
+      <line endX="150" startY="285" marked="false" color="255" endY="135" startX="150"/>
+      <line endX="15" startY="135" marked="false" color="255" endY="75" startX="150"/>
+      <line endX="285" startY="135" marked="false" color="255" endY="75" startX="150"/>
+    </shape>
+    <shape name="bug" rotatable="true" editableColorIndex="0">
+      <circle x="96" y="182" marked="true" color="-1920102913" diameter="108" filled="true"/>
+      <circle x="110" y="127" marked="true" color="-1920102913" diameter="80" filled="true"/>
+      <circle x="110" y="75" marked="true" color="-1920102913" diameter="80" filled="true"/>
+      <line endX="80" startY="100" marked="true" color="-1920102913" endY="30" startX="150"/>
+      <line endX="220" startY="100" marked="true" color="-1920102913" endY="30" startX="150"/>
+    </shape>
+    <shape name="butterfly" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="165"/>
+        <point x="209" y="199"/>
+        <point x="225" y="225"/>
+        <point x="225" y="255"/>
+        <point x="195" y="270"/>
+        <point x="165" y="255"/>
+        <point x="150" y="240"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="165"/>
+        <point x="89" y="198"/>
+        <point x="75" y="225"/>
+        <point x="75" y="255"/>
+        <point x="105" y="270"/>
+        <point x="135" y="255"/>
+        <point x="150" y="240"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="139" y="148"/>
+        <point x="100" y="105"/>
+        <point x="55" y="90"/>
+        <point x="25" y="90"/>
+        <point x="10" y="105"/>
+        <point x="10" y="135"/>
+        <point x="25" y="180"/>
+        <point x="40" y="195"/>
+        <point x="85" y="194"/>
+        <point x="139" y="163"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="162" y="150"/>
+        <point x="200" y="105"/>
+        <point x="245" y="90"/>
+        <point x="275" y="90"/>
+        <point x="290" y="105"/>
+        <point x="290" y="135"/>
+        <point x="275" y="180"/>
+        <point x="260" y="195"/>
+        <point x="215" y="195"/>
+        <point x="162" y="165"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="255"/>
+        <point x="135" y="225"/>
+        <point x="120" y="150"/>
+        <point x="135" y="120"/>
+        <point x="150" y="105"/>
+        <point x="165" y="120"/>
+        <point x="180" y="150"/>
+        <point x="165" y="225"/>
+      </polygon>
+      <circle x="135" y="90" marked="false" color="255" diameter="30" filled="true"/>
+      <line endX="195" startY="105" marked="false" color="255" endY="60" startX="150"/>
+      <line endX="105" startY="105" marked="false" color="255" endY="60" startX="150"/>
+    </shape>
+    <shape name="car" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="300" y="180"/>
+        <point x="279" y="164"/>
+        <point x="261" y="144"/>
+        <point x="240" y="135"/>
+        <point x="226" y="132"/>
+        <point x="213" y="106"/>
+        <point x="203" y="84"/>
+        <point x="185" y="63"/>
+        <point x="159" y="50"/>
+        <point x="135" y="50"/>
+        <point x="75" y="60"/>
+        <point x="0" y="150"/>
+        <point x="0" y="165"/>
+        <point x="0" y="225"/>
+        <point x="300" y="225"/>
+        <point x="300" y="180"/>
+      </polygon>
+      <circle x="180" y="180" marked="false" color="255" diameter="90" filled="true"/>
+      <circle x="30" y="180" marked="false" color="255" diameter="90" filled="true"/>
+      <polygon color="255" filled="true" marked="false">
+        <point x="162" y="80"/>
+        <point x="132" y="78"/>
+        <point x="134" y="135"/>
+        <point x="209" y="135"/>
+        <point x="194" y="105"/>
+        <point x="189" y="96"/>
+        <point x="180" y="89"/>
+      </polygon>
+      <circle x="47" y="195" marked="true" color="-1920102913" diameter="58" filled="true"/>
+      <circle x="195" y="195" marked="true" color="-1920102913" diameter="58" filled="true"/>
+    </shape>
+    <shape name="circle" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"/>
+    </shape>
+    <shape name="circle 2" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"/>
+      <circle x="30" y="30" marked="false" color="255" diameter="240" filled="true"/>
+    </shape>
+    <shape name="cow" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="200" y="193"/>
+        <point x="197" y="249"/>
+        <point x="179" y="249"/>
+        <point x="177" y="196"/>
+        <point x="166" y="187"/>
+        <point x="140" y="189"/>
+        <point x="93" y="191"/>
+        <point x="78" y="179"/>
+        <point x="72" y="211"/>
+        <point x="49" y="209"/>
+        <point x="48" y="181"/>
+        <point x="37" y="149"/>
+        <point x="25" y="120"/>
+        <point x="25" y="89"/>
+        <point x="45" y="72"/>
+        <point x="103" y="84"/>
+        <point x="179" y="75"/>
+        <point x="198" y="76"/>
+        <point x="252" y="64"/>
+        <point x="272" y="81"/>
+        <point x="293" y="103"/>
+        <point x="285" y="121"/>
+        <point x="255" y="121"/>
+        <point x="242" y="118"/>
+        <point x="224" y="167"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="73" y="210"/>
+        <point x="86" y="251"/>
+        <point x="62" y="249"/>
+        <point x="48" y="208"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="25" y="114"/>
+        <point x="16" y="195"/>
+        <point x="9" y="204"/>
+        <point x="23" y="213"/>
+        <point x="25" y="200"/>
+        <point x="39" y="123"/>
+      </polygon>
+    </shape>
+    <shape name="face happy" rotatable="false" editableColorIndex="0">
+      <circle x="8" y="8" marked="true" color="-1920102913" diameter="285" filled="true"/>
+      <circle x="60" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <circle x="180" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="255"/>
+        <point x="90" y="239"/>
+        <point x="62" y="213"/>
+        <point x="47" y="191"/>
+        <point x="67" y="179"/>
+        <point x="90" y="203"/>
+        <point x="109" y="218"/>
+        <point x="150" y="225"/>
+        <point x="192" y="218"/>
+        <point x="210" y="203"/>
+        <point x="227" y="181"/>
+        <point x="251" y="194"/>
+        <point x="236" y="217"/>
+        <point x="212" y="240"/>
+      </polygon>
+    </shape>
+    <shape name="face neutral" rotatable="false" editableColorIndex="0">
+      <circle x="8" y="7" marked="true" color="-1920102913" diameter="285" filled="true"/>
+      <circle x="60" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <circle x="180" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <rectangle endX="240" startY="195" marked="false" color="255" endY="225" startX="60" filled="true"/>
+    </shape>
+    <shape name="face sad" rotatable="false" editableColorIndex="0">
+      <circle x="8" y="8" marked="true" color="-1920102913" diameter="285" filled="true"/>
+      <circle x="60" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <circle x="180" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="168"/>
+        <point x="90" y="184"/>
+        <point x="62" y="210"/>
+        <point x="47" y="232"/>
+        <point x="67" y="244"/>
+        <point x="90" y="220"/>
+        <point x="109" y="205"/>
+        <point x="150" y="198"/>
+        <point x="192" y="205"/>
+        <point x="210" y="220"/>
+        <point x="227" y="242"/>
+        <point x="251" y="229"/>
+        <point x="236" y="206"/>
+        <point x="212" y="183"/>
+      </polygon>
+    </shape>
+    <shape name="fish" rotatable="false" editableColorIndex="0">
+      <polygon color="-1" filled="true" marked="false">
+        <point x="44" y="131"/>
+        <point x="21" y="87"/>
+        <point x="15" y="86"/>
+        <point x="0" y="120"/>
+        <point x="15" y="150"/>
+        <point x="0" y="180"/>
+        <point x="13" y="214"/>
+        <point x="20" y="212"/>
+        <point x="45" y="166"/>
+      </polygon>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="135" y="195"/>
+        <point x="119" y="235"/>
+        <point x="95" y="218"/>
+        <point x="76" y="210"/>
+        <point x="46" y="204"/>
+        <point x="60" y="165"/>
+      </polygon>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="75" y="45"/>
+        <point x="83" y="77"/>
+        <point x="71" y="103"/>
+        <point x="86" y="114"/>
+        <point x="166" y="78"/>
+        <point x="135" y="60"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="30" y="136"/>
+        <point x="151" y="77"/>
+        <point x="226" y="81"/>
+        <point x="280" y="119"/>
+        <point x="292" y="146"/>
+        <point x="292" y="160"/>
+        <point x="287" y="170"/>
+        <point x="270" y="195"/>
+        <point x="195" y="210"/>
+        <point x="151" y="212"/>
+        <point x="30" y="166"/>
+      </polygon>
+      <circle x="215" y="106" marked="false" color="255" diameter="30" filled="true"/>
+    </shape>
+    <shape name="flag" rotatable="false" editableColorIndex="0">
+      <rectangle endX="75" startY="15" marked="true" color="-1920102913" endY="300" startX="60" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="90" y="150"/>
+        <point x="270" y="90"/>
+        <point x="90" y="30"/>
+      </polygon>
+      <line endX="90" startY="135" marked="true" color="-1920102913" endY="135" startX="75"/>
+      <line endX="90" startY="45" marked="true" color="-1920102913" endY="45" startX="75"/>
+    </shape>
+    <shape name="flower" rotatable="false" editableColorIndex="0">
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="135" y="120"/>
+        <point x="165" y="165"/>
+        <point x="180" y="210"/>
+        <point x="180" y="240"/>
+        <point x="150" y="300"/>
+        <point x="165" y="300"/>
+        <point x="195" y="240"/>
+        <point x="195" y="195"/>
+        <point x="165" y="135"/>
+      </polygon>
+      <circle x="85" y="132" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="130" y="147" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="192" y="85" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="85" y="40" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="177" y="40" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="177" y="132" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="70" y="85" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="130" y="25" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="96" y="51" marked="true" color="-1920102913" diameter="108" filled="true"/>
+      <circle x="113" y="68" marked="false" color="255" diameter="74" filled="true"/>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="189" y="233"/>
+        <point x="219" y="188"/>
+        <point x="249" y="173"/>
+        <point x="279" y="188"/>
+        <point x="234" y="218"/>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="180" y="255"/>
+        <point x="150" y="210"/>
+        <point x="105" y="210"/>
+        <point x="75" y="240"/>
+        <point x="135" y="240"/>
+      </polygon>
+    </shape>
+    <shape name="house" rotatable="false" editableColorIndex="0">
+      <rectangle endX="255" startY="120" marked="true" color="-1920102913" endY="285" startX="45" filled="true"/>
+      <rectangle endX="180" startY="210" marked="false" color="255" endY="285" startX="120" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="15" y="120"/>
+        <point x="150" y="15"/>
+        <point x="285" y="120"/>
+      </polygon>
+      <line endX="270" startY="120" marked="false" color="255" endY="120" startX="30"/>
+    </shape>
+    <shape name="leaf" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="210"/>
+        <point x="135" y="195"/>
+        <point x="120" y="210"/>
+        <point x="60" y="210"/>
+        <point x="30" y="195"/>
+        <point x="60" y="180"/>
+        <point x="60" y="165"/>
+        <point x="15" y="135"/>
+        <point x="30" y="120"/>
+        <point x="15" y="105"/>
+        <point x="40" y="104"/>
+        <point x="45" y="90"/>
+        <point x="60" y="90"/>
+        <point x="90" y="105"/>
+        <point x="105" y="120"/>
+        <point x="120" y="120"/>
+        <point x="105" y="60"/>
+        <point x="120" y="60"/>
+        <point x="135" y="30"/>
+        <point x="150" y="15"/>
+        <point x="165" y="30"/>
+        <point x="180" y="60"/>
+        <point x="195" y="60"/>
+        <point x="180" y="120"/>
+        <point x="195" y="120"/>
+        <point x="210" y="105"/>
+        <point x="240" y="90"/>
+        <point x="255" y="90"/>
+        <point x="263" y="104"/>
+        <point x="285" y="105"/>
+        <point x="270" y="120"/>
+        <point x="285" y="135"/>
+        <point x="240" y="165"/>
+        <point x="240" y="180"/>
+        <point x="270" y="195"/>
+        <point x="240" y="210"/>
+        <point x="180" y="210"/>
+        <point x="165" y="195"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="195"/>
+        <point x="135" y="240"/>
+        <point x="120" y="255"/>
+        <point x="105" y="255"/>
+        <point x="105" y="285"/>
+        <point x="135" y="285"/>
+        <point x="165" y="240"/>
+        <point x="165" y="195"/>
+      </polygon>
+    </shape>
+    <shape name="line" rotatable="true" editableColorIndex="0">
+      <line endX="150" startY="0" marked="true" color="-1920102913" endY="300" startX="150"/>
+    </shape>
+    <shape name="pentagon" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="15"/>
+        <point x="15" y="120"/>
+        <point x="60" y="285"/>
+        <point x="240" y="285"/>
+        <point x="285" y="120"/>
+      </polygon>
+    </shape>
+    <shape name="person" rotatable="false" editableColorIndex="0">
+      <circle x="110" y="5" marked="true" color="-1920102913" diameter="80" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="105" y="90"/>
+        <point x="120" y="195"/>
+        <point x="90" y="285"/>
+        <point x="105" y="300"/>
+        <point x="135" y="300"/>
+        <point x="150" y="225"/>
+        <point x="165" y="300"/>
+        <point x="195" y="300"/>
+        <point x="210" y="285"/>
+        <point x="180" y="195"/>
+        <point x="195" y="90"/>
+      </polygon>
+      <rectangle endX="172" startY="79" marked="true" color="-1920102913" endY="94" startX="127" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="195" y="90"/>
+        <point x="240" y="150"/>
+        <point x="225" y="180"/>
+        <point x="165" y="105"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="105" y="90"/>
+        <point x="60" y="150"/>
+        <point x="75" y="180"/>
+        <point x="135" y="105"/>
+      </polygon>
+    </shape>
+    <shape name="plant" rotatable="false" editableColorIndex="0">
+      <rectangle endX="165" startY="90" marked="true" color="-1920102913" endY="300" startX="135" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="255"/>
+        <point x="90" y="210"/>
+        <point x="45" y="195"/>
+        <point x="75" y="255"/>
+        <point x="135" y="285"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="255"/>
+        <point x="210" y="210"/>
+        <point x="255" y="195"/>
+        <point x="225" y="255"/>
+        <point x="165" y="285"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="180"/>
+        <point x="90" y="135"/>
+        <point x="45" y="120"/>
+        <point x="75" y="180"/>
+        <point x="135" y="210"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="180"/>
+        <point x="165" y="210"/>
+        <point x="225" y="180"/>
+        <point x="255" y="120"/>
+        <point x="210" y="135"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="105"/>
+        <point x="90" y="60"/>
+        <point x="45" y="45"/>
+        <point x="75" y="105"/>
+        <point x="135" y="135"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="105"/>
+        <point x="165" y="135"/>
+        <point x="225" y="105"/>
+        <point x="255" y="45"/>
+        <point x="210" y="60"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="90"/>
+        <point x="120" y="45"/>
+        <point x="150" y="15"/>
+        <point x="180" y="45"/>
+        <point x="165" y="90"/>
+      </polygon>
+    </shape>
+    <shape name="square" rotatable="false" editableColorIndex="0">
+      <rectangle endX="270" startY="30" marked="true" color="-1920102913" endY="270" startX="30" filled="true"/>
+    </shape>
+    <shape name="square 2" rotatable="false" editableColorIndex="0">
+      <rectangle endX="270" startY="30" marked="true" color="-1920102913" endY="270" startX="30" filled="true"/>
+      <rectangle endX="240" startY="60" marked="false" color="255" endY="240" startX="60" filled="true"/>
+    </shape>
+    <shape name="star" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="151" y="1"/>
+        <point x="185" y="108"/>
+        <point x="298" y="108"/>
+        <point x="207" y="175"/>
+        <point x="242" y="282"/>
+        <point x="151" y="216"/>
+        <point x="59" y="282"/>
+        <point x="94" y="175"/>
+        <point x="3" y="108"/>
+        <point x="116" y="108"/>
+      </polygon>
+    </shape>
+    <shape name="target" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"/>
+      <circle x="30" y="30" marked="false" color="255" diameter="240" filled="true"/>
+      <circle x="60" y="60" marked="true" color="-1920102913" diameter="180" filled="true"/>
+      <circle x="90" y="90" marked="false" color="255" diameter="120" filled="true"/>
+      <circle x="120" y="120" marked="true" color="-1920102913" diameter="60" filled="true"/>
+    </shape>
+    <shape name="tree" rotatable="false" editableColorIndex="0">
+      <circle x="118" y="3" marked="true" color="-1920102913" diameter="94" filled="true"/>
+      <rectangle endX="180" startY="195" marked="false" color="-1653716737" endY="300" startX="120" filled="true"/>
+      <circle x="65" y="21" marked="true" color="-1920102913" diameter="108" filled="true"/>
+      <circle x="116" y="41" marked="true" color="-1920102913" diameter="127" filled="true"/>
+      <circle x="45" y="90" marked="true" color="-1920102913" diameter="120" filled="true"/>
+      <circle x="104" y="74" marked="true" color="-1920102913" diameter="152" filled="true"/>
+    </shape>
+    <shape name="triangle" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="30"/>
+        <point x="15" y="255"/>
+        <point x="285" y="255"/>
+      </polygon>
+    </shape>
+    <shape name="triangle 2" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="30"/>
+        <point x="15" y="255"/>
+        <point x="285" y="255"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="151" y="99"/>
+        <point x="225" y="223"/>
+        <point x="75" y="224"/>
+      </polygon>
+    </shape>
+    <shape name="truck" rotatable="false" editableColorIndex="0">
+      <rectangle endX="195" startY="45" marked="true" color="-1920102913" endY="187" startX="4" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="296" y="193"/>
+        <point x="296" y="150"/>
+        <point x="259" y="134"/>
+        <point x="244" y="104"/>
+        <point x="208" y="104"/>
+        <point x="207" y="194"/>
+      </polygon>
+      <rectangle endX="195" startY="60" marked="false" color="-1" endY="105" startX="195" filled="true"/>
+      <polygon color="255" filled="true" marked="false">
+        <point x="238" y="112"/>
+        <point x="252" y="141"/>
+        <point x="219" y="141"/>
+        <point x="218" y="112"/>
+      </polygon>
+      <circle x="234" y="174" marked="false" color="255" diameter="42" filled="true"/>
+      <rectangle endX="214" startY="185" marked="true" color="-1920102913" endY="194" startX="181" filled="true"/>
+      <circle x="144" y="174" marked="false" color="255" diameter="42" filled="true"/>
+      <circle x="24" y="174" marked="false" color="255" diameter="42" filled="true"/>
+      <circle x="24" y="174" marked="true" color="-1920102913" diameter="42" filled="false"/>
+      <circle x="144" y="174" marked="true" color="-1920102913" diameter="42" filled="false"/>
+      <circle x="234" y="174" marked="true" color="-1920102913" diameter="42" filled="false"/>
+    </shape>
+    <shape name="turtle" rotatable="true" editableColorIndex="0">
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="215" y="204"/>
+        <point x="240" y="233"/>
+        <point x="246" y="254"/>
+        <point x="228" y="266"/>
+        <point x="215" y="252"/>
+        <point x="193" y="210"/>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="195" y="90"/>
+        <point x="225" y="75"/>
+        <point x="245" y="75"/>
+        <point x="260" y="89"/>
+        <point x="269" y="108"/>
+        <point x="261" y="124"/>
+        <point x="240" y="105"/>
+        <point x="225" y="105"/>
+        <point x="210" y="105"/>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="105" y="90"/>
+        <point x="75" y="75"/>
+        <point x="55" y="75"/>
+        <point x="40" y="89"/>
+        <point x="31" y="108"/>
+        <point x="39" y="124"/>
+        <point x="60" y="105"/>
+        <point x="75" y="105"/>
+        <point x="90" y="105"/>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="132" y="85"/>
+        <point x="134" y="64"/>
+        <point x="107" y="51"/>
+        <point x="108" y="17"/>
+        <point x="150" y="2"/>
+        <point x="192" y="18"/>
+        <point x="192" y="52"/>
+        <point x="169" y="65"/>
+        <point x="172" y="87"/>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="85" y="204"/>
+        <point x="60" y="233"/>
+        <point x="54" y="254"/>
+        <point x="72" y="266"/>
+        <point x="85" y="252"/>
+        <point x="107" y="210"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="119" y="75"/>
+        <point x="179" y="75"/>
+        <point x="209" y="101"/>
+        <point x="224" y="135"/>
+        <point x="220" y="225"/>
+        <point x="175" y="261"/>
+        <point x="128" y="261"/>
+        <point x="81" y="224"/>
+        <point x="74" y="135"/>
+        <point x="88" y="99"/>
+      </polygon>
+    </shape>
+    <shape name="wheel" rotatable="false" editableColorIndex="0">
+      <circle x="3" y="3" marked="true" color="-1920102913" diameter="294" filled="true"/>
+      <circle x="30" y="30" marked="false" color="255" diameter="240" filled="true"/>
+      <line endX="150" startY="285" marked="true" color="-1920102913" endY="15" startX="150"/>
+      <line endX="285" startY="150" marked="true" color="-1920102913" endY="150" startX="15"/>
+      <circle x="120" y="120" marked="true" color="-1920102913" diameter="60" filled="true"/>
+      <line endX="79" startY="40" marked="true" color="-1920102913" endY="269" startX="216"/>
+      <line endX="269" startY="84" marked="true" color="-1920102913" endY="221" startX="40"/>
+      <line endX="269" startY="216" marked="true" color="-1920102913" endY="79" startX="40"/>
+      <line endX="221" startY="40" marked="true" color="-1920102913" endY="269" startX="84"/>
+    </shape>
+    <shape name="x" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="270" y="75"/>
+        <point x="225" y="30"/>
+        <point x="30" y="225"/>
+        <point x="75" y="270"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="30" y="75"/>
+        <point x="75" y="30"/>
+        <point x="270" y="225"/>
+        <point x="225" y="270"/>
+      </polygon>
+    </shape>
+  </turtleShapes>
+  <linkShapes>
+    <shape name="default" curviness="0">
+      <lines>
+        <line x="-0.2" visible="false">
+          <dash value="0"/>
+          <dash value="1"/>
+        </line>
+        <line x="0" visible="true">
+          <dash value="1"/>
+          <dash value="0"/>
+        </line>
+        <line x="0.2" visible="false">
+          <dash value="0"/>
+          <dash value="1"/>
+        </line>
+      </lines>
+      <indicator>
+        <shape name="link direction" rotatable="true" editableColorIndex="0">
+          <line endX="90" startY="150" marked="true" color="-1920102913" endY="180" startX="150"/>
+          <line endX="210" startY="150" marked="true" color="-1920102913" endY="180" startX="150"/>
+        </shape>
+      </indicator>
+    </shape>
+  </linkShapes>
+<hubnet-web-config xmlns="http://www.w3.org/1999/xhtml"><![CDATA[{"roles":[{"canJoinMidRun":true,"onCursorMove":null,"onCursorClick":null,"onCursorRelease":null,"onDisconnect":"execute-disconnect","afterDisconnect":null,"widgets":[{"type":"hnwView","height":1,"width":1,"x":800,"y":0,"oldSize":true},{"display":"Question Three","precision":0,"reporterStyle":"turtle-var","fontSize":10,"source":"question-three","type":"hnwMonitor","x":14,"width":544,"y":128,"height":49,"oldSize":true},{"display":"Question Number","precision":0,"reporterStyle":"turtle-var","fontSize":10,"source":"my-current-question","type":"hnwMonitor","x":14,"width":109,"y":14,"height":49,"oldSize":true},{"forever":false,"display":"<<PREV","disableUntilTicksStart":false,"buttonKind":"turtle-procedure","source":"execute-prev","hnwProcName":"execute-prev","type":"hnwButton","x":174,"width":101,"y":187,"height":33,"oldSize":true},{"forever":false,"display":"NEXT>>","disableUntilTicksStart":false,"buttonKind":"turtle-procedure","source":"execute-next","hnwProcName":"execute-next","type":"hnwButton","x":285,"width":106,"y":187,"height":33,"oldSize":true},{"max":"50.0","display":"Choice","direction":"horizontal","default":25,"variable":"slider-value","step":1,"min":"0.0","type":"hnwSlider","x":122,"width":306,"y":305,"height":33,"oldSize":true},{"forever":false,"display":"Choose","disableUntilTicksStart":false,"buttonKind":"turtle-procedure","actionKey":"C","source":"execute-choose","hnwProcName":"execute-choose","type":"hnwButton","x":206,"width":145,"y":345,"height":33,"oldSize":true},{"variable":"typed-response","boxedValue":{"value":"","multiline":true,"type":"String"},"type":"hnwInputBox","x":13,"width":471,"y":386,"height":171,"oldSize":true},{"display":"Current Choice","precision":0,"reporterStyle":"turtle-var","fontSize":10,"source":"my-choice","type":"hnwMonitor","x":204,"width":146,"y":252,"height":49,"oldSize":true},{"display":"Question Two","precision":0,"reporterStyle":"turtle-var","fontSize":10,"source":"question-two","type":"hnwMonitor","x":14,"width":544,"y":99,"height":49,"oldSize":true},{"display":"Question","precision":3,"reporterStyle":"turtle-var","fontSize":10,"source":"question-one","type":"hnwMonitor","x":14,"width":544,"y":69,"height":49,"oldSize":true}],"name":"poll-client","namePlural":"poll-clients","onConnect":"execute-create","limit":-1,"highlightMainColor":"#008000","isSpectator":false,"perspectiveVar":null,"viewOverrideVar":null},{"canJoinMidRun":true,"onCursorMove":null,"onCursorClick":null,"onCursorRelease":null,"onDisconnect":null,"afterDisconnect":null,"widgets":[{"height":282,"width":281,"type":"hnwView","x":317,"y":142,"oldSize":true},{"display":"Data","yAxis":"count","xmin":0,"ymax":5,"legendOn":false,"xAxis":"choice","xmax":11,"setupCode":"","pens":[{"updateCode":"","display":"data","color":-16777216,"mode":1,"interval":1,"setupCode":"","type":"pen","inLegend":true},{"updateCode":"","display":"mean","color":-10899396,"mode":0,"interval":1,"setupCode":"","type":"pen","inLegend":true},{"updateCode":"","display":"median","color":-13345367,"mode":0,"interval":1,"setupCode":"","type":"pen","inLegend":true},{"updateCode":"","display":"mode","color":-2674135,"mode":1,"interval":1,"setupCode":"","type":"pen","inLegend":true}],"type":"hnwPlot","ymin":0,"updateCode":"","x":10,"width":300,"y":142,"height":254,"oldSize":true,"autoPlotX":true,"autoPlotY":true},{"display":"allow-change?","variable":"allow-change?","type":"hnwSwitch","on":true,"x":587,"width":132,"y":69,"height":33,"oldSize":true},{"display":"Current Question","precision":3,"reporterStyle":"procedure","fontSize":11,"source":"current-question-string","type":"hnwMonitor","x":64,"width":397,"y":78,"height":45,"oldSize":true},{"forever":false,"display":"Clear Questions","buttonKind":"observer","source":"clear-all-data-and-questions-prompt","hnwProcName":"clear-all-data-and-questions-prompt","type":"hnwButton","disableUntilTicksStarts":true,"x":1257,"width":101,"y":363,"height":33,"oldSize":true},{"forever":false,"display":"<<<","buttonKind":"observer","source":"prev-question","hnwProcName":"prev-question","type":"hnwButton","disableUntilTicksStarts":true,"x":462,"width":55,"y":78,"height":49,"oldSize":true},{"forever":false,"display":">>>","buttonKind":"observer","source":"next-question","hnwProcName":"next-question","type":"hnwButton","disableUntilTicksStarts":true,"x":518,"width":55,"y":78,"height":49,"oldSize":true},{"display":"show-data?","variable":"show-data?","type":"hnwSwitch","on":true,"x":10,"width":138,"y":403,"height":33,"oldSize":true},{"display":"lock-step?","variable":"lock-step?","type":"hnwSwitch","on":false,"x":587,"width":132,"y":102,"height":33,"oldSize":true},{"forever":false,"display":"Save RESPONSES as SPREADSHEET","buttonKind":"observer","source":"save-polls-prompt","hnwProcName":"save-polls-prompt","type":"hnwButton","disableUntilTicksStarts":true,"x":977,"width":263,"y":199,"height":33,"oldSize":true},{"forever":false,"display":"Edit Question","buttonKind":"observer","source":"edit-question","hnwProcName":"edit-question","type":"hnwButton","disableUntilTicksStarts":true,"x":1151,"width":101,"y":363,"height":33,"oldSize":true},{"display":"Number","precision":0,"reporterStyle":"global-var","fontSize":11,"source":"current-question","type":"hnwMonitor","x":9,"width":56,"y":78,"height":45,"oldSize":true},{"display":"see-names?","variable":"see-names?","type":"hnwSwitch","on":false,"x":601,"width":119,"y":142,"height":33,"oldSize":true},{"display":"turtle-display","variable":"turtle-display","currentChoice":0,"choices":["Sit","Wander","Line-Up","Word-Sort"],"type":"hnwChooser","x":602,"width":119,"y":179,"height":45,"oldSize":true},{"display":"Who is it?","precision":0,"reporterStyle":"procedure","fontSize":11,"source":"who-it-is","type":"hnwMonitor","x":602,"width":119,"y":227,"height":45,"oldSize":true},{"display":"auto-save?","variable":"auto-save?","type":"hnwSwitch","on":false,"x":815,"width":164,"y":55,"height":33,"oldSize":true},{"max":"100","display":"auto-save-every","direction":"horizontal","default":5,"variable":"auto-save-every","step":5,"min":"5","units":"votes","type":"hnwSlider","x":815,"width":164,"y":115,"height":33,"oldSize":true},{"forever":false,"display":"Save ALL","buttonKind":"observer","source":"save-world-prompt","hnwProcName":"save-world-prompt","type":"hnwButton","disableUntilTicksStarts":true,"x":819,"width":69,"y":201,"height":33,"oldSize":true},{"forever":false,"display":"Load ALL","buttonKind":"observer","source":"load-world-prompt","hnwProcName":"load-world-prompt","type":"hnwButton","disableUntilTicksStarts":true,"x":897,"width":67,"y":199,"height":33,"oldSize":true},{"display":"plot-mode","variable":"plot-mode","currentChoice":0,"choices":["Histogram","Average"],"type":"hnwChooser","x":171,"width":138,"y":403,"height":45,"oldSize":true},{"forever":false,"display":"LOAD QUESTIONS","buttonKind":"observer","source":"load-questions-prompt","hnwProcName":"load-questions-prompt","type":"hnwButton","disableUntilTicksStarts":true,"x":86,"width":148,"y":10,"height":52,"oldSize":true},{"forever":false,"display":"ADD QUESTION","buttonKind":"observer","source":"add-question-poller","hnwProcName":"add-question-poller","type":"hnwButton","disableUntilTicksStarts":true,"x":424,"width":122,"y":10,"height":52,"oldSize":true},{"forever":false,"display":"SAVE","buttonKind":"observer","source":"save-button-prompt","hnwProcName":"save-button-prompt","type":"hnwButton","disableUntilTicksStarts":true,"x":614,"width":105,"y":10,"height":52,"oldSize":true},{"forever":false,"display":"^ CHANGE ^","buttonKind":"observer","source":"change-sort-up","hnwProcName":"change-sort-up","type":"hnwButton","disableUntilTicksStarts":true,"x":602,"width":118,"y":335,"height":33,"oldSize":true},{"forever":false,"display":"^ CHANGE ^","buttonKind":"observer","source":"change-sort-right","hnwProcName":"change-sort-right","type":"hnwButton","disableUntilTicksStarts":true,"x":602,"width":118,"y":421,"height":33,"oldSize":true},{"display":"","precision":0,"reporterStyle":"global-var","fontSize":11,"source":"sort-up","type":"hnwMonitor","x":602,"width":118,"y":286,"height":45,"oldSize":true},{"display":"","precision":0,"reporterStyle":"global-var","fontSize":11,"source":"sort-right","type":"hnwMonitor","x":602,"width":118,"y":372,"height":45,"oldSize":true},{"forever":false,"display":"New Poller Question","buttonKind":"observer","source":"add-question-poller","hnwProcName":"add-question-poller","type":"hnwButton","disableUntilTicksStarts":true,"x":1232,"width":177,"y":277,"height":33,"oldSize":true},{"display":"Current Question","precision":3,"reporterStyle":"procedure","fontSize":11,"source":"current-question-string","type":"hnwMonitor","x":916,"width":532,"y":312,"height":45,"oldSize":true},{"display":"Number","precision":3,"reporterStyle":"global-var","fontSize":11,"source":"current-question","type":"hnwMonitor","x":852,"width":63,"y":312,"height":45,"oldSize":true},{"forever":false,"display":"<<<","buttonKind":"observer","source":"prev-question","hnwProcName":"prev-question","type":"hnwButton","disableUntilTicksStarts":true,"x":988,"width":63,"y":363,"height":33,"oldSize":true},{"forever":false,"display":">>>","buttonKind":"observer","source":"next-question","hnwProcName":"next-question","type":"hnwButton","disableUntilTicksStarts":true,"x":1054,"width":63,"y":363,"height":33,"oldSize":true},{"display":"Auto-save base name","precision":3,"reporterStyle":"global-var","fontSize":11,"source":"auto-save-file","type":"hnwMonitor","x":1070,"width":152,"y":106,"height":45,"oldSize":true},{"forever":false,"display":"CHANGE ->","buttonKind":"observer","source":"auto-save-file-change","hnwProcName":"auto-save-file-change","type":"hnwButton","disableUntilTicksStarts":true,"x":987,"width":81,"y":106,"height":49,"oldSize":true},{"forever":false,"display":"PREPARATIONS FINISHED","buttonKind":"observer","source":"save-questions-prompt","hnwProcName":"save-questions-prompt","type":"hnwButton","disableUntilTicksStarts":true,"x":1367,"width":178,"y":362,"height":33,"oldSize":true},{"display":"Type","precision":3,"reporterStyle":"procedure","fontSize":11,"source":"the-type","type":"hnwMonitor","x":1249,"width":109,"y":106,"height":45,"oldSize":true},{"forever":false,"display":"AUTOSAVE SETTINGS","buttonKind":"observer","source":"help-autosave","hnwProcName":"help-autosave","type":"hnwButton","disableUntilTicksStarts":true,"x":815,"width":714,"y":10,"height":33,"oldSize":true},{"forever":false,"display":"SAVE OPTIONS","buttonKind":"observer","source":"help-save","hnwProcName":"help-save","type":"hnwButton","disableUntilTicksStarts":true,"x":819,"width":705,"y":162,"height":33,"oldSize":true},{"forever":false,"display":"PREPARE FOR CLASS","buttonKind":"observer","source":"help-prepare","hnwProcName":"help-prepare","type":"hnwButton","disableUntilTicksStarts":true,"x":820,"width":706,"y":242,"height":33,"oldSize":true},{"forever":false,"display":"Save INDIVIDUAL responses","buttonKind":"observer","source":"save-individual-responses","hnwProcName":"save-individual-responses","type":"hnwButton","disableUntilTicksStarts":true,"x":1251,"width":199,"y":200,"height":33,"oldSize":true},{"fontSize":12,"type":"hnwOutput","x":816,"width":505,"y":419,"height":54,"oldSize":true}],"name":"supervisor","namePlural":"supervisors","onConnect":null,"limit":1,"highlightMainColor":"#008000","isSpectator":true,"perspectiveVar":null,"viewOverrideVar":null}],"targetFrameRate":20,"onIterate":"go","onStart":"setup-prompt","version":"hnw-beta-1","type":"hubnet-web"}]]></hubnet-web-config></model>

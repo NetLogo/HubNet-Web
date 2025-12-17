@@ -1,0 +1,1173 @@
+<?xml version="1.0" encoding="utf-8"?><model version="NetLogo 6.0.4">
+  <code><![CDATA[;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Variable and Breed declarations ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+globals
+[
+  current-question  ;; index of the current question in the question list
+  question-list     ;; list of all the questions
+  voted?-color      ;; color of turtles which have voted
+  not-voted?-color  ;; color of turtles which haven't voted
+
+  ;; quick start instructions variables
+  quick-start  ;; current quickstart instruction displayed in the quickstart monitor
+  qs-item      ;; index of the current quickstart instruction
+  qs-items     ;; list of quickstart instructions
+
+  __hnw_supervisor_allow-change?
+  __hnw_supervisor_show-plot?
+
+]
+
+turtles-own
+[
+  user-id
+  slider-value  ;; the value of the client's choice slider
+  my-choices    ;; list of my choices for each question
+]
+
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Setup Functions ;;
+;;;;;;;;;;;;;;;;;;;;;
+
+to startup
+  reset-ticks
+  setup
+end
+
+;; Initializes the display, and creates a list that contains the names of the shapes
+;; used by turtles in this activity.  The placement of the shape names in the last
+;; corresponds to the numbers sent by calculators.  Also initializes the data lists.
+to setup
+  setup-vars
+  setup-quick-start
+end
+
+;; initialize global variables
+to setup-vars
+  set not-voted?-color violet - 2
+  set voted?-color violet + 2
+  set __hnw_supervisor_allow-change? true
+  set __hnw_supervisor_show-plot? true
+  clear-all-data-and-questions
+end
+
+to clear-clients
+  clear-plot
+end
+
+to clear-all-data-and-questions
+  clear-plot
+  set current-question 0
+  set question-list [""]
+  ask turtles [ clear-my-data ]
+end
+
+to clear-my-data  ;; turtle procedure
+  set color not-voted?-color
+  set my-choices []
+  repeat length question-list
+  [ set my-choices lput false my-choices ]
+end
+
+;; give the user some information about what the setup button does so they can
+;; know whether they want to proceed before actually doing the setup
+to setup-prompt
+  if user-yes-or-no? (word "The SETUP button should only be used when starting "
+              "over with a new group (such as a new set of students) since "
+              "all data is lost.\n"
+              "Are you sure you want to SETUP?")
+  [ setup ]
+end
+
+to clear-current-data
+  clear-plot
+  ask turtles
+  [
+    set color not-voted?-color
+    set my-choices replace-item current-question my-choices false
+  ]
+end
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+;; Runtime Procedures ;;
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+to go
+  every 0.5
+  [
+    ask turtles [ wander ]
+    do-plot
+  ]
+  display
+end
+
+to wander  ;; turtle procedure
+  face one-of neighbors4
+  if not any? turtles-on patch-ahead 1
+    [ fd 1 ]
+end
+
+to add-question
+  if question-list = [""]
+  [ set question-list [] ]
+  set question-list lput user-input "Input new question?" question-list
+  set-current-question (length question-list - 1)
+  clear-current-data
+end
+
+to set-current-question [n]
+  if n >= 0 and n < length question-list
+  [
+    set current-question n
+    ask turtles
+    [
+      while [length my-choices < current-question + 1]
+      [ set my-choices lput false my-choices ]
+      ifelse (item current-question my-choices) = false
+      [ set color not-voted?-color ]
+      [ set color voted?-color ]
+    ]
+    do-plot
+  ]
+end
+
+to prev-question
+  if current-question > 0
+  [ set-current-question current-question - 1]
+end
+
+to next-question
+  if current-question + 1 < length question-list
+  [ set-current-question current-question + 1]
+end
+
+;;
+;; HubNet Procedures
+;;
+
+to-report execute-create [username]
+  let out -1
+  create-turtles 1
+  [
+    set user-id username
+    let pos one-of patches with [not any? turtles-here]
+    ifelse pos != nobody
+    [ move-to pos ]
+    [ user-message "Too many students. Make a bigger view." ]
+    set label word user-id "   "
+    set slider-value 0
+    clear-my-data
+    set out who
+  ]
+  report out
+end
+
+to handle-quit
+  die
+  do-plot
+end
+
+to execute-choose
+  if __hnw_supervisor_allow-change? or color = not-voted?-color
+  [
+    set color voted?-color
+    set my-choices replace-item current-question my-choices slider-value
+  ]
+  do-plot
+end
+
+
+;;
+;; Plotting Procedures
+;;
+
+to do-plot
+  clear-plot
+  if __hnw_supervisor_show-plot?
+  [
+    let current-data [item current-question my-choices] of turtles
+    set current-data remove false current-data
+    if not empty? current-data
+    [
+      set-current-plot-pen "data"
+      histogram current-data
+      set-current-plot-pen "mean"
+      plot-vline mean current-data
+      set-current-plot-pen "median"
+      plot-vline median current-data
+      set-current-plot-pen "mode"
+      plot-modes current-data
+    ]
+  ]
+end
+
+to plot-vline [value]
+  plotxy value 0
+  plotxy value plot-y-max
+end
+
+to plot-modes [lst]
+  set lst remove false lst
+  let values remove-duplicates lst
+  ifelse length values = length lst
+  [ histogram lst ]  ;; no duplicates so all items are modes
+  [
+    let counts []
+    let i 0
+    repeat length values
+    [
+      set counts lput ((length lst) - (length remove (item i values) lst)) counts
+      set i i + 1
+    ]
+    let n max counts  ;; how many votes for the most frequent choice(s)?
+    while [member? n counts]
+    [
+      set values (replace-item (position n counts) values false)
+      set counts (replace-item (position n counts) counts 0)
+    ]
+    set values remove false values
+    set i 0
+    repeat length values
+    [
+      set lst (remove (item i values) lst)
+      set i i + 1
+    ]
+    histogram lst
+  ]
+end
+
+;;
+;; Quick Start Instruction Procedures
+;;
+
+to setup-quick-start
+  set qs-item 0
+  set qs-items
+  [
+    "Teacher: Follow these directions to run the HubNet activity."
+    "Optional: Zoom In (see Tools in the Menu Bar)"
+    "Teacher: Open up the HubNet Control Center (see Tools in the Menu Bar)."
+      "This will show you the IP Address of this computer."
+      "Press the GO button and tell the students to login."
+    "Everyone: Open up a HubNet Client on your machine and..."
+      "type your user name, select this activity and press ENTER."
+
+    "Teacher: If you don't want to allow students to change their mind,..."
+      "switch ALLOW-CHANGE? off."
+        "If you don't want to show the current data in the plot as..."
+          "it's being collected, switch SHOW-DATA? off."
+            "You can turn it back on at any time to see the data."
+
+    "Teacher: Press the NEW QUESTION button to input a question for everyone to answer."
+    "Everyone: Once you see the question, move your CHOICE slider to the value..."
+      "you want to choose and press the CHOOSE button."
+        "Once you have chosen, your choice will appear in your CURRENT CHOICE monitor,..."
+          "and your turtle in NetLogo will get brighter."
+
+    "Teacher: To input another question, press NEW QUESTION again."
+      "The data and CURRENT QUESTION will be saved and then the question will change..."
+        "to your new question and everyone will be able to make their choices on the new question."
+          "To return to a previous question, use the <<<PREV QUESTION..."
+            "and NEXT QUESTION>>> buttons to cycle through the questions."
+
+    "Teacher: To rerun the activity with the same group, press..."
+      "the CLEAR QUESTIONS button to erase all the questions and data."
+
+    "Teacher: To start the simulation over with a new group but reuse the same questions..."
+      "stop the model by pressing the NetLogo GO button, if it is on..."
+        "and press the CLEAR CLIENTS button."
+
+    "Teacher: To start the simulation over with a new group but with new questions..."
+      "stop the GO button, if it is on, and press the SETUP button."
+
+    "Follow these instructions from the beginning."
+  ]
+  set quick-start (item qs-item qs-items)
+end
+
+;; view the next item in the quickstart monitor
+to view-next-quick-start
+  set qs-item qs-item + 1
+  if qs-item >= length qs-items
+  [ set qs-item length qs-items - 1 ]
+  set quick-start (item qs-item qs-items)
+end
+
+;; view the previous item in the quickstart monitor
+to view-prev-quick-start
+  set qs-item qs-item - 1
+  if qs-item < 0
+  [ set qs-item 0 ]
+  set quick-start (item qs-item qs-items)
+end
+
+to-report current-question-value
+  report item current-question question-list
+end
+
+to-report current-choice-value
+  report item current-question my-choices
+end
+
+to-report mean-of-choices
+  report mean [item current-question my-choices] of turtles
+end
+
+to-report median-of-choices
+  report median [item current-question my-choices] of turtles
+end
+
+; Copyright 2000 Uri Wilensky and Walter Stroup.
+; See Info tab for full copyright and license.]]></code>
+  <widgets>
+    <view x="461" wrappingAllowedX="true" y="98" frameRate="30" minPycor="-10" height="282" showTickCounter="false" patchSize="13" fontSize="10" wrappingAllowedY="true" width="281" tickCounterLabel="ticks" maxPycor="10" updateMode="0" maxPxcor="10" minPxcor="-10"/>
+    <button x="1" y="41" height="35" disableUntilTicks="false" forever="false" kind="Observer" display="Setup" width="71" sizeVersion="0">setup-prompt</button>
+    <button x="78" y="41" height="35" disableUntilTicks="false" forever="true" kind="Observer" display="Go" width="71" sizeVersion="0">go</button>
+    <plot x="155" autoPlotX="true" yMax="5" autoPlotY="true" yAxis="count" y="129" xMin="0" height="267" legend="true" xMax="10" yMin="0" xAxis="choice" display="Data" width="300" sizeVersion="0">
+      <setup/>
+      <update/>
+      <pen interval="1" mode="1" display="data" color="-16777216" legend="true">
+        <setup/>
+        <update/>
+      </pen>
+      <pen interval="1" mode="0" display="mean" color="-10899396" legend="true">
+        <setup/>
+        <update/>
+      </pen>
+      <pen interval="1" mode="0" display="median" color="-13345367" legend="true">
+        <setup/>
+        <update/>
+      </pen>
+      <pen interval="1" mode="1" display="mode" color="-2674135" legend="true">
+        <setup/>
+        <update/>
+      </pen>
+    </plot>
+    <switch x="1" y="224" height="33" on="true" variable="allow-change?" display="allow-change?" width="148" sizeVersion="0"/>
+    <button x="1" y="129" height="35" disableUntilTicks="false" forever="false" kind="Observer" display="Clear Current Data" width="148" sizeVersion="0">clear-current-data</button>
+    <monitor x="1" precision="3" y="401" height="45" fontSize="11" display="Current Question" width="454" sizeVersion="0">current-question-value</monitor>
+    <button x="1" y="450" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="New Question" width="148" sizeVersion="0">add-question</button>
+    <button x="1" y="363" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="Clear Questions" width="148" sizeVersion="0">clear-all-data-and-questions</button>
+    <button x="155" y="450" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="&lt;&lt;&lt;Prev Question" width="149" sizeVersion="0">prev-question</button>
+    <button x="304" y="450" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="Next Question&gt;&gt;&gt;" width="151" sizeVersion="0">next-question</button>
+    <switch x="1" y="262" height="33" on="true" variable="show-plot?" display="show-plot?" width="148" sizeVersion="0"/>
+    <monitor x="1" precision="3" y="170" height="45" fontSize="11" display="mean" width="71" sizeVersion="0">mean-of-choices</monitor>
+    <monitor x="78" precision="3" y="170" height="45" fontSize="11" display="median" width="71" sizeVersion="0">median-of-choices</monitor>
+    <button x="157" y="59" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="Reset Instructions" width="143" sizeVersion="0">setup-quick-start</button>
+    <button x="584" y="59" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="Next Instruction&gt;&gt;&gt;" width="152" sizeVersion="0">view-next-quick-start</button>
+    <button x="432" y="59" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="&lt;&lt;&lt;Prev Instruction" width="152" sizeVersion="0">view-prev-quick-start</button>
+    <monitor x="157" precision="0" y="10" height="45" fontSize="11" display="Quick Start Instructions - More in Info Window" width="579" sizeVersion="0">quick-start</monitor>
+    <button x="1" y="81" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="Clear Clients" width="148" sizeVersion="0">clear-clients</button>
+  </widgets>
+  <info><![CDATA[## WHAT IS IT?
+
+This model can be used to poll data from a set of students using HubNet Clients.  The teacher can input questions to ask and then the students can input their choice in response to the question.  The collective data can then be plotted.
+
+For further documentation, see the Participatory Simulations Guide found at http://ccl.northwestern.edu/rp/ps/index.shtml.
+
+## HOW TO USE IT
+
+Quickstart Instructions:
+
+Teacher: Follow these directions to run the HubNet activity.
+Optional: Zoom In (see Tools in the Menu Bar)
+Teacher: Open up the HubNet Control Center (see Tools in the Menu Bar).  This will show you the IP Address of this computer. Press the GO button and tell the students to login.
+Everyone: Open up a HubNet Client on your machine and input the IP Address of this computer, type your user name in the user name box and press ENTER.
+
+Teacher: If you don't want to allow students to change their mind, switch ALLOW-CHANGE? off.  If you don't want to show the current data in the plot as it's being collected, switch SHOW-PLOT? off.  You can turn it back on at any time to see the data.
+
+Teacher: Press the NEW QUESTION button to input a question for everyone to answer.
+Everyone: Once you see the question, move your CHOICE slider to the value you want to choose and press the CHOOSE button.  Once you have chosen, your choice will appear in your CURRENT CHOICE monitor, and your turtle in NetLogo will get brighter.
+
+Teacher: To input another question, press NEW QUESTION again.  The data and CURRENT QUESTION will be saved and then the question will change to your new question and everyone will be able to make their choices on the new question.  To return to a previous question, use the <<<PREV QUESTION and NEXT QUESTION>>> buttons to cycle through the questions.
+
+Teacher: To rerun the activity with the same group, press the CLEAR QUESTIONS button to erase all the questions and data.
+
+Teacher: To start the simulation over with a new group but reuse the same questions, stop the model by pressing the NetLogo GO button, if it is on, and press the CLEAR CLIENTS button.
+
+Teacher: To start the simulation over with a new group but with new questions, stop the GO button, if it is on, and press the SETUP button.
+
+Follow these instructions from the beginning.
+
+Buttons:
+
+SETUP - clears everything including logged in clients.  This should only be pressed when starting out with a new group of users since all data and questions are lost.
+GO - runs the simulation processing data from the clients.
+CLEAR CURRENT DATA - clears everyone's answers on the current question allowing them to re-choose.
+NEW QUESTION - allows you to write a new question to be asked.
+CLEAR CLIENTS - removes all the clients and clears the data, but leaves the questions intact.  This should be used to start over with a new group but with the same set of questions.
+CLEAR QUESTIONS - erase all the questions and the data associated with them.  This should be used if you want to start over with the same group or don't want clients to have to log back in.
+NEXT QUESTION>>> - changes the current question to the next question.
+<<<PREV QUESTION - changes the current question to the previous question.
+RESET INSTRUCTIONS - resets the quick start instructions to the beginning.
+NEXT INSTRUCTION>>> - advances the quick start instructions.
+<<<PREV INSTRUCTION - goes backwards through the quick start instructions.
+
+Switches:
+
+ALLOW-CHANGE? - controls whether clients are able to change their choices after they've chosen.  Can be changed at any time.
+SHOW-PLOT? - controls whether the data collected are shown in the plot.  Can be changed at any time.
+
+Monitors:
+
+MEAN - shows the mean of the current data (aka average)
+MEDIAN - shows the median of the current data (the central value)
+CURRENT QUESTION - shows the current question being voted on by the clients
+
+Plots:
+
+DATA - shows a histogram of all the clients' votes as well as the mean, median, and modes of the data.
+
+Client Information:
+
+CURRENT QUESTION - A monitor showing the current question to input a guess on.
+CHOICE - A slider for inputing your choice in answer to the current question.
+CHOOSE - A button which tells the server what your choice is.
+CURRENT CHOICE - Shows the value that the server currently has as your choice for the current question.  It will be blank if you have not yet made a choice for the current question.
+DATA - Identical to the plot of the same name in NetLogo.
+
+## EXTENDING THE MODEL
+
+Currently, this activity only allows numeric data to be entered by the client.  Try adding in support for yes/no or true/false answers to questions.
+
+Right now the activity allows you to clear all the questions, clear all the clients and questions, and clear the data for one question.  However, it does not allow you to clear all the data for all the questions.  Make it do so.
+
+## HOW TO CITE
+
+If you mention this model or the NetLogo software in a publication, we ask that you include the citations below.
+
+For the model itself:
+
+* Wilensky, U. and Stroup, W. (2000).  NetLogo HubNet Polling HubNet model.  http://ccl.northwestern.edu/netlogo/models/HubNetPollingHubNet.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+Please cite the NetLogo software as:
+
+* Wilensky, U. (1999). NetLogo. http://ccl.northwestern.edu/netlogo/. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+## COPYRIGHT AND LICENSE
+
+Copyright 2000 Uri Wilensky and Walter Stroup.
+
+![CC BY-NC-SA 3.0](http://ccl.northwestern.edu/images/creativecommons/byncsa.png)
+
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License.  To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/3.0/ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
+
+Commercial licenses are also available. To inquire about commercial licenses, please contact Uri Wilensky at uri@northwestern.edu.
+
+This activity and associated models and materials were created as part of the projects: PARTICIPATORY SIMULATIONS: NETWORK-BASED DESIGN FOR SYSTEMS LEARNING IN CLASSROOMS and/or INTEGRATED SIMULATION AND MODELING ENVIRONMENT. The project gratefully acknowledges the support of the National Science Foundation (REPP & ROLE programs) -- grant numbers REC #9814682 and REC-0126227.
+
+<!-- 2000 Stroup -->]]></info>
+  <turtleShapes>
+    <shape name="default" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="5"/>
+        <point x="40" y="250"/>
+        <point x="150" y="205"/>
+        <point x="260" y="250"/>
+      </polygon>
+    </shape>
+    <shape name="airplane" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="0"/>
+        <point x="135" y="15"/>
+        <point x="120" y="60"/>
+        <point x="120" y="105"/>
+        <point x="15" y="165"/>
+        <point x="15" y="195"/>
+        <point x="120" y="180"/>
+        <point x="135" y="240"/>
+        <point x="105" y="270"/>
+        <point x="120" y="285"/>
+        <point x="150" y="270"/>
+        <point x="180" y="285"/>
+        <point x="210" y="270"/>
+        <point x="165" y="240"/>
+        <point x="180" y="180"/>
+        <point x="285" y="195"/>
+        <point x="285" y="165"/>
+        <point x="180" y="105"/>
+        <point x="180" y="60"/>
+        <point x="165" y="15"/>
+      </polygon>
+    </shape>
+    <shape name="arrow" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="0"/>
+        <point x="0" y="150"/>
+        <point x="105" y="150"/>
+        <point x="105" y="293"/>
+        <point x="195" y="293"/>
+        <point x="195" y="150"/>
+        <point x="300" y="150"/>
+      </polygon>
+    </shape>
+    <shape name="box" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="285"/>
+        <point x="285" y="225"/>
+        <point x="285" y="75"/>
+        <point x="150" y="135"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="135"/>
+        <point x="15" y="75"/>
+        <point x="150" y="15"/>
+        <point x="285" y="75"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="15" y="75"/>
+        <point x="15" y="225"/>
+        <point x="150" y="285"/>
+        <point x="150" y="135"/>
+      </polygon>
+      <line endX="150" startY="285" marked="false" color="255" endY="135" startX="150"/>
+      <line endX="15" startY="135" marked="false" color="255" endY="75" startX="150"/>
+      <line endX="285" startY="135" marked="false" color="255" endY="75" startX="150"/>
+    </shape>
+    <shape name="bug" rotatable="true" editableColorIndex="0">
+      <circle x="96" y="182" marked="true" color="-1920102913" diameter="108" filled="true"/>
+      <circle x="110" y="127" marked="true" color="-1920102913" diameter="80" filled="true"/>
+      <circle x="110" y="75" marked="true" color="-1920102913" diameter="80" filled="true"/>
+      <line endX="80" startY="100" marked="true" color="-1920102913" endY="30" startX="150"/>
+      <line endX="220" startY="100" marked="true" color="-1920102913" endY="30" startX="150"/>
+    </shape>
+    <shape name="butterfly" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="165"/>
+        <point x="209" y="199"/>
+        <point x="225" y="225"/>
+        <point x="225" y="255"/>
+        <point x="195" y="270"/>
+        <point x="165" y="255"/>
+        <point x="150" y="240"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="165"/>
+        <point x="89" y="198"/>
+        <point x="75" y="225"/>
+        <point x="75" y="255"/>
+        <point x="105" y="270"/>
+        <point x="135" y="255"/>
+        <point x="150" y="240"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="139" y="148"/>
+        <point x="100" y="105"/>
+        <point x="55" y="90"/>
+        <point x="25" y="90"/>
+        <point x="10" y="105"/>
+        <point x="10" y="135"/>
+        <point x="25" y="180"/>
+        <point x="40" y="195"/>
+        <point x="85" y="194"/>
+        <point x="139" y="163"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="162" y="150"/>
+        <point x="200" y="105"/>
+        <point x="245" y="90"/>
+        <point x="275" y="90"/>
+        <point x="290" y="105"/>
+        <point x="290" y="135"/>
+        <point x="275" y="180"/>
+        <point x="260" y="195"/>
+        <point x="215" y="195"/>
+        <point x="162" y="165"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="255"/>
+        <point x="135" y="225"/>
+        <point x="120" y="150"/>
+        <point x="135" y="120"/>
+        <point x="150" y="105"/>
+        <point x="165" y="120"/>
+        <point x="180" y="150"/>
+        <point x="165" y="225"/>
+      </polygon>
+      <circle x="135" y="90" marked="false" color="255" diameter="30" filled="true"/>
+      <line endX="195" startY="105" marked="false" color="255" endY="60" startX="150"/>
+      <line endX="105" startY="105" marked="false" color="255" endY="60" startX="150"/>
+    </shape>
+    <shape name="car" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="300" y="180"/>
+        <point x="279" y="164"/>
+        <point x="261" y="144"/>
+        <point x="240" y="135"/>
+        <point x="226" y="132"/>
+        <point x="213" y="106"/>
+        <point x="203" y="84"/>
+        <point x="185" y="63"/>
+        <point x="159" y="50"/>
+        <point x="135" y="50"/>
+        <point x="75" y="60"/>
+        <point x="0" y="150"/>
+        <point x="0" y="165"/>
+        <point x="0" y="225"/>
+        <point x="300" y="225"/>
+        <point x="300" y="180"/>
+      </polygon>
+      <circle x="180" y="180" marked="false" color="255" diameter="90" filled="true"/>
+      <circle x="30" y="180" marked="false" color="255" diameter="90" filled="true"/>
+      <polygon color="255" filled="true" marked="false">
+        <point x="162" y="80"/>
+        <point x="132" y="78"/>
+        <point x="134" y="135"/>
+        <point x="209" y="135"/>
+        <point x="194" y="105"/>
+        <point x="189" y="96"/>
+        <point x="180" y="89"/>
+      </polygon>
+      <circle x="47" y="195" marked="true" color="-1920102913" diameter="58" filled="true"/>
+      <circle x="195" y="195" marked="true" color="-1920102913" diameter="58" filled="true"/>
+    </shape>
+    <shape name="circle" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"/>
+    </shape>
+    <shape name="circle 2" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"/>
+      <circle x="30" y="30" marked="false" color="255" diameter="240" filled="true"/>
+    </shape>
+    <shape name="cow" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="200" y="193"/>
+        <point x="197" y="249"/>
+        <point x="179" y="249"/>
+        <point x="177" y="196"/>
+        <point x="166" y="187"/>
+        <point x="140" y="189"/>
+        <point x="93" y="191"/>
+        <point x="78" y="179"/>
+        <point x="72" y="211"/>
+        <point x="49" y="209"/>
+        <point x="48" y="181"/>
+        <point x="37" y="149"/>
+        <point x="25" y="120"/>
+        <point x="25" y="89"/>
+        <point x="45" y="72"/>
+        <point x="103" y="84"/>
+        <point x="179" y="75"/>
+        <point x="198" y="76"/>
+        <point x="252" y="64"/>
+        <point x="272" y="81"/>
+        <point x="293" y="103"/>
+        <point x="285" y="121"/>
+        <point x="255" y="121"/>
+        <point x="242" y="118"/>
+        <point x="224" y="167"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="73" y="210"/>
+        <point x="86" y="251"/>
+        <point x="62" y="249"/>
+        <point x="48" y="208"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="25" y="114"/>
+        <point x="16" y="195"/>
+        <point x="9" y="204"/>
+        <point x="23" y="213"/>
+        <point x="25" y="200"/>
+        <point x="39" y="123"/>
+      </polygon>
+    </shape>
+    <shape name="cylinder" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"/>
+    </shape>
+    <shape name="dot" rotatable="false" editableColorIndex="0">
+      <circle x="90" y="90" marked="true" color="-1920102913" diameter="120" filled="true"/>
+    </shape>
+    <shape name="face happy" rotatable="false" editableColorIndex="0">
+      <circle x="8" y="8" marked="true" color="-1920102913" diameter="285" filled="true"/>
+      <circle x="60" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <circle x="180" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="255"/>
+        <point x="90" y="239"/>
+        <point x="62" y="213"/>
+        <point x="47" y="191"/>
+        <point x="67" y="179"/>
+        <point x="90" y="203"/>
+        <point x="109" y="218"/>
+        <point x="150" y="225"/>
+        <point x="192" y="218"/>
+        <point x="210" y="203"/>
+        <point x="227" y="181"/>
+        <point x="251" y="194"/>
+        <point x="236" y="217"/>
+        <point x="212" y="240"/>
+      </polygon>
+    </shape>
+    <shape name="face neutral" rotatable="false" editableColorIndex="0">
+      <circle x="8" y="7" marked="true" color="-1920102913" diameter="285" filled="true"/>
+      <circle x="60" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <circle x="180" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <rectangle endX="240" startY="195" marked="false" color="255" endY="225" startX="60" filled="true"/>
+    </shape>
+    <shape name="face sad" rotatable="false" editableColorIndex="0">
+      <circle x="8" y="8" marked="true" color="-1920102913" diameter="285" filled="true"/>
+      <circle x="60" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <circle x="180" y="75" marked="false" color="255" diameter="60" filled="true"/>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="168"/>
+        <point x="90" y="184"/>
+        <point x="62" y="210"/>
+        <point x="47" y="232"/>
+        <point x="67" y="244"/>
+        <point x="90" y="220"/>
+        <point x="109" y="205"/>
+        <point x="150" y="198"/>
+        <point x="192" y="205"/>
+        <point x="210" y="220"/>
+        <point x="227" y="242"/>
+        <point x="251" y="229"/>
+        <point x="236" y="206"/>
+        <point x="212" y="183"/>
+      </polygon>
+    </shape>
+    <shape name="fish" rotatable="false" editableColorIndex="0">
+      <polygon color="-1" filled="true" marked="false">
+        <point x="44" y="131"/>
+        <point x="21" y="87"/>
+        <point x="15" y="86"/>
+        <point x="0" y="120"/>
+        <point x="15" y="150"/>
+        <point x="0" y="180"/>
+        <point x="13" y="214"/>
+        <point x="20" y="212"/>
+        <point x="45" y="166"/>
+      </polygon>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="135" y="195"/>
+        <point x="119" y="235"/>
+        <point x="95" y="218"/>
+        <point x="76" y="210"/>
+        <point x="46" y="204"/>
+        <point x="60" y="165"/>
+      </polygon>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="75" y="45"/>
+        <point x="83" y="77"/>
+        <point x="71" y="103"/>
+        <point x="86" y="114"/>
+        <point x="166" y="78"/>
+        <point x="135" y="60"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="30" y="136"/>
+        <point x="151" y="77"/>
+        <point x="226" y="81"/>
+        <point x="280" y="119"/>
+        <point x="292" y="146"/>
+        <point x="292" y="160"/>
+        <point x="287" y="170"/>
+        <point x="270" y="195"/>
+        <point x="195" y="210"/>
+        <point x="151" y="212"/>
+        <point x="30" y="166"/>
+      </polygon>
+      <circle x="215" y="106" marked="false" color="255" diameter="30" filled="true"/>
+    </shape>
+    <shape name="flag" rotatable="false" editableColorIndex="0">
+      <rectangle endX="75" startY="15" marked="true" color="-1920102913" endY="300" startX="60" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="90" y="150"/>
+        <point x="270" y="90"/>
+        <point x="90" y="30"/>
+      </polygon>
+      <line endX="90" startY="135" marked="true" color="-1920102913" endY="135" startX="75"/>
+      <line endX="90" startY="45" marked="true" color="-1920102913" endY="45" startX="75"/>
+    </shape>
+    <shape name="flower" rotatable="false" editableColorIndex="0">
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="135" y="120"/>
+        <point x="165" y="165"/>
+        <point x="180" y="210"/>
+        <point x="180" y="240"/>
+        <point x="150" y="300"/>
+        <point x="165" y="300"/>
+        <point x="195" y="240"/>
+        <point x="195" y="195"/>
+        <point x="165" y="135"/>
+      </polygon>
+      <circle x="85" y="132" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="130" y="147" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="192" y="85" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="85" y="40" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="177" y="40" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="177" y="132" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="70" y="85" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="130" y="25" marked="true" color="-1920102913" diameter="38" filled="true"/>
+      <circle x="96" y="51" marked="true" color="-1920102913" diameter="108" filled="true"/>
+      <circle x="113" y="68" marked="false" color="255" diameter="74" filled="true"/>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="189" y="233"/>
+        <point x="219" y="188"/>
+        <point x="249" y="173"/>
+        <point x="279" y="188"/>
+        <point x="234" y="218"/>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="180" y="255"/>
+        <point x="150" y="210"/>
+        <point x="105" y="210"/>
+        <point x="75" y="240"/>
+        <point x="135" y="240"/>
+      </polygon>
+    </shape>
+    <shape name="house" rotatable="false" editableColorIndex="0">
+      <rectangle endX="255" startY="120" marked="true" color="-1920102913" endY="285" startX="45" filled="true"/>
+      <rectangle endX="180" startY="210" marked="false" color="255" endY="285" startX="120" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="15" y="120"/>
+        <point x="150" y="15"/>
+        <point x="285" y="120"/>
+      </polygon>
+      <line endX="270" startY="120" marked="false" color="255" endY="120" startX="30"/>
+    </shape>
+    <shape name="leaf" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="210"/>
+        <point x="135" y="195"/>
+        <point x="120" y="210"/>
+        <point x="60" y="210"/>
+        <point x="30" y="195"/>
+        <point x="60" y="180"/>
+        <point x="60" y="165"/>
+        <point x="15" y="135"/>
+        <point x="30" y="120"/>
+        <point x="15" y="105"/>
+        <point x="40" y="104"/>
+        <point x="45" y="90"/>
+        <point x="60" y="90"/>
+        <point x="90" y="105"/>
+        <point x="105" y="120"/>
+        <point x="120" y="120"/>
+        <point x="105" y="60"/>
+        <point x="120" y="60"/>
+        <point x="135" y="30"/>
+        <point x="150" y="15"/>
+        <point x="165" y="30"/>
+        <point x="180" y="60"/>
+        <point x="195" y="60"/>
+        <point x="180" y="120"/>
+        <point x="195" y="120"/>
+        <point x="210" y="105"/>
+        <point x="240" y="90"/>
+        <point x="255" y="90"/>
+        <point x="263" y="104"/>
+        <point x="285" y="105"/>
+        <point x="270" y="120"/>
+        <point x="285" y="135"/>
+        <point x="240" y="165"/>
+        <point x="240" y="180"/>
+        <point x="270" y="195"/>
+        <point x="240" y="210"/>
+        <point x="180" y="210"/>
+        <point x="165" y="195"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="195"/>
+        <point x="135" y="240"/>
+        <point x="120" y="255"/>
+        <point x="105" y="255"/>
+        <point x="105" y="285"/>
+        <point x="135" y="285"/>
+        <point x="165" y="240"/>
+        <point x="165" y="195"/>
+      </polygon>
+    </shape>
+    <shape name="line" rotatable="true" editableColorIndex="0">
+      <line endX="150" startY="0" marked="true" color="-1920102913" endY="300" startX="150"/>
+    </shape>
+    <shape name="line half" rotatable="true" editableColorIndex="0">
+      <line endX="150" startY="0" marked="true" color="-1920102913" endY="150" startX="150"/>
+    </shape>
+    <shape name="pentagon" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="15"/>
+        <point x="15" y="120"/>
+        <point x="60" y="285"/>
+        <point x="240" y="285"/>
+        <point x="285" y="120"/>
+      </polygon>
+    </shape>
+    <shape name="person" rotatable="false" editableColorIndex="0">
+      <circle x="110" y="5" marked="true" color="-1920102913" diameter="80" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="105" y="90"/>
+        <point x="120" y="195"/>
+        <point x="90" y="285"/>
+        <point x="105" y="300"/>
+        <point x="135" y="300"/>
+        <point x="150" y="225"/>
+        <point x="165" y="300"/>
+        <point x="195" y="300"/>
+        <point x="210" y="285"/>
+        <point x="180" y="195"/>
+        <point x="195" y="90"/>
+      </polygon>
+      <rectangle endX="172" startY="79" marked="true" color="-1920102913" endY="94" startX="127" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="195" y="90"/>
+        <point x="240" y="150"/>
+        <point x="225" y="180"/>
+        <point x="165" y="105"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="105" y="90"/>
+        <point x="60" y="150"/>
+        <point x="75" y="180"/>
+        <point x="135" y="105"/>
+      </polygon>
+    </shape>
+    <shape name="plant" rotatable="false" editableColorIndex="0">
+      <rectangle endX="165" startY="90" marked="true" color="-1920102913" endY="300" startX="135" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="255"/>
+        <point x="90" y="210"/>
+        <point x="45" y="195"/>
+        <point x="75" y="255"/>
+        <point x="135" y="285"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="255"/>
+        <point x="210" y="210"/>
+        <point x="255" y="195"/>
+        <point x="225" y="255"/>
+        <point x="165" y="285"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="180"/>
+        <point x="90" y="135"/>
+        <point x="45" y="120"/>
+        <point x="75" y="180"/>
+        <point x="135" y="210"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="180"/>
+        <point x="165" y="210"/>
+        <point x="225" y="180"/>
+        <point x="255" y="120"/>
+        <point x="210" y="135"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="105"/>
+        <point x="90" y="60"/>
+        <point x="45" y="45"/>
+        <point x="75" y="105"/>
+        <point x="135" y="135"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="105"/>
+        <point x="165" y="135"/>
+        <point x="225" y="105"/>
+        <point x="255" y="45"/>
+        <point x="210" y="60"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="90"/>
+        <point x="120" y="45"/>
+        <point x="150" y="15"/>
+        <point x="180" y="45"/>
+        <point x="165" y="90"/>
+      </polygon>
+    </shape>
+    <shape name="square" rotatable="false" editableColorIndex="0">
+      <rectangle endX="270" startY="30" marked="true" color="-1920102913" endY="270" startX="30" filled="true"/>
+    </shape>
+    <shape name="square 2" rotatable="false" editableColorIndex="0">
+      <rectangle endX="270" startY="30" marked="true" color="-1920102913" endY="270" startX="30" filled="true"/>
+      <rectangle endX="240" startY="60" marked="false" color="255" endY="240" startX="60" filled="true"/>
+    </shape>
+    <shape name="star" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="151" y="1"/>
+        <point x="185" y="108"/>
+        <point x="298" y="108"/>
+        <point x="207" y="175"/>
+        <point x="242" y="282"/>
+        <point x="151" y="216"/>
+        <point x="59" y="282"/>
+        <point x="94" y="175"/>
+        <point x="3" y="108"/>
+        <point x="116" y="108"/>
+      </polygon>
+    </shape>
+    <shape name="target" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"/>
+      <circle x="30" y="30" marked="false" color="255" diameter="240" filled="true"/>
+      <circle x="60" y="60" marked="true" color="-1920102913" diameter="180" filled="true"/>
+      <circle x="90" y="90" marked="false" color="255" diameter="120" filled="true"/>
+      <circle x="120" y="120" marked="true" color="-1920102913" diameter="60" filled="true"/>
+    </shape>
+    <shape name="tree" rotatable="false" editableColorIndex="0">
+      <circle x="118" y="3" marked="true" color="-1920102913" diameter="94" filled="true"/>
+      <rectangle endX="180" startY="195" marked="false" color="-1653716737" endY="300" startX="120" filled="true"/>
+      <circle x="65" y="21" marked="true" color="-1920102913" diameter="108" filled="true"/>
+      <circle x="116" y="41" marked="true" color="-1920102913" diameter="127" filled="true"/>
+      <circle x="45" y="90" marked="true" color="-1920102913" diameter="120" filled="true"/>
+      <circle x="104" y="74" marked="true" color="-1920102913" diameter="152" filled="true"/>
+    </shape>
+    <shape name="triangle" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="30"/>
+        <point x="15" y="255"/>
+        <point x="285" y="255"/>
+      </polygon>
+    </shape>
+    <shape name="triangle 2" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="30"/>
+        <point x="15" y="255"/>
+        <point x="285" y="255"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="151" y="99"/>
+        <point x="225" y="223"/>
+        <point x="75" y="224"/>
+      </polygon>
+    </shape>
+    <shape name="truck" rotatable="false" editableColorIndex="0">
+      <rectangle endX="195" startY="45" marked="true" color="-1920102913" endY="187" startX="4" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="296" y="193"/>
+        <point x="296" y="150"/>
+        <point x="259" y="134"/>
+        <point x="244" y="104"/>
+        <point x="208" y="104"/>
+        <point x="207" y="194"/>
+      </polygon>
+      <rectangle endX="195" startY="60" marked="false" color="-1" endY="105" startX="195" filled="true"/>
+      <polygon color="255" filled="true" marked="false">
+        <point x="238" y="112"/>
+        <point x="252" y="141"/>
+        <point x="219" y="141"/>
+        <point x="218" y="112"/>
+      </polygon>
+      <circle x="234" y="174" marked="false" color="255" diameter="42" filled="true"/>
+      <rectangle endX="214" startY="185" marked="true" color="-1920102913" endY="194" startX="181" filled="true"/>
+      <circle x="144" y="174" marked="false" color="255" diameter="42" filled="true"/>
+      <circle x="24" y="174" marked="false" color="255" diameter="42" filled="true"/>
+      <circle x="24" y="174" marked="true" color="-1920102913" diameter="42" filled="false"/>
+      <circle x="144" y="174" marked="true" color="-1920102913" diameter="42" filled="false"/>
+      <circle x="234" y="174" marked="true" color="-1920102913" diameter="42" filled="false"/>
+    </shape>
+    <shape name="turtle" rotatable="true" editableColorIndex="0">
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="215" y="204"/>
+        <point x="240" y="233"/>
+        <point x="246" y="254"/>
+        <point x="228" y="266"/>
+        <point x="215" y="252"/>
+        <point x="193" y="210"/>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="195" y="90"/>
+        <point x="225" y="75"/>
+        <point x="245" y="75"/>
+        <point x="260" y="89"/>
+        <point x="269" y="108"/>
+        <point x="261" y="124"/>
+        <point x="240" y="105"/>
+        <point x="225" y="105"/>
+        <point x="210" y="105"/>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="105" y="90"/>
+        <point x="75" y="75"/>
+        <point x="55" y="75"/>
+        <point x="40" y="89"/>
+        <point x="31" y="108"/>
+        <point x="39" y="124"/>
+        <point x="60" y="105"/>
+        <point x="75" y="105"/>
+        <point x="90" y="105"/>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="132" y="85"/>
+        <point x="134" y="64"/>
+        <point x="107" y="51"/>
+        <point x="108" y="17"/>
+        <point x="150" y="2"/>
+        <point x="192" y="18"/>
+        <point x="192" y="52"/>
+        <point x="169" y="65"/>
+        <point x="172" y="87"/>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="85" y="204"/>
+        <point x="60" y="233"/>
+        <point x="54" y="254"/>
+        <point x="72" y="266"/>
+        <point x="85" y="252"/>
+        <point x="107" y="210"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="119" y="75"/>
+        <point x="179" y="75"/>
+        <point x="209" y="101"/>
+        <point x="224" y="135"/>
+        <point x="220" y="225"/>
+        <point x="175" y="261"/>
+        <point x="128" y="261"/>
+        <point x="81" y="224"/>
+        <point x="74" y="135"/>
+        <point x="88" y="99"/>
+      </polygon>
+    </shape>
+    <shape name="wheel" rotatable="false" editableColorIndex="0">
+      <circle x="3" y="3" marked="true" color="-1920102913" diameter="294" filled="true"/>
+      <circle x="30" y="30" marked="false" color="255" diameter="240" filled="true"/>
+      <line endX="150" startY="285" marked="true" color="-1920102913" endY="15" startX="150"/>
+      <line endX="285" startY="150" marked="true" color="-1920102913" endY="150" startX="15"/>
+      <circle x="120" y="120" marked="true" color="-1920102913" diameter="60" filled="true"/>
+      <line endX="79" startY="40" marked="true" color="-1920102913" endY="269" startX="216"/>
+      <line endX="269" startY="84" marked="true" color="-1920102913" endY="221" startX="40"/>
+      <line endX="269" startY="216" marked="true" color="-1920102913" endY="79" startX="40"/>
+      <line endX="221" startY="40" marked="true" color="-1920102913" endY="269" startX="84"/>
+    </shape>
+    <shape name="x" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="270" y="75"/>
+        <point x="225" y="30"/>
+        <point x="30" y="225"/>
+        <point x="75" y="270"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="30" y="75"/>
+        <point x="75" y="30"/>
+        <point x="270" y="225"/>
+        <point x="225" y="270"/>
+      </polygon>
+    </shape>
+  </turtleShapes>
+  <linkShapes>
+    <shape name="default" curviness="0">
+      <lines>
+        <line x="-0.2" visible="false">
+          <dash value="0"/>
+          <dash value="1"/>
+        </line>
+        <line x="0" visible="true">
+          <dash value="1"/>
+          <dash value="0"/>
+        </line>
+        <line x="0.2" visible="false">
+          <dash value="0"/>
+          <dash value="1"/>
+        </line>
+      </lines>
+      <indicator>
+        <shape name="link direction" rotatable="true" editableColorIndex="0">
+          <line endX="90" startY="150" marked="true" color="-1920102913" endY="180" startX="150"/>
+          <line endX="210" startY="150" marked="true" color="-1920102913" endY="180" startX="150"/>
+        </shape>
+      </indicator>
+    </shape>
+  </linkShapes>
+<hubnet-web-config xmlns="http://www.w3.org/1999/xhtml"><![CDATA[{"onStart":"setup","onIterate":"go","roles":[{"name":"turtle","namePlural":"turtles","limit":-1,"highlightMainColor":"#008000","widgets":[{"type":"hnwButton","display":"Choose","source":"execute-choose","hnwProcName":"execute-choose","forever":false,"disableUntilTicksStart":true,"buttonKind":"turtle","x":76,"width":127,"y":127,"height":33,"oldSize":true},{"type":"hnwSlider","display":"Choice","variable":"slider-value","min":0,"max":9,"default":0,"units":"","direction":"horizontal","step":1,"x":53,"width":290,"y":89,"height":33,"oldSize":true},{"type":"hnwMonitor","display":"Current Question","source":"current-question-value","reporterStyle":"procedure","precision":3,"fontSize":10,"x":4,"width":385,"y":35,"height":49,"oldSize":true},{"type":"hnwMonitor","display":"Current Choice","source":"current-choice-value","reporterStyle":"turtle-procedure","precision":3,"fontSize":10,"x":209,"width":109,"y":127,"height":49,"oldSize":true},{"type":"hnwView","height":1,"width":1,"x":1,"y":500,"oldSize":true}],"canJoinMidRun":false,"isSpectator":false,"perspectiveVar":null,"viewOverrideVar":null,"onConnect":"execute-create","onDisconnect":"handle-quit","afterDisconnect":null,"onCursorClick":null,"onCursorRelease":null,"onCursorMove":null},{"name":"supervisor","namePlural":"supervisors","limit":1,"highlightMainColor":"#008000","widgets":[{"type":"hnwView","height":282,"width":281,"x":461,"y":98,"oldSize":true},{"type":"hnwPlot","display":"Data","xAxis":"choice","yAxis":"count","xmin":0,"xmax":10,"ymin":0,"ymax":5,"legendOn":true,"setupCode":"","updateCode":"","pens":[{"type":"pen","display":"data","interval":1,"mode":1,"color":-16777216,"inLegend":true,"setupCode":"","updateCode":""},{"type":"pen","display":"mean","interval":1,"mode":0,"color":-10899396,"inLegend":true,"setupCode":"","updateCode":""},{"type":"pen","display":"median","interval":1,"mode":0,"color":-13345367,"inLegend":true,"setupCode":"","updateCode":""},{"type":"pen","display":"mode","interval":1,"mode":1,"color":-2674135,"inLegend":true,"setupCode":"","updateCode":""}],"x":155,"width":300,"y":129,"height":267,"oldSize":true,"autoPlotX":true,"autoPlotY":true},{"type":"hnwSwitch","display":"allow-change?","variable":"allow-change?","on":true,"x":1,"width":148,"y":224,"height":33,"oldSize":true},{"type":"hnwButton","display":"Clear Current Data","source":"clear-current-data","hnwProcName":"clear-current-data","forever":false,"disableUntilTicksStart":true,"buttonKind":"observer","x":1,"width":148,"y":129,"height":35,"oldSize":true},{"type":"hnwMonitor","display":"Current Question","source":"current-question-value","reporterStyle":"procedure","precision":3,"fontSize":11,"x":1,"width":454,"y":401,"height":45,"oldSize":true},{"type":"hnwButton","display":"New Question","source":"add-question","hnwProcName":"add-question","forever":false,"disableUntilTicksStart":true,"buttonKind":"observer","x":1,"width":148,"y":450,"height":33,"oldSize":true},{"type":"hnwButton","display":"Clear Questions","source":"clear-all-data-and-questions","hnwProcName":"clear-all-data-and-questions","forever":false,"disableUntilTicksStart":true,"buttonKind":"observer","x":1,"width":148,"y":363,"height":33,"oldSize":true},{"type":"hnwButton","display":"<<<Prev Question","source":"prev-question","hnwProcName":"prev-question","forever":false,"disableUntilTicksStart":true,"buttonKind":"observer","x":155,"width":149,"y":450,"height":33,"oldSize":true},{"type":"hnwButton","display":"Next Question>>>","source":"next-question","hnwProcName":"next-question","forever":false,"disableUntilTicksStart":true,"buttonKind":"observer","x":304,"width":151,"y":450,"height":33,"oldSize":true},{"type":"hnwSwitch","display":"show-plot?","variable":"show-plot?","on":true,"x":1,"width":148,"y":262,"height":33,"oldSize":true},{"type":"hnwMonitor","display":"mean","source":"mean-of-choices","reporterStyle":"procedure","precision":3,"fontSize":11,"x":1,"width":71,"y":170,"height":45,"oldSize":true},{"type":"hnwMonitor","display":"median","source":"median-of-choices","reporterStyle":"procedure","precision":3,"fontSize":11,"x":78,"width":71,"y":170,"height":45,"oldSize":true},{"type":"hnwButton","display":"Reset Instructions","source":"setup-quick-start","hnwProcName":"setup-quick-start","forever":false,"disableUntilTicksStart":true,"buttonKind":"observer","x":157,"width":143,"y":59,"height":33,"oldSize":true},{"type":"hnwButton","display":"Next Instruction>>>","source":"view-next-quick-start","hnwProcName":"view-next-quick-start","forever":false,"disableUntilTicksStart":true,"buttonKind":"observer","x":584,"width":152,"y":59,"height":33,"oldSize":true},{"type":"hnwButton","display":"<<<Prev Instruction","source":"view-prev-quick-start","hnwProcName":"view-prev-quick-start","forever":false,"disableUntilTicksStart":true,"buttonKind":"observer","x":432,"width":152,"y":59,"height":33,"oldSize":true},{"type":"hnwMonitor","display":"Quick Start Instructions - More in Info Window","source":"quick-start","reporterStyle":"global-var","precision":0,"fontSize":11,"x":157,"width":579,"y":10,"height":45,"oldSize":true},{"type":"hnwButton","display":"Clear Clients","source":"clear-clients","hnwProcName":"clear-clients","forever":false,"disableUntilTicksStart":true,"buttonKind":"observer","x":1,"width":148,"y":81,"height":33,"oldSize":true}],"canJoinMidRun":true,"isSpectator":true,"perspectiveVar":null,"viewOverrideVar":null,"onConnect":null,"onDisconnect":null,"afterDisconnect":null,"onCursorClick":null,"onCursorRelease":null,"onCursorMove":null}],"targetFrameRate":20,"type":"hubnet-web","version":"hnw-beta-1"}]]></hubnet-web-config></model>

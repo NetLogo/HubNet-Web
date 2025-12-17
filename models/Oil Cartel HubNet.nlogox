@@ -1,0 +1,1780 @@
+<?xml version="1.0" encoding="utf-8"?><model version="NetLogo 6.1.0">
+  <code><![CDATA[globals [
+  num-sellers
+  monopoly-quantity        ;; the amount that would be supplied by the cartel if it behaved as a monopoly
+  monopoly-price           ;; the price expected if monopoly-quantity is supplied
+  monopoly-profit          ;; the maximum profit that the cartel could get if it behaved as a monopolist
+  total-supply             ;; sum of the actual quantity supplied by all sellers
+  perfect-market-quantity  ;; the amount that would be supplied under perfect competition
+  perfect-market-price     ;; the price expected under perfect competition
+  individual-quota         ;; the quota for each individual seller based on the cartel agreement
+  marginal-cost            ;; the cost of producing one more unit of oil
+  avg-price                ;; the average price of oil across all transactions
+  min-price                ;; the minimum price available for oil on the market
+  low-sellers              ;; the agentset of sellers selling oil for min-price
+  color-list-1             ;; used to distribute colors for display of sellers
+  color-list-2             ;; used to distribute colors display of sellers
+  shape-1?                 ;; used to toggle between shapes for display of sellers
+  age-of-news              ;; age of news item sent to sellers.   used to clear old news
+  time-period              ;; tracks current time period
+  latest-news
+
+  __hnw_supervisor_num-buyers
+  __hnw_supervisor_ideal-quantity
+
+]
+
+breed [ sellers seller ]         ;; every hubnet client is a seller
+breed [ buyers buyer ]
+
+
+sellers-own [
+  user-id                         ;; unique user-id, input by the client when they log in
+  last-sale-profit                ;; how much money the user made last time oil was sold at market
+  price-1                         ;; the price of the primary, public offer
+  price-2                         ;; the price of the side, private offer
+  p1-quantity-offered             ;; amount of oil offered per time period at price-1
+  p2-quantity-offered             ;; amount of oil offered per time period at price-2
+  p1-quantity-available           ;; amount of oil at price-1 available within a time period as buyers start buying
+  p2-quantity-available           ;; amount of oil at price-2 available within a time period as buyers start buying
+  p1-quantity-sold                ;; amount of oil actually sold at the end of the time period at price-1
+  p2-quantity-sold                ;; amount of oil actually sold at the end of the time period at price-2
+  prev-p2-quantity-sold           ;; amount of oil sold at price-2 during the previous time period
+  profit-needed                   ;; profit needed by each cartel member. varies by seller
+  strategy                        ;; set by client.  explained in "Make Offer" procedure
+  extra-output                    ;; set by client.  part of "Quota-Plus" strategy. explained in "Make Offer" procedure
+  reduced-output                  ;; set by client.  part of "Quota-Minus" strategy. explained in "Make Offer" procedure
+  color-name
+  shape-name
+]
+
+buyers-own [
+  quantity-demanded               ;; amount demanded by a buyer at any given moment in a time period
+  quantity-bought                 ;; amount bought by a buyer at any given moment in a time period
+  seller-bought-from              ;; the seller who sold to the buyer last
+  max-price                       ;; the maximum amount a buyer is willing to pay for their ideal quantity
+  already-chosen?                 ;; only used to distribute different levels of max-price across buyers
+]
+
+;; ---------------------------------------------------------
+;; STARTUP - auto-setup when the model is opened
+;; ---------------------------------------------------------
+to startup
+
+  reset-ticks
+
+  set __hnw_supervisor_num-buyers 200
+  set __hnw_supervisor_ideal-quantity 30
+
+  ;; Create buyers
+  create-buyers __hnw_supervisor_num-buyers [
+    setxy random-pxcor random-pycor
+    set color green
+  ]
+
+  ;; set up colors and shape options for sellers
+  initialize-shapes
+
+end
+
+;; ---------------------------------------------------------
+;; RESET - reset everything for a new simulation
+;; ---------------------------------------------------------
+to reset
+
+  reset-ticks
+
+  ;; clear out current buyers
+  ask buyers [die]
+
+  ;; Create new buyers
+  create-buyers __hnw_supervisor_num-buyers [
+    setxy random-pxcor random-pycor
+    set color green
+  ]
+
+  ;; initialize values
+  initial-login
+
+  ;; initialize colors and shape options for seller shapes
+  initialize-shapes
+
+  ;; Reset plots
+  clear-all-plots
+
+  ; We have to do this again for some reason
+  initial-login
+
+end
+
+;; ---------------------------------------------------------
+;; INIT-GLOBALS - initialize our global variables
+;; ---------------------------------------------------------
+to init-globals
+  set age-of-news 0
+  set avg-price 0
+  set min-price 0
+  set monopoly-profit ( monopoly-quantity * ( monopoly-price - marginal-cost) )
+  set time-period 0
+end
+
+
+;; ---------------------------------------------------------
+;; INITIALIZE-SHAPES - listen for clients and establish them as
+;;                 sellers
+;; ---------------------------------------------------------
+to initialize-shapes
+  ;; set up colors for seller shapes
+  set color-list-1      (list ["White" white]  ["Red" (red)]  ["Pink" pink] ["Lime" lime] ["Sky Blue" sky] ["Magenta" magenta]
+                              ["Cyan" cyan] ["Turquoise" turquoise]  ["Brown" brown] ["Blue" blue])
+  set color-list-2 reverse color-list-1
+  set shape-1? true
+end
+
+
+;; ---------------------------------------------------------
+;; INITIAL-LOGIN - listen for clients and establish them as
+;;                 sellers
+;; ---------------------------------------------------------
+to initial-login
+
+  ;; Clear all of our buyer, seller, and global variables
+  init-globals
+  init-seller-vars
+  init-buyer-vars
+
+  ;; set cartel agreement
+  update-cartel-agreement
+
+  ;; Calculate market conditions
+  compute-market-data
+
+  ;; Clear old news items
+  if age-of-news > 15 [ send-news-item " " ]
+  set age-of-news age-of-news + 1
+
+  ;; initialize seller strategies
+  ask sellers [
+    set strategy "Agreement"
+    set extra-output 0
+    set reduced-output 0
+  ]
+
+end
+
+to-report current-profit
+  report ifelse-value (num-sellers = 0) [last-sale-profit] [monopoly-profit / num-sellers]
+end
+
+;; ---------------------------------------------------------
+;; RUN-MARKET - run the market simulation
+;; ---------------------------------------------------------
+to run-market
+
+  ;; Make sure there are sellers before running the market
+  if num-sellers = 0 [
+    user-message "Can't run market with no sellers.  Please start a hubnet client."
+    stop
+  ]
+
+  ;; ask sellers to make offers based on their strategies
+  make-offers
+
+  ;; ask buyers to identify seller(s) with the lowest price
+  find-lowest-offer
+
+  ;; ask buyers to purchase oil from sellers
+  execute-transactions
+
+  ;; calculate market conditions based on buyers and sellers most recent actions
+  compute-market-data
+
+  ;; ask sellers to update individual seller profit information
+  update-sellers
+
+  ;; ask buyers to update individual buyers demand satisfaction information
+  update-buyers
+
+  ;; Clear old news items
+  if age-of-news > 15 [ send-news-item " " ]
+  set age-of-news age-of-news + 1
+
+  ;; update time-period
+  set time-period time-period + 1
+
+  update-plots
+
+end
+
+;; ---------------------------------------------------------
+;; MAKE-OFFERS - Sellers make concrete offers to market
+;;               based on the strategy they selected. The
+;;               strategies are implemented by offering up to two
+;;               simultaneous but separate offers to the buyers.
+;; ---------------------------------------------------------
+to make-offers
+  ask sellers [
+
+    ;; save off needed info from previous offer before creating a new one
+    let prev-quantity-offered (p1-quantity-offered + p2-quantity-offered)
+
+    ;; "Agreement" Strategy:  Produce and price exactly in accordance with
+    ;; the cartel agreement
+    ifelse strategy = "Agreement"
+    [ set price-1 monopoly-price
+      set p1-quantity-offered individual-quota
+      set price-2 monopoly-price
+      set p2-quantity-offered 0
+     ]
+    ;; "Quota-Plus" Strategy: Consistently produce "extra-output" amt beyond the quota and
+    ;; offer it to the mkt for a price a little lower than the official agreement price
+    [ ifelse strategy = "Quota-Plus"
+      [ set price-1 monopoly-price
+        set p1-quantity-offered individual-quota
+        set price-2 (monopoly-price - 100)
+        set p2-quantity-offered extra-output
+       ]
+
+      ;; "Quota-Minus" Strategy:  Consistently produce "reduced-output" amt below the quota
+      ;; in an effort to keep prices up
+      [ ifelse strategy = "Quota-Minus"
+        [ set price-1 monopoly-price
+          set p1-quantity-offered (individual-quota - reduced-output)
+          set price-2 monopoly-price
+          set p2-quantity-offered 0
+        ]
+
+        ;; "Flood Market" Strategy:  Saturate the market with low cost oil to punish cheaters.
+        [ ifelse strategy = "Flood Market"
+          [  set price-1 monopoly-price
+             set p1-quantity-offered 0
+             set price-2 marginal-cost
+             set p2-quantity-offered perfect-market-quantity
+             send-news-item word user-id " unleashes reserves as warning"
+          ]
+
+          ;; "Price > MC" Strategy: Keep producing and offering additional output as long
+          ;; as the price you have to offer to sell that unit is still higher than the cost
+          ;; to produce it.
+          [ set price-1 monopoly-price
+            set p1-quantity-offered 0
+            if time-period = 0 [
+              set p2-quantity-offered individual-quota
+              set price-2 monopoly-price
+              set prev-quantity-offered p2-quantity-offered
+            ]
+
+            ;; if you didn't sell more this time than last time, undercut your own price
+            ;; and try the same amount again.
+            ifelse (p2-quantity-sold <= prev-p2-quantity-sold)
+            [ ifelse (price-2 - 10) > marginal-cost
+               [ set price-2 (price-2 - 10) ]
+               [ set price-2 marginal-cost ]  ;; but don't go as far as pricing below cost
+              set p2-quantity-offered prev-quantity-offered
+            ]
+            ;;if you did sell more that last time, increase production even a little more
+            ;; (as long as price > mc)
+            [ if price-2  > marginal-cost [
+                set p2-quantity-offered (p2-quantity-offered + 10)  ;; amt offered keeps increasing
+               ]
+            ]
+
+          ]
+       ]
+    ]
+   ]
+
+   ;; initialize amounts available for sale in the next time period to
+   ;; the total amount you are willing to offer
+   set p1-quantity-available p1-quantity-offered
+   set p2-quantity-available p2-quantity-offered
+
+  ]
+end
+
+
+
+;; ---------------------------------------------------------
+;; COMPUTE-MARKET-DATA - recompute the market
+;;                        using the latest info
+;; ---------------------------------------------------------
+to compute-market-data
+
+  ;; Check the number of sellers
+  set num-sellers count sellers
+
+  ;; The actual amount supplied
+  set total-supply (sum [p1-quantity-sold] of sellers + sum [p2-quantity-sold] of sellers)
+
+  ;; Calculate the average selling price
+  ifelse total-supply != 0
+    [ set avg-price ( (sum [price-1 * p1-quantity-sold] of sellers with [p1-quantity-sold > 0] +
+                       sum [price-2 * p2-quantity-sold] of sellers with [p2-quantity-sold > 0])
+                       / total-supply )
+    ]
+    [ set avg-price 0 ]
+
+  ;; Calculate hypothetical quantity and price under perfect competition
+  ;; Economic theory predicts that point is where price equals marginal cost
+  set perfect-market-price marginal-cost
+  set perfect-market-quantity filter-zero-or-greater (__hnw_supervisor_num-buyers * __hnw_supervisor_ideal-quantity - perfect-market-price)
+
+end
+
+;; ---------------------------------------------------------
+;; UPDATE-SELLERS - update seller information
+;; ---------------------------------------------------------
+to update-sellers
+  ask sellers [
+
+    ;; figure out how much, if any, extra production there was
+    let unused-p1-qty (p1-quantity-offered - p1-quantity-sold) ;; amount produced but not sold at price 1
+    let extra-produced filter-zero-or-greater (p2-quantity-offered - unused-p1-qty)
+
+    ;; update profit info
+    set last-sale-profit int ( (p1-quantity-sold * price-1) + (p2-quantity-sold * price-2)
+                           - ((p1-quantity-offered + extra-produced) * marginal-cost) )
+   ]
+end
+
+;; ---------------------------------------------------------
+;; UPDATE-BUYERS - update buyer information
+;; ---------------------------------------------------------
+to update-buyers
+  ask buyers [
+    ;; update color
+    ifelse quantity-bought > 0
+      [ set color green ]
+      [ ifelse perfect-market-price <= max-price
+        [ set color yellow ]
+        [ set color red ]
+      ]
+  ]
+end
+
+;; ---------------------------------------------------------
+;; CREATE-NEW-SELLER - create a new seller when a client
+;;                     joins
+;; ---------------------------------------------------------
+to-report create-new-seller [ id ]
+
+  let out -1
+  let max-jumps 10000
+
+  create-sellers 1
+  [
+    set user-id id     ;; remember which client this is
+    ifelse shape-1?
+      [ set shape "plant1"
+        set color item 1 item 0 color-list-1
+        set color-name item 0 item 0 color-list-1
+        set shape-name "Circle"
+        set color-list-1 but-first color-list-1
+      ]
+      [ set shape "plant2"
+        set color item 1 item 0 color-list-2
+        set color-name item 0 item 0 color-list-2
+        set shape-name "Square"
+        set color-list-2 but-first color-list-2
+      ]
+
+    set shape-1? not shape-1?
+    set size 3
+
+    ;; locate seller
+    setxy random-xcor random-ycor
+    while [ any? sellers in-radius 3 and max-jumps > 0 ]
+          [ rt random 360
+            jump random 100
+            set max-jumps (max-jumps - 1) ]
+
+    init-seller-vars
+    set heading 0
+
+    ;; Announce the arrival of a new seller
+    send-news-item (word "A new seller '" user-id "' has arrived.")
+
+    set out who
+
+  ]
+  report out
+end
+
+to-report user-id-str
+  report (word "The " color-name " " shape-name)
+end
+
+;; ---------------------------------------------------------
+;; INIT-SELLER-VARS - initialize the seller's variables
+;; ---------------------------------------------------------
+to init-seller-vars    ;; seller procedure
+
+  ask sellers [
+    set last-sale-profit 0
+    set p1-quantity-sold 0
+    set p2-quantity-sold 0
+    set price-1 monopoly-price
+    set price-2 price-1
+    set marginal-cost 500
+    set p1-quantity-offered monopoly-quantity
+    set p1-quantity-available p1-quantity-offered
+    set p2-quantity-available p2-quantity-offered
+    set prev-p2-quantity-sold 0
+
+    ;; initialize profit needed by each seller to an equal share of the monopoly profit
+    if num-sellers != 0 [ set profit-needed (monopoly-profit / num-sellers) ]
+  ]
+
+  ;; make some sellers require more than an equal share of the monopoly profit, some less
+  if num-sellers != 0 [
+    ask n-of round (num-sellers / 4) sellers [
+      set profit-needed (1.25 * profit-needed)
+    ]
+    ask n-of round (num-sellers / 4) sellers with [ profit-needed = (monopoly-profit / num-sellers )] [
+      set profit-needed (0.25 * profit-needed)
+    ]
+
+  ]
+
+end
+
+;; ---------------------------------------------------------
+;; INIT-BUYER-VARS - initialize the buyer's variables
+;; ---------------------------------------------------------
+to init-buyer-vars
+  ask buyers [
+    set quantity-demanded __hnw_supervisor_ideal-quantity
+    set quantity-bought 0
+    set already-chosen? false
+  ]
+
+
+  ;; Vary the maximum amount a buyer is willing to pay for oil across buyers
+  ;; ( Note:  The distribution below results in a aggregate relationship between
+  ;; price and quantity that is linear and has a negative slope.  This simple aggregate
+  ;; relationship comes in handy when calculating the cartel agreement and the perfect
+  ;; competition amounts. )
+  let i 0
+  let buyers-remaining buyers with [ not already-chosen? ]
+  while [ any? buyers-remaining ] [
+    ask one-of buyers-remaining [
+      set max-price (__hnw_supervisor_ideal-quantity * i)
+      set already-chosen? true
+    ]
+    set i (i + 1)
+    set buyers-remaining buyers with [ not already-chosen? ]
+   ]
+end
+
+
+;; ---------------------------------------------------------
+;; FIND-LOWEST-OFFER -
+;; ---------------------------------------------------------
+to find-lowest-offer
+  let sellers-p2-avail (sellers with [p2-quantity-available > 0])
+
+  ifelse any? sellers-p2-avail
+   [ set min-price min ([price-2] of sellers-p2-avail)  ]
+   [ set min-price monopoly-price ]
+
+  ;; identify the seller(s) offering the lowest price
+  set low-sellers sellers with [ (price-1 = min-price and p1-quantity-available > 0) or
+                                 (price-2 = min-price and p2-quantity-available > 0) ]
+
+end
+
+;; ---------------------------------------------------------
+;; EXECUTE-TRANSACTIONS -
+;; ---------------------------------------------------------
+to execute-transactions
+
+   ;; before executing transactions, ask sellers to record how much they sold last time
+    ;; and to initialize their quantities this time period
+    ask sellers [
+      set prev-p2-quantity-sold p2-quantity-sold
+      set p1-quantity-sold 0
+      set p2-quantity-sold 0
+    ]
+
+    ask buyers [
+    set quantity-bought 0  ;; initialize quantity-bought this time period
+
+    ifelse min-price <= max-price
+      [ set quantity-demanded __hnw_supervisor_ideal-quantity ]
+      [ set quantity-demanded 0 ]
+
+    ;; try to buy amount you demand from sellers
+    buy-from-sellers
+
+    ;; if you bought oil this round, move close to your seller
+    ifelse quantity-bought > 0
+    [ setxy ([one-of (list (xcor + random-float 1.5) (xcor - random-float 1.5))]
+          of seller-bought-from)
+      ([one-of (list (ycor + random-float 1.5) (ycor - random-float 1.5))]
+          of seller-bought-from)
+    ]
+      [ setxy random-pxcor random-pycor ]
+   ]
+end
+
+to buy-from-sellers
+     let amt-just-sold 0
+     let lucky-one one-of low-sellers ;; if more than one seller offers lowest price, pick one randomly
+     let avail-from-seller 0
+
+     ;; figure out the capacity available from the low seller at the min price
+     ;; but need to check to see if official price or the side price is lower first
+      ifelse [price-1] of lucky-one = min-price
+        [ set avail-from-seller [p1-quantity-available] of lucky-one ]
+        [ ifelse [price-2] of lucky-one = min-price
+          [ set avail-from-seller [p2-quantity-available] of lucky-one ]
+          [ set avail-from-seller 0 ]
+        ]
+
+     ;; if the current low seller has enough capacity, buy all you need
+     ;; otherwise, buy what you can from him
+     ifelse avail-from-seller >= quantity-demanded
+       [ set quantity-bought (quantity-bought + quantity-demanded) ]
+       [ set quantity-bought (quantity-bought + avail-from-seller) ]
+
+     ;; update info of seller you just bought from
+     set amt-just-sold quantity-bought
+     ask lucky-one [
+      ifelse [price-1] of lucky-one = min-price
+         [ set p1-quantity-available (p1-quantity-available - amt-just-sold)  ;; decrement seller's remaining amt available at p1
+           set p1-quantity-sold (p1-quantity-sold + amt-just-sold)   ;; increment seller's amt purchased by buyers at p1
+         ]
+         [ if [price-2] of lucky-one = min-price
+           [ set p2-quantity-available (p2-quantity-available - amt-just-sold)  ;; decrement seller's remaining amt available at p2
+             set p2-quantity-sold (p2-quantity-sold + amt-just-sold)   ;; increment seller's purchased by buyers at p2
+           ]
+         ]
+     ]
+
+   ;; update your own info
+   set quantity-demanded (quantity-demanded - quantity-bought)
+   set seller-bought-from lucky-one
+
+   ;; if your demand is still not satisfied, try the next seller (if any)
+   if quantity-demanded > 0
+   [ ifelse any? sellers with [p1-quantity-available > 0 or p2-quantity-available > 0]
+         [ find-lowest-offer                   ;; of the sellers with capacity, find the lowest priced ones
+           buy-from-sellers                    ;; try to buy from them
+         ]
+         [stop]  ;; you've tried all the sellers
+   ]
+
+end
+
+to-report price-of-extra
+  report ifelse-value (p2-quantity-offered != 0) [ price-2 ] [ 0 ]
+end
+
+to-report combined-quantity-sold
+  report p1-quantity-sold + p2-quantity-sold
+end
+
+;; ---------------------------------------------------------
+;; UPDATE-CARTEL-AGREEMENT - set ideal quantity for cartel
+;; ---------------------------------------------------------
+to update-cartel-agreement
+
+  ;; Find profit-maximizing quantity assuming cartel behaves as a unitary monopolist.
+  ;; Economic theory prescribes that to maximize profits a firm should produce up to the point where
+  ;; Marginal Revenue (1st derivative of demand a firm faces) equals Marginal Cost (1st derivative of total cost).
+  ;; The eqn below comes from setting MR = MC and solving for monopoly-quantity.
+  set monopoly-quantity filter-zero-or-greater (__hnw_supervisor_num-buyers * __hnw_supervisor_ideal-quantity - marginal-cost) / 2
+  set monopoly-price filter-zero-or-greater (__hnw_supervisor_num-buyers * __hnw_supervisor_ideal-quantity - monopoly-quantity)
+
+  if num-sellers != 0 [ set individual-quota int (monopoly-quantity / num-sellers) ]
+end
+
+
+
+;; ---------------------------------------------------------
+;; UTILITY PROCEDURES - useful stuff
+;; ---------------------------------------------------------
+
+to-report filter-zero-or-greater [ value ]
+  ifelse (value >= 0)
+    [ report value ]
+    [ report 0 ]
+end
+
+to send-news-item [ msg-text ]
+  set latest-news msg-text
+  set age-of-news 0
+end
+
+
+;; ---------------------------------------------------------
+;; HNW PLOTTING PROCEDURES
+;; ---------------------------------------------------------
+
+to update-oil-agreement-pen
+  plot monopoly-quantity
+end
+
+to update-competitive-pen
+  plot perfect-market-quantity
+end
+
+to update-actual-pen
+  plot total-supply
+end
+
+to update-average-pen
+  plot avg-price
+end
+
+to update-marginal-cost-pen
+  plot marginal-cost
+end
+
+to update-price-agreement-pen
+end
+
+to clear-my-plot
+  clear-plot
+end
+
+to plot-last-sale-profit
+  plot last-sale-profit
+end
+
+; Copyright 2004 Uri Wilensky.
+; See Info tab for full copyright and license.]]></code>
+  <widgets>
+    <view x="497" wrappingAllowedX="true" y="15" frameRate="30" minPycor="-12" height="409" showTickCounter="true" patchSize="16" fontSize="10" wrappingAllowedY="true" width="408" tickCounterLabel="ticks" maxPycor="12" updateMode="1" maxPxcor="12" minPxcor="-12"/>
+    <monitor x="15" precision="0" y="231" height="45" fontSize="11" display="# Sellers" width="63" sizeVersion="0">num-sellers</monitor>
+    <note x="10" y="113" height="18" textColorLight="-16777216" fontSize="11" width="168" markdown="false">Buyer Information:</note>
+    <button x="9" y="30" height="33" disableUntilTicks="false" forever="true" kind="Observer" display="initial-login" width="97" sizeVersion="0">initial-login</button>
+    <slider x="8" step="10" y="169" max="100" display="ideal-quantity" height="33" min="0" direction="Horizontal" default="30" variable="ideal-quantity" width="172" sizeVersion="0"/>
+    <button x="9" y="67" height="33" disableUntilTicks="false" forever="true" kind="Observer" display="run-market" width="174" sizeVersion="0">run-market</button>
+    <plot x="202" autoPlotX="true" yMax="1000" autoPlotY="true" yAxis="Quantity" y="15" xMin="0" height="205" legend="true" xMax="200" yMin="0" xAxis="Time" display="Oil Sold on Market" width="274" sizeVersion="0">
+      <setup/>
+      <update/>
+      <pen interval="1" mode="0" display="Actual" color="-13345367" legend="true">
+        <setup/>
+        <update/>
+      </pen>
+      <pen interval="1" mode="0" display="Competitive" color="-10899396" legend="true">
+        <setup/>
+        <update/>
+      </pen>
+      <pen interval="1" mode="0" display="Agreement" color="-2674135" legend="true">
+        <setup/>
+        <update/>
+      </pen>
+    </plot>
+    <button x="109" y="30" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="reset" width="73" sizeVersion="0">reset</button>
+    <note x="8" y="10" height="18" textColorLight="-16777216" fontSize="11" width="90" markdown="false">Activity:</note>
+    <note x="17" y="293" height="18" textColorLight="-16777216" fontSize="11" width="179" markdown="false">Current Cartel Agreement:</note>
+    <plot x="201" autoPlotX="true" yMax="100" autoPlotY="true" y="226" xMin="0" height="186" legend="true" xMax="200" yMin="0" display="Average Price of Oil" width="275" sizeVersion="0">
+      <setup/>
+      <update/>
+      <pen interval="1" mode="0" display="Average" color="-13345367" legend="true">
+        <setup/>
+        <update/>
+      </pen>
+      <pen interval="1" mode="0" display="MC" color="-10899396" legend="true">
+        <setup/>
+        <update/>
+      </pen>
+      <pen interval="1" mode="0" display="Agreement" color="-2674135" legend="true">
+        <setup/>
+        <update/>
+      </pen>
+    </plot>
+    <monitor x="16" precision="3" y="367" height="45" fontSize="11" display="Target Total Barrels" width="150" sizeVersion="0">monopoly-quantity</monitor>
+    <monitor x="15" precision="3" y="316" height="45" fontSize="11" display="Official Price" width="152" sizeVersion="0">monopoly-price</monitor>
+    <slider x="8" step="10" y="132" max="300" display="num-buyers" height="33" min="30" direction="Horizontal" default="200" variable="num-buyers" width="172" sizeVersion="0"/>
+    <plot x="200" autoPlotX="true" yMax="200000000" autoPlotY="true" y="419" xMin="0" height="120" legend="false" xMax="500" yMin="0" display="Current Profit Plot" width="276" sizeVersion="0">
+      <setup/>
+      <update/>
+      <pen interval="1" mode="0" display="default" color="-13345367" legend="true">
+        <setup/>
+        <update/>
+      </pen>
+    </plot>
+    <button x="16" y="419" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="Update Agreement" width="150" sizeVersion="0">update-cartel-agreement</button>
+    <note x="14" y="212" height="18" textColorLight="-16777216" fontSize="11" width="150" markdown="false">Cartel Information:</note>
+  </widgets>
+  <info><![CDATA[## WHAT IS IT?
+
+This is a collaborative exploration of the economics of a market with imperfect competition. As members of a cartel, participants experience how jointly determined price and quantity decisions can be advantageous to suppliers, harmful to consumers, but also why a cartel is so difficult to sustain. In this version of Oil Cartel, cartel members face differing profit expectations, and set production and pricing strategies in an attempt to meet those expectations.  They respond to each other's behavior by altering their strategies.
+
+## HOW IT WORKS
+
+The demand for oil is determined by the number of buyers (NUM-BUYERS) and how much oil they each desire (IDEAL-QUANTITY).  A buyer follows two rules.  One, they always buy from the seller offering the minimum price.  Two, they only buy if the minimum price available does not exceed their maximum willingness to pay (which varies across the buyers).
+
+Each HubNet Client is a member of the cartel.  The cartel currently has an agreement in place to limit overall production, resulting in one common official price, and a quota for each member. Each member of this cartel independently decides whether to abide by the agreement or to "cheat" on the agreement and try to boost profits by producing and selling beyond their quota. Furthermore, cartel members face different revenue demands ("Profit-Needed") from their home government, as they come from countries of differing levels of economic prosperity.  More specifically, each cartel member can choose from the following production and pricing strategies, which they can alter depending on the response of buyers and other cartel members:
+
+1. "Agreement" Strategy:  Always produce and price exactly in accordance with the cartel agreement
+
+2. "Quota-Plus" Strategy: Produce a little bit more than the quota and offer the excess amount to the market for a price a little less than the agreement price.  (The additional amount produced is set by the "extra-output" slider. )
+
+3. "Quota-Minus" Strategy:  Produce a little bit less than the quota and offer it to the market at the agreement price. (The amount less is set by the "reduced-output" slider.) A member might do this in an effort to keep prices up and the cartel together.
+4. "Price > MC" Strategy: Keep producing and offering additional output as long
+as the price you have to offer to the buyers in order to sell that unit is still higher than the cost to produce it.
+
+5.  "Flood Market" Strategy:  Saturate the market with low cost oil to punish or send a warning to cheaters.
+
+## HOW TO USE IT
+
+Set the number of buyers  (NUM-BUYERS) and amount of oil each buyer demands (IDEAL-QUANTITY).  Press the INITIAL-LOGIN forever button and leave pressed until all HubNet Client log in. Ask clients to set their initial strategies, paying attention to the current agreement, current profit, as well as their own profit needed.  Once all clients have selected their initial strategies, press the RUN-MARKET button.  The overall behavior of the market can be witnessed on the View and Plots on the server, which are described below.  Each individual client's information is displayed on their own monitors, including a plot of their current profit.
+
+Buttons:
+
+INITIAL-LOGIN - Allows sellers to log in to the activity. This forever button should be turned off before beginning the simulation.
+
+RUN-MARKET - Runs the simulation. Clients will only be selling oil while the market simulation is running. Turning off this forever button will stop all market activity, although it can be resumed from the same point by clicking the button again.
+
+RESET - Resets the simulation to its initial state.
+
+UPDATE-AGREEMENT - Updates the current cartel agreement based on current buyer demand.  Only useful if IDEAL-QUANTITY changes, but the simulation is not reset.
+
+Sliders:
+
+NUM-BUYERS - Total number of buyers in the market.  Changing this value requires a reset.  It cannot be changed during the simulation.
+
+IDEAL-QUANTITY -  The amount of oil demanded by each buyer per time period.
+
+Monitors:
+
+"# Sellers" - The number of sellers participating in the activity.
+
+"Target Total Barrels" - This is the amount of total production agreed upon by the cartel. It is the total of all oil produced by suppliers that would maximize profits if the cartel behaved as a unitary monopolist, given the current buyer demand and supplier marginal cost. This quantity divided by the number of sellers is each seller's quota.
+
+"Official Price" - This is the price of the current cartel agreement. It is the price of oil that corresponds with supplying "Target Total Barrels" given the current buyer demand and supplier marginal cost.
+
+Plots:
+
+"Oil Sold at Market" - Plots the quantities of oil sold at market over time (Actual). Also on the graph are the amounts that would be supplied under perfect competition (Competitive) and under a monopoly (Agreement). Anything less than the amount of perfect competition and above or equal to the monopoly line is an improvement, and is better for the cartel than a situation with no collusion.
+
+"Average Price of Oil" - Plots the average price of oil across all transactions in the current time period (Average).  Also on the graph are plots of Official Price of the cartel agreement (Agreement) and the marginal cost of suppliers (MC). Anything above marginal cost and equal to or below the agreement line is better for the cartel than a situation with no collusion.
+
+View:
+
+The view shows all the sellers and buyers.  The sellers are represented by a colored circle or square. The buyers are the multitude of green, yellow, and red  agents in the window.  Green agents are those buyers who were able to make a purchase at the time period.  They move to the seller from which they last purchased oil. Yellow agents are buyers who did not make a purchase, but they would have if it were priced at the level of a perfectly competitive market.  They represent the inefficiency caused by the cartel behavior.  Red agents are buyers who did not purchase oil, nor would they even in a perfectly competitive market.  Price would have to be even more favorable than the perfectly competitive price for these buyers to purchase.
+
+Client Information:
+
+"You Are:" - Identifies you on the View (e.g., The White Circle)
+
+"Market News" - Information of note.
+
+"Marginal Cost" - The cost of producing one more unit.
+
+"# Suppliers" - The number of sellers who are currently in the market.
+
+"Official Price" - Price from the current cartel agreement.
+
+"Qty Sold at Official Price" -- Amount of oil sold at the agreement price.
+
+"Price of Extra Qty" - The price at which you offer the extra oil you produce if you choose not to abide by the agreement.  It is determined by the strategy selected.
+
+"Extra Qty Sold" - Amount of oil purchased by buyers at the "Price of Extra Qty"
+
+"My Quota" - Individual member quota based on cartel agreement.
+
+"Actual Qty" - The total amount sold regardless of price.
+
+"Current Profit" - The profit made by the seller last time oil was sold at market.
+
+"Profit-Needed" - The profit expected from you by your home country.
+
+"Current Profit Plot" - A plot over time of the cartel members' profit.
+
+"Strategy" - Drop box used to select one of the strategies mentioned above.
+
+"extra-output" -  Slider used to set the extra amount produced if using the "Quota-Plus" strategy.
+
+"reduced-output - Slider used to set the amount reduced from quota if using the "Quota-Minus" strategy.
+
+## THINGS TO NOTICE
+
+The cartel can usually withstand a little bit of cheating, even if all the members indulge. If all members pursue the "Price >= MC" strategy, the market quickly reaches the perfect competition equilibrium price and quantity.  Even if only one member becomes too aggressive, the market price of oil will drop, and the cartel will most likely crumble.
+
+## THINGS TO TRY
+
+Try changing the values of NUM-BUYERS and IDEAL-QUANTITY? Does cheating by cartel members become more or less noticeable?
+
+Can you reach an equilibrium point where everyone exceeds their Profit Needed?
+
+The "Quota-Minus" strategy seems like an unattractive one.  Can you find a situation where it is a strategy ever actually worth pursuing?
+
+## EXTENDING THE MODEL
+
+Here are some suggestions for ways to extend the model:
+
+- Create new strategies!  Current strategies are only a fraction of the possible ways a cartel member might behave over time.
+
+- Give cartel members the capacity to build up reserves, which they can then use strategically. Reserves could be a function of a producer's maximum capacity, and would limit a seller's ability to "flood the market."
+
+## NETLOGO FEATURES
+
+Client specific plotting (experimental).
+
+## RELATED MODELS
+
+Tragedy of the Commons, Gridlock, Prisoner's Dilemma HubNet
+
+## HOW TO CITE
+
+If you mention this model or the NetLogo software in a publication, we ask that you include the citations below.
+
+For the model itself:
+
+* Maroulis, S. and Wilensky, U. (2004).  NetLogo Oil Cartel HubNet model.  http://ccl.northwestern.edu/netlogo/models/OilCartelHubNet.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+Please cite the NetLogo software as:
+
+* Wilensky, U. (1999). NetLogo. http://ccl.northwestern.edu/netlogo/. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+## COPYRIGHT AND LICENSE
+
+Copyright 2004 Uri Wilensky.
+
+![CC BY-NC-SA 3.0](http://ccl.northwestern.edu/images/creativecommons/byncsa.png)
+
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License.  To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/3.0/ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
+
+Commercial licenses are also available. To inquire about commercial licenses, please contact Uri Wilensky at uri@northwestern.edu.
+
+This model was created as part of the projects: PARTICIPATORY SIMULATIONS: NETWORK-BASED DESIGN FOR SYSTEMS LEARNING IN CLASSROOMS and/or INTEGRATED SIMULATION AND MODELING ENVIRONMENT. The project gratefully acknowledges the support of the National Science Foundation (REPP & ROLE programs) -- grant numbers REC #9814682 and REC-0126227.
+
+<!-- 2004 Cite: Maroulis, S. -->]]></info>
+  <turtleShapes>
+    <shape name="default" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="5"/>
+        <point x="40" y="250"/>
+        <point x="150" y="205"/>
+        <point x="260" y="250"/>
+      </polygon>
+    </shape>
+    <shape name="ant" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="136" y="61"/>
+        <point x="129" y="46"/>
+        <point x="144" y="30"/>
+        <point x="119" y="45"/>
+        <point x="124" y="60"/>
+        <point x="114" y="82"/>
+        <point x="97" y="37"/>
+        <point x="132" y="10"/>
+        <point x="93" y="36"/>
+        <point x="111" y="84"/>
+        <point x="127" y="105"/>
+        <point x="172" y="105"/>
+        <point x="189" y="84"/>
+        <point x="208" y="35"/>
+        <point x="171" y="11"/>
+        <point x="202" y="35"/>
+        <point x="204" y="37"/>
+        <point x="186" y="82"/>
+        <point x="177" y="60"/>
+        <point x="180" y="44"/>
+        <point x="159" y="32"/>
+        <point x="170" y="44"/>
+        <point x="165" y="60"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="95"/>
+        <point x="135" y="103"/>
+        <point x="139" y="117"/>
+        <point x="125" y="149"/>
+        <point x="137" y="180"/>
+        <point x="135" y="196"/>
+        <point x="150" y="204"/>
+        <point x="166" y="195"/>
+        <point x="161" y="180"/>
+        <point x="174" y="150"/>
+        <point x="158" y="116"/>
+        <point x="164" y="102"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="149" y="186"/>
+        <point x="128" y="197"/>
+        <point x="114" y="232"/>
+        <point x="134" y="270"/>
+        <point x="149" y="282"/>
+        <point x="166" y="270"/>
+        <point x="185" y="232"/>
+        <point x="171" y="195"/>
+        <point x="149" y="186"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="225" y="66"/>
+        <point x="230" y="107"/>
+        <point x="159" y="122"/>
+        <point x="161" y="127"/>
+        <point x="234" y="111"/>
+        <point x="236" y="106"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="78" y="58"/>
+        <point x="99" y="116"/>
+        <point x="139" y="123"/>
+        <point x="137" y="128"/>
+        <point x="95" y="119"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="48" y="103"/>
+        <point x="90" y="147"/>
+        <point x="129" y="147"/>
+        <point x="130" y="151"/>
+        <point x="86" y="151"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="65" y="224"/>
+        <point x="92" y="171"/>
+        <point x="134" y="160"/>
+        <point x="135" y="164"/>
+        <point x="95" y="175"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="235" y="222"/>
+        <point x="210" y="170"/>
+        <point x="163" y="162"/>
+        <point x="161" y="166"/>
+        <point x="208" y="174"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="249" y="107"/>
+        <point x="211" y="147"/>
+        <point x="168" y="147"/>
+        <point x="168" y="150"/>
+        <point x="213" y="150"/>
+      </polygon>
+    </shape>
+    <shape name="arrow" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="0"/>
+        <point x="0" y="150"/>
+        <point x="105" y="150"/>
+        <point x="105" y="293"/>
+        <point x="195" y="293"/>
+        <point x="195" y="150"/>
+        <point x="300" y="150"/>
+      </polygon>
+    </shape>
+    <shape name="bee" rotatable="true" editableColorIndex="0">
+      <polygon color="-303222273" filled="true" marked="false">
+        <point x="152" y="149"/>
+        <point x="77" y="163"/>
+        <point x="67" y="195"/>
+        <point x="67" y="211"/>
+        <point x="74" y="234"/>
+        <point x="85" y="252"/>
+        <point x="100" y="264"/>
+        <point x="116" y="276"/>
+        <point x="134" y="286"/>
+        <point x="151" y="300"/>
+        <point x="167" y="285"/>
+        <point x="182" y="278"/>
+        <point x="206" y="260"/>
+        <point x="220" y="242"/>
+        <point x="226" y="218"/>
+        <point x="226" y="195"/>
+        <point x="222" y="166"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="149"/>
+        <point x="128" y="151"/>
+        <point x="114" y="151"/>
+        <point x="98" y="145"/>
+        <point x="80" y="122"/>
+        <point x="80" y="103"/>
+        <point x="81" y="83"/>
+        <point x="95" y="67"/>
+        <point x="117" y="58"/>
+        <point x="141" y="54"/>
+        <point x="151" y="53"/>
+        <point x="177" y="55"/>
+        <point x="195" y="66"/>
+        <point x="207" y="82"/>
+        <point x="211" y="94"/>
+        <point x="211" y="116"/>
+        <point x="204" y="139"/>
+        <point x="189" y="149"/>
+        <point x="171" y="152"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="151" y="54"/>
+        <point x="119" y="59"/>
+        <point x="96" y="60"/>
+        <point x="81" y="50"/>
+        <point x="78" y="39"/>
+        <point x="87" y="25"/>
+        <point x="103" y="18"/>
+        <point x="115" y="23"/>
+        <point x="121" y="13"/>
+        <point x="150" y="1"/>
+        <point x="180" y="14"/>
+        <point x="189" y="23"/>
+        <point x="197" y="17"/>
+        <point x="210" y="19"/>
+        <point x="222" y="30"/>
+        <point x="222" y="44"/>
+        <point x="212" y="57"/>
+        <point x="192" y="58"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="70" y="185"/>
+        <point x="74" y="171"/>
+        <point x="223" y="172"/>
+        <point x="224" y="186"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="67" y="211"/>
+        <point x="71" y="226"/>
+        <point x="224" y="226"/>
+        <point x="225" y="211"/>
+        <point x="67" y="211"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="91" y="257"/>
+        <point x="106" y="269"/>
+        <point x="195" y="269"/>
+        <point x="211" y="255"/>
+      </polygon>
+      <line endX="70" startY="100" marked="false" color="-1" endY="87" startX="144"/>
+      <line endX="45" startY="87" marked="false" color="-1" endY="87" startX="70"/>
+      <line endX="26" startY="86" marked="false" color="-1" endY="97" startX="45"/>
+      <line endX="22" startY="96" marked="false" color="-1" endY="115" startX="26"/>
+      <line endX="25" startY="115" marked="false" color="-1" endY="130" startX="22"/>
+      <line endX="37" startY="131" marked="false" color="-1" endY="141" startX="26"/>
+      <line endX="55" startY="141" marked="false" color="-1" endY="144" startX="37"/>
+      <line endX="143" startY="143" marked="false" color="-1" endY="101" startX="55"/>
+      <line endX="227" startY="100" marked="false" color="-1" endY="138" startX="141"/>
+      <line endX="241" startY="138" marked="false" color="-1" endY="137" startX="227"/>
+      <line endX="249" startY="137" marked="false" color="-1" endY="129" startX="241"/>
+      <line endX="254" startY="129" marked="false" color="-1" endY="110" startX="249"/>
+      <line endX="248" startY="108" marked="false" color="-1" endY="97" startX="253"/>
+      <line endX="235" startY="95" marked="false" color="-1" endY="82" startX="249"/>
+      <line endX="144" startY="82" marked="false" color="-1" endY="100" startX="235"/>
+    </shape>
+    <shape name="bird1" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="2" y="6"/>
+        <point x="2" y="39"/>
+        <point x="270" y="298"/>
+        <point x="297" y="298"/>
+        <point x="299" y="271"/>
+        <point x="187" y="160"/>
+        <point x="279" y="75"/>
+        <point x="276" y="22"/>
+        <point x="100" y="67"/>
+        <point x="31" y="0"/>
+      </polygon>
+    </shape>
+    <shape name="bird2" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="2" y="4"/>
+        <point x="33" y="4"/>
+        <point x="298" y="270"/>
+        <point x="298" y="298"/>
+        <point x="272" y="298"/>
+        <point x="155" y="184"/>
+        <point x="117" y="289"/>
+        <point x="61" y="295"/>
+        <point x="61" y="105"/>
+        <point x="0" y="43"/>
+      </polygon>
+    </shape>
+    <shape name="boat1" rotatable="false" editableColorIndex="0">
+      <polygon color="-1" filled="true" marked="false">
+        <point x="63" y="162"/>
+        <point x="90" y="207"/>
+        <point x="223" y="207"/>
+        <point x="290" y="162"/>
+      </polygon>
+      <rectangle endX="157" startY="32" marked="false" color="-1653716737" endY="162" startX="150" filled="true"/>
+      <polygon color="878553599" filled="true" marked="false">
+        <point x="150" y="34"/>
+        <point x="131" y="49"/>
+        <point x="145" y="47"/>
+        <point x="147" y="48"/>
+        <point x="149" y="49"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="158" y="33"/>
+        <point x="230" y="157"/>
+        <point x="182" y="150"/>
+        <point x="169" y="151"/>
+        <point x="157" y="156"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="149" y="55"/>
+        <point x="88" y="143"/>
+        <point x="103" y="139"/>
+        <point x="111" y="136"/>
+        <point x="117" y="139"/>
+        <point x="126" y="145"/>
+        <point x="130" y="147"/>
+        <point x="139" y="147"/>
+        <point x="146" y="146"/>
+        <point x="149" y="55"/>
+      </polygon>
+    </shape>
+    <shape name="boat2" rotatable="false" editableColorIndex="0">
+      <polygon color="-1" filled="true" marked="false">
+        <point x="63" y="162"/>
+        <point x="90" y="207"/>
+        <point x="223" y="207"/>
+        <point x="290" y="162"/>
+      </polygon>
+      <rectangle endX="157" startY="32" marked="false" color="-1653716737" endY="162" startX="150" filled="true"/>
+      <polygon color="878553599" filled="true" marked="false">
+        <point x="150" y="34"/>
+        <point x="131" y="49"/>
+        <point x="145" y="47"/>
+        <point x="147" y="48"/>
+        <point x="149" y="49"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="157" y="54"/>
+        <point x="175" y="79"/>
+        <point x="174" y="96"/>
+        <point x="185" y="102"/>
+        <point x="178" y="112"/>
+        <point x="194" y="124"/>
+        <point x="196" y="131"/>
+        <point x="190" y="139"/>
+        <point x="192" y="146"/>
+        <point x="211" y="151"/>
+        <point x="216" y="154"/>
+        <point x="157" y="154"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="74"/>
+        <point x="146" y="91"/>
+        <point x="139" y="99"/>
+        <point x="143" y="114"/>
+        <point x="141" y="123"/>
+        <point x="137" y="126"/>
+        <point x="131" y="129"/>
+        <point x="132" y="139"/>
+        <point x="142" y="136"/>
+        <point x="126" y="142"/>
+        <point x="119" y="147"/>
+        <point x="148" y="147"/>
+      </polygon>
+    </shape>
+    <shape name="boat3" rotatable="false" editableColorIndex="0">
+      <polygon color="-1" filled="true" marked="false">
+        <point x="63" y="162"/>
+        <point x="90" y="207"/>
+        <point x="223" y="207"/>
+        <point x="290" y="162"/>
+      </polygon>
+      <rectangle endX="157" startY="32" marked="false" color="-1653716737" endY="162" startX="150" filled="true"/>
+      <polygon color="878553599" filled="true" marked="false">
+        <point x="150" y="34"/>
+        <point x="131" y="49"/>
+        <point x="145" y="47"/>
+        <point x="147" y="48"/>
+        <point x="149" y="49"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="158" y="37"/>
+        <point x="172" y="45"/>
+        <point x="188" y="59"/>
+        <point x="202" y="79"/>
+        <point x="217" y="109"/>
+        <point x="220" y="130"/>
+        <point x="218" y="147"/>
+        <point x="204" y="156"/>
+        <point x="158" y="156"/>
+        <point x="161" y="142"/>
+        <point x="170" y="123"/>
+        <point x="170" y="102"/>
+        <point x="169" y="88"/>
+        <point x="165" y="62"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="149" y="66"/>
+        <point x="142" y="78"/>
+        <point x="139" y="96"/>
+        <point x="141" y="111"/>
+        <point x="146" y="139"/>
+        <point x="148" y="147"/>
+        <point x="110" y="147"/>
+        <point x="113" y="131"/>
+        <point x="118" y="106"/>
+        <point x="126" y="71"/>
+      </polygon>
+    </shape>
+    <shape name="box" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="45" y="255"/>
+        <point x="255" y="255"/>
+        <point x="255" y="45"/>
+        <point x="45" y="45"/>
+      </polygon>
+    </shape>
+    <shape name="butterfly1" rotatable="true" editableColorIndex="0">
+      <polygon color="255" filled="true" marked="false">
+        <point x="151" y="76"/>
+        <point x="138" y="91"/>
+        <point x="138" y="284"/>
+        <point x="150" y="296"/>
+        <point x="162" y="286"/>
+        <point x="162" y="91"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="164" y="106"/>
+        <point x="184" y="79"/>
+        <point x="205" y="61"/>
+        <point x="236" y="48"/>
+        <point x="259" y="53"/>
+        <point x="279" y="86"/>
+        <point x="287" y="119"/>
+        <point x="289" y="158"/>
+        <point x="278" y="177"/>
+        <point x="256" y="182"/>
+        <point x="164" y="181"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="136" y="110"/>
+        <point x="119" y="82"/>
+        <point x="110" y="71"/>
+        <point x="85" y="61"/>
+        <point x="59" y="48"/>
+        <point x="36" y="56"/>
+        <point x="17" y="88"/>
+        <point x="6" y="115"/>
+        <point x="2" y="147"/>
+        <point x="15" y="178"/>
+        <point x="134" y="178"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="46" y="181"/>
+        <point x="28" y="227"/>
+        <point x="50" y="255"/>
+        <point x="77" y="273"/>
+        <point x="112" y="283"/>
+        <point x="135" y="274"/>
+        <point x="135" y="180"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="185"/>
+        <point x="254" y="184"/>
+        <point x="272" y="224"/>
+        <point x="255" y="251"/>
+        <point x="236" y="267"/>
+        <point x="191" y="283"/>
+        <point x="164" y="276"/>
+      </polygon>
+      <line endX="159" startY="47" marked="true" color="-1920102913" endY="82" startX="167"/>
+      <line endX="145" startY="47" marked="true" color="-1920102913" endY="81" startX="136"/>
+      <circle x="165" y="45" marked="true" color="-1920102913" diameter="8" filled="true"/>
+      <circle x="134" y="45" marked="true" color="-1920102913" diameter="6" filled="true"/>
+      <circle x="133" y="44" marked="true" color="-1920102913" diameter="7" filled="true"/>
+      <circle x="133" y="43" marked="true" color="-1920102913" diameter="8" filled="true"/>
+    </shape>
+    <shape name="circle" rotatable="false" editableColorIndex="0">
+      <circle x="35" y="35" marked="true" color="-1920102913" diameter="230" filled="true"/>
+    </shape>
+    <shape name="person" rotatable="false" editableColorIndex="0">
+      <circle x="155" y="20" marked="true" color="-1920102913" diameter="63" filled="true"/>
+      <rectangle endX="217" startY="79" marked="true" color="-1920102913" endY="164" startX="158" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="158" y="81"/>
+        <point x="110" y="129"/>
+        <point x="131" y="143"/>
+        <point x="158" y="109"/>
+        <point x="165" y="110"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="216" y="83"/>
+        <point x="267" y="123"/>
+        <point x="248" y="143"/>
+        <point x="215" y="107"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="167" y="163"/>
+        <point x="145" y="234"/>
+        <point x="183" y="234"/>
+        <point x="183" y="163"/>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="195" y="163"/>
+        <point x="195" y="233"/>
+        <point x="227" y="233"/>
+        <point x="206" y="159"/>
+      </polygon>
+    </shape>
+    <shape name="plant1" rotatable="true" editableColorIndex="15">
+      <circle x="2" y="2" marked="true" color="-1" diameter="295" filled="true"/>
+      <rectangle endX="120" startY="135" marked="false" color="-1920102913" endY="240" startX="90" filled="true"/>
+      <rectangle endX="135" startY="75" marked="false" color="-1920102913" endY="240" startX="120" filled="true"/>
+      <rectangle endX="180" startY="105" marked="false" color="-1920102913" endY="240" startX="135" filled="true"/>
+      <rectangle endX="225" startY="120" marked="false" color="-1920102913" endY="240" startX="195" filled="true"/>
+      <rectangle endX="195" startY="45" marked="false" color="-1920102913" endY="240" startX="180" filled="true"/>
+      <polygon color="-684578305" filled="true" marked="false">
+        <point x="105" y="60"/>
+        <point x="120" y="75"/>
+        <point x="135" y="75"/>
+        <point x="105" y="60"/>
+      </polygon>
+      <polygon color="-684578305" filled="true" marked="false">
+        <point x="165" y="30"/>
+        <point x="180" y="45"/>
+        <point x="195" y="45"/>
+        <point x="165" y="30"/>
+      </polygon>
+    </shape>
+    <shape name="plant2" rotatable="true" editableColorIndex="15">
+      <rectangle endX="285" startY="15" marked="true" color="-1" endY="285" startX="15" filled="true"/>
+      <rectangle endX="120" startY="135" marked="false" color="-1920102913" endY="240" startX="90" filled="true"/>
+      <rectangle endX="135" startY="75" marked="false" color="-1920102913" endY="240" startX="120" filled="true"/>
+      <rectangle endX="180" startY="105" marked="false" color="-1920102913" endY="240" startX="135" filled="true"/>
+      <rectangle endX="225" startY="120" marked="false" color="-1920102913" endY="240" startX="195" filled="true"/>
+      <rectangle endX="195" startY="45" marked="false" color="-1920102913" endY="240" startX="180" filled="true"/>
+      <polygon color="-684578305" filled="true" marked="false">
+        <point x="105" y="60"/>
+        <point x="120" y="75"/>
+        <point x="135" y="75"/>
+        <point x="105" y="60"/>
+      </polygon>
+      <polygon color="-684578305" filled="true" marked="false">
+        <point x="165" y="30"/>
+        <point x="180" y="45"/>
+        <point x="195" y="45"/>
+        <point x="165" y="30"/>
+      </polygon>
+    </shape>
+    <shape name="sheep" rotatable="false" editableColorIndex="15">
+      <rectangle endX="270" startY="75" marked="true" color="-1" endY="225" startX="90" filled="true"/>
+      <circle x="15" y="75" marked="true" color="-1" diameter="150" filled="true"/>
+      <rectangle endX="134" startY="225" marked="false" color="255" endY="286" startX="81" filled="true"/>
+      <rectangle endX="238" startY="225" marked="false" color="255" endY="285" startX="180" filled="true"/>
+      <circle x="1" y="88" marked="false" color="255" diameter="92" filled="true"/>
+    </shape>
+    <shape name="spacecraft" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="0"/>
+        <point x="180" y="135"/>
+        <point x="255" y="255"/>
+        <point x="225" y="240"/>
+        <point x="150" y="180"/>
+        <point x="75" y="240"/>
+        <point x="45" y="255"/>
+        <point x="120" y="135"/>
+      </polygon>
+    </shape>
+    <shape name="thin-arrow" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="0"/>
+        <point x="0" y="150"/>
+        <point x="120" y="150"/>
+        <point x="120" y="293"/>
+        <point x="180" y="293"/>
+        <point x="180" y="150"/>
+        <point x="300" y="150"/>
+      </polygon>
+    </shape>
+    <shape name="truck" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="225" y="30"/>
+        <point x="225" y="270"/>
+        <point x="120" y="270"/>
+        <point x="105" y="210"/>
+        <point x="60" y="180"/>
+        <point x="45" y="30"/>
+        <point x="105" y="60"/>
+        <point x="105" y="30"/>
+      </polygon>
+      <polygon color="2085659903" filled="true" marked="false">
+        <point x="195" y="75"/>
+        <point x="195" y="120"/>
+        <point x="240" y="120"/>
+        <point x="240" y="75"/>
+      </polygon>
+      <polygon color="2085659903" filled="true" marked="false">
+        <point x="195" y="225"/>
+        <point x="195" y="180"/>
+        <point x="240" y="180"/>
+        <point x="240" y="225"/>
+      </polygon>
+    </shape>
+    <shape name="truck-down" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="225" y="30"/>
+        <point x="225" y="270"/>
+        <point x="120" y="270"/>
+        <point x="105" y="210"/>
+        <point x="60" y="180"/>
+        <point x="45" y="30"/>
+        <point x="105" y="60"/>
+        <point x="105" y="30"/>
+      </polygon>
+      <polygon color="2085659903" filled="true" marked="false">
+        <point x="195" y="75"/>
+        <point x="195" y="120"/>
+        <point x="240" y="120"/>
+        <point x="240" y="75"/>
+      </polygon>
+      <polygon color="2085659903" filled="true" marked="false">
+        <point x="195" y="225"/>
+        <point x="195" y="180"/>
+        <point x="240" y="180"/>
+        <point x="240" y="225"/>
+      </polygon>
+    </shape>
+    <shape name="truck-left" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="120" y="135"/>
+        <point x="225" y="135"/>
+        <point x="225" y="210"/>
+        <point x="75" y="210"/>
+        <point x="75" y="165"/>
+        <point x="105" y="165"/>
+      </polygon>
+      <polygon color="2085659903" filled="true" marked="false">
+        <point x="90" y="210"/>
+        <point x="105" y="225"/>
+        <point x="120" y="210"/>
+      </polygon>
+      <polygon color="2085659903" filled="true" marked="false">
+        <point x="180" y="210"/>
+        <point x="195" y="225"/>
+        <point x="210" y="210"/>
+      </polygon>
+    </shape>
+    <shape name="truck-right" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="180" y="135"/>
+        <point x="75" y="135"/>
+        <point x="75" y="210"/>
+        <point x="225" y="210"/>
+        <point x="225" y="165"/>
+        <point x="195" y="165"/>
+      </polygon>
+      <polygon color="2085659903" filled="true" marked="false">
+        <point x="210" y="210"/>
+        <point x="195" y="225"/>
+        <point x="180" y="210"/>
+      </polygon>
+      <polygon color="2085659903" filled="true" marked="false">
+        <point x="120" y="210"/>
+        <point x="105" y="225"/>
+        <point x="90" y="210"/>
+      </polygon>
+    </shape>
+    <shape name="turtle" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="138" y="75"/>
+        <point x="162" y="75"/>
+        <point x="165" y="105"/>
+        <point x="225" y="105"/>
+        <point x="225" y="142"/>
+        <point x="195" y="135"/>
+        <point x="195" y="187"/>
+        <point x="225" y="195"/>
+        <point x="225" y="225"/>
+        <point x="195" y="217"/>
+        <point x="195" y="202"/>
+        <point x="105" y="202"/>
+        <point x="105" y="217"/>
+        <point x="75" y="225"/>
+        <point x="75" y="195"/>
+        <point x="105" y="187"/>
+        <point x="105" y="135"/>
+        <point x="75" y="142"/>
+        <point x="75" y="105"/>
+        <point x="135" y="105"/>
+      </polygon>
+    </shape>
+    <shape name="wolf" rotatable="false" editableColorIndex="0">
+      <rectangle endX="105" startY="105" marked="true" color="-1920102913" endY="165" startX="15" filled="true"/>
+      <rectangle endX="105" startY="90" marked="true" color="-1920102913" endY="105" startX="45" filled="true"/>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="60" y="90"/>
+        <point x="83" y="44"/>
+        <point x="104" y="90"/>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="67" y="90"/>
+        <point x="82" y="59"/>
+        <point x="97" y="89"/>
+      </polygon>
+      <rectangle endX="59" startY="93" marked="false" color="-1" endY="105" startX="48" filled="true"/>
+      <rectangle endX="55" startY="96" marked="false" color="255" endY="101" startX="51" filled="true"/>
+      <rectangle endX="15" startY="121" marked="false" color="255" endY="135" startX="0" filled="true"/>
+      <rectangle endX="60" startY="136" marked="false" color="255" endY="151" startX="15" filled="true"/>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="15" y="136"/>
+        <point x="23" y="149"/>
+        <point x="31" y="136"/>
+      </polygon>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="30" y="151"/>
+        <point x="37" y="136"/>
+        <point x="43" y="151"/>
+      </polygon>
+      <rectangle endX="263" startY="120" marked="true" color="-1920102913" endY="195" startX="105" filled="true"/>
+      <rectangle endX="259" startY="195" marked="true" color="-1920102913" endY="201" startX="108" filled="true"/>
+      <rectangle endX="252" startY="201" marked="true" color="-1920102913" endY="210" startX="114" filled="true"/>
+      <rectangle endX="243" startY="210" marked="true" color="-1920102913" endY="214" startX="120" filled="true"/>
+      <rectangle endX="255" startY="114" marked="true" color="-1920102913" endY="120" startX="115" filled="true"/>
+      <rectangle endX="248" startY="108" marked="true" color="-1920102913" endY="114" startX="128" filled="true"/>
+      <rectangle endX="225" startY="105" marked="true" color="-1920102913" endY="108" startX="150" filled="true"/>
+      <rectangle endX="155" startY="214" marked="true" color="-1920102913" endY="270" startX="132" filled="true"/>
+      <rectangle endX="132" startY="260" marked="true" color="-1920102913" endY="270" startX="110" filled="true"/>
+      <rectangle endX="232" startY="214" marked="true" color="-1920102913" endY="270" startX="210" filled="true"/>
+      <rectangle endX="210" startY="260" marked="true" color="-1920102913" endY="270" startX="189" filled="true"/>
+      <line endX="281" startY="127" marked="true" color="-1920102913" endY="155" startX="263"/>
+      <line endX="281" startY="155" marked="true" color="-1920102913" endY="192" startX="281"/>
+    </shape>
+    <shape name="wolf-left" rotatable="false" editableColorIndex="3">
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="117" y="97"/>
+        <point x="91" y="74"/>
+        <point x="66" y="74"/>
+        <point x="60" y="85"/>
+        <point x="36" y="85"/>
+        <point x="38" y="92"/>
+        <point x="44" y="97"/>
+        <point x="62" y="97"/>
+        <point x="81" y="117"/>
+        <point x="84" y="134"/>
+        <point x="92" y="147"/>
+        <point x="109" y="152"/>
+        <point x="136" y="144"/>
+        <point x="174" y="144"/>
+        <point x="174" y="103"/>
+        <point x="143" y="103"/>
+        <point x="134" y="97"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="87" y="80"/>
+        <point x="79" y="55"/>
+        <point x="76" y="79"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="81" y="75"/>
+        <point x="70" y="58"/>
+        <point x="73" y="82"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="99" y="131"/>
+        <point x="76" y="152"/>
+        <point x="76" y="163"/>
+        <point x="96" y="182"/>
+        <point x="104" y="182"/>
+        <point x="109" y="173"/>
+        <point x="102" y="167"/>
+        <point x="99" y="173"/>
+        <point x="87" y="159"/>
+        <point x="104" y="140"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="107" y="138"/>
+        <point x="107" y="186"/>
+        <point x="98" y="190"/>
+        <point x="99" y="196"/>
+        <point x="112" y="196"/>
+        <point x="115" y="190"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="116" y="140"/>
+        <point x="114" y="189"/>
+        <point x="105" y="137"/>
+      </polygon>
+      <rectangle endX="114" startY="150" marked="true" color="-1653716737" endY="192" startX="109" filled="true"/>
+      <rectangle endX="116" startY="143" marked="true" color="-1653716737" endY="191" startX="111" filled="true"/>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="168" y="106"/>
+        <point x="184" y="98"/>
+        <point x="205" y="98"/>
+        <point x="218" y="115"/>
+        <point x="218" y="137"/>
+        <point x="186" y="164"/>
+        <point x="196" y="176"/>
+        <point x="195" y="194"/>
+        <point x="178" y="195"/>
+        <point x="178" y="183"/>
+        <point x="188" y="183"/>
+        <point x="169" y="164"/>
+        <point x="173" y="144"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="207" y="140"/>
+        <point x="200" y="163"/>
+        <point x="206" y="175"/>
+        <point x="207" y="192"/>
+        <point x="193" y="189"/>
+        <point x="192" y="177"/>
+        <point x="198" y="176"/>
+        <point x="185" y="150"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="214" y="134"/>
+        <point x="203" y="168"/>
+        <point x="192" y="148"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="204" y="151"/>
+        <point x="203" y="176"/>
+        <point x="193" y="148"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="207" y="103"/>
+        <point x="221" y="98"/>
+        <point x="236" y="101"/>
+        <point x="243" y="115"/>
+        <point x="243" y="128"/>
+        <point x="256" y="142"/>
+        <point x="239" y="143"/>
+        <point x="233" y="133"/>
+        <point x="225" y="115"/>
+        <point x="214" y="114"/>
+      </polygon>
+    </shape>
+    <shape name="wolf-right" rotatable="false" editableColorIndex="3">
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="170" y="127"/>
+        <point x="200" y="93"/>
+        <point x="231" y="93"/>
+        <point x="237" y="103"/>
+        <point x="262" y="103"/>
+        <point x="261" y="113"/>
+        <point x="253" y="119"/>
+        <point x="231" y="119"/>
+        <point x="215" y="143"/>
+        <point x="213" y="160"/>
+        <point x="208" y="173"/>
+        <point x="189" y="187"/>
+        <point x="169" y="190"/>
+        <point x="154" y="190"/>
+        <point x="126" y="180"/>
+        <point x="106" y="171"/>
+        <point x="72" y="171"/>
+        <point x="73" y="126"/>
+        <point x="122" y="126"/>
+        <point x="144" y="123"/>
+        <point x="159" y="123"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="201" y="99"/>
+        <point x="214" y="69"/>
+        <point x="215" y="99"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="207" y="98"/>
+        <point x="223" y="71"/>
+        <point x="220" y="101"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="184" y="172"/>
+        <point x="189" y="234"/>
+        <point x="203" y="238"/>
+        <point x="203" y="246"/>
+        <point x="187" y="247"/>
+        <point x="180" y="239"/>
+        <point x="171" y="180"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="197" y="174"/>
+        <point x="204" y="220"/>
+        <point x="218" y="224"/>
+        <point x="219" y="234"/>
+        <point x="201" y="232"/>
+        <point x="195" y="225"/>
+        <point x="179" y="179"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="78" y="167"/>
+        <point x="95" y="187"/>
+        <point x="95" y="208"/>
+        <point x="79" y="220"/>
+        <point x="92" y="234"/>
+        <point x="98" y="235"/>
+        <point x="100" y="249"/>
+        <point x="81" y="246"/>
+        <point x="76" y="241"/>
+        <point x="61" y="212"/>
+        <point x="65" y="195"/>
+        <point x="52" y="170"/>
+        <point x="45" y="150"/>
+        <point x="44" y="128"/>
+        <point x="55" y="121"/>
+        <point x="69" y="121"/>
+        <point x="81" y="135"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="48" y="143"/>
+        <point x="58" y="141"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="46" y="136"/>
+        <point x="68" y="137"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="45" y="129"/>
+        <point x="35" y="142"/>
+        <point x="37" y="159"/>
+        <point x="53" y="192"/>
+        <point x="47" y="210"/>
+        <point x="62" y="238"/>
+        <point x="80" y="237"/>
+      </polygon>
+      <line endX="59" startY="237" marked="false" color="255" endY="213" startX="74"/>
+      <line endX="59" startY="213" marked="false" color="255" endY="212" startX="59"/>
+      <line endX="67" startY="211" marked="false" color="255" endY="192" startX="58"/>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="38" y="138"/>
+        <point x="66" y="149"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="46" y="128"/>
+        <point x="33" y="120"/>
+        <point x="21" y="118"/>
+        <point x="11" y="123"/>
+        <point x="3" y="138"/>
+        <point x="5" y="160"/>
+        <point x="13" y="178"/>
+        <point x="9" y="192"/>
+        <point x="0" y="199"/>
+        <point x="20" y="196"/>
+        <point x="25" y="179"/>
+        <point x="24" y="161"/>
+        <point x="25" y="148"/>
+        <point x="45" y="140"/>
+      </polygon>
+      <polygon color="-1653716737" filled="true" marked="true">
+        <point x="67" y="122"/>
+        <point x="96" y="126"/>
+        <point x="63" y="144"/>
+      </polygon>
+    </shape>
+  </turtleShapes>
+  <linkShapes>
+    <shape name="default" curviness="0">
+      <lines>
+        <line x="-0.2" visible="false">
+          <dash value="0"/>
+          <dash value="1"/>
+        </line>
+        <line x="0" visible="true">
+          <dash value="1"/>
+          <dash value="0"/>
+        </line>
+        <line x="0.2" visible="false">
+          <dash value="0"/>
+          <dash value="1"/>
+        </line>
+      </lines>
+      <indicator>
+        <shape name="link direction" rotatable="true" editableColorIndex="0">
+          <line endX="90" startY="150" marked="true" color="-1920102913" endY="180" startX="150"/>
+          <line endX="210" startY="150" marked="true" color="-1920102913" endY="180" startX="150"/>
+        </shape>
+      </indicator>
+    </shape>
+  </linkShapes>
+<hubnet-web-config xmlns="http://www.w3.org/1999/xhtml"><![CDATA[{"roles":[{"canJoinMidRun":true,"onCursorMove":null,"onCursorClick":null,"onCursorRelease":null,"onDisconnect":null,"afterDisconnect":null,"widgets":[{"display":"Current Profit","precision":0,"reporterStyle":"turtle-procedure","fontSize":10,"source":"current-profit","type":"hnwMonitor","x":20,"width":127,"y":371,"height":49,"oldSize":true},{"display":"# Suppliers","precision":3,"reporterStyle":"global-var","fontSize":10,"source":"num-sellers","type":"hnwMonitor","x":151,"width":136,"y":144,"height":49,"oldSize":true},{"display":"Market News","precision":0,"reporterStyle":"global-var","fontSize":10,"source":"latest-news","type":"hnwMonitor","x":15,"width":272,"y":78,"height":49,"oldSize":true},{"display":"Marginal Cost","precision":0,"reporterStyle":"global-var","fontSize":10,"source":"marginal-cost","type":"hnwMonitor","x":16,"width":131,"y":144,"height":49,"oldSize":true},{"display":"Official Price","precision":3,"reporterStyle":"global-var","fontSize":10,"source":"monopoly-price","type":"hnwMonitor","x":15,"width":132,"y":201,"height":49,"oldSize":true},{"display":"My Quota","precision":0,"reporterStyle":"global-var","fontSize":10,"source":"individual-quota","type":"hnwMonitor","x":17,"width":130,"y":315,"height":49,"oldSize":true},{"display":"Current Profit Plot","yAxis":"","xmin":0,"ymax":20000000,"legendOn":false,"xAxis":"","xmax":500,"setupCode":"","pens":[{"updateCode":"plot-last-sale-profit","display":"default","color":-13345367,"mode":0,"interval":1,"setupCode":"clear-my-plot","type":"pen","inLegend":true}],"type":"hnwPlot","ymin":0,"updateCode":"","x":316,"width":289,"y":10,"height":221,"oldSize":true,"autoPlotX":true,"autoPlotY":true},{"display":"You Are:","precision":3,"reporterStyle":"turtle-procedure","fontSize":10,"source":"user-id-str","type":"hnwMonitor","x":18,"width":268,"y":10,"height":49,"oldSize":true},{"display":"Profit Needed","precision":0,"reporterStyle":"turtle-var","fontSize":10,"source":"profit-needed","type":"hnwMonitor","x":152,"width":136,"y":371,"height":49,"oldSize":true},{"display":"Strategy","variable":"strategy","currentChoice":0,"choices":["Price >= MC","Agreement","Quota-Plus","Quota-Minus","Flood Market"],"type":"hnwChooser","x":316,"width":292,"y":251,"height":45,"oldSize":true},{"max":2000,"display":"extra-output","direction":"horizontal","default":0,"variable":"extra-output","step":10,"min":0,"type":"hnwSlider","x":316,"width":291,"y":326,"height":33,"oldSize":true},{"display":"Extra Ouput for \"Quota-Plus\" Strategy:","fontSize":11,"type":"hnwTextBox","x":316,"width":211,"y":305,"height":18,"oldSize":true,"textColorLight":-16579837,"backgroundLight":-1},{"display":"Reduced Output for \"Quota-Minus\" Strategy:","fontSize":11,"type":"hnwTextBox","x":315,"width":247,"y":371,"height":18,"oldSize":true,"textColorLight":-16579837,"backgroundLight":-1},{"max":2000,"display":"reduced-output","direction":"horizontal","default":0,"variable":"reduced-output","step":10,"min":0,"type":"hnwSlider","x":316,"width":291,"y":389,"height":33,"oldSize":true},{"display":"Qty Sold at Official Price","precision":0,"reporterStyle":"turtle-var","fontSize":10,"source":"p1-quantity-sold","type":"hnwMonitor","x":151,"width":136,"y":201,"height":49,"oldSize":true},{"display":"Extra Qty Sold","precision":0,"reporterStyle":"turtle-var","fontSize":10,"source":"p2-quantity-sold","type":"hnwMonitor","x":151,"width":136,"y":256,"height":49,"oldSize":true},{"display":"Actual Qty","precision":0,"reporterStyle":"turtle-procedure","fontSize":10,"source":"combined-quantity-sold","type":"hnwMonitor","x":151,"width":136,"y":315,"height":49,"oldSize":true},{"display":"Price of Extra Qty","precision":0,"reporterStyle":"turtle-procedure","fontSize":10,"source":"price-of-extra","type":"hnwMonitor","x":15,"width":131,"y":257,"height":49,"oldSize":true}],"name":"seller","namePlural":"sellers","onConnect":"create-new-seller","limit":-1,"highlightMainColor":"#008000","isSpectator":false,"perspectiveVar":null,"viewOverrideVar":null},{"canJoinMidRun":true,"onCursorMove":null,"onCursorClick":null,"onCursorRelease":null,"onDisconnect":null,"afterDisconnect":null,"widgets":[{"height":409,"width":408,"type":"hnwView","x":497,"y":15,"oldSize":true},{"display":"# Sellers","precision":0,"reporterStyle":"global-var","fontSize":11,"source":"num-sellers","type":"hnwMonitor","x":15,"width":63,"y":231,"height":45,"oldSize":true},{"display":"Buyer Information:","fontSize":11,"type":"hnwTextBox","x":10,"width":168,"y":113,"height":18,"oldSize":true,"textColorLight":-16579837,"backgroundLight":-1},{"max":100,"display":"ideal-quantity","direction":"horizontal","default":30,"variable":"ideal-quantity","step":10,"min":0,"type":"hnwSlider","x":8,"width":172,"y":169,"height":33,"oldSize":true},{"display":"Oil Sold on Market","yAxis":"Quantity","xmin":0,"ymax":1000,"legendOn":true,"xAxis":"Time","xmax":200,"setupCode":"","pens":[{"updateCode":"update-actual-pen","display":"Actual","color":-13345367,"mode":0,"interval":1,"setupCode":"","type":"pen","inLegend":true},{"updateCode":"update-competitive-pen","display":"Competitive","color":-10899396,"mode":0,"interval":1,"setupCode":"","type":"pen","inLegend":true},{"updateCode":"update-oil-agreement-pen","display":"Agreement","color":-2674135,"mode":0,"interval":1,"setupCode":"","type":"pen","inLegend":true}],"type":"hnwPlot","ymin":0,"updateCode":"","x":202,"width":274,"y":15,"height":205,"oldSize":true,"autoPlotX":true,"autoPlotY":true},{"display":"Current Cartel Agreement:","fontSize":11,"type":"hnwTextBox","x":17,"width":179,"y":293,"height":18,"oldSize":true,"textColorLight":-16579837,"backgroundLight":-1},{"display":"Average Price of Oil","yAxis":"","xmin":0,"ymax":100,"legendOn":true,"xAxis":"","xmax":200,"setupCode":"","pens":[{"updateCode":"update-average-pen","display":"Average","color":-13345367,"mode":0,"interval":1,"setupCode":"","type":"pen","inLegend":true},{"updateCode":"update-marginal-cost-pen","display":"MC","color":-10899396,"mode":0,"interval":1,"setupCode":"","type":"pen","inLegend":true},{"updateCode":"update-price-agreement-pen","display":"Agreement","color":-2674135,"mode":0,"interval":1,"setupCode":"","type":"pen","inLegend":true}],"type":"hnwPlot","ymin":0,"updateCode":"","x":201,"width":275,"y":226,"height":186,"oldSize":true,"autoPlotX":true,"autoPlotY":true},{"display":"Target Total Barrels","precision":3,"reporterStyle":"global-var","fontSize":11,"source":"monopoly-quantity","type":"hnwMonitor","x":16,"width":150,"y":367,"height":45,"oldSize":true},{"display":"Official Price","precision":3,"reporterStyle":"global-var","fontSize":11,"source":"monopoly-price","type":"hnwMonitor","x":15,"width":152,"y":316,"height":45,"oldSize":true},{"max":300,"display":"num-buyers","direction":"horizontal","default":200,"variable":"num-buyers","step":10,"min":30,"type":"hnwSlider","x":8,"width":172,"y":132,"height":33,"oldSize":true},{"forever":false,"display":"Update Agreement","buttonKind":"observer","source":"update-cartel-agreement","hnwProcName":"update-cartel-agreement","type":"hnwButton","disableUntilTicksStarts":true,"x":16,"width":150,"y":419,"height":33,"oldSize":true},{"display":"Cartel Information:","fontSize":11,"type":"hnwTextBox","x":14,"width":150,"y":212,"height":18,"oldSize":true,"textColorLight":-16579837,"backgroundLight":-1}],"name":"supervisor","namePlural":"supervisors","onConnect":null,"limit":1,"highlightMainColor":"#008000","isSpectator":true,"perspectiveVar":null,"viewOverrideVar":null}],"targetFrameRate":20,"onIterate":"run-market","onStart":"reset","version":"hnw-beta-1","type":"hubnet-web"}]]></hubnet-web-config></model>
