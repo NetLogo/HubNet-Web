@@ -83,6 +83,12 @@
   text-decoration: none;
 }
 
+.hnw-header-link-image {
+  display: inline;
+  vertical-align: sub;
+  max-width: 32px;
+}
+
 .hnw-header {
   color:       white;
   cursor:      pointer;

@@ -1,4 +1,4 @@
-const imagePlaceholder = "/assets/images/netlogo-icon.png";
+const imagePlaceholder = "/assets/images/hubnet-web-icon.svg";
 
 export default class PreviewManager {
 
@@ -23,10 +23,12 @@ export default class PreviewManager {
   // () => UNit
   useDefault = () => {
     this.#setImage(imagePlaceholder);
+    this.#elem.classList.add("session-preview-image-default")
   };
 
   // (String) => Unit
   #setImage = (src) => {
+    this.#elem.classList.remove("session-preview-image-default")
     this.#elem.src = src;
   };
 
