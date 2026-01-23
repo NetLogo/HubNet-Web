@@ -1371,12 +1371,12 @@ end
 
 to change-sort-up
   set sort-up user-input "Sort up / down word -"
-  set turtle-display "Word-Sort"
+  set __hnw_supervisor_turtle-display "Word-Sort"
 end
 
 to change-sort-right
   set sort-right user-input "Sort right / left word -"
-  set turtle-display "Word-Sort"
+  set __hnw_supervisor_turtle-display "Word-Sort"
 end
 
 to save-individual-responses
@@ -1419,12 +1419,6 @@ end
     <button x="1151" y="363" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="Edit Question" width="101" sizeVersion="0">edit-question</button>
     <monitor x="9" precision="0" y="78" height="45" fontSize="11" display="Number" width="56" sizeVersion="0">current-question</monitor>
     <switch x="601" y="142" height="33" on="false" variable="see-names?" display="see-names?" width="119" sizeVersion="0"/>
-    <chooser x="602" y="179" height="45" variable="turtle-display" current="0" display="turtle-display" width="119" sizeVersion="0">
-      <choice type="string" value="Sit"/>
-      <choice type="string" value="Wander"/>
-      <choice type="string" value="Line-Up"/>
-      <choice type="string" value="Word-Sort"/>
-    </chooser>
     <monitor x="602" precision="0" y="227" height="45" fontSize="11" display="Who is it?" width="119" sizeVersion="0">[user-id] of one-of turtles-on patch mouse-xcor mouse-ycor</monitor>
     <switch x="815" y="55" height="33" on="false" variable="auto-save?" display="auto-save?" width="164" sizeVersion="0"/>
     <slider x="815" step="5" y="115" max="100" display="auto-save-every" height="33" min="5" direction="Horizontal" default="5" variable="auto-save-every" units="votes" width="164" sizeVersion="0"/>
