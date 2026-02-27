@@ -137,7 +137,7 @@ export default class HostNLWManager extends NLWManager {
       }
 
       case "nlw-model-info": {
-        const msg = { type: "hnw-model-info", info: citeHNW(data.info) };
+        const msg = { type: "hnw-model-info", info: citeHNW(data.info), resources: data.resources };
         this.#infoPanePort.postMessage(msg);
         break;
       }
