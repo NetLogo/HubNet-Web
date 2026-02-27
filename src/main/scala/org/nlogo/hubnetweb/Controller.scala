@@ -526,19 +526,17 @@ object Controller {
   private def toID(id: String): UUID = UUID.fromString(id)
 
   private def askSeshFor[T](makeParcel: ActorRef[T] => SeshMessageAsk[T]): T = {
-    import scala.concurrent.Awaitable
     import scala.concurrent.duration.DurationInt
     val timeout = Timeout(20.seconds)
-    val future = seshManager.ask(replyTo => makeParcel(replyTo))(using timeout, seshManager.scheduler)
-    Await.result(future.asInstanceOf[Awaitable[T]], timeout.duration)
+    val future  = seshManager.ask((replyTo: ActorRef[T]) => makeParcel(replyTo))(using timeout, seshManager.scheduler)
+    Await.result(future, timeout.duration)
   }
 
   private def askChatFor[T](makeParcel: ActorRef[T] => ChatMessageAsk[T]): T = {
-    import scala.concurrent.Awaitable
     import scala.concurrent.duration.DurationInt
     val timeout = Timeout(20.seconds)
-    val future = chatManager.ask(replyTo => makeParcel(replyTo))(using timeout, chatManager.scheduler)
-    Await.result(future.asInstanceOf[Awaitable[T]], timeout.duration)
+    val future  = chatManager.ask((replyTo: ActorRef[T]) => makeParcel(replyTo))(using timeout, chatManager.scheduler)
+    Await.result(future, timeout.duration)
   }
 
 }
