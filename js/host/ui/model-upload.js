@@ -106,7 +106,7 @@ const processUpload = (file) => {
           const nlogoDoc      = nlogoXmlToDoc(text);
           const modelElement  = nlogoDoc.querySelector("model");
           const configElement = modelElement.querySelector("hubnet-web-config");
-          const config        = configElement === undefined ? undefined : stripXmlCdata(configElement.innerHTML);
+          const config        = configElement === null ? undefined : stripXmlCdata(configElement.innerHTML);
           return new ValidUpload("nlogox", text, config);
         } catch (_) {
           return new NlogoxPartial(text);
