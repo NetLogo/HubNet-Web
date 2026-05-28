@@ -326,10 +326,11 @@
 }
 
 .max-num-clients-slider {
-  height:             35vh;
-  margin:             8px auto;
-  max-width:          6vw;
-  -webkit-appearance: slider-vertical;
+  height:       35vh;
+  margin:       8px auto;
+  max-width:    6vw;
+  writing-mode: vertical-lr;
+  direction:    rtl;
 }
 
 .drawer-closed {
