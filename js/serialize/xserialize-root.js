@@ -17,10 +17,12 @@ const mbMaskF = 0b10111111; // Number
 const mbidMask  = 0b10000000; // Number
 const mbidMaskF = 0b01111111; // Number
 
+const debugJigger = false; // Set to true to enable rejigger/recombobulate logging
+
 // (String) => (() => Unit) => Unit
 const trace = (type) => (f) => {
   const debugBlacklist = ["ping", "pong", "keep-alive"];
-  if (!debugBlacklist.includes(type)) {
+  if (debugJigger && !debugBlacklist.includes(type)) {
     f();
   }
 };
