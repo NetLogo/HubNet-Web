@@ -1,14 +1,14 @@
 .body {
-  background-color: var(--light-gray);
-  font-family:             sans-serif;
-  margin:                           0;
-  padding:                          0;
+  background-color: var(--color-neutral-light);
+  font-family:      var(--font-main);
+  margin:           0;
+  padding:          0;
 }
 
 .hnw-description-text {
   background-color: white;
-  border:           3px solid black;
-  border-radius:    30px;
+  border:           1px solid var(--color-control-border);
+  border-radius:    var(--radius-container);
   font-size:        28px;
   line-height:      1.5;
   margin:           30px auto 30px auto;

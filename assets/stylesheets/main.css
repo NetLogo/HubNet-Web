@@ -1,35 +1,92 @@
+/* Pull in Open Sans to match NetLogo Web's UI font.  Loaded here (rather than
+ * per-page <link>s) since every HubNet Web page includes `main.css`.
+ */
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap");
+
 :root {
 
-  --modal-background: rgba(0, 0, 0, 0.3);
+  /* ── NetLogo Web design tokens (kept in sync with NLW's netlogoweb.css) ── */
+  --color-light-blue:                 #cae6ff;
+  --color-dark-blue:                  #0072f5;
+  --color-dark-blue-active:           #003473;
 
-  --super-light-gray: #f2f2f2;
-  --light-gray:       #e5e5e5;
-  --light2-gray:      #c7c7c7;
-  --light3-gray:      #bfbfbf;
-  --medium-gray:      #7c7c7c;
-  --dark-gray:        #504c4c;
+  --color-ui-button-bg:               #ffffff;
+  --color-ui-button-border:           gray;
+  --color-ui-button-hover-bg:         #eeeeee;
+  --color-ui-button-active-bg:        #d5d5d5;
+  --color-ui-button-selected-bg:      lightblue;
+  --color-ui-button-disabled-opacity: 0.4;
 
-  --light-green:      #36a36b;
-  --medium-green:     #24aa64;
-  --dark-green:       #288454;
-  --green-gray:       #65ae88;
+  --color-control-border:             #999999;
+  --color-text:                       rgb(64, 64, 64);
 
-  --super-light-blue: #d1ddf0;
-  --light-blue:       #b4c4dc;
-  --light-baby-blue:  #aed8f2;
-  --medium-blue:      #61a3ee;
-  --dark-blue:        #387ccc;
-  --blue-gray:        #7992b3;
+  /* ── HubNet Web semantic accents (flat-styled to match NLW) ── */
+  --color-primary:                    var(--color-dark-blue);
+  --color-primary-hover:              #0063d6;
+  --color-primary-active:             var(--color-dark-blue-active);
+  --color-primary-text:               #ffffff;
 
-  --salmon:           #f3676d;
-  --light-orange:     #ffedce;
-  --medium-orange:    #f2c476;
-  --orange:           #f5b03c;
-  --yellow:           #f0e40a;
-  --red:              #e04141;
-  --dark-violet:      #8879cf;
-  --violet:           #9788e0;
+  --color-destructive:                #e04141;
+  --color-destructive-hover:          #cc3838;
+  --color-destructive-active:         #b53232;
+  --color-destructive-text:           #ffffff;
 
+  --color-selected:                   var(--color-light-blue);
+  --color-selected-hover:             #98cbf8;
+  --color-row-hover:                  #eff5fc;
+
+  /* Pale accents — used to keep the landing page's Host/Authoring buttons
+   * visually distinct (in the spirit of the prior design) while staying flat. */
+  --color-accent-green:               #cfe9d6;
+  --color-accent-green-border:        #9fcdaf;
+  --color-accent-green-hover:         #bfe0c8;
+  --color-accent-green-active:        #a9d4b6;
+
+  --color-accent-orange:              #ffe3c2;
+  --color-accent-orange-border:       #e6b877;
+  --color-accent-orange-hover:        #ffd8a8;
+  --color-accent-orange-active:       #f5c98e;
+
+  --color-topbar-bg:                  #222222;
+  --color-topbar-text:                #f3f3f3;
+  --color-topbar-accent:              #cde4eb;
+
+  --color-disabled-bg:                #d5d5d5;
+  --color-disabled-text:              #737373;
+
+  --color-panel-bg:                   #ffffff;
+  --color-panel-header-bg:            #eff5fc;
+
+  /* ── Neutrals ── */
+  --color-neutral-light:              #e5e5e5;
+  --color-neutral:                    #d5d5d5;
+
+  /* ── Geometry ── */
+  /* Control radius is expressed in `em` so a control's corner rounding scales
+   * with its own font size — a 16px button lands near NLW's ~4px, while large
+   * buttons (e.g. the landing page) stay proportionally rounded. */
+  --radius-control:                   0.3em;
+  --radius-container:                 8px;
+
+  /* ── Typography ── */
+  --font-main:                        'Open Sans', sans-serif;
+
+  /* ── Misc ── */
+  --modal-background:                 rgba(0, 0, 0, 0.3);
+
+}
+
+body {
+  color: var(--color-text);
+}
+
+/* Form controls don't inherit `font-family`, so they fall back to the UA font
+ * (e.g. Arial) unless told otherwise.  Default them all to the UI font. */
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-main);
 }
 
 .flex-column {
@@ -61,15 +118,17 @@
 }
 
 .nlw-iframe {
-  border: 3px solid black;
-  height: 75vh;
-  width:  100%;
+  border:        1px solid var(--color-control-border);
+  border-radius: var(--radius-control);
+  height:        75vh;
+  width:         100%;
 }
 
 .page-header {
   align-items:      center;
-  background-color: #343434;
-  font-family:      sans-serif;
+  background-color: var(--color-topbar-bg);
+  box-shadow:       0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  font-family:      var(--font-main);
   font-size:        20px;
   height:           50px;
   justify-content:  space-between;
@@ -84,26 +143,28 @@
 }
 
 .hnw-header-link-image {
-  display: inline;
-  vertical-align: sub;
+  display:   block;
   max-width: 32px;
 }
 
 .hnw-header {
-  color:       white;
+  align-items: center;
+  color:       var(--color-topbar-text);
   cursor:      pointer;
-  font-family: sans-serif;
+  display:     flex;
+  font-family: var(--font-main);
   font-size:   32px;
   font-weight: 600;
+  gap:         8px;
+  line-height: 1;
 }
 
 .hnw-header:hover {
-  color: var(--light-gray);
+  color: var(--color-neutral-light);
 }
 
 .hnw-header:active {
-  color:       var(--yellow);
-  text-shadow: -2px -2px 1px gray;
+  color: var(--color-topbar-accent);
 }
 
 .page-links-dropdown {
@@ -113,7 +174,7 @@
 }
 
 .page-links-dropdown:hover .navigate-label {
-  background-color: var(--light3-gray);
+  background-color: var(--color-neutral);
 }
 
 .page-links-dropdown:hover .page-links-tabs {
@@ -127,10 +188,10 @@
 }
 
 .page-links {
-  background-color: var(--super-light-gray);
-  border:           1px solid black;
+  background-color: var(--color-panel-bg);
+  border:           1px solid var(--color-control-border);
   border-collapse:  collapse;
-  color:            black;
+  color:            var(--color-text);
   display:          block;
   font-size:        20px;
   padding:          10px 30px;
@@ -139,22 +200,21 @@
 }
 
 .page-links:last-of-type {
-  border-radius: 0 0 10px 10px;
+  border-radius: 0 0 var(--radius-container) var(--radius-container);
 }
 
 .page-links:hover {
-  background-color: var(--light-gray);
+  background-color: var(--color-ui-button-hover-bg);
 }
 
 .page-links:active {
-  background-color: var(--light2-gray);
+  background-color: var(--color-ui-button-active-bg);
 }
 
 .navigate-label {
   align-items:      center;
-  background-color: var(--light-gray);
-  box-shadow:       inset 0 -1px 0 #343434;
-  color:            black;
+  background-color: var(--color-neutral-light);
+  color:            var(--color-text);
   cursor:           pointer;
   direction:        row;
   display:          flex;
@@ -168,7 +228,7 @@
 .triangle-down {
   border-left:  10px solid transparent;
   border-right: 10px solid transparent;
-  border-top:   15px solid black;
+  border-top:   15px solid currentcolor;
   height:       0;
   margin-left:  7px;
   margin-top:   3px;
@@ -196,9 +256,10 @@
 }
 
 .modal {
-  background-color: white;
-  border:           5px solid;
-  border-radius:    20px;
+  background-color: var(--color-panel-bg);
+  border:           1px solid var(--color-control-border);
+  border-radius:    var(--radius-container);
+  box-shadow:       0 2px 10px rgba(0, 0, 0, 0.2);
   justify-content:  space-between;
   margin-left:      auto;
   margin-right:     auto;
@@ -212,7 +273,7 @@
 
 .close-modal-button {
   align-items:      center;
-  background-color: var(--red);
+  background-color: var(--color-destructive);
   border-radius:    50%;
   cursor:           pointer;
   top:              7px;
@@ -225,18 +286,18 @@
 }
 
 .close-modal-button::after {
-  color:      white;
+  color:      var(--color-destructive-text);
   content:    "\00d7"; /* Draws 'X' for close button -- Chris S. (2/1/22) */
   font-size:  20px;
   margin-top: -2px;
 }
 
 .close-modal-button:hover {
-  filter: brightness(0.9);
+  background-color: var(--color-destructive-hover);
 }
 
 .close-modal-button:active {
-  filter: brightness(0.8);
+  background-color: var(--color-destructive-active);
 }
 
 .modal-activity-title {
@@ -250,36 +311,34 @@
 }
 
 .chat-box-closed-container:hover .chat-box-closed {
-  filter: brightness(0.9);
+  background-color: var(--color-primary-hover);
 }
 
 .chat-box-closed-container:hover .chat-box-closed-bottom {
-  filter: brightness(0.9);
+  border-top-color: var(--color-primary-hover);
 }
 
 .chat-box-closed-container:active .chat-box-closed {
-  box-shadow: 3px 3px rgba(0, 0, 0, 0.9);
-  filter:     brightness(0.8);
+  background-color: var(--color-primary-active);
 }
 
 .chat-box-closed-container:active .chat-box-closed-bottom {
-  box-shadow: 3px 0 rgba(0, 0, 0, 0.9);
-  filter:     brightness(0.8);
+  border-top-color: var(--color-primary-active);
 }
 
 .chat-box-closed {
   align-items:      center;
-  background-color: gray;
-  border-radius:    10px;
+  background-color: var(--color-primary);
+  border-radius:    var(--radius-container);
   bottom:           30px;
-  color:            white;
+  color:            var(--color-primary-text);
   font-size:        16px;
   font-weight:      bold;
   height:           40px;
   justify-content:  center;
   position:         fixed;
   right:            10px;
-  transition:       opacity 0.1s;
+  transition:       background-color 0.1s;
   width:            80px;
   z-index:          3;
 }
@@ -288,29 +347,29 @@
   border-bottom: 0;
   border-left:   20px solid transparent;
   border-right:  0;
-  border-top:    20px solid gray;
+  border-top:    20px solid var(--color-primary);
   bottom:        10.8px;
   height:        0;
   position:      fixed;
   right:         20px;
-  transition:    opacity 0.1s;
+  transition:    border-top-color 0.1s;
   width:         0;
   z-index:       3;
 }
 
 .chat-box-closed.unread {
-  background-color: var(--light-baby-blue);
-  color:            black;
+  background-color: var(--color-selected);
+  color:            var(--color-text);
   transition:       background-color 0.1s;
 }
 
 .chat-box-closed-bottom.unread {
-  border-top: 20px solid var(--light-baby-blue);
+  border-top: 20px solid var(--color-selected);
   transition: border-top 0.1s;
 }
 
 .expand-chat-arrow {
-  border-bottom: 15px solid black;
+  border-bottom: 15px solid currentcolor;
   border-left:   10px solid transparent;
   border-right:  10px solid transparent;
   height:        0;
@@ -335,9 +394,9 @@
 
 .open-chat-header {
   align-content:    center;
-  background-color: lightblue;
-  border:           1px solid black;
-  border-radius:    25px 25px 0 0;
+  background-color: var(--color-light-blue);
+  border:           1px solid var(--color-control-border);
+  border-radius:    var(--radius-container) var(--radius-container) 0 0;
   cursor:           pointer;
   display:          grid;
   height:           70px;
@@ -356,7 +415,7 @@
 .triangle-down-black {
   border-left:       11px solid transparent;
   border-right:      11px solid transparent;
-  border-top:        18px solid black;
+  border-top:        18px solid currentcolor;
   grid-column-start: 1;
   grid-row-start:    1;
   height:            0;
@@ -365,23 +424,24 @@
 }
 
 .open-chat-header:hover {
-  filter: brightness(0.9);
+  background-color: var(--color-selected-hover);
 }
 
 .open-chat-header:active {
-  filter: brightness(0.8);
+  background-color: var(--color-selected-hover);
+  filter:           brightness(0.95);
 }
 
 .open-chat-body {
-  background-color: white;
-  border:           1px solid black;
+  background-color: var(--color-panel-bg);
+  border:           1px solid var(--color-control-border);
   height:           calc(55vh - 5px);
   overflow-y:       auto;
   padding:          5px 0 0 5px;
 }
 
 .open-chat-input {
-  border:        1px solid black;
+  border:        1px solid var(--color-control-border);
   border-bottom: none;
   height:        5vh;
   padding-left:  10px;
@@ -397,22 +457,22 @@
   .triangle-down-black {
     border-left:  8px solid transparent;
     border-right: 8px solid transparent;
-    border-top:   14px solid black;
+    border-top:   14px solid currentcolor;
   }
 
   .chat-box-closed {
     align-items:      center;
-    background-color: gray;
-    border-radius:    10px;
+    background-color: var(--color-primary);
+    border-radius:    var(--radius-container);
     bottom:           30px;
-    color:            white;
+    color:            var(--color-primary-text);
     font-size:        14px;
     font-weight:      bold;
     height:           35px;
     justify-content:  center;
     position:         fixed;
     right:            10px;
-    transition:       opacity 0.1s;
+    transition:       background-color 0.1s;
     width:            70px;
     z-index:          3;
   }
@@ -423,7 +483,7 @@
 
   .page-header {
     align-items:      center;
-    background-color: #343434;
+    background-color: var(--color-topbar-bg);
     height:           40px;
     justify-content:  space-between;
     min-height:       40px;
@@ -434,16 +494,16 @@
   }
 
   .hnw-header {
-    color:       white;
+    color:       var(--color-topbar-text);
     cursor:      pointer;
-    font-family: sans-serif;
+    font-family: var(--font-main);
     font-size:   28px;
     font-weight: 600;
   }
 
   .navigate-label {
     align-items:     center;
-    color:           black;
+    color:           var(--color-text);
     cursor:          pointer;
     direction:       row;
     display:         flex;
@@ -461,9 +521,9 @@
   }
 
   .page-links {
-    border:          1px solid black;
+    border:          1px solid var(--color-control-border);
     border-collapse: collapse;
-    color:           black;
+    color:           var(--color-text);
     display:         block;
     font-size:       18px;
     padding:         10px 30px;

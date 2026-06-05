@@ -1,8 +1,8 @@
 .body {
-  font-family: sans-serif;
-  font-size:         48px;
-  margin:               0;
-  padding:              0;
+  font-family: var(--font-main);
+  font-size:   41px;
+  margin:      0;
+  padding:     0;
 }
 
 .index-page-body {
@@ -10,44 +10,70 @@
 }
 
 .button-base {
-  border-radius: 40px;
+  border-radius: var(--radius-control);
   cursor:        pointer;
+  font-family:   var(--font-main);
+  transition:    background-color 0.1s;
   user-select:   none;
   white-space:   normal;
 }
 
-.button-base:hover {
-  filter: brightness(0.9);
-}
-
-.button-base:active {
-  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
-  filter:     brightness(0.7);
-}
-
+/* Join — the page's primary call to action */
 .major-button {
-  background-color: var(--light-green);
-  border:           3px solid black;
-  font-size:        96px;
+  background-color: var(--color-primary);
+  border:           1px solid var(--color-primary-active);
+  color:            var(--color-primary-text);
+  font-size:        82px;
   font-weight:      bold;
-  height:          220px;
-  width:           345px;
+  height:           220px;
+  width:            345px;
 }
 
+.major-button:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.major-button:active {
+  background-color: var(--color-primary-active);
+}
+
+/* Host / Authoring — secondary buttons; the `.green` / `.orange` modifiers tint
+ * them in the spirit of the prior design while staying flat. */
 .lesser-button {
-  border:    2px solid black;
-  font-size:            60px;
-  height:              160px;
-  margin:          auto 27px;
-  width:               291px;
+  border:      1px solid var(--color-ui-button-border);
+  color:       var(--color-text);
+  font-size:   51px;
+  height:      160px;
+  margin:      auto 27px;
+  width:       291px;
 }
 
-.blue {
-  background-color: var(--medium-blue);
+/* Host — pale green */
+.green {
+  background-color: var(--color-accent-green);
+  border-color:     var(--color-accent-green-border);
 }
 
+.green:hover {
+  background-color: var(--color-accent-green-hover);
+}
+
+.green:active {
+  background-color: var(--color-accent-green-active);
+}
+
+/* Authoring — pale orange */
 .orange {
-  background-color: var(--orange);
+  background-color: var(--color-accent-orange);
+  border-color:     var(--color-accent-orange-border);
+}
+
+.orange:hover {
+  background-color: var(--color-accent-orange-hover);
+}
+
+.orange:active {
+  background-color: var(--color-accent-orange-active);
 }
 
 .main-group {
@@ -78,7 +104,7 @@
 }
 
 .spacer {
-  border-left:   4px solid gray;
+  border-left:   4px solid var(--color-control-border);
   height:                 105px;
   margin:   auto 30px auto 45px;
 }

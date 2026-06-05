@@ -3,13 +3,28 @@
 }
 
 .body {
-  font-family: sans-serif;
+  font-family: var(--font-main);
   margin:      0;
   padding:     0;
 }
 
 .user-dialog-button {
-  user-select: none;
+  background-color: var(--color-ui-button-bg);
+  border:           1px solid var(--color-ui-button-border);
+  border-radius:    var(--radius-control);
+  cursor:           pointer;
+  font-family:      var(--font-main);
+  padding:          0.5em 0.8em;
+  transition:       background-color 0.1s;
+  user-select:      none;
+}
+
+.user-dialog-button:hover {
+  background-color: var(--color-ui-button-hover-bg);
+}
+
+.user-dialog-button:active {
+  background-color: var(--color-ui-button-active-bg);
 }
 
 .user-dialog-buttons {
@@ -63,8 +78,8 @@
 .activity-selection {
 
   background-color:    white;
-  border:              4px solid black;
-  border-radius:       35px;
+  border:              1px solid var(--color-control-border);
+  border-radius:       var(--radius-container);
   display:             grid;
   height:              400px;
   margin-top:          15px;
@@ -85,28 +100,34 @@
   grid-area: content;
 }
 
+/* Model-source toggle (Your Own Model / Library Models) — neutral toggle */
 .selection-button {
-  background-color: var(--violet);
-  border-radius:    8px;
+  background-color: var(--color-ui-button-bg);
+  border:           1px solid var(--color-ui-button-border);
+  border-radius:    var(--radius-control);
   cursor:           pointer;
   display:          block;
+  font-family:      var(--font-main);
   font-size:        23px;
   height:           65px;
+  transition:       background-color 0.1s;
   width:            230px;
 }
 
 .selection-button.active {
-  color:  white;
-  background-color: #5748a3;
+  background-color: var(--color-selected);
 }
 
 .selection-button:hover {
-  filter: brightness(0.9);
+  background-color: var(--color-ui-button-hover-bg);
+}
+
+.selection-button.active:hover {
+  background-color: var(--color-selected-hover);
 }
 
 .selection-button:active {
-  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
-  filter:     brightness(0.8);
+  background-color: var(--color-ui-button-active-bg);
 }
 
 .selection-button-container {
@@ -122,33 +143,32 @@
   position: relative;
 }
 
-.library-model-container:hover {
-  filter: brightness(0.9);
-}
-
+/* Model picker — native select styled to match NLW's `.nlw-ui-select` */
 .library-model {
-  border-radius:  8px;
-  font-size:     24px;
-  height:        38px;
-  padding-left:   5px;
-  width:          50%;
+  appearance:          none;
+  -webkit-appearance:  none;
+  background-color:    var(--color-ui-button-bg);
+  background-image:    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0 L10 0 L5 6 Z' fill='rgba(0%2C0%2C0%2C0.55)'/%3E%3C/svg%3E");
+  background-position: right 0.7em center;
+  background-repeat:   no-repeat;
+  background-size:     0.7em;
+  border:              1px solid var(--color-control-border);
+  border-radius:       var(--radius-control);
+  cursor:              pointer;
+  font-family:         var(--font-main);
+  font-size:           24px;
+  height:              38px;
+  padding:             0 2em 0 8px;
+  width:               50%;
 }
 
+.library-model:hover {
+  background-color: var(--color-ui-button-hover-bg);
+}
+
+/* The bespoke caret overlay is superseded by the select's own caret above. */
 .custom-select-arrow {
-  align-items:                  center;
-  background-color: var(--medium-blue);
-  border:               1px solid gray;
-  border-radius:           0 8px 8px 0;
-  bottom:                         38px;
-  display:                        flex;
-  float:                         right;
-  height:                         28px;
-  justify-content:              center;
-  margin-right:                    50%;
-  padding:                       4px 0;
-  pointer-events:                 none;
-  position:                   relative;
-  width:                          50px;
+  display: none;
 }
 
 .evenly-spaced {
@@ -156,22 +176,24 @@
 }
 
 .lib-option-button {
-  background-color: var(--medium-blue);
-  border-radius:    8px;
+  background-color: var(--color-ui-button-bg);
+  border:           1px solid var(--color-ui-button-border);
+  border-radius:    var(--radius-control);
   cursor:           pointer;
   display:          block;
+  font-family:      var(--font-main);
   font-size:        24px;
   height:           58px;
+  transition:       background-color 0.1s;
   width:            170px;
 }
 
 .lib-option-button:hover {
-  filter: brightness(0.9);
+  background-color: var(--color-ui-button-hover-bg);
 }
 
 .lib-option-button:active {
-  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
-  filter:     brightness(0.8);
+  background-color: var(--color-ui-button-active-bg);
 }
 
 .image-wrapper {
@@ -187,16 +209,16 @@
 }
 
 .preview-image {
-  border:        3px solid black;
-  border-radius: 20px;
+  border:        1px solid var(--color-control-border);
+  border-radius: var(--radius-container);
   height:        100%;
   object-fit:    contain;
   padding:       2px;
 }
 
 .footer {
-  background-color: var(--light-gray);
-  border-top:       7px solid var(--medium-blue);
+  background-color: var(--color-neutral-light);
+  border-top:       4px solid var(--color-primary);
   position:         fixed;
   left:             0;
   bottom:           0;
@@ -220,9 +242,10 @@
 }
 
 .form-input {
-  border:        2px solid black;
-  border-radius: 15px;
+  border:        1px solid var(--color-control-border);
+  border-radius: var(--radius-control);
   display:       block;
+  font-family:   var(--font-main);
   font-size:     20px;
   height:        45px;
   margin-top:    10px;
@@ -234,24 +257,28 @@
   margin: 0 3vw 0 3vw;
 }
 
+/* Launch — primary call to action for the host form */
 .launch-button {
-  background-color: var(--medium-blue);
-  border-radius:    15px;
+  background-color: var(--color-primary);
+  border:           1px solid var(--color-primary-active);
+  border-radius:    var(--radius-control);
+  color:            var(--color-primary-text);
   cursor:           pointer;
+  font-family:      var(--font-main);
   font-size:        24px;
   font-weight:      bold;
   height:           60px;
   margin-top:       25px;
+  transition:       background-color 0.1s;
   width:            150px;
 }
 
 .launch-button:hover {
-  filter: brightness(0.9);
+  background-color: var(--color-primary-hover);
 }
 
 .launch-button:active {
-  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
-  filter:     brightness(0.8);
+  background-color: var(--color-primary-active);
 }
 
 .hostB-frame {
@@ -263,24 +290,27 @@
   margin: 0 50px;
 }
 
+/* Neutral NLW UI buttons (Copy Invite, More Details, etc.) */
 .button-base {
-  border:        2px solid black;
-  border-radius: 15px;
-  cursor:        pointer;
-  font-size:     16px;
-  font-weight:   bold;
-  height:        40px;
-  user-select:   none;
-  width:         175px;
+  background-color: var(--color-ui-button-bg);
+  border:           1px solid var(--color-ui-button-border);
+  border-radius:    var(--radius-control);
+  cursor:           pointer;
+  font-family:      var(--font-main);
+  font-size:        16px;
+  font-weight:      bold;
+  height:           40px;
+  transition:       background-color 0.1s;
+  user-select:      none;
+  width:            175px;
 }
 
 .button-base:hover {
-  filter: brightness(0.9);
+  background-color: var(--color-ui-button-hover-bg);
 }
 
 .button-base:active {
-  box-shadow: 3px 3px rgba(0, 0, 0, 0.8);
-  filter:     brightness(0.7);
+  background-color: var(--color-ui-button-active-bg);
 }
 
 .setup-row {
@@ -290,11 +320,15 @@
 }
 
 .copy-invite-button {
-  background-color: var(--medium-blue);
+  background-color: var(--color-ui-button-bg);
 }
 
 .copy-invite-button.active {
-  background-color: var(--light-baby-blue);
+  background-color: var(--color-selected);
+}
+
+.copy-invite-button.active:hover {
+  background-color: var(--color-selected-hover);
 }
 
 .model-title-header {
@@ -311,7 +345,7 @@
   margin-bottom: 40px;
 }
 .more-details-button {
-  background-color: var(--medium-green);
+  background-color: var(--color-ui-button-bg);
 }
 
 .nlw-iframe-row {
@@ -335,30 +369,30 @@
 
 .drawer-closed {
   align-items:      center;
-  background-color: lightgray;
+  background-color: var(--color-neutral-light);
   border-radius:    0 50% 0 0;
-  border-right:     3px solid black;
-  border-top:       3px solid black;
+  border-right:     1px solid var(--color-control-border);
+  border-top:       1px solid var(--color-control-border);
   bottom:           0;
   cursor:           pointer;
   display:          flex;
-  filter:           drop-shadow(4px 3px 3px);
+  filter:           drop-shadow(4px 3px 3px rgba(0, 0, 0, 0.3));
   flex-direction:   row;
   height:           75px;
   justify-content:  center;
   left:             0;
   position:         fixed;
+  transition:       background-color 0.1s;
   width:            125px;
   z-index:          5;
 }
 
 .drawer-closed:hover {
-  filter: brightness(0.9);
+  background-color: var(--color-ui-button-hover-bg);
 }
 
 .drawer-closed:active {
-  box-shadow: 3px -3px 3px rgba(0, 0, 0, 0.8);
-  filter:     brightness(0.8);
+  background-color: var(--color-ui-button-active-bg);
 }
 
 .drawer-closed-text {
@@ -369,7 +403,7 @@
 
 .drawer-expand-arrow {
   border-bottom: 12px solid transparent;
-  border-left:   20px solid black;
+  border-left:   20px solid currentcolor;
   border-top:    12px solid transparent;
   height:        0;
   transform:     translate(3px, 5px);
@@ -378,13 +412,13 @@
 
 .drawer-open {
   align-items:      center;
-  background-color: var(--light2-gray);
-  border-radius:    0 30px 0 0;
-  border-right:     3px solid black;
-  border-top:       3px solid black;
+  background-color: var(--color-neutral-light);
+  border-radius:    0 var(--radius-container) 0 0;
+  border-right:     1px solid var(--color-control-border);
+  border-top:       1px solid var(--color-control-border);
   bottom:           0;
   display:          flex;
-  filter:           drop-shadow(4px 3px 6px);
+  filter:           drop-shadow(4px 3px 6px rgba(0, 0, 0, 0.3));
   flex-direction:   row;
   font-weight:      bold;
   height:           75px;
@@ -406,11 +440,11 @@
 }
 
 .menu-pin-container:hover {
-  background-color: var(--medium-orange);
+  background-color: var(--color-row-hover);
 }
 
 .menu-pin-container.active {
-  background-color: var(--orange);
+  background-color: var(--color-selected);
 }
 
 .menu-pin-container:active {
@@ -447,24 +481,24 @@
 }
 
 .drawer-text-container.active {
-  background-color: var(--orange);
+  background-color: var(--color-selected);
 }
 
 .drawer-text-container:hover {
-  background-color: var(--medium-orange);
+  background-color: var(--color-row-hover);
 }
 
 .drawer-text-container:last-child {
-  border-radius: 0 30px 0 0;
+  border-radius: 0 var(--radius-container) 0 0;
 }
 
 .vertical-divider {
-  border-left: 1px solid black;
+  border-left: 1px solid var(--color-control-border);
   height:      75px;
 }
 
 .menu-option-container {
-  border-radius: 25px;
+  border-radius: var(--radius-container);
   bottom:        0;
   position:      fixed;
   right:         0;
@@ -475,7 +509,7 @@
 .command-center-iframe, .model-code-iframe, .model-info-iframe {
   align-items:      flex-end;
   background-color: white;
-  border:           1px solid black;
+  border:           1px solid var(--color-control-border);
   box-shadow:       none;
   height:           60vh;
   padding:          0;
@@ -485,9 +519,9 @@
 
 .command-center-header, .model-code-header, .model-info-header {
   align-content:    center;
-  background-color: var(--light2-gray);
-  border:           1px solid black;
-  border-radius:    25px 25px 0 0;
+  background-color: var(--color-panel-header-bg);
+  border:           1px solid var(--color-control-border);
+  border-radius:    var(--radius-container) var(--radius-container) 0 0;
   cursor:           pointer;
   display:          grid;
   height:           70px;
@@ -496,9 +530,9 @@
 
 .global-chat-header, .session-chat-header {
   align-content:    center;
-  background-color: var(--light-blue);
-  border:           1px solid black;
-  border-radius:    25px 25px 0 0;
+  background-color: var(--color-light-blue);
+  border:           1px solid var(--color-control-border);
+  border-radius:    var(--radius-container) var(--radius-container) 0 0;
   cursor:           pointer;
   display:          grid;
   height:           70px;
@@ -506,11 +540,11 @@
 }
 
 .command-center-header:hover, .model-code-header:hover, .model-info-header:hover {
-  filter: brightness(0.9);
+  background-color: var(--color-light-blue);
 }
 
 .command-center-header:active, .model-code-header:active, .model-info-header:active {
-  filter: brightness(0.8);
+  background-color: var(--color-selected-hover);
 }
 
 .stats-modal-title {
@@ -562,25 +596,9 @@
   .triangle-down-black {
     border-left:  8px solid transparent;
     border-right: 8px solid transparent;
-    border-top:   14px solid black;
+    border-top:   14px solid currentcolor;
     height:       0;
     width:        0;
-  }
-
-  .custom-select-arrow {
-    align-items:     center;
-    border:          1px solid gray;
-    border-radius:   0 8px 8px 0;
-    bottom:          30px;
-    display:         flex;
-    float:           right;
-    height:          20px;
-    justify-content: center;
-    margin-right:       50%;
-    padding:         4px 0;
-    pointer-events:  none;
-    position:        relative;
-    width:           30px;
   }
 
   .activity-description {
