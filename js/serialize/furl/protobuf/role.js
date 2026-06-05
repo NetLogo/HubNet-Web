@@ -107,6 +107,7 @@ const RolePB = {
           , disableUntilTicksStart: { type: "bool"     , id:  9 }
           , buttonKind:             { type: "AgentKind", id: 10 }
           , actionKey:              { type: "string"   , id: 11 }
+          , oldSize:                { type: "bool"     , id: 12 }
           }
         }
 
@@ -120,6 +121,7 @@ const RolePB = {
           , variable:      { type: "string", id:  6 }
           , currentChoice: { type: "uint32", id:  7 }
           , choices:       { type: "string", id:  8 }
+          , oldSize:       { type: "bool"  , id:  9 }
           }
         }
 
@@ -131,6 +133,7 @@ const RolePB = {
           , height:     { type: "uint32"    , id:  4 }
           , variable:   { type: "string"    , id:  5 }
           , boxedValue: { type: "BoxedValue", id:  6 }
+          , oldSize:    { type: "bool"      , id:  7 }
           }
         }
 
@@ -145,6 +148,7 @@ const RolePB = {
           , reporterStyle: { type: "ReporterStyle", id:  7 }
           , precision:     { type: "uint32"       , id:  8 }
           , fontSize:      { type: "uint32"       , id:  9 }
+          , oldSize:       { type: "bool"         , id: 10 }
           }
         }
 
@@ -155,6 +159,7 @@ const RolePB = {
           , y:             { type: "uint32", id:  3 }
           , height:        { type: "uint32", id:  4 }
           , fontSize:      { type: "uint32", id:  5 }
+          , oldSize:       { type: "bool"  , id:  6 }
           }
       }
 
@@ -177,6 +182,7 @@ const RolePB = {
           , setupCode:     { type: "string" , id: 15 }
           , updateCode:    { type: "string" , id: 16 }
           , pens:          { type: "Pen"    , id: 17, keyType: "string" }
+          , oldSize:       { type: "bool"   , id: 18 }
           }
         }
 
@@ -194,6 +200,7 @@ const RolePB = {
           , units:     { type: "string"   , id: 10 }
           , direction: { type: "Direction", id: 11 }
           , step:      { type: "double"   , id: 12 }
+          , oldSize:   { type: "bool"     , id: 13 }
           }
         }
 
@@ -206,6 +213,7 @@ const RolePB = {
           , display:  { type: "string", id:  5 }
           , variable: { type: "string", id:  6 }
           , on:       { type: "bool"  , id:  7 }
+          , oldSize:  { type: "bool"  , id:  8 }
           }
         }
 
@@ -219,6 +227,7 @@ const RolePB = {
           , color:       { type: "uint32", id: 6 }
           , fontSize:    { type: "uint32", id: 7 }
           , transparent: { type: "bool"  , id: 8 }
+          , oldSize:     { type: "bool"  , id: 9 }
           }
       }
 
@@ -228,6 +237,7 @@ const RolePB = {
           , width:  { type: "uint32", id:  2 }
           , y:      { type: "uint32", id:  3 }
           , height: { type: "uint32", id:  4 }
+          , oldSize: { type: "bool" , id:  5 }
           }
         }
 
