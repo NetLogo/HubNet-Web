@@ -72,7 +72,7 @@ body.not_full_height {
   background-color: #CDE4EB;
   border-radius: 10px;
   padding: 30px;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--font-main);
 }
 
 .top-header {
