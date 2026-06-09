@@ -19,3 +19,8 @@
 project/project/
 target/
 tmp/
+
+CLAUDE.md
+AGENTS.md
+.claude/
+
