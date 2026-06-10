@@ -120,7 +120,7 @@ textarea {
 .nlw-iframe {
   border:        1px solid var(--color-control-border);
   border-radius: var(--radius-control);
-  height:        75vh;
+  min-height:    75vh;
   width:         100%;
 }
 

@@ -172,6 +172,11 @@ export default class HostNLWManager extends NLWManager {
         break;
       }
 
+      case "hnw-oracle-content-height": {
+        this._getFrame().style.height = `${data.height + 15}px`;
+        break;
+      }
+
       case "hnw-fatal-error": {
         this.#onError(data);
         break;
