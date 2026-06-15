@@ -205,7 +205,7 @@
   color:            var(--color-disabled-text);
 }
 
-/* Role picker — native select styled to match NLW's `.nlw-ui-select` */
+/* Role picker: a native select styled to match NLW's `.nlw-ui-select` */
 .role-select {
   appearance:          none;
   -webkit-appearance:  none;
@@ -231,7 +231,6 @@
   cursor:           default;
 }
 
-/* Join — primary call to action */
 .join-button {
   background-color: var(--color-primary);
   border:           1px solid var(--color-primary-active);
@@ -289,8 +288,8 @@
   border: none;
 }
 
-/* The blue accent on `.bottom-section` now serves as the divider between the
- * session browser and the join form, mirroring the host page's footer. */
+/* The blue accent on `.bottom-section` serves as the divider between the session browser and the join form, mirroring
+ * the host page's footer. */
 .horizontal-divider {
   display: none;
 }
@@ -330,7 +329,6 @@
   margin-bottom:   20px;
 }
 
-/* View Details — neutral NLW UI button */
 .view-details-button {
   background-color: var(--color-ui-button-bg);
   border:           1px solid var(--color-ui-button-border);
@@ -352,7 +350,6 @@
   background-color: var(--color-ui-button-active-bg);
 }
 
-/* Disconnect — destructive action */
 .disconnect-button {
   background-color: var(--color-destructive);
   border:           1px solid var(--color-destructive-active);

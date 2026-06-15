@@ -100,7 +100,6 @@
   grid-area: content;
 }
 
-/* Model-source toggle (Your Own Model / Library Models) — neutral toggle */
 .selection-button {
   background-color: var(--color-ui-button-bg);
   border:           1px solid var(--color-ui-button-border);
@@ -143,7 +142,7 @@
   position: relative;
 }
 
-/* Model picker — native select styled to match NLW's `.nlw-ui-select` */
+/* Model picker styled to match NLW's `.nlw-ui-select` */
 .library-model {
   appearance:          none;
   -webkit-appearance:  none;
@@ -257,7 +256,6 @@
   margin: 0 3vw 0 3vw;
 }
 
-/* Launch — primary call to action for the host form */
 .launch-button {
   background-color: var(--color-primary);
   border:           1px solid var(--color-primary-active);

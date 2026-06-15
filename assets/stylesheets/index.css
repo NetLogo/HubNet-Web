@@ -18,7 +18,6 @@
   white-space:   normal;
 }
 
-/* Join — the page's primary call to action */
 .major-button {
   background-color: var(--color-primary);
   border:           1px solid var(--color-primary-active);
@@ -37,8 +36,8 @@
   background-color: var(--color-primary-active);
 }
 
-/* Host / Authoring — secondary buttons; the `.green` / `.orange` modifiers tint
- * them in the spirit of the prior design while staying flat. */
+/* Host/Authoring secondary buttons; the `.green` / `.orange` modifiers tint
+ * them to add some "relatedness" indicators. */
 .lesser-button {
   border:      1px solid var(--color-ui-button-border);
   color:       var(--color-text);
@@ -48,7 +47,7 @@
   width:       291px;
 }
 
-/* Host — pale green */
+/* Pale green for hosting */
 .green {
   background-color: var(--color-accent-green);
   border-color:     var(--color-accent-green-border);
@@ -62,7 +61,7 @@
   background-color: var(--color-accent-green-active);
 }
 
-/* Authoring — pale orange */
+/* Pale orange for authoring */
 .orange {
   background-color: var(--color-accent-orange);
   border-color:     var(--color-accent-orange-border);
@@ -78,7 +77,7 @@
 
 .main-group {
   align-items: center;
-  gap:           39px;
+  gap:         39px;
   margin:      90px 0;
 }
 
@@ -104,7 +103,7 @@
 }
 
 .spacer {
-  border-left:   4px solid var(--color-control-border);
-  height:                 105px;
-  margin:   auto 30px auto 45px;
+  border-left: 4px solid var(--color-control-border);
+  height:      105px;
+  margin:      auto 30px auto 45px;
 }

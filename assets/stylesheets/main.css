@@ -5,7 +5,7 @@
 
 :root {
 
-  /* ── NetLogo Web design tokens (kept in sync with NLW's netlogoweb.css) ── */
+  /* NetLogo Web design tokens (kept in sync with NLW's netlogoweb.css) */
   --color-light-blue:                 #cae6ff;
   --color-dark-blue:                  #0072f5;
   --color-dark-blue-active:           #003473;
@@ -20,7 +20,7 @@
   --color-control-border:             #999999;
   --color-text:                       rgb(64, 64, 64);
 
-  /* ── HubNet Web semantic accents (flat-styled to match NLW) ── */
+  /* HubNet Web semantic accents (flat-styled to match NLW) */
   --color-primary:                    var(--color-dark-blue);
   --color-primary-hover:              #0063d6;
   --color-primary-active:             var(--color-dark-blue-active);
@@ -35,7 +35,7 @@
   --color-selected-hover:             #98cbf8;
   --color-row-hover:                  #eff5fc;
 
-  /* Pale accents — used to keep the landing page's Host/Authoring buttons
+  /* Pale accents used to keep the landing page's Host/Authoring buttons
    * visually distinct (in the spirit of the prior design) while staying flat. */
   --color-accent-green:               #cfe9d6;
   --color-accent-green-border:        #9fcdaf;
@@ -57,21 +57,16 @@
   --color-panel-bg:                   #ffffff;
   --color-panel-header-bg:            #eff5fc;
 
-  /* ── Neutrals ── */
   --color-neutral-light:              #e5e5e5;
   --color-neutral:                    #d5d5d5;
 
-  /* ── Geometry ── */
-  /* Control radius is expressed in `em` so a control's corner rounding scales
-   * with its own font size — a 16px button lands near NLW's ~4px, while large
-   * buttons (e.g. the landing page) stay proportionally rounded. */
+  /* Control radius is expressed in `em` so a control's corner rounding scales with its own font size.  A 16px button
+   * lands near NLW's ~4px, while large buttons (e.g. the landing page) stay proportionally rounded. */
   --radius-control:                   0.3em;
   --radius-container:                 8px;
 
-  /* ── Typography ── */
   --font-main:                        'Open Sans', sans-serif;
 
-  /* ── Misc ── */
   --modal-background:                 rgba(0, 0, 0, 0.3);
 
 }
