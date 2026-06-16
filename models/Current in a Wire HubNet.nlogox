@@ -403,10 +403,8 @@ to handle-click [x y]
   ]
 
   ; recolor all of the nuclei in our slice
-  ask my-slice [
-    let c color
-    append-override (list (nuclei-on my-patches) "color" [-> c])
-  ]
+  let [c ps] [(list color my-patches)] of my-slice
+  append-override (list (nuclei-on ps) "color" [-> c])
 
   ; highlight the selected nuclei
   if selected-nuclei != nobody [
