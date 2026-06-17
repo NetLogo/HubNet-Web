@@ -24,3 +24,5 @@ CLAUDE.md
 AGENTS.md
 .claude/
 
+# Per-deployment config — the live env file, sourced at launch (see hnw.env.example)
+/hnw.env

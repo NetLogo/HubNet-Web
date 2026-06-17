@@ -1,5 +1,6 @@
 package org.nlogo.hubnetweb
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.util.UUID
 
@@ -9,7 +10,7 @@ import scala.io.{ Source => SISource, StdIn }
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ ContentType, ContentTypes, HttpCharsets, MediaType }
+import akka.http.scaladsl.model.{ ContentType, ContentTypes, HttpCharsets, HttpEntity, MediaType }
 import akka.http.scaladsl.model.MediaType.Compressible
 import akka.http.scaladsl.model.StatusCodes.NotFound
 import akka.http.scaladsl.model.headers.{ `Access-Control-Allow-Origin` => ACAO }
@@ -90,6 +91,27 @@ object Controller {
 
     val utf8 = ContentTypes.`text/html(UTF-8)`
 
+    // Per-deployment client config, served to the browser at /js/config.js. The
+    // deployment's single env file (sourced at launch) is the only place to edit it;
+    // any value left unset falls back to a local-dev default.
+    val clientConfig =
+      JsObject(
+        "root"      -> JsString(sys.env.getOrElse("HNW_ROOT",        "localhost"))
+      , "galaProto" -> JsString(sys.env.getOrElse("HNW_GALA_PROTO",  "http"))
+      , "wsProto"   -> JsString(sys.env.getOrElse("HNW_WS_PROTO",    "ws"))
+      , "galaPort"  -> JsString(sys.env.getOrElse("HNW_GALA_PORT",   "9000"))
+      , "hnwPort"   -> JsString(sys.env.getOrElse("HNW_PUBLIC_PORT", "8080"))
+      , "turnHost"  -> JsString(sys.env.getOrElse("HNW_TURN_HOST",   "localhost"))
+      , "turnUser"  -> JsString(sys.env.getOrElse("HNW_TURN_USER",   "guest"))
+      , "turnPass"  -> JsString(sys.env.getOrElse("HNW_TURN_PASS",   "mycoolpassword"))
+      , "gaId"      -> JsString(sys.env.getOrElse("HNW_GA_ID",       ""))
+      )
+
+    val configJs = s"window.__HNW_CONFIG__ = ${clientConfig.compactPrint};\n"
+
+    val jsContentType =
+      ContentType(MediaType.custom("text/javascript", binary = false, Compressible, List("js")), () => HttpCharsets.`UTF-8`)
+
     val route = {
 
       import akka.http.scaladsl.server.Directives._
@@ -134,6 +156,7 @@ object Controller {
       path("depend" / "js" / "pako.esm.mjs")  { getFromFile("node_modules/pako/dist/pako.esm.mjs") } ~
       path("depend" / "js" / "marked.esm.js") { getFromFile("node_modules/marked/lib/marked.esm.js") } ~
       path("favicon.ico") { getFromFile("assets/images/favicon.ico") } ~
+      path("js" / "config.js")       { get { complete(HttpEntity(jsContentType, configJs.getBytes(StandardCharsets.UTF_8))) } } ~
       pathPrefix("js")               { getFromDirectory("js")         } ~
       pathPrefix("assets")           { getFromDirectory("assets")     } ~
       pathPrefix("models")           { getFromDirectory("models")     } ~
