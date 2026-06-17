@@ -1,4 +1,4 @@
-const cfg = (typeof window !== "undefined" && window.__HNW_CONFIG__) || {};
+import cfg from "/js/static/client-config.js";
 
 const root      = cfg.root      ?? "localhost";
 const galaProto = cfg.galaProto ?? "http";

@@ -1,4 +1,5 @@
 import deepFreeze from "/js/static/deep-freeze.js";
+import cfg        from "/js/static/client-config.js";
 
 // type Protocol = { connection :: RTCPeerConnection, channel :: RTCDataChannel, socket :: WebSocket }
 // type Channel  = RTCDataChannel
@@ -6,7 +7,6 @@ import deepFreeze from "/js/static/deep-freeze.js";
 // STUN/TURN config is per-deployment via /js/config.js (these creds ship to every
 // client, so they are not secret). Defaults are local-dev values; deployments
 // override them through the config served at /js/config.js.
-const cfg      = (typeof window !== "undefined" && window.__HNW_CONFIG__) || {};
 const turnHost = cfg.turnHost ?? "localhost";
 const turnUser = cfg.turnUser ?? "guest";
 const turnPass = cfg.turnPass ?? "mycoolpassword";
