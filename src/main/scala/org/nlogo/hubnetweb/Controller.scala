@@ -12,11 +12,11 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ ContentType, ContentTypes, HttpCharsets, HttpEntity, MediaType }
 import akka.http.scaladsl.model.MediaType.Compressible
-import akka.http.scaladsl.model.StatusCodes.NotFound
+import akka.http.scaladsl.model.StatusCodes.{ MovedPermanently, NotFound }
 import akka.http.scaladsl.model.headers.{ `Access-Control-Allow-Origin` => ACAO }
 import akka.http.scaladsl.model.ws.{ BinaryMessage, Message, TextMessage }
 import akka.http.scaladsl.server.directives.ContentTypeResolver
-import akka.http.scaladsl.server.Directives.{ complete, reject }
+import akka.http.scaladsl.server.Directives.{ complete, extract, redirect, reject, scheme }
 import akka.http.scaladsl.server.{ RequestContext, RouteResult, ValidationRejection }
 import akka.stream.scaladsl.{ Flow, Merge, Sink, Source }
 import akka.util.Timeout
@@ -112,6 +112,13 @@ object Controller {
     val jsContentType =
       ContentType(MediaType.custom("text/javascript", binary = false, Compressible, List("js")), () => HttpCharsets.`UTF-8`)
 
+    val httpRoute =
+      scheme("http") {
+        extract(_.request.uri) {
+          uri => redirect(uri.withScheme("https"), MovedPermanently)
+        }
+      }
+
     val route = {
 
       import akka.http.scaladsl.server.Directives._
@@ -203,6 +210,8 @@ object Controller {
           sslContext.init(keyManager.getKeyManagers, trustManager.getTrustManagers, new SecureRandom)
 
           val https: HttpsConnectionContext = ConnectionContext.httpsServer(sslContext)
+
+          val httpFuture = Http().newServerAt(interface = interface, port = httpPort).bind(httpRoute)
 
           val bindingFuture = Http().newServerAt(interface = interface, port = httpsPort).enableHttps(https).bind(route)
           println(s"Now running at https://$interface${if (httpsPort == 443) "" else s":$httpsPort"}/.  Press Ctrl+C to stop.")
