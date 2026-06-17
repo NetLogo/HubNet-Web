@@ -24,8 +24,11 @@ CLAUDE.md
 AGENTS.md
 .claude/
 
-# Per-deployment config — the live env file, sourced at launch (see hnw.env.example)
+# Per-deployment config - see hnw.env.example
 /hnw.env
 
-# TLS keystore — never commit; supplied at runtime via HNW_KEYSTORE_PATH
+# TLS keystore, never commit - supplied at runtime via HNW_KEYSTORE_PATH
 /resources/*.p12
+
+# Large conversion-guide video, don't commit
+/assets/ConversionGuide.mp4
