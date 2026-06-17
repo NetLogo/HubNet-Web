@@ -165,11 +165,63 @@ object Controller {
 
     }
 
-    val bindingFuture = Http().newServerAt(interface = "localhost", port = 8080).bind(route)
-    println("Now running at http://localhost:8080/.  Press Ctrl+C to stop.".stripMargin)
-    StdIn.readLine()
+    {
 
-    bindingFuture.flatMap(_.unbind()).onComplete(_ => system.terminate())
+      import java.io.{ FileInputStream, InputStream }
+      import java.security.{ KeyStore, SecureRandom }
+
+      import javax.net.ssl.{ KeyManagerFactory, SSLContext, TrustManagerFactory }
+      import akka.http.scaladsl.{ ConnectionContext, Http, HttpsConnectionContext }
+
+      // Bindings are per-deployment, supplied via environment so prod and staging
+      // differ only by their launch env. Anything unset falls back to local dev.
+      val interface = sys.env.getOrElse("HNW_INTERFACE", "localhost")
+      val httpPort  = sys.env.get("HNW_HTTP_PORT").map(_.toInt).getOrElse(8080)
+      val httpsPort = sys.env.get("HNW_HTTPS_PORT").map(_.toInt).getOrElse(8443)
+
+      sys.env.get("HNW_KEYSTORE_PATH") match {
+
+        // A keystore is configured (prod/staging): serve HTTPS and redirect HTTP to it.
+        // The keystore is read from the filesystem, never the classpath, so the repo
+        // carries no key material.
+        case Some(keystorePath) =>
+
+          val password = sys.env.getOrElse("HNW_KEYSTORE_PASSWORD", "").toCharArray
+
+          val ks: KeyStore = KeyStore.getInstance("PKCS12")
+          val keystore: InputStream = new FileInputStream(keystorePath)
+
+          ks.load(keystore, password)
+
+          val keyManager = KeyManagerFactory.getInstance("SunX509")
+          keyManager.init(ks, password)
+
+          val trustManager = TrustManagerFactory.getInstance("SunX509")
+          trustManager.init(ks)
+
+          val sslContext = SSLContext.getInstance("TLS")
+          sslContext.init(keyManager.getKeyManagers, trustManager.getTrustManagers, new SecureRandom)
+
+          val https: HttpsConnectionContext = ConnectionContext.httpsServer(sslContext)
+
+          val bindingFuture = Http().newServerAt(interface = interface, port = httpsPort).enableHttps(https).bind(route)
+          println(s"Now running at https://$interface${if (httpsPort == 443) "" else s":$httpsPort"}/.  Press Ctrl+C to stop.")
+          StdIn.readLine()
+
+          bindingFuture.flatMap(_.unbind()).onComplete(_ => system.terminate())
+
+        // No keystore (local dev): plain HTTP, no TLS, no redirect.
+        case None =>
+
+          val bindingFuture = Http().newServerAt(interface = interface, port = httpPort).bind(route)
+          println(s"Now running at http://$interface${if (httpPort == 80) "" else s":$httpPort"}/.  Press Ctrl+C to stop.")
+          StdIn.readLine()
+
+          bindingFuture.flatMap(_.unbind()).onComplete(_ => system.terminate())
+
+      }
+
+    }
 
   }
 

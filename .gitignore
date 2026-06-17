@@ -26,3 +26,6 @@ AGENTS.md
 
 # Per-deployment config — the live env file, sourced at launch (see hnw.env.example)
 /hnw.env
+
+# TLS keystore — never commit; supplied at runtime via HNW_KEYSTORE_PATH
+/resources/*.p12
