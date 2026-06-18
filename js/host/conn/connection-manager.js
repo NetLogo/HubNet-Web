@@ -235,31 +235,65 @@ export default class ConnectionManager {
     this.#broadcastNumClients();
   };
 
-  // (UUID, RTCPeerConnection) => (RTCSessionDescription) => Unit
-  #processOffer = (joinerID, connection) => (offer) => {
+  // (UUID, RTCPeerConnection) =>
+  //   { processOffer :: (RTCSessionDescription) => Unit, addICE :: (RTCIceCandidate) => Unit }
+  #processOffer = (joinerID, connection) => {
 
-    const rtcID   = uuidToRTCID(joinerID);
-    const props   = { negotiated: true, binaryType: "arraybuffer", id: rtcID };
-    const channel = connection.createDataChannel("hubnet-web", props);
+    // Trickle ICE: the joiner's ICE candidates can arrive before we've applied
+    // the remote description (their offer), and `addIceCandidate` rejects with
+    // "The remote description was null" if it's called first.  Buffer candidates
+    // until the offer is set, then flush them.  -Jeremy B June 2026
+    const pendingCandies = [];
+    let   remoteIsSet    = false;
 
-    channel.binaryType = "arraybuffer";
+    const addCandy = (candy) => {
+      connection.addIceCandidate(candy).catch((err) => {
+        console.warn(`Could not add ICE candidate for ${joinerID}:`, err);
+      });
+    };
 
-    const onRun      = this.#onChannelMessage(joinerID, channel);
-    const msgHandler = { reset: () => {}, run: onRun };
-    const rxQueue    = new RxQueue(msgHandler, true);
+    const addICE = (candy) => {
+      if (remoteIsSet) {
+        addCandy(candy);
+      } else {
+        pendingCandies.push(candy);
+      }
+    };
 
-    channel.onopen    = () => { this.#rtcManager.sendGreeting(channel); };
-    channel.onmessage = rxQueue.enqueue;
-    channel.onclose   = () => { this.#disown(joinerID); };
+    const onRemoteSet = () => {
+      remoteIsSet = true;
+      pendingCandies.forEach(addCandy);
+      pendingCandies.length = 0;
+    };
 
-    this.#sessionManager.setNetworking(joinerID, connection, channel);
+    const processOffer = (offer) => {
 
-    this.#setUpConnection(connection, joinerID, offer);
+      const rtcID   = uuidToRTCID(joinerID);
+      const props   = { negotiated: true, binaryType: "arraybuffer", id: rtcID };
+      const channel = connection.createDataChannel("hubnet-web", props);
+
+      channel.binaryType = "arraybuffer";
+
+      const onRun      = this.#onChannelMessage(joinerID, channel);
+      const msgHandler = { reset: () => {}, run: onRun };
+      const rxQueue    = new RxQueue(msgHandler, true);
+
+      channel.onopen    = () => { this.#rtcManager.sendGreeting(channel); };
+      channel.onmessage = rxQueue.enqueue;
+      channel.onclose   = () => { this.#disown(joinerID); };
+
+      this.#sessionManager.setNetworking(joinerID, connection, channel);
+
+      this.#setUpConnection(connection, joinerID, offer, onRemoteSet);
+
+    };
+
+    return { processOffer, addICE };
 
   };
 
-  // (RTCPeerConnection, UUID, RTCSessionDescription) => Unit
-  #setUpConnection = (connection, joinerID, offer) => {
+  // (RTCPeerConnection, UUID, RTCSessionDescription, () => Unit) => Unit
+  #setUpConnection = (connection, joinerID, offer, onRemoteSet) => {
 
     {
       const knownCandies = new Set();
@@ -277,7 +311,7 @@ export default class ConnectionManager {
     }
 
     connection.setRemoteDescription(offer).
-      then(()     => connection.createAnswer()).
+      then(()     => { onRemoteSet(); return connection.createAnswer(); }).
       then(answer => connection.setLocalDescription(answer)).
       then(()     => {
         const desc = connection.localDescription.toJSON();

@@ -21,7 +21,9 @@ export default class BroadSocket {
     return awaitWorker(this.#worker)(msg);
   };
 
-  // (UUID, (RTCPeerConnection, UUID) => (Object[Any]) => Unit, (Worker) => Unit, () => Boolean) => Unit
+  // ( UUID
+  // , (UUID, RTCPeerConnection) => { processOffer :: (Object[Any]) => Unit, addICE :: (RTCIceCandidate) => Unit }
+  // , (Worker) => Unit, () => Boolean) => Unit
   connect = (hostID, processOffer, registerSignaling, getFullness) => {
 
     const mc = new MessageChannel();
@@ -36,18 +38,19 @@ export default class BroadSocket {
 
 }
 
-// (UUID, (UUID, RTCPeerConnection) => (Object[Any]) => Unit, (UUID, SignalingSocket) => Unit, () => Boolean) =>
+// ( UUID
+// , (UUID, RTCPeerConnection) => { processOffer :: (Object[Any]) => Unit, addICE :: (RTCIceCandidate) => Unit }
+// , (UUID, SignalingSocket) => Unit, () => Boolean) =>
 // (Object[{ data :: UUID }]) => Unit
 const handleSocketMessage = (hostID, processOffer2, registerSignaling, getFullness) =>
                             ({ data: joinerID }) => {
 
   const signaling = new SignalingSocket(getFullness());
 
-  const connection    = new RTCPeerConnection(rtcConfig);
-  const processOffer0 = processOffer2(joinerID, connection);
-  const addICE        = (candy) => { connection.addIceCandidate(candy); };
+  const connection               = new RTCPeerConnection(rtcConfig);
+  const { processOffer, addICE } = processOffer2(joinerID, connection);
 
-  signaling.connect(hostID, joinerID, processOffer0, addICE);
+  signaling.connect(hostID, joinerID, processOffer, addICE);
 
   registerSignaling(joinerID, signaling);
 

@@ -100,14 +100,37 @@ export default class ConnectionManager {
   // (UUID, UUID, RTCSessionDescriptionInit, () => Unit) => SignalingStream
   #genSignalingStream = (hostID, joinerID, offer, notifyFull) => {
 
+    // Trickle ICE: the host's ICE candidates can arrive before we've applied
+    // the remote description (their answer), and `addIceCandidate` rejects with
+    // "The remote description was null" if it's called first.  Buffer candidates
+    // until the answer is set, then flush them.  -Jeremy B June 2026
+    const pendingCandies = [];
+    let   remoteIsSet    = false;
+
+    const addCandy = (c) => {
+      this.#conn.addIceCandidate(c).catch((err) => {
+        console.warn("Could not add host ICE candidate:", err);
+      });
+    };
+
     const setRTCDesc =
       (answer) => {
         if (this.#conn.remoteDescription === null) {
-          this.#conn.setRemoteDescription(answer);
+          this.#conn.setRemoteDescription(answer).then(() => {
+            remoteIsSet = true;
+            pendingCandies.forEach(addCandy);
+            pendingCandies.length = 0;
+          });
         }
       };
 
-    const addRTCICE = (c) => { this.#conn.addIceCandidate(c); };
+    const addRTCICE = (c) => {
+      if (remoteIsSet) {
+        addCandy(c);
+      } else {
+        pendingCandies.push(c);
+      }
+    };
 
     return new SignalingStream( hostID, joinerID, offer
                               , setRTCDesc, addRTCICE, notifyFull);
