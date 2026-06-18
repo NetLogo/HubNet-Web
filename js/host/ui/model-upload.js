@@ -66,23 +66,23 @@ const isNlogo = (str) => {
 // (String) => Boolean
 const isNlogox = (str) => {
   return typeof(str) === "string" && str.trim().startsWith("<?xml");
-}
+};
 
 // (String) => Document
 const nlogoXmlToDoc = (nlogox) => {
   const parser = new DOMParser();
   return parser.parseFromString(nlogox, "text/xml");
-}
+};
 
 // (String) => String
 const stripXmlCdata = (text) => {
   const CDATA_START = "<![CDATA[";
   const CDATA_END   = "]]>";
   if (text.startsWith(CDATA_START) && text.endsWith(CDATA_END))
-    return text.slice(CDATA_START.length, -1 * CDATA_END.length)
+    return text.slice(CDATA_START.length, -1 * CDATA_END.length);
   else
-    return text
-}
+    return text;
+};
 
 // (File) => Promise[UploadResult]
 const processUpload = (file) => {
@@ -106,7 +106,8 @@ const processUpload = (file) => {
           const nlogoDoc      = nlogoXmlToDoc(text);
           const modelElement  = nlogoDoc.querySelector("model");
           const configElement = modelElement.querySelector("hubnet-web-config");
-          const config        = configElement === null ? undefined : stripXmlCdata(configElement.innerHTML);
+          const config        =
+            configElement === null ? undefined : stripXmlCdata(configElement.innerHTML);
           return new ValidUpload("nlogox", text, config);
         } catch (_) {
           return new NlogoxPartial(text);

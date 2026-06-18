@@ -13,7 +13,7 @@ const turnPass = cfg.turnPass ?? "mycoolpassword";
 
 const commonConfig = {
   iceServers: [
-    { urls: ['', '1', '2', '3', '4'].map((x) => `stun:stun${x}.l.google.com:19302`) }
+    { urls: ["", "1", "2", "3", "4"].map((x) => `stun:stun${x}.l.google.com:19302`) }
   , { urls: `stun:stun.${turnHost}` }
   , { urls: `stun:stun.${turnHost}`
     , username: turnUser
