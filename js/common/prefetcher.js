@@ -17,20 +17,24 @@ export default class Prefetcher {
     if (isHost) {
       this.#promises = Object.fromEntries(hashes.map((hash) => [hash, Promise.resolve(`${hash}`)]));
     } else {
+      // Assign each promise synchronously, so `get` never sees a missing entry
+      // for a known hash while its fetch is still in flight.
       hashes.forEach(
-        async (hash) => {
-          const response = await fetch(`/prefetched/${hash}`);
-          const blob     = await response.blob();
-          const promise =
-            new Promise(
-              (resolve, reject) => {
-                const reader   = new FileReader();
-                reader.onload  = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-              }
-            );
-          this.#promises[hash] = promise;
+        (hash) => {
+          this.#promises[hash] =
+            fetch(`/prefetched/${hash}`).
+              then((response) => response.blob()).
+              then(
+                (blob) =>
+                  new Promise(
+                    (resolve, reject) => {
+                      const reader   = new FileReader();
+                      reader.onload  = () => resolve(reader.result);
+                      reader.onerror = reject;
+                      reader.readAsDataURL(blob);
+                    }
+                  )
+              );
         }
       );
     }
