@@ -13,7 +13,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ ContentType, ContentTypes, HttpCharsets, HttpEntity, MediaType }
 import akka.http.scaladsl.model.MediaType.Compressible
 import akka.http.scaladsl.model.StatusCodes.{ MovedPermanently, NotFound }
-import akka.http.scaladsl.model.headers.{ `Access-Control-Allow-Origin` => ACAO }
+import akka.http.scaladsl.model.headers.{ `Access-Control-Allow-Origin` => ACAO, `Cache-Control`, CacheDirectives }
 import akka.http.scaladsl.model.ws.{ BinaryMessage, Message, TextMessage }
 import akka.http.scaladsl.server.directives.ContentTypeResolver
 import akka.http.scaladsl.server.Directives.{ complete, extract, redirect, reject, scheme }
@@ -139,6 +139,23 @@ object Controller {
            }
          }
 
+      val OneWeek = 60 * 60 * 24 * 7
+      def prefetch(id: Int) = {
+        val path =
+          id match {
+            case    37695712 => "assets/models/Bug Hunters Camouflage/poppyfield.jpg"
+            case  -448920965 => "assets/models/Bug Hunters Camouflage/poppyfield.jpg"
+            case -1899347901 => "assets/models/Bug Hunters Camouflage/glacier.jpg"
+            case  1152521345 => "assets/models/Bug Hunters Camouflage/seashore.jpg"
+            case  1403011093 => "assets/models/Guppy Spots/aquarium.jpg"
+            case  -996662878 => "assets/models/Guppy Spots/underwater.jpg"
+            case           x => "NOT_FOUND"
+          }
+        respondWithHeader(`Cache-Control`(CacheDirectives.`max-age`(OneWeek))) {
+          getFromFile(path)
+        }
+      }
+
       path("")                 { getFromFile("html/index.html") } ~
       path("docs")             { getFromFile("html/docs/index.html") } ~
       path("docs"/"faq")       { getFromFile("html/docs/faq.html") } ~
@@ -164,11 +181,12 @@ object Controller {
       path("depend" / "js" / "marked.esm.js") { getFromFile("node_modules/marked/lib/marked.esm.js") } ~
       path("favicon.ico") { getFromFile("assets/images/favicon.ico") } ~
       path("js" / "config.js")       { get { complete(HttpEntity(jsContentType, configJs.getBytes(StandardCharsets.UTF_8))) } } ~
-      pathPrefix("js")               { getFromDirectory("js")         } ~
-      pathPrefix("assets")           { getFromDirectory("assets")     } ~
-      pathPrefix("models")           { getFromDirectory("models")     } ~
-      pathPrefix("extras")           { respondWithHeaders(ACAO.*) { getFromDirectory("assets/models") } } ~
-      pathPrefix("previews")         { getFromDirectory("assets/previews")     }
+      pathPrefix("prefetched" / Segment) { (resourceID) => prefetch(resourceID.toInt) } ~
+      pathPrefix("js")       { getFromDirectory("js")         } ~
+      pathPrefix("assets")   { getFromDirectory("assets")     } ~
+      pathPrefix("models")   { getFromDirectory("models")     } ~
+      pathPrefix("extras")   { respondWithHeaders(ACAO.*) { getFromDirectory("assets/models") } } ~
+      pathPrefix("previews") { getFromDirectory("assets/previews") }
 
     }
 

@@ -4,16 +4,20 @@ import NLWManager from "/js/common/ui/nlw-manager.js";
 
 export default class JoinerNLWManager extends NLWManager {
 
-  #onError = undefined; // (String) => Unit
-  #send    = undefined; // (String, Object[Any]) => Unit
+  #fromCache = undefined; // (Number) => Promise[String]
+  #onError   = undefined; // (String) => Unit
+  #send      = undefined; // (String, Object[Any]) => Unit
 
-  // (Element, (String, Object[Any]) => Unit, () => Unit, (String) => Unit) => JoinerNLWManager
-  constructor(outerFrame, send, onDisconnect, onError) {
+  // ( Element, (String, Object[Any]) => Unit, (Number) => Promise[String]
+  // , () => Unit, (String) => Unit) => JoinerNLWManager
+  constructor( outerFrame, send, getCached
+             , onDisconnect, onError) {
 
     super(outerFrame);
 
-    this.#onError = onError;
-    this.#send    = send;
+    this.#fromCache = getCached;
+    this.#onError   = onError;
+    this.#send      = send;
 
     outerFrame.querySelector("#disconnect-button").
       addEventListener("click", onDisconnect);
@@ -35,8 +39,9 @@ export default class JoinerNLWManager extends NLWManager {
     this._getFrame().src = `${this._galaURL}/hnw/join`;
   };
 
-  // (Object[Any]) => Unit
-  postUpdate = (update) => {
+  // (Object[Any]) => Promise[Unit]
+  postUpdate = async (baseUpdate) => {
+    const update = await this._mungeUpdate(baseUpdate);
     this._post({ type: "nlw-apply-update", update });
   };
 
@@ -83,6 +88,30 @@ export default class JoinerNLWManager extends NLWManager {
     const galaWindow = this._getFrame().contentWindow;
     spamFrameForPort(this._galaURL)(galaWindow)("hnw-set-up-baby-monitor").
       then(this._setBabyMonitor);
+  };
+
+  // (Object[Any]) => Promise[Object[Any]]
+  _mungeUpdate = async (update) => {
+
+    const drawingEvents = update.viewUpdate?.drawingEvents;
+
+    if (drawingEvents !== undefined) {
+      const mungedEventPs =
+        drawingEvents.map(
+          (event) => {
+            const cachedP = this.#fromCache(event.hash);
+            if (event.type === "import-drawing" && cachedP !== undefined) {
+              return cachedP.then((base64) => { event.imageBase64 = base64; return event; });
+            } else {
+              return Promise.resolve(event);
+            }
+          }
+        );
+      update.viewUpdate.drawingEvents = await Promise.all(mungedEventPs);
+    }
+
+    return update;
+
   };
 
 }

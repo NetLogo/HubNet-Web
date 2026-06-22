@@ -5,7 +5,7 @@ export default (bundle) => {
 
   const relayQueue = new SimpleQueue(bundle.relayToNLW);
 
-  return (datum) => {
+  return async (datum) => {
 
     switch (datum.type) {
 
@@ -15,7 +15,7 @@ export default (bundle) => {
       }
 
       case "initial-model": {
-        handleInitialModel(bundle)(datum);
+        await handleInitialModel(bundle)(datum);
         break;
       }
 
@@ -48,34 +48,32 @@ export default (bundle) => {
 
 };
 
-// (Object[Any]) => (Object[Any]) => Unit
-const handleInitialModel = (bundle) => ({ token, view, state }) => {
+// (Object[Any]) => (Object[Any]) => Promise[Unit]
+const handleInitialModel = (bundle) => async ({ token, view, state }) => {
 
   bundle.statusManager.waitingForNLWBoot();
 
   const awaitInitialInterface =
-    () => {
+    async () => {
       bundle.statusManager.loadingNLWUI();
-      return bundle.getRoleDataP().then(
-        (role) => {
-          const initialInterface =
-            { username: bundle.getUsername()
-            , role
-            , token
-            , view
-            };
-          return bundle.awaitLoadInterface(initialInterface);
-        }
-      );
+      const role = await bundle.getRoleDataP();
+      const initialInterface =
+        { username: bundle.getUsername()
+        , role
+        , token
+        , view
+        };
+      return bundle.awaitLoadInterface(initialInterface);
     };
 
   const postInitialState =
-    () => {
+    async () => {
       bundle.statusManager.modelLoaded();
       bundle.notifyBootedUp();
-      bundle.updateNLW(state);
+      await bundle.updateNLW(state);
     };
 
-  awaitInitialInterface().then(postInitialState);
+  await awaitInitialInterface();
+  await postInitialState();
 
 };

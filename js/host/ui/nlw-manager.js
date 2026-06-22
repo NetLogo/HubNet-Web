@@ -6,6 +6,7 @@ import NLWManager from "/js/common/ui/nlw-manager.js";
 export default class HostNLWManager extends NLWManager {
 
   #broadcast           = undefined; // (String, Object[Any]?) => Unit
+  #checkCache          = undefined; // (Number) => Promise[String]
   #narrowcast          = undefined; // () => Array[RTCDataChannel]
   #onError             = undefined; // (String) => Unit
   #onPersistentClients = undefined; // (Array[Number]) => Unit
@@ -17,14 +18,15 @@ export default class HostNLWManager extends NLWManager {
 
   // ( Element, (String, Object[Any]?) => Unit
   // , () => Array[RTCDataChannel], (Array[Number]) => Unit
-  // , (Array[Object[Any]]) => Unit, (String) => Unit) => HostNLWManager
+  // , (Array[Object[Any]]) => Unit, (Number) => Promise[String], (String) => Unit) => HostNLWManager
   constructor( outerFrame, broadcast
              , narrowcast, onPersistentClients
-             , onRoleInfo, onError) {
+             , onRoleInfo, getCached, onError) {
 
     super(outerFrame);
 
     this.#broadcast           = broadcast;
+    this.#checkCache          = getCached;
     this.#narrowcast          = narrowcast;
     this.#onError             = onError;
     this.#onPersistentClients = onPersistentClients;
@@ -158,8 +160,13 @@ export default class HostNLWManager extends NLWManager {
       }
 
       case "relay": {
-        const typ  = data.payload.type;
-        const type = (typ === "nlw-state-update") ? "state-update" : typ;
+
+        const payload = data.payload;
+        const typ     = payload.type;
+        const type    = (typ === "nlw-state-update") ? "state-update" : typ;
+
+        payload.update = (type === "state-update") ? this._mungeUpdate(payload.update) : payload.update;
+
         if (data.isNarrowcast) {
           const parcel = { ...data.payload };
           delete parcel.isNarrowcast;
@@ -169,7 +176,9 @@ export default class HostNLWManager extends NLWManager {
         } else {
           this.#broadcast(type, data.payload);
         }
+
         break;
+
       }
 
       case "hnw-oracle-content-height": {
@@ -188,6 +197,21 @@ export default class HostNLWManager extends NLWManager {
 
     }
 
+  };
+
+  // (Object[Any]) => Object[Any]
+  _mungeUpdate = (update) => {
+    const drawingEvents = update.viewUpdate?.drawingEvents;
+    if (drawingEvents !== undefined) {
+      drawingEvents.forEach(
+        (event) => {
+          if (event.type === "import-drawing" && this.#checkCache(event.hash) !== undefined) {
+            delete event.imageBase64;
+          }
+        }
+      );
+    }
+    return update;
   };
 
 }

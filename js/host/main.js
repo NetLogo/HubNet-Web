@@ -6,6 +6,7 @@ import MenuManager          from "./ui/menu-manager.js";
 import ModalManager         from "./ui/modal-manager.js";
 import NLWManager           from "./ui/nlw-manager.js";
 
+import Prefetcher  from "/js/common/prefetcher.js";
 import ChatManager from "/js/common/ui/chat-manager.js";
 
 // (String) => Element?
@@ -125,7 +126,7 @@ const connMan =
 
 const nlwManager =
   new NLWManager( byEID("nlw-frame"), connMan.broadcast, connMan.narrowcast
-                , connMan.notifyPersistentPops, connMan.notifyRoles
+                , connMan.notifyPersistentPops, connMan.notifyRoles, (new Prefetcher(true)).get
                 , onNLWManError);
 
 document.addEventListener("DOMContentLoaded", () => {

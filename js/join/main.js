@@ -9,6 +9,7 @@ import SessionList          from "./ui/session/session-list.js";
 
 import genCHB from "./gen-chan-han-bundle.js";
 
+import Prefetcher  from "/js/common/prefetcher.js";
 import ChatManager from "/js/common/ui/chat-manager.js";
 
 import { deserialize } from "/js/serialize/xserialize-root.js";
@@ -332,7 +333,7 @@ const globalChatManager =
                  , markChatRead);
 
 const connMan    = new ConnectionManager(globalChatManager, fetchRoleData);
-const nlwManager = new NLWManager( byEID("nlw-frame"), connMan.send
+const nlwManager = new NLWManager( byEID("nlw-frame"), connMan.send, (new Prefetcher(false)).get
                                  , onSessionDisconnect, onHNWError);
 const burstQueue = genBurstQueue(); // BurstQueue
 
