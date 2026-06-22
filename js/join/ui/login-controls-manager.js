@@ -106,6 +106,13 @@ export default class LoginControlsManager {
 
     this.#button.disabled = !(hasActive && this.#roleSelect.selectedIndex >= 0);
 
+    // Nudge the user toward the next step: on a fresh selection, move focus to
+    // the username field and smoothly bring it into view.
+    if (hasActive && isNewSelection) {
+      this.#usernameInput.focus({ preventScroll: true });
+      this.#usernameInput.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
   };
 
   // () => Unit
