@@ -358,7 +358,7 @@ to-report tickos
 end
 
 to check-found-bugs-student [x y]
-  if tickos != -1 [
+  if not member? tickos [-1 0] [
     ask my-player [ check-found-bugs x y ]
   ]
 end
