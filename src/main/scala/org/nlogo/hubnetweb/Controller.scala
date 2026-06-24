@@ -156,16 +156,23 @@ object Controller {
         }
       }
 
-      path("")                 { getFromFile("html/index.html") } ~
-      path("docs")             { getFromFile("html/docs/index.html") } ~
-      path("docs"/"faq")       { getFromFile("html/docs/faq.html") } ~
-      path("docs"/"authoring") { getFromFile("html/docs/authoring.html") } ~
-      path("docs"/"converting"){ getFromFile("html/docs/converting.html") } ~
-      path("authoring")        { getFromFile("html/embed-authoring.html") } ~
-      path("host")             { getFromFile("html/host.html")  } ~
+      // HTML pages and the JS module graph live at stable, unversioned URLs, so a deploy reuses the same URL for files
+      // whose contents changed. `no-cache` still caches the bytes but forces the browser to revalidate against the
+      // ETag/Last-Modified we already send.  The large, rarely-changing static dirs (assets/models/previews) are
+      // intentionally left on default/long caching below; they aren't part of the deploy-time breakage.
+      // -Jeremy B June 2026
+      val noCache = respondWithHeader(`Cache-Control`(CacheDirectives.`no-cache`))
+
+      noCache { path("")                  { getFromFile("html/index.html") } } ~
+      noCache { path("docs")              { getFromFile("html/docs/index.html") } } ~
+      noCache { path("docs"/"faq")        { getFromFile("html/docs/faq.html") } } ~
+      noCache { path("docs"/"authoring")  { getFromFile("html/docs/authoring.html") } } ~
+      noCache { path("docs"/"converting") { getFromFile("html/docs/converting.html") } } ~
+      noCache { path("authoring")         { getFromFile("html/embed-authoring.html") } } ~
+      noCache { path("host")              { getFromFile("html/host.html")  } } ~
+      noCache { path("join")              { getFromFile("html/join.html")  } } ~
+      noCache { path("about")             { getFromFile("html/about.html") } } ~
       path("launch-session")   { post { entity(as[LaunchReq])(handleLaunchReq) } } ~
-      path("join")             { getFromFile("html/join.html")  } ~
-      path("about")            { getFromFile("html/about.html") } ~
       path("available-models") { get { complete(availableModels) } } ~
       path("library-config")   { get { complete(libraryConfig) } } ~
       path("role-data" / Segment / Segment) { (hostID, roleIndex) => get { roleData(toID(hostID), roleIndex.toInt) } } ~
@@ -180,9 +187,9 @@ object Controller {
       path("depend" / "js" / "pako.esm.mjs")  { getFromFile("node_modules/pako/dist/pako.esm.mjs") } ~
       path("depend" / "js" / "marked.esm.js") { getFromFile("node_modules/marked/lib/marked.esm.js") } ~
       path("favicon.ico") { getFromFile("assets/images/favicon.ico") } ~
-      path("js" / "config.js")       { get { complete(HttpEntity(jsContentType, configJs.getBytes(StandardCharsets.UTF_8))) } } ~
+      noCache { path("js" / "config.js") { get { complete(HttpEntity(jsContentType, configJs.getBytes(StandardCharsets.UTF_8))) } } } ~
       pathPrefix("prefetched" / Segment) { (resourceID) => prefetch(resourceID.toInt) } ~
-      pathPrefix("js")       { getFromDirectory("js")         } ~
+      noCache { pathPrefix("js") { getFromDirectory("js")         } } ~
       pathPrefix("assets")   { getFromDirectory("assets")     } ~
       pathPrefix("models")   { getFromDirectory("models")     } ~
       pathPrefix("extras")   { respondWithHeaders(ACAO.*) { getFromDirectory("assets/models") } } ~
