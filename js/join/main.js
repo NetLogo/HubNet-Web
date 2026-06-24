@@ -92,8 +92,18 @@ const onLogIn = (username, password, roleIndex, sessionName, activityName) => {
 
   const genCHBundle = genCHB(rootCHBundle);
 
+  // A join can fail before we ever connect to the host: the host is gone, shutting down ("No more
+  // hashes"/"pool's-closed"), or the session filled up. None of these go through `cleanupSession`, so we must release
+  // the login lock here; otherwise `#hasSubmitted` never clears and the user can't join any session (the Join button
+  // silently does nothing) until they reload. -Jeremy B June 2026
+  const onJoinFailure = (message) => {
+    alert(message);
+    loginControls.reset();
+    statusManager.enterLoginInfo();
+  };
+
   const notifyFull = () => {
-    alert("The selected session is currently full.  Please wait a bit before trying again, or choose another session.");
+    onJoinFailure("The selected session is currently full.  Please wait a bit before trying again, or choose another session.");
   };
 
   window.localStorage.setItem(usernameLSKey, username);
@@ -102,7 +112,7 @@ const onLogIn = (username, password, roleIndex, sessionName, activityName) => {
     then((response) => response.text()).
     then(connMan.logIn( hostID, username, password, roleIndex, genCHBundle
                       , statusManager.loggingIn, statusManager.iceConnectionLost
-                      , onDoorbell, alert, notifyFull, cleanupSession));
+                      , onDoorbell, onJoinFailure, notifyFull, cleanupSession));
 
 };
 
